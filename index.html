@@ -17,7 +17,7 @@
           </div>
           <button id="themeToggleButton" type="button" class="ghost-button theme-button">Modo oscuro</button>
         </div>
-        <p class="subtitle">Varias cuentas, reparto proporcional y resumen compartible.</p>
+        <p class="subtitle">Varias cuentas, productos compartidos y resumen listo para enviar.</p>
       </section>
 
       <section class="card compact-card">
@@ -37,12 +37,12 @@
     <section class="main-panel">
       <section class="card settings-card compact-card">
         <div class="card-header small-header">
-          <h2>Configuración</h2>
+          <h2>Configuracion</h2>
         </div>
         <div class="settings-grid compact-grid">
           <label class="field-group field-wide">
             <span class="label">Nombre de la cuenta</span>
-            <input id="accountName" type="text" placeholder="Ej: Salida al bar">
+            <input id="accountName" type="text" placeholder="Ej: Jueves en el bar">
           </label>
           <label class="field-group compact-field">
             <span class="label">Propina (%)</span>
@@ -50,12 +50,16 @@
           </label>
         </div>
         <div class="toolbar compact-toolbar">
-          <button id="shareButton" type="button">Copiar</button>
+          <button id="shareButton" type="button">Copiar resumen</button>
           <button id="whatsAppButton" type="button">WhatsApp</button>
-          <button id="imageButton" type="button">Imagen</button>
-          <button id="pdfButton" type="button">PDF</button>
-          <button id="resetButton" type="button" class="ghost-button danger-button">Reiniciar</button>
+          <button id="svgButton" type="button">Exportar SVG</button>
+          <button id="pngButton" type="button">Exportar PNG</button>
+          <button id="pdfButton" type="button">Exportar PDF</button>
+          <button id="exportDataButton" type="button" class="ghost-button">Exportar datos</button>
+          <button id="importDataButton" type="button" class="ghost-button">Importar datos</button>
+          <button id="resetButton" type="button" class="ghost-button danger-button">Reiniciar cuenta</button>
         </div>
+        <input id="importFileInput" type="file" accept="application/json" class="hidden">
         <p id="generalMessage" class="form-message" aria-live="polite"></p>
       </section>
 
@@ -67,7 +71,7 @@
           </div>
           <form id="personForm" class="inline-form compact-inline-form">
             <input id="personName" type="text" placeholder="Nombre de la persona" required>
-            <button id="personSubmitButton" type="submit">Agregar</button>
+            <button id="personSubmitButton" type="submit">Agregar persona</button>
             <button id="personCancelButton" type="button" class="ghost-button hidden">Cancelar</button>
           </form>
           <p id="personError" class="form-message" aria-live="polite"></p>
@@ -81,21 +85,25 @@
           </div>
           <form id="productForm" class="product-form compact-product-form">
             <input id="productName" type="text" placeholder="Producto" required>
-            <input id="productPrice" type="number" min="0" step="1" placeholder="Valor por unidad" required>
+            <input id="productPrice" type="number" min="1" step="1" placeholder="Valor por unidad" required>
             <input id="productQuantity" type="number" min="1" step="1" value="1" placeholder="Cantidad" required>
             <div class="split-mode-row compact-split-mode-row">
               <p class="label">Tipo de reparto</p>
               <label class="radio-chip">
                 <input type="radio" name="splitMode" value="equal" checked>
-                <span>Igual</span>
+                <span>Division igual</span>
               </label>
               <label class="radio-chip">
                 <input type="radio" name="splitMode" value="weighted">
-                <span>Proporcional</span>
+                <span>Division proporcional por partes</span>
               </label>
             </div>
+            <p class="helper-text">Ejemplo: si Carlos tiene 2 partes y Pedro 1 parte, Carlos paga el doble que Pedro.</p>
             <div>
-              <p class="label">Consumido por</p>
+              <div class="consumer-header">
+                <p class="label">Consumido por</p>
+                <button id="selectAllConsumersButton" type="button" class="ghost-button small-button">Seleccionar todos</button>
+              </div>
               <div id="productConsumers" class="consumer-grid empty-state-inline">Agrega personas primero</div>
             </div>
             <button id="productSubmitButton" type="submit">Agregar producto</button>
@@ -127,10 +135,15 @@
             <strong id="grandTotalValue">$0</strong>
           </div>
         </div>
-        <div id="results" class="results empty-state">Agrega personas y productos para ver el cálculo.</div>
+        <div id="results" class="results empty-state">Agrega personas y productos para ver el calculo.</div>
       </section>
     </section>
   </main>
+
+  <div id="undoToast" class="toast hidden">
+    <span id="undoMessage"></span>
+    <button id="undoActionButton" type="button">Deshacer</button>
+  </div>
 
   <script src="script.js"></script>
 </body>

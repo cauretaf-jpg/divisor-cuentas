@@ -1,45 +1,62 @@
 # Divisor de Cuentas
 
-App web estatica para dividir cuentas entre varias personas.
+Aplicacion web estatica para dividir cuentas entre varias personas, con productos compartidos, reparto proporcional por partes, historial de cuentas y exportaciones.
 
-## Archivos principales
+## Estructura valida del proyecto
 
-- `index.html`
-- `styles.css`
-- `script.js`
+```text
+Cuentas/
+  index.html
+  styles.css
+  script.js
+  README.md
+  vercel.json
+  netlify.toml
+```
 
-## Publicar en Netlify
+La version valida es la raiz del proyecto. Las copias anidadas deben ignorarse o eliminarse.
 
-1. Crea una cuenta en Netlify.
-2. Sube esta carpeta a un repositorio de GitHub.
-3. En Netlify, elige `Add new site` -> `Import an existing project`.
-4. Conecta tu repositorio.
-5. Usa esta configuracion:
-   - Build command: dejar vacio
-   - Publish directory: `.`
-6. Publica el sitio.
+## Funcionalidades principales
 
-## Publicar en Vercel
+- Agregar, editar y eliminar personas.
+- Agregar, editar y eliminar productos.
+- Division igual o division proporcional por partes.
+- Propina editable.
+- Historial de cuentas guardadas en `localStorage`.
+- Exportar resumen como SVG, PNG o PDF.
+- Exportar e importar todos los datos como JSON.
 
-1. Crea una cuenta en Vercel.
-2. Sube esta carpeta a un repositorio de GitHub.
-3. En Vercel, elige `Add New...` -> `Project`.
-4. Importa el repositorio.
-5. Usa esta configuracion:
-   - Framework Preset: `Other`
-   - Build command: dejar vacio
-   - Output directory: dejar vacio
-6. Publica el proyecto.
+## Moneda
 
-## Importante
+La aplicacion usa pesos chilenos:
 
-Actualmente los datos se guardan en `localStorage`.
-Eso significa que:
+- Locale: `es-CL`
+- Currency: `CLP`
 
-- Cada computador o celular tendra sus propios datos.
-- La pagina funcionara en todos los dispositivos.
-- Las cuentas no se sincronizan entre dispositivos todavia.
+Los montos se muestran sin decimales.
 
 ## Probar localmente
 
-Solo abre `index.html` en el navegador.
+Abre `index.html` directamente en el navegador.
+
+## Publicar en Vercel
+
+1. Sube esta carpeta a GitHub.
+2. En Vercel, importa el repositorio.
+3. Usa estas opciones:
+   - Framework Preset: `Other`
+   - Build command: vacio
+   - Output directory: vacio
+   - Root directory: `./`
+
+## Publicar en Netlify
+
+1. Sube esta carpeta a GitHub.
+2. Importa el repositorio en Netlify.
+3. Usa estas opciones:
+   - Build command: vacio
+   - Publish directory: `.`
+
+## Importante
+
+Los datos siguen guardandose en `localStorage`, por lo que cada dispositivo mantiene sus propios datos locales si no usas la exportacion e importacion JSON.
