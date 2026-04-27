@@ -106,6 +106,8 @@ body {
 .main-panel {
   gap: 16px;
   align-content: start;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .card {
@@ -129,12 +131,13 @@ body {
 .hero-card::after {
   content: '';
   position: absolute;
-  inset: auto -80px -100px auto;
-  width: 280px;
-  height: 280px;
+  inset: auto -40px -60px auto;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
   background: radial-gradient(circle, var(--accent-soft), transparent 68%);
   pointer-events: none;
+  opacity: 0.7;
 }
 
 .hero-topbar,
