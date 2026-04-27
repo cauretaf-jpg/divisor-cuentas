@@ -574,8 +574,14 @@ function renderSummary() {
 
   if (summary.totalsByPerson.length === 0 || activeBill.products.length === 0) {
     results.className = 'results empty-state';
-    results.textContent = 'Agrega personas y productos para ver el calculo.';
-    return;
+  results.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:8px;text-align:center;">
+      <span style="font-size:1.6rem;">📝</span>
+      <p style="margin:0;font-weight:700;">Aun no hay cálculos</p>
+      <p style="margin:0;font-size:0.85rem;color:var(--muted);">Agrega personas y productos para ver el resumen aquí.</p>
+    </div>
+  `;
+  return;
   }
 
   results.className = 'results';
@@ -638,7 +644,11 @@ function render() {
 
 function persistAndRender(message = '', type = '') {
   saveState();
-  render();
+render();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+}
   if (message) {
     setMessage(generalMessage, message, type);
   }
