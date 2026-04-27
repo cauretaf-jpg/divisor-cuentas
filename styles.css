@@ -1,21 +1,21 @@
 :root {
   color-scheme: light;
-  --bg: #faf9f8;
-  --bg-soft: #fdfdfd;
-  --surface: rgba(255, 255, 255, 0.85);
+  --bg: #f8fafc;
+  --bg-soft: #f1f5f9;
+  --surface: rgba(255, 255, 255, 0.9);
   --surface-strong: #ffffff;
-  --surface-alt: rgba(248, 248, 248, 0.7);
-  --text: #1a1a1a;
-  --muted: #6b6b6b;
-  --accent: #ff6b35;
-  --accent-dark: #e55a2b;
-  --accent-soft: rgba(255, 107, 53, 0.1);
-  --border: rgba(209, 213, 219, 0.3);
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --surface-alt: rgba(241, 245, 249, 0.7);
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #3b82f6;
+  --accent-dark: #2563eb;
+  --accent-soft: rgba(59, 130, 246, 0.1);
+  --border: rgba(226, 232, 240, 0.2);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --danger: #ef4444;
   --danger-soft: rgba(239, 68, 68, 0.1);
   --success: #10b981;
-  --success-soft: rgba(16, 181, 129, 0.1);
+  --success-soft: rgba(16, 185, 129, 0.1);
 }
 
 :root[data-theme='dark'] {
