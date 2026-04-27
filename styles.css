@@ -70,6 +70,11 @@ body {
   margin-top: 8px;
 }
 
+.ad-sidebar {
+  text-align: center;
+  padding: 8px;
+}
+
 .app {
   width: min(1180px, calc(100% - 24px));
   margin: 0 auto;
