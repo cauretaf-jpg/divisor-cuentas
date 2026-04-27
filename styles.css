@@ -1,41 +1,41 @@
 :root {
   color-scheme: light;
-  --bg: #f5efe8;
-  --bg-soft: #fbf7f2;
-  --surface: rgba(255, 252, 247, 0.9);
-  --surface-strong: #fffdfa;
-  --surface-alt: rgba(255, 255, 255, 0.72);
-  --text: #2a211c;
-  --muted: #756458;
-  --accent: #b35c2e;
-  --accent-dark: #8f4218;
-  --accent-soft: rgba(179, 92, 46, 0.12);
-  --border: rgba(176, 129, 92, 0.2);
-  --shadow: 0 20px 50px rgba(67, 42, 25, 0.12);
-  --danger: #b23f31;
-  --danger-soft: rgba(178, 63, 49, 0.08);
-  --success: #236a49;
-  --success-soft: rgba(35, 106, 73, 0.08);
+  --bg: #faf9f8;
+  --bg-soft: #fdfdfd;
+  --surface: rgba(255, 255, 255, 0.85);
+  --surface-strong: #ffffff;
+  --surface-alt: rgba(248, 248, 248, 0.7);
+  --text: #1a1a1a;
+  --muted: #6b6b6b;
+  --accent: #ff6b35;
+  --accent-dark: #e55a2b;
+  --accent-soft: rgba(255, 107, 53, 0.1);
+  --border: rgba(209, 213, 219, 0.3);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --danger: #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.1);
+  --success: #10b981;
+  --success-soft: rgba(16, 181, 129, 0.1);
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #181311;
-  --bg-soft: #201816;
-  --surface: rgba(38, 28, 24, 0.86);
-  --surface-strong: #2a201c;
-  --surface-alt: rgba(62, 44, 37, 0.58);
-  --text: #f5ece5;
-  --muted: #c4aea1;
-  --accent: #f09b68;
-  --accent-dark: #ffc49f;
-  --accent-soft: rgba(240, 155, 104, 0.14);
-  --border: rgba(255, 220, 199, 0.12);
-  --shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
-  --danger: #ff8f82;
-  --danger-soft: rgba(255, 143, 130, 0.1);
-  --success: #7fd3a7;
-  --success-soft: rgba(127, 211, 167, 0.1);
+  --bg: #0f172a;
+  --bg-soft: #1e293b;
+  --surface: rgba(30, 41, 59, 0.8);
+  --surface-strong: #1e293b;
+  --surface-alt: rgba(51, 65, 85, 0.6);
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --accent: #fb923c;
+  --accent-dark: #f97316;
+  --accent-soft: rgba(251, 146, 60, 0.15);
+  --border: rgba(71, 85, 105, 0.4);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --danger: #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.15);
+  --success: #34d399;
+  --success-soft: rgba(52, 211, 153, 0.15);
 }
 
 * {
@@ -113,7 +113,7 @@ body {
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 22px;
+  border-radius: 16px;
   padding: 16px;
   box-shadow: var(--shadow);
   backdrop-filter: blur(14px);
