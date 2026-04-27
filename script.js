@@ -30,6 +30,7 @@ const tipPercentageInput = document.querySelector('#tipPercentage');
 const shareButton = document.querySelector('#shareButton');
 const shareLinkButton = document.querySelector('#shareLinkButton');
 const whatsAppButton = document.querySelector('#whatsAppButton');
+const installButton = document.querySelector('#installButton');
 const svgButton = document.querySelector('#svgButton');
 const pngButton = document.querySelector('#pngButton');
 const pdfButton = document.querySelector('#pdfButton');
@@ -1347,6 +1348,28 @@ undoActionButton.addEventListener('click', performUndo);
 
 loadState();
 loadFromUrl();
+
+if (window.matchMedia('(display-mode: standalone)').matches) {
+  installButton.style.display = 'none';
+} else {
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installButton.style.display = 'inline-flex';
+  });
+
+  installButton.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      installButton.style.display = 'none';
+    }
+    deferredPrompt = null;
+  });
+}
+
 applyTheme();
 getActiveBill();
 resetPersonForm();

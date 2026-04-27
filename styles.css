@@ -138,6 +138,7 @@ body {
 }
 
 .hero-topbar,
+.hero-actions,
 .card-header,
 .consumer-header {
   display: flex;
