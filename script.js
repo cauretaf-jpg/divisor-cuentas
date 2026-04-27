@@ -162,7 +162,8 @@ function applyTheme() {
   }
   document.documentElement.dataset.theme = actualTheme;
   const labels = { light: 'Modo oscuro', dark: 'Modo claro', system: 'Auto' };
-  themeToggleButton.textContent = labels[state.theme] || 'Modo oscuro';
+  const fullLabel = labels[state.theme] || 'Modo oscuro';
+  themeToggleButton.innerHTML = fullLabel.replace(' ', '<br>');
 }
 
 // Undo

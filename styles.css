@@ -148,6 +148,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .eyebrow {
@@ -362,6 +363,8 @@ button:hover {
 
 .theme-button {
   min-width: 116px;
+  max-width: 100%;
+  text-align: center;
 }
 
 .danger-button {
