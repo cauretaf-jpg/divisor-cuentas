@@ -28,6 +28,7 @@ const billHistory = document.querySelector('#billHistory');
 const accountNameInput = document.querySelector('#accountName');
 const tipPercentageInput = document.querySelector('#tipPercentage');
 const shareButton = document.querySelector('#shareButton');
+const shareLinkButton = document.querySelector('#shareLinkButton');
 const whatsAppButton = document.querySelector('#whatsAppButton');
 const svgButton = document.querySelector('#svgButton');
 const pngButton = document.querySelector('#pngButton');
@@ -154,8 +155,13 @@ function clearMessages() {
 }
 
 function applyTheme() {
-  document.documentElement.dataset.theme = state.theme;
-  themeToggleButton.textContent = state.theme === 'dark' ? 'Modo claro' : 'Modo oscuro';
+  let actualTheme = state.theme;
+  if (state.theme === 'system') {
+    actualTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.dataset.theme = actualTheme;
+  const labels = { light: 'Modo oscuro', dark: 'Modo claro', system: 'Auto' };
+  themeToggleButton.textContent = labels[state.theme] || 'Modo oscuro';
 }
 
 // Undo
@@ -254,7 +260,7 @@ function normalizeAppState(rawState) {
   const bills = Array.isArray(rawState.bills) ? rawState.bills.map(normalizeBill) : [];
 
   return {
-    theme: rawState.theme === 'dark' ? 'dark' : 'light',
+    theme: ['light', 'dark', 'system'].includes(rawState.theme) ? rawState.theme : 'light',
     activeBillId: typeof rawState.activeBillId === 'string' ? rawState.activeBillId : '',
     bills: bills.length > 0 ? bills : [createEmptyBill()],
   };
@@ -1118,8 +1124,17 @@ deleteBillButton.addEventListener('click', () => {
 });
 
 themeToggleButton.addEventListener('click', () => {
-  state.theme = state.theme === 'dark' ? 'light' : 'dark';
-  persistAndRender();
+  const themes = ['light', 'dark', 'system'];
+  const currentIndex = themes.indexOf(state.theme);
+  state.theme = themes[(currentIndex + 1) % themes.length];
+  applyTheme();
+  saveState();
+});
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (state.theme === 'system') {
+    applyTheme();
+  }
 });
 
 billHistory.addEventListener('click', (event) => {
@@ -1160,6 +1175,76 @@ shareButton.addEventListener('click', async () => {
     setMessage(generalMessage, 'No fue posible copiar el resumen.');
   }
 });
+
+function getShareableLink() {
+  const activeBill = getActiveBill();
+  const shareData = {
+    n: activeBill.accountName,
+    t: activeBill.tipPercentage,
+    p: activeBill.people.map((person) => person.name),
+    pr: activeBill.products.map((product) => ({
+      n: product.name,
+      u: product.unitPrice,
+      q: product.quantity,
+      s: product.splitMode,
+      c: product.consumerSplits,
+    })),
+  };
+  const encoded = btoa(encodeURIComponent(JSON.stringify(shareData)));
+  const url = new URL(window.location.href);
+  url.search = `?bill=${encoded}`;
+  return url.toString();
+}
+
+shareLinkButton.addEventListener('click', async () => {
+  const url = getShareableLink();
+  try {
+    await navigator.clipboard.writeText(url);
+    setMessage(generalMessage, 'Enlace copiado. Compartilo para que otros vean la cuenta.', 'success');
+  } catch (error) {
+    const textarea = document.createElement('textarea');
+    textarea.value = url;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    setMessage(generalMessage, 'Enlace copiado. Compartilo para que otros vean la cuenta.', 'success');
+  }
+});
+
+function loadFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const billData = params.get('bill');
+  if (!billData) return;
+
+  try {
+    const decoded = JSON.parse(decodeURIComponent(atob(billData)));
+    const bill = createEmptyBill(decoded.n || 'Cuenta compartida');
+    bill.tipPercentage = decoded.t || 10;
+    bill.people = decoded.p.map((name, i) => ({ id: crypto.randomUUID(), name }));
+    bill.products = decoded.pr.map((product) => ({
+      id: crypto.randomUUID(),
+      name: product.n,
+      unitPrice: product.u,
+      quantity: product.q,
+      price: product.u * product.q,
+      splitMode: product.s || 'equal',
+      consumerSplits: product.c || [],
+    }));
+    bill.paidPeople = [];
+
+    state.bills.unshift(bill);
+    state.activeBillId = bill.id;
+    saveState();
+
+    window.history.replaceState({}, '', window.location.pathname);
+    setMessage(generalMessage, 'Cuenta compartida cargada correctamente.', 'success');
+  } catch (error) {
+    console.error('Failed to load shared bill:', error);
+  }
+}
 
 whatsAppButton.addEventListener('click', () => {
   shareImage();
@@ -1261,6 +1346,7 @@ clearPaymentsButton.addEventListener('click', () => {
 undoActionButton.addEventListener('click', performUndo);
 
 loadState();
+loadFromUrl();
 applyTheme();
 getActiveBill();
 resetPersonForm();
