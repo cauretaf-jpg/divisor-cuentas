@@ -282,9 +282,9 @@ input,
 select,
 button {
   width: 100%;
-  border-radius: 13px;
+  border-radius: 10px;
   border: 1px solid var(--border);
-  padding: 8px 10px;
+  padding: 6px 8px;
   font: inherit;
 }
 
@@ -304,7 +304,7 @@ button {
   border: none;
   background: linear-gradient(180deg, var(--accent) 0%, var(--accent-dark) 100%);
   color: white;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 800;
   cursor: pointer;
   transition: transform 0.15s ease, filter 0.15s ease;
@@ -335,8 +335,8 @@ button:hover {
 }
 
 .small-button {
-  padding: 6px 8px;
-  font-size: 0.72rem;
+  padding: 4px 6px;
+  font-size: 0.68rem;
 }
 
 .compact-select {
