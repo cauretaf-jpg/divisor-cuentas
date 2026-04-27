@@ -1235,7 +1235,6 @@ results.addEventListener('change', (event) => {
   renderSummary();
   saveState();
 });
-});
 
 undoActionButton.addEventListener('click', performUndo);
 
