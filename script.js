@@ -570,7 +570,16 @@ function renderSummary() {
   }
 
   results.className = 'results';
-  results.innerHTML = summary.totalsByPerson.map((person) => {
+  const paidCount = activeBill.paidPeople?.length || 0;
+  const totalCount = summary.totalsByPerson.length;
+  const progressHtml = paidCount > 0 ? `
+    <div class="result-progress">
+      <span>${paidCount} de ${totalCount} personas han pagado</span>
+      <strong>${Math.round((paidCount / totalCount) * 100)}%</strong>
+    </div>
+  ` : '';
+
+  results.innerHTML = progressHtml + summary.totalsByPerson.map((person) => {
     const isPaid = activeBill.paidPeople?.includes(person.id);
     const itemsHtml = person.items.length > 0
       ? person.items.map((item) => `
@@ -586,6 +595,7 @@ function renderSummary() {
         <label class="paid-checkbox">
           <input type="checkbox" data-paid-person="${escapeHtml(person.id)}" ${isPaid ? 'checked' : ''}>
           <h3 class="result-name">${escapeHtml(person.name)}</h3>
+          ${isPaid ? '<span class="paid-badge">Pagado</span>' : ''}
         </label>
         <span class="result-detail">Subtotal: ${formatCurrency(person.subtotal)}</span>
         <span class="result-detail">Propina: ${formatCurrency(person.tip)}</span>
@@ -1207,11 +1217,24 @@ results.addEventListener('change', (event) => {
   }
 
   const resultCard = checkbox.closest('.result-card');
+  const nameHeading = resultCard?.querySelector('.result-name');
+  const paidBadge = resultCard?.querySelector('.paid-badge');
+
   if (resultCard) {
     resultCard.classList.toggle('paid', checkbox.checked);
+    if (checkbox.checked && !paidBadge) {
+      const badge = document.createElement('span');
+      badge.className = 'paid-badge';
+      badge.textContent = 'Pagado';
+      nameHeading?.after(badge);
+    } else if (!checkbox.checked && paidBadge) {
+      paidBadge.remove();
+    }
   }
 
+  renderSummary();
   saveState();
+});
 });
 
 undoActionButton.addEventListener('click', performUndo);

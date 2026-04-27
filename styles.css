@@ -483,9 +483,40 @@ button:hover {
 }
 
 .result-card.paid {
-  opacity: 0.5;
+  opacity: 0.6;
   background: var(--success-soft);
   border-color: var(--success);
+}
+
+.result-card.paid .paid-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--success);
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.result-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.result-progress strong {
+  color: var(--success);
+  font-weight: 800;
 }
 
 .paid-checkbox {
@@ -496,8 +527,9 @@ button:hover {
 }
 
 .paid-checkbox input {
-  width: auto;
-  margin: 0;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--success);
 }
 
 .paid-checkbox .result-name {
