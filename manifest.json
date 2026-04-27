@@ -1,9 +1,17 @@
 {
-  "name": "Cuentas Claras",
-  "short_name": "Cuentas",
-  "description": "Divisor de cuentas con moneda CLP",
-  "start_url": "/",
+  "name": "Cuenta Clara",
+  "short_name": "Cuenta Clara",
+  "description": "App web para dividir cuentas, productos compartidos y propinas.",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f5efe8",
-  "theme_color": "#b35c2e"
+  "background_color": "#f5f7f8",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "assets/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }

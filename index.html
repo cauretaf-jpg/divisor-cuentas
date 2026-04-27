@@ -1,207 +1,287 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#b35c2e">
-  <meta name="description" content="Divisor de cuentas con moneda CLP">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/svg+xml" href="icon.svg">
-  <link rel="apple-touch-icon" href="icon.svg">
-  <title>Cuentas Claras</title>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"
-     crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <main class="app">
-    <aside class="sidebar">
-      <section class="card hero-card compact-card">
-        <div class="hero-topbar">
-          <div>
-            <p class="eyebrow">Cuentas Claras</p>
-            <h1>Cuentas Claras</h1>
-          </div>
-          <div class="hero-actions">
-            <button id="installPromptButton" type="button" class="ghost-button theme-button" style="display:none">📱 Instalar app</button>
-            <button id="installButton" type="button" class="ghost-button theme-button" style="display:none">Instalar app</button>
-            <button id="themeToggleButton" type="button" class="ghost-button theme-button">Modo<br>oscuro</button>
-          </div>
-        </div>
-        <p class="subtitle">Varias cuentas, productos compartidos y resumen listo para enviar.</p>
-      </section>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Cuenta Clara permite dividir cuentas, productos compartidos y propinas de forma simple." />
+  <meta name="theme-color" content="#0f766e" />
+  <title>Cuenta Clara | Divide cuentas sin enredos</title>
 
-      <section class="card compact-card">
-        <div class="card-header small-header">
-          <h2>Cuentas</h2>
-          <select id="billSelector" class="compact-select"></select>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+</head>
+
+<body>
+  <header class="app-header">
+    <div class="container header-grid">
+      <a href="#" class="brand" aria-label="Cuenta Clara">
+        <img src="assets/logo.svg" alt="" class="brand-icon" />
+        <div>
+          <strong>Cuenta Clara</strong>
+          <span>Divide gastos sin enredos</span>
         </div>
-        <div class="sidebar-actions">
-          <button id="newBillButton" type="button">Nueva</button>
-          <button id="duplicateBillButton" type="button" class="ghost-button">Duplicar</button>
-          <button id="deleteBillButton" type="button" class="ghost-button danger-button">Eliminar</button>
+      </a>
+
+      <div class="header-actions">
+        <button class="btn btn-light" id="themeToggle" type="button">Modo oscuro</button>
+        <button class="btn btn-primary" id="newBillButton" type="button">Nueva cuenta</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container app-layout">
+    <aside class="sidebar card">
+      <div class="section-title compact">
+        <div>
+          <p class="eyebrow">Historial</p>
+          <h2>Tus cuentas</h2>
         </div>
-        <div id="billHistory" class="history-list"></div>
-        <div class="ad-sidebar">
-          <ins class="adsbygoogle"
-               style="display:inline-block;width:250px;height:250px"
-               data-ad-client="ca-pub-4358472434423818"
-               data-ad-slot="1234567890"
-               data-ad-format="rectangle"></ins>
-        </div>
-      </section>
+      </div>
+
+      <div class="bill-list" id="billList"></div>
+
+      <div class="sidebar-help">
+        <strong>Versión 1.2</strong>
+        <p>Incluye aviso visual para nombres repetidos y mejoras para enviar imágenes por WhatsApp.</p>
+      </div>
     </aside>
 
-    <section class="main-panel">
-      <section class="card settings-card compact-card">
-        <div class="card-header small-header">
-          <h2>Configuracion</h2>
+    <section class="workspace">
+      <section class="hero-card card">
+        <div>
+          <p class="eyebrow">Cuenta actual</p>
+          <input class="bill-name-input" id="billNameInput" type="text" aria-label="Nombre de la cuenta" />
+          <p class="bill-meta" id="billMeta"></p>
         </div>
-        <div class="settings-grid compact-grid">
-          <label class="field-group field-wide">
-            <span class="label">Nombre de la cuenta</span>
-            <input id="accountName" type="text" placeholder="Ej: Jueves en el bar">
-          </label>
-          <label class="field-group compact-field">
-            <span class="label">Propina (%)</span>
-            <input id="tipPercentage" type="number" min="0" step="1" value="10">
-          </label>
+
+        <div class="hero-actions">
+          <button class="btn btn-light" id="duplicateBillButton" type="button">Duplicar</button>
+          <button class="btn btn-danger-light" id="deleteBillButton" type="button">Eliminar</button>
         </div>
-        <div class="toolbar compact-toolbar">
-          <button id="shareButton" type="button">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
-            Copiar
-          </button>
-          <button id="shareLinkButton" type="button">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            Compartir
-          </button>
-          <button id="whatsappButton" type="button">
-            WhatsApp
-          </button>
-          <div id="whatsappOptions" class="hidden">
-            <button id="whatsappTextButton" type="button">Enviar texto</button>
-            <button id="whatsappImageButton" type="button">Enviar imagen</button>
-          </div>
-          <button id="pngButton" type="button">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            PNG
-          </button>
-          <button id="pdfButton" type="button">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            PDF
-          </button>
-          <button id="exportDataButton" type="button" class="ghost-button">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Exportar
-          </button>
-          <button id="importDataButton" type="button" class="ghost-button">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Importar
-          </button>
-          <button id="resetButton" type="button" class="ghost-button danger-button">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-            Reiniciar
-          </button>
-        </div>
-        <input id="importFileInput" type="file" accept="application/json" class="hidden">
-        <p id="generalMessage" class="form-message" aria-live="polite"></p>
       </section>
 
-      <section class="grid compact-main-grid">
-        <article class="card compact-card">
-          <div class="card-header small-header">
-            <h2>Personas</h2>
-            <span id="peopleCount" class="badge">0</span>
-          </div>
-          <form id="personForm" class="inline-form compact-inline-form">
-            <input id="personName" type="text" placeholder="Nombre de la persona" required>
-            <button id="personSubmitButton" type="submit">Agregar persona</button>
-            <button id="personCancelButton" type="button" class="ghost-button hidden">Cancelar</button>
-          </form>
-          <p id="personError" class="form-message" aria-live="polite"></p>
-          <ul id="peopleList" class="list compact-list"></ul>
-        </article>
-
-        <article class="card card-wide compact-card">
-          <div class="card-header small-header">
-            <h2>Productos</h2>
-            <span id="productCount" class="badge">0</span>
-          </div>
-          <form id="productForm" class="product-form compact-product-form">
-            <input id="productName" type="text" placeholder="Producto" required>
-            <input id="productPrice" type="number" inputmode="numeric" min="1" step="1" placeholder="Valor por unidad" required>
-            <input id="productQuantity" type="number" inputmode="numeric" min="1" step="1" value="1" placeholder="Cantidad" required>
-            <div class="split-mode-row compact-split-mode-row">
-              <p class="label">Tipo de reparto</p>
-              <label class="radio-chip">
-                <input type="radio" name="splitMode" value="equal" checked>
-                <span>Division igual</span>
-              </label>
-              <label class="radio-chip">
-                <input type="radio" name="splitMode" value="weighted">
-                <span>Division proporcional por partes</span>
-              </label>
-            </div>
-            <p class="helper-text">Ejemplo: si Carlos tiene 2 partes y Pedro 1 parte, Carlos paga el doble que Pedro.</p>
+      <section class="grid-two">
+        <section class="card">
+          <div class="section-title">
             <div>
-              <div class="consumer-header">
-                <p class="label">Consumido por</p>
-                <button id="selectAllConsumersButton" type="button" class="ghost-button small-button">Seleccionar todos</button>
-              </div>
-              <div id="productConsumers" class="consumer-grid empty-state-inline">Agrega personas primero</div>
+              <p class="eyebrow">Participantes</p>
+              <h2>Personas</h2>
             </div>
-            <button id="productSubmitButton" type="submit">Agregar producto</button>
-            <button id="productCancelButton" type="button" class="ghost-button hidden">Cancelar</button>
+          </div>
+
+          <form class="inline-form" id="personForm">
+            <input id="personNameInput" type="text" placeholder="Ej: Carlos" autocomplete="off" />
+            <button class="btn btn-primary" type="submit">Agregar</button>
           </form>
-          <p id="productError" class="form-message" aria-live="polite"></p>
-          <ul id="productsList" class="list compact-list"></ul>
-        </article>
+
+          <div class="people-list" id="peopleList"></div>
+        </section>
+
+        <section class="card">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Configuración</p>
+              <h2>Propina</h2>
+            </div>
+          </div>
+
+          <div class="tip-control">
+            <label for="tipPercentInput">Porcentaje de propina</label>
+            <div class="tip-input-row">
+              <input id="tipPercentInput" type="number" min="0" max="100" step="1" />
+              <span>%</span>
+            </div>
+          </div>
+
+          <div class="quick-tip-buttons" aria-label="Opciones rápidas de propina">
+            <button class="chip" data-tip="0" type="button">0%</button>
+            <button class="chip" data-tip="10" type="button">10%</button>
+            <button class="chip" data-tip="15" type="button">15%</button>
+          </div>
+        </section>
       </section>
 
-      <section class="card summary compact-card">
-        <div class="card-header small-header">
-          <h2>Resumen</h2>
-          <button id="clearPaymentsButton" type="button" class="ghost-button small-button" title="Limpiar pagos">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-          </button>
-        </div>
-        <div class="summary-title-wrap">
-          <p id="accountHeading" class="summary-title">Cuenta sin nombre</p>
-        </div>
-        <div class="totals compact-totals">
+      <section class="card">
+        <div class="section-title">
           <div>
-            <span>Subtotal</span>
-            <strong id="subtotalValue">$0</strong>
+            <p class="eyebrow">Consumos</p>
+            <h2 id="productFormTitle">Agregar producto</h2>
           </div>
-          <div>
-            <span>Propina</span>
-            <strong id="tipValue">$0</strong>
+          <button class="btn btn-light hidden" id="cancelEditProductButton" type="button">Cancelar edición</button>
+        </div>
+
+        <form class="product-form" id="productForm">
+          <div class="field">
+            <label for="productNameInput">Producto</label>
+            <input id="productNameInput" type="text" placeholder="Ej: Papas fritas" autocomplete="off" />
           </div>
+
+          <div class="field">
+            <label for="productPriceInput">Precio unitario</label>
+            <input id="productPriceInput" type="number" min="0" step="1" placeholder="Ej: 8000" />
+          </div>
+
+          <div class="field">
+            <label for="productQuantityInput">Cantidad</label>
+            <input id="productQuantityInput" type="number" min="1" step="1" value="1" />
+          </div>
+
+          <div class="consumer-panel">
+            <div class="consumer-panel-header">
+              <div>
+                <h3>¿Quiénes consumieron?</h3>
+                <p>Marca las personas y ajusta las partes si alguien consumió más.</p>
+              </div>
+              <button class="btn btn-light btn-small" id="selectAllConsumersButton" type="button">Seleccionar todos</button>
+            </div>
+
+            <div class="consumer-list" id="consumerList"></div>
+          </div>
+
+          <button class="btn btn-primary product-submit" id="productSubmitButton" type="submit">Agregar producto</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="section-title">
           <div>
-            <span>Total general</span>
-            <strong id="grandTotalValue">$0</strong>
+            <p class="eyebrow">Detalle</p>
+            <h2>Productos agregados</h2>
           </div>
         </div>
-        <div id="results" class="results empty-state">Agrega personas y productos para ver el calculo.</div>
-        <div class="ad-inline">
-          <ins class="adsbygoogle"
-               style="display:inline-block;width:320px;height:50px"
-               data-ad-client="ca-pub-4358472434423818"
-               data-ad-slot="1234567890"></ins>
-        </div>
+
+        <div class="product-list" id="productList"></div>
+      </section>
+
+      <section class="results-grid">
+        <section class="card results-card">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Resumen</p>
+              <h2>Totales</h2>
+            </div>
+          </div>
+
+          <div class="totals-box">
+            <div>
+              <span>Subtotal</span>
+              <strong id="subtotalOutput">$0</strong>
+            </div>
+            <div>
+              <span>Propina</span>
+              <strong id="tipOutput">$0</strong>
+            </div>
+            <div class="grand-total">
+              <span>Total final</span>
+              <strong id="grandTotalOutput">$0</strong>
+            </div>
+            <div>
+              <span>Total pagado</span>
+              <strong id="paidTotalOutput">$0</strong>
+            </div>
+            <div>
+              <span>Total pendiente</span>
+              <strong id="pendingTotalOutput">$0</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="card results-card">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Por persona</p>
+              <h2>Pagos</h2>
+            </div>
+          </div>
+
+          <div class="person-results" id="personResults"></div>
+
+          <div class="summary-actions">
+            <button class="btn btn-primary" id="shareButton" type="button">Compartir</button>
+            <button class="btn btn-light" id="copySummaryButton" type="button">Copiar rápido</button>
+            <button class="btn btn-light" id="whatsappButton" type="button">WhatsApp rápido</button>
+          </div>
+        </section>
       </section>
     </section>
   </main>
 
-  <div id="undoToast" class="toast hidden">
-    <span id="undoMessage"></span>
-    <button id="undoActionButton" type="button">Deshacer</button>
+  <div class="modal-backdrop hidden" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
+    <section class="modal-card">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">Compartir cuenta</p>
+          <h2 id="shareModalTitle">Texto o imagen</h2>
+        </div>
+        <button class="icon-button" id="closeShareModalButton" type="button" aria-label="Cerrar">×</button>
+      </div>
+
+      <div class="share-options-grid">
+        <fieldset class="option-card">
+          <legend>Formato</legend>
+          <label class="radio-row">
+            <input type="radio" name="shareFormat" value="text" checked />
+            <span>Texto</span>
+          </label>
+          <label class="radio-row">
+            <input type="radio" name="shareFormat" value="image" />
+            <span>Imagen</span>
+          </label>
+        </fieldset>
+
+        <fieldset class="option-card">
+          <legend>Contenido</legend>
+          <label class="radio-row">
+            <input type="radio" name="shareContent" value="simple" checked />
+            <span>Solo monto total</span>
+          </label>
+          <label class="radio-row">
+            <input type="radio" name="shareContent" value="detail" />
+            <span>Monto con detalle</span>
+          </label>
+        </fieldset>
+      </div>
+
+      <div class="share-preview">
+        <div class="share-preview-header">
+          <strong>Vista previa</strong>
+          <span id="sharePreviewType">Texto · Solo monto total</span>
+        </div>
+
+        <pre id="textPreview" class="text-preview"></pre>
+
+        <div class="image-preview hidden" id="imagePreviewWrap">
+          <canvas id="shareCanvas" width="900" height="1200"></canvas>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-light" id="copySelectedShareButton" type="button">Copiar texto</button>
+        <button class="btn btn-primary" id="whatsappSelectedShareButton" type="button">Enviar WhatsApp</button>
+        <button class="btn btn-light" id="downloadImageButton" type="button">Descargar imagen</button>
+        <button class="btn btn-light" id="nativeShareImageButton" type="button">Compartir imagen</button>
+      </div>
+    </section>
   </div>
 
+  <div class="notice-tab hidden" id="noticeTab" role="alert" aria-live="assertive">
+    <div>
+      <strong id="noticeTitle">Aviso</strong>
+      <p id="noticeMessage"></p>
+    </div>
+    <button class="icon-button" id="closeNoticeTabButton" type="button" aria-label="Cerrar aviso">×</button>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <template id="emptyStateTemplate">
+    <div class="empty-state">
+      <strong>No hay datos todavía.</strong>
+      <p>Agrega personas y productos para comenzar a calcular.</p>
+    </div>
+  </template>
+
   <script src="script.js"></script>
-  <script>
-    (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
 </body>
 </html>

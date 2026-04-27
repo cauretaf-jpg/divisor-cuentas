@@ -1,1480 +1,1304 @@
-// Estado inicial
-const STORAGE_KEY = 'divisor-cuentas-app';
-const LEGACY_STORAGE_KEY = 'divisor-cuentas-state';
+const STORAGE_KEY = 'cuenta-clara-v1-state';
+const THEME_KEY = 'cuenta-clara-theme';
 
-const state = {
-  theme: 'light',
-  activeBillId: '',
-  bills: [],
+const dom = {
+  themeToggle: document.querySelector('#themeToggle'),
+  newBillButton: document.querySelector('#newBillButton'),
+  duplicateBillButton: document.querySelector('#duplicateBillButton'),
+  deleteBillButton: document.querySelector('#deleteBillButton'),
+  billList: document.querySelector('#billList'),
+  billNameInput: document.querySelector('#billNameInput'),
+  billMeta: document.querySelector('#billMeta'),
+
+  personForm: document.querySelector('#personForm'),
+  personNameInput: document.querySelector('#personNameInput'),
+  peopleList: document.querySelector('#peopleList'),
+
+  tipPercentInput: document.querySelector('#tipPercentInput'),
+  quickTipButtons: document.querySelectorAll('[data-tip]'),
+
+  productForm: document.querySelector('#productForm'),
+  productFormTitle: document.querySelector('#productFormTitle'),
+  productNameInput: document.querySelector('#productNameInput'),
+  productPriceInput: document.querySelector('#productPriceInput'),
+  productQuantityInput: document.querySelector('#productQuantityInput'),
+  consumerList: document.querySelector('#consumerList'),
+  selectAllConsumersButton: document.querySelector('#selectAllConsumersButton'),
+  cancelEditProductButton: document.querySelector('#cancelEditProductButton'),
+  productSubmitButton: document.querySelector('#productSubmitButton'),
+  productList: document.querySelector('#productList'),
+
+  subtotalOutput: document.querySelector('#subtotalOutput'),
+  tipOutput: document.querySelector('#tipOutput'),
+  grandTotalOutput: document.querySelector('#grandTotalOutput'),
+  paidTotalOutput: document.querySelector('#paidTotalOutput'),
+  pendingTotalOutput: document.querySelector('#pendingTotalOutput'),
+  personResults: document.querySelector('#personResults'),
+  copySummaryButton: document.querySelector('#copySummaryButton'),
+  whatsappButton: document.querySelector('#whatsappButton'),
+  shareButton: document.querySelector('#shareButton'),
+
+  shareModal: document.querySelector('#shareModal'),
+  closeShareModalButton: document.querySelector('#closeShareModalButton'),
+  sharePreviewType: document.querySelector('#sharePreviewType'),
+  textPreview: document.querySelector('#textPreview'),
+  imagePreviewWrap: document.querySelector('#imagePreviewWrap'),
+  shareCanvas: document.querySelector('#shareCanvas'),
+  copySelectedShareButton: document.querySelector('#copySelectedShareButton'),
+  whatsappSelectedShareButton: document.querySelector('#whatsappSelectedShareButton'),
+  downloadImageButton: document.querySelector('#downloadImageButton'),
+  nativeShareImageButton: document.querySelector('#nativeShareImageButton'),
+
+  noticeTab: document.querySelector('#noticeTab'),
+  noticeTitle: document.querySelector('#noticeTitle'),
+  noticeMessage: document.querySelector('#noticeMessage'),
+  closeNoticeTabButton: document.querySelector('#closeNoticeTabButton'),
+  toast: document.querySelector('#toast'),
+  emptyStateTemplate: document.querySelector('#emptyStateTemplate'),
 };
 
-let editingPersonId = null;
+let state = {
+  bills: [],
+  activeBillId: null,
+};
+
 let editingProductId = null;
+let toastTimer = null;
+let noticeTimer = null;
 
-const UNDO_LIMIT = 10;
-const undoStack = [];
-let undoTimer = null;
-const undoToast = document.querySelector('#undoToast');
-const undoMessage = document.querySelector('#undoMessage');
-const undoActionButton = document.querySelector('#undoActionButton');
-
-const themeToggleButton = document.querySelector('#themeToggleButton');
-const billSelector = document.querySelector('#billSelector');
-const newBillButton = document.querySelector('#newBillButton');
-const duplicateBillButton = document.querySelector('#duplicateBillButton');
-const deleteBillButton = document.querySelector('#deleteBillButton');
-const billHistory = document.querySelector('#billHistory');
-
-const accountNameInput = document.querySelector('#accountName');
-const tipPercentageInput = document.querySelector('#tipPercentage');
-const shareButton = document.querySelector('#shareButton');
-const shareLinkButton = document.querySelector('#shareLinkButton');
-const whatsAppButton = document.querySelector('#whatsAppButton');
-const installButton = document.querySelector('#installButton');
-const installPromptButton = document.querySelector('#installPromptButton');
-const svgButton = document.querySelector('#svgButton');
-const pngButton = document.querySelector('#pngButton');
-const pdfButton = document.querySelector('#pdfButton');
-const exportDataButton = document.querySelector('#exportDataButton');
-const importDataButton = document.querySelector('#importDataButton');
-const importFileInput = document.querySelector('#importFileInput');
-const resetButton = document.querySelector('#resetButton');
-const generalMessage = document.querySelector('#generalMessage');
-const accountHeading = document.querySelector('#accountHeading');
-
-const personForm = document.querySelector('#personForm');
-const personNameInput = document.querySelector('#personName');
-const personSubmitButton = document.querySelector('#personSubmitButton');
-const personCancelButton = document.querySelector('#personCancelButton');
-const personError = document.querySelector('#personError');
-const peopleList = document.querySelector('#peopleList');
-const peopleCount = document.querySelector('#peopleCount');
-
-const productForm = document.querySelector('#productForm');
-const productNameInput = document.querySelector('#productName');
-const productPriceInput = document.querySelector('#productPrice');
-const productQuantityInput = document.querySelector('#productQuantity');
-const selectAllConsumersButton = document.querySelector('#selectAllConsumersButton');
-const productSubmitButton = document.querySelector('#productSubmitButton');
-const productCancelButton = document.querySelector('#productCancelButton');
-const productConsumers = document.querySelector('#productConsumers');
-const productError = document.querySelector('#productError');
-const productsList = document.querySelector('#productsList');
-const productCount = document.querySelector('#productCount');
-
-const subtotalValue = document.querySelector('#subtotalValue');
-const tipValue = document.querySelector('#tipValue');
-const grandTotalValue = document.querySelector('#grandTotalValue');
-const results = document.querySelector('#results');
-const clearPaymentsButton = document.querySelector('#clearPaymentsButton');
-
-function createEmptyBill(name = 'Nueva cuenta') {
-  return {
-    id: crypto.randomUUID(),
-    accountName: name,
-    tipPercentage: 10,
-    people: [],
-    products: [],
-    paidPeople: [],
-  };
-}
-
-function duplicateBill(sourceBill) {
-  return {
-    id: crypto.randomUUID(),
-    accountName: `${sourceBill.accountName.trim() || 'Cuenta'} copia`,
-    tipPercentage: sourceBill.tipPercentage,
-    people: sourceBill.people.map((person) => ({ ...person })),
-    products: sourceBill.products.map((product) => ({
-      ...product,
-      consumerSplits: product.consumerSplits.map((split) => ({ ...split })),
-    })),
-  };
-}
-
-function getActiveBill() {
-  let bill = state.bills.find((item) => item.id === state.activeBillId);
-
-  if (!bill) {
-    bill = state.bills[0];
-    if (bill) {
-      state.activeBillId = bill.id;
-    }
+function createId(prefix) {
+  if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+    return `${prefix}_${crypto.randomUUID()}`;
   }
 
-  if (!bill) {
-    bill = createEmptyBill();
-    state.bills.push(bill);
-    state.activeBillId = bill.id;
-  }
+  return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
 
-  return bill;
+function nowIso() {
+  return new Date().toISOString();
 }
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('es-CL', {
     style: 'currency',
     currency: 'CLP',
-    minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(Math.round(value));
+  }).format(Math.round(Number(value) || 0));
 }
 
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+function formatDate(iso) {
+  if (!iso) return '';
+
+  return new Intl.DateTimeFormat('es-CL', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(new Date(iso));
 }
 
-function escapeXml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
+function makeDefaultBill() {
+  const createdAt = nowIso();
 
-function normalizeName(value) {
-  return value.trim().toLocaleLowerCase('es-CL');
-}
-
-function setMessage(element, message, type = '') {
-  element.textContent = message;
-  element.className = 'form-message';
-  if (type) {
-    element.classList.add(type);
-  }
-}
-
-function clearMessages() {
-  setMessage(personError, '');
-  setMessage(productError, '');
-  setMessage(generalMessage, '');
-}
-
-function applyTheme() {
-  let actualTheme = state.theme;
-  if (state.theme === 'system') {
-    actualTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-  document.documentElement.dataset.theme = actualTheme;
-  const labels = { light: 'Modo oscuro', dark: 'Modo claro', system: 'Auto' };
-  const fullLabel = labels[state.theme] || 'Modo oscuro';
-  themeToggleButton.innerHTML = fullLabel.replace(' ', '<br>');
-}
-
-// Undo
-const paidPeople = [];
-let paidCount = 0;
-
-function captureActiveBill() {
-  const bill = getActiveBill();
-  return JSON.parse(JSON.stringify(bill));
-}
-
-function pushUndo(message) {
-  const snapshot = captureActiveBill();
-  undoStack.unshift({ message, snapshot });
-  if (undoStack.length > UNDO_LIMIT) {
-    undoStack.pop();
-  }
-  renderUndoToast(message);
-}
-
-function performUndo() {
-  if (undoStack.length === 0) return;
-  const entry = undoStack.shift();
-  const existingIndex = state.bills.findIndex((b) => b.id === entry.snapshot.id);
-  if (existingIndex !== -1) {
-    state.bills[existingIndex] = entry.snapshot;
-  } else {
-    state.bills.push(entry.snapshot);
-  }
-  state.activeBillId = entry.snapshot.id;
-  editingPersonId = null;
-  editingProductId = null;
-  hideUndoToast();
-  persistAndRender('Cambio deshecho.', 'success');
-}
-
-function renderUndoToast(message) {
-  undoMessage.textContent = message;
-  undoToast.classList.remove('hidden');
-  if (undoTimer) clearTimeout(undoTimer);
-  undoTimer = setTimeout(() => hideUndoToast(), 8000);
-}
-
-function hideUndoToast() {
-  undoToast.classList.add('hidden');
-  if (undoTimer) {
-    clearTimeout(undoTimer);
-    undoTimer = null;
-  }
-}
-
-// LocalStorage
-function normalizeBill(rawBill) {
   return {
-    id: rawBill.id || crypto.randomUUID(),
-    accountName: typeof rawBill.accountName === 'string' ? rawBill.accountName : '',
-    tipPercentage: Number.isFinite(Number(rawBill.tipPercentage)) ? Math.max(0, Number(rawBill.tipPercentage)) : 10,
-    people: Array.isArray(rawBill.people)
-      ? rawBill.people
-          .filter((person) => person && typeof person.name === 'string' && person.name.trim())
-          .map((person) => ({ id: person.id || crypto.randomUUID(), name: person.name.trim() }))
-      : [],
-    products: Array.isArray(rawBill.products)
-      ? rawBill.products
-          .filter((product) => product && typeof product.name === 'string' && product.name.trim())
-          .map((product) => {
-            const unitPrice = Math.max(0, Number(product.unitPrice ?? product.price) || 0);
-            const quantity = Math.max(1, Number(product.quantity) || 1);
-            const rawSplits = Array.isArray(product.consumerSplits)
-              ? product.consumerSplits
-              : Array.isArray(product.consumerIds)
-                ? product.consumerIds.map((personId) => ({ personId, share: 1 }))
-                : [];
-
-            return {
-              id: product.id || crypto.randomUUID(),
-              name: product.name.trim(),
-              unitPrice,
-              quantity,
-              price: unitPrice * quantity,
-              splitMode: product.splitMode === 'weighted' ? 'weighted' : 'equal',
-              consumerSplits: rawSplits
-                .filter((split) => split && split.personId)
-                .map((split) => ({
-                  personId: split.personId,
-                  share: Math.max(1, Number(split.share) || 1),
-                })),
-            };
-          })
-      : [],
-    paidPeople: Array.isArray(rawBill.paidPeople) ? rawBill.paidPeople : [],
+    id: createId('bill'),
+    name: 'Nueva cuenta',
+    tipPercent: 10,
+    createdAt,
+    updatedAt: createdAt,
+    people: [
+      { id: createId('person'), name: 'Carlos', paid: false },
+      { id: createId('person'), name: 'Vale', paid: false },
+    ],
+    products: [],
   };
 }
 
-function normalizeAppState(rawState) {
-  const bills = Array.isArray(rawState.bills) ? rawState.bills.map(normalizeBill) : [];
+function normalizeState(input) {
+  if (!input || !Array.isArray(input.bills)) {
+    const bill = makeDefaultBill();
+    return { bills: [bill], activeBillId: bill.id };
+  }
 
-  return {
-    theme: ['light', 'dark', 'system'].includes(rawState.theme) ? rawState.theme : 'light',
-    activeBillId: typeof rawState.activeBillId === 'string' ? rawState.activeBillId : '',
-    bills: bills.length > 0 ? bills : [createEmptyBill()],
-  };
+  const bills = input.bills.map((bill) => ({
+    id: bill.id || createId('bill'),
+    name: String(bill.name || 'Cuenta sin nombre'),
+    tipPercent: Number.isFinite(Number(bill.tipPercent)) ? Number(bill.tipPercent) : 10,
+    createdAt: bill.createdAt || nowIso(),
+    updatedAt: bill.updatedAt || bill.createdAt || nowIso(),
+    people: Array.isArray(bill.people)
+      ? bill.people.map((person) => ({
+          id: person.id || createId('person'),
+          name: String(person.name || 'Persona'),
+          paid: Boolean(person.paid),
+        }))
+      : [],
+    products: Array.isArray(bill.products)
+      ? bill.products.map((product) => ({
+          id: product.id || createId('product'),
+          name: String(product.name || 'Producto'),
+          unitPrice: Number(product.unitPrice ?? product.price ?? 0),
+          quantity: Number(product.quantity ?? 1),
+          consumers: Array.isArray(product.consumers)
+            ? product.consumers.map((consumer) => ({
+                personId: consumer.personId,
+                share: Math.max(1, Number(consumer.share || 1)),
+              }))
+            : [],
+        }))
+      : [],
+  }));
+
+  if (bills.length === 0) {
+    const bill = makeDefaultBill();
+    return { bills: [bill], activeBillId: bill.id };
+  }
+
+  const activeBillId = bills.some((bill) => bill.id === input.activeBillId)
+    ? input.activeBillId
+    : bills[0].id;
+
+  return { bills, activeBillId };
+}
+
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    state = normalizeState(saved);
+  } catch {
+    state = normalizeState(null);
+  }
 }
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-function loadLegacyState() {
-  const saved = localStorage.getItem(LEGACY_STORAGE_KEY);
-  if (!saved) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(saved);
-    return normalizeAppState({
-      theme: 'light',
-      activeBillId: '',
-      bills: [parsed],
-    });
-  } catch (error) {
-    localStorage.removeItem(LEGACY_STORAGE_KEY);
-    return null;
-  }
+function getActiveBill() {
+  return state.bills.find((bill) => bill.id === state.activeBillId) || state.bills[0];
 }
 
-function loadState() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try {
-      Object.assign(state, normalizeAppState(JSON.parse(saved)));
-      return;
-    } catch (error) {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  }
-
-  const legacyState = loadLegacyState();
-  if (legacyState) {
-    Object.assign(state, legacyState);
-    state.activeBillId = state.bills[0]?.id || '';
-    saveState();
-    localStorage.removeItem(LEGACY_STORAGE_KEY);
-    return;
-  }
-
-  state.bills = [createEmptyBill()];
-  state.activeBillId = state.bills[0].id;
+function touchActiveBill() {
+  const bill = getActiveBill();
+  bill.updatedAt = nowIso();
 }
 
-// Validaciones
-function validatePersonName(name, bill, ignorePersonId = null) {
-  if (!name.trim()) {
-    return 'No puedes agregar una persona con nombre vacio.';
-  }
-
-  const normalized = normalizeName(name);
-  const exists = bill.people.some((person) => person.id !== ignorePersonId && normalizeName(person.name) === normalized);
-  if (exists) {
-    return 'Ya existe una persona con ese nombre.';
-  }
-
-  return '';
+function persistAndRender() {
+  touchActiveBill();
+  saveState();
+  render();
 }
 
-function validateProductData(name, unitPrice, quantity, consumerSplits) {
-  if (!name.trim()) {
-    return 'No puedes agregar un producto con nombre vacio.';
-  }
+function showToast(message) {
+  clearTimeout(toastTimer);
+  dom.toast.textContent = message;
+  dom.toast.classList.add('show');
 
-  if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
-    return 'Debes ingresar un valor valido para el producto.';
-  }
-
-  if (!Number.isFinite(quantity) || quantity <= 0) {
-    return 'Debes ingresar una cantidad valida.';
-  }
-
-  if (consumerSplits.length === 0) {
-    return 'No puedes agregar un producto sin seleccionar personas.';
-  }
-
-  return '';
+  toastTimer = setTimeout(() => {
+    dom.toast.classList.remove('show');
+  }, 2200);
 }
 
-function getProductsLinkedToPerson(bill, personId) {
-  return bill.products.filter((product) => product.consumerSplits.some((split) => split.personId === personId));
+function showNotice(title, message) {
+  clearTimeout(noticeTimer);
+  dom.noticeTitle.textContent = title;
+  dom.noticeMessage.textContent = message;
+  dom.noticeTab.classList.remove('hidden');
+
+  noticeTimer = setTimeout(() => {
+    dom.noticeTab.classList.add('hidden');
+  }, 5200);
 }
 
-// Cálculos
-function calculateSummary() {
-  const activeBill = getActiveBill();
-  const subtotal = activeBill.products.reduce((sum, product) => sum + product.price, 0);
-  const tipAmount = subtotal * (activeBill.tipPercentage / 100);
-  const totalsByPerson = activeBill.people.map((person) => ({
-    ...person,
-    subtotal: 0,
-    tip: 0,
-    total: 0,
-    items: [],
-  }));
+function cloneEmptyState() {
+  return dom.emptyStateTemplate.content.cloneNode(true);
+}
 
-  activeBill.products.forEach((product) => {
-    const participants = product.consumerSplits
-      .map((split) => ({
-        share: product.splitMode === 'weighted' ? split.share : 1,
-        person: totalsByPerson.find((item) => item.id === split.personId),
-      }))
-      .filter((item) => item.person);
+function calculateBill(bill = getActiveBill()) {
+  const baseTotals = Object.fromEntries(bill.people.map((person) => [person.id, 0]));
+  const personDetails = Object.fromEntries(
+    bill.people.map((person) => [
+      person.id,
+      {
+        person,
+        items: [],
+        subtotal: 0,
+        tip: 0,
+        total: 0,
+      },
+    ])
+  );
 
-    const totalShares = participants.reduce((sum, participant) => sum + participant.share, 0);
+  for (const product of bill.products) {
+    const validConsumers = product.consumers.filter((consumer) =>
+      bill.people.some((person) => person.id === consumer.personId)
+    );
+
+    const totalShares = validConsumers.reduce((sum, consumer) => sum + Math.max(1, Number(consumer.share || 1)), 0);
+
     if (totalShares <= 0) {
-      return;
+      continue;
     }
 
-    participants.forEach((participant) => {
-      const amount = product.price * (participant.share / totalShares);
-      participant.person.subtotal += amount;
-      participant.person.items.push({
-        label: `${product.name} (${product.quantity} x ${formatCurrency(product.unitPrice)})`,
-        value: amount,
-        share: participant.share,
-        splitMode: product.splitMode,
-      });
-    });
-  });
+    const productTotal = Number(product.unitPrice) * Number(product.quantity);
 
-  totalsByPerson.forEach((person) => {
-    person.tip = person.subtotal * (activeBill.tipPercentage / 100);
-    person.total = person.subtotal + person.tip;
-  });
+    for (const consumer of validConsumers) {
+      const share = Math.max(1, Number(consumer.share || 1));
+      const amount = productTotal * (share / totalShares);
+
+      baseTotals[consumer.personId] += amount;
+
+      if (personDetails[consumer.personId]) {
+        personDetails[consumer.personId].items.push({
+          productId: product.id,
+          productName: product.name,
+          unitPrice: Number(product.unitPrice),
+          quantity: Number(product.quantity),
+          productTotal,
+          share,
+          totalShares,
+          amount,
+        });
+      }
+    }
+  }
+
+  const subtotal = Object.values(baseTotals).reduce((sum, value) => sum + value, 0);
+  const tipPercent = Number(bill.tipPercent) || 0;
+  const tipAmount = subtotal * (tipPercent / 100);
+  const finalTotals = {};
+  let paidTotal = 0;
+  let pendingTotal = 0;
+
+  for (const person of bill.people) {
+    const personSubtotal = baseTotals[person.id] || 0;
+    const personTip = personSubtotal * (tipPercent / 100);
+    const finalAmount = personSubtotal + personTip;
+
+    finalTotals[person.id] = finalAmount;
+    personDetails[person.id].subtotal = personSubtotal;
+    personDetails[person.id].tip = personTip;
+    personDetails[person.id].total = finalAmount;
+
+    if (person.paid) {
+      paidTotal += finalAmount;
+    } else {
+      pendingTotal += finalAmount;
+    }
+  }
 
   return {
     subtotal,
     tipAmount,
     grandTotal: subtotal + tipAmount,
-    totalsByPerson,
+    paidTotal,
+    pendingTotal,
+    baseTotals,
+    finalTotals,
+    personDetails,
   };
 }
 
-function getAccountTitle() {
-  return getActiveBill().accountName.trim() || 'Cuenta sin nombre';
-}
+function renderBillList() {
+  dom.billList.innerHTML = '';
 
-function formatConsumerBreakdown(product, people) {
-  return product.consumerSplits.map((split) => {
-    const name = people.find((person) => person.id === split.personId)?.name || 'Sin nombre';
-    return product.splitMode === 'weighted' ? `${name} x${split.share}` : name;
-  }).join(', ');
-}
-
-function buildShareText(summary = calculateSummary()) {
-  const activeBill = getActiveBill();
-  const lines = [getAccountTitle(), `Propina: ${activeBill.tipPercentage}%`, ''];
-
-  summary.totalsByPerson.forEach((person) => {
-    lines.push(`<b>${person.name}: ${formatCurrency(person.total)}</b>`);
-    person.items.forEach((item) => {
-      const partDetail = item.splitMode === 'weighted' ? `, parte ${item.share}` : '';
-      lines.push(`<b>- ${item.label}${partDetail}: ${formatCurrency(item.value)}</b>`);
-    });
-    lines.push(`<b>Subtotal: ${formatCurrency(person.subtotal)}</b>`);
-    lines.push(`<b>Propina: ${formatCurrency(person.tip)}</b>`);
-    lines.push('');
-  });
-
-  lines.push(`<b>Subtotal general: ${formatCurrency(summary.subtotal)}</b>`);
-  lines.push(`<b>Propina general: ${formatCurrency(summary.tipAmount)}</b>`);
-  lines.push(`<b>Total general: ${formatCurrency(summary.grandTotal)}</b>`);
-  return lines.join('\n').trim();
-}
-
-// Renderizado
-function resetPersonForm() {
-  editingPersonId = null;
-  personForm.reset();
-  personSubmitButton.textContent = 'Agregar persona';
-  personCancelButton.classList.add('hidden');
-}
-
-function resetProductForm() {
-  editingProductId = null;
-  productForm.reset();
-  productQuantityInput.value = '1';
-  productSubmitButton.textContent = 'Agregar producto';
-  productCancelButton.classList.add('hidden');
-  const equalRadio = productForm.querySelector('input[name="splitMode"][value="equal"]');
-  if (equalRadio) {
-    equalRadio.checked = true;
-  }
-  renderPeopleOptions();
-}
-
-function getSplitMode() {
-  return productForm.querySelector('input[name="splitMode"]:checked')?.value || 'equal';
-}
-
-function renderBillSelector() {
-  const activeBill = getActiveBill();
-  billSelector.innerHTML = state.bills.map((bill, index) => `
-    <option value="${escapeHtml(bill.id)}" ${bill.id === activeBill.id ? 'selected' : ''}>
-      ${escapeHtml(bill.accountName.trim() || `Cuenta ${index + 1}`)}
-    </option>
-  `).join('');
-}
-
-function renderBillHistory() {
-  const activeBill = getActiveBill();
-  billHistory.innerHTML = state.bills.map((bill, index) => `
-    <button type="button" class="history-item ${bill.id === activeBill.id ? 'active' : ''}" data-history-bill="${escapeHtml(bill.id)}">
-      <p class="history-title">${escapeHtml(bill.accountName.trim() || `Cuenta ${index + 1}`)}</p>
-      <p class="history-meta">${bill.people.length} personas · ${bill.products.length} productos</p>
-    </button>
-  `).join('');
-}
-
-function renderPeopleOptions(selectedSplits = []) {
-  const activeBill = getActiveBill();
-
-  if (activeBill.people.length === 0) {
-    productConsumers.className = 'consumer-grid empty-state-inline';
-    productConsumers.textContent = 'Agrega personas primero';
-    selectAllConsumersButton.disabled = true;
-    return;
-  }
-
-  const splitLookup = new Map(selectedSplits.map((item) => [item.personId, item.share]));
-  const splitMode = editingProductId
-    ? activeBill.products.find((product) => product.id === editingProductId)?.splitMode || getSplitMode()
-    : getSplitMode();
-
-  productConsumers.className = 'consumer-grid';
-  selectAllConsumersButton.disabled = false;
-  productConsumers.innerHTML = activeBill.people.map((person) => {
-    const selected = splitLookup.has(person.id);
-    const share = splitLookup.get(person.id) || 1;
-
-    return `
-      <label class="consumer-card">
-        <input type="checkbox" data-consumer-check value="${escapeHtml(person.id)}" ${selected ? 'checked' : ''}>
-        <div>
-          <strong class="consumer-name">${escapeHtml(person.name)}</strong>
-          <div class="item-detail">${splitMode === 'equal' ? 'Se divide en partes iguales entre quienes esten marcados.' : 'Define cuantas partes le corresponden a cada persona.'}</div>
-        </div>
-        <div class="share-wrap">
-          <span>Partes</span>
-          <input class="share-input" type="number" min="1" step="1" value="${share}" data-consumer-share="${escapeHtml(person.id)}" ${selected && splitMode === 'weighted' ? '' : 'disabled'}>
-        </div>
-      </label>
-    `;
-  }).join('');
-}
-
-function renderPeopleList() {
-  const activeBill = getActiveBill();
-  peopleCount.textContent = String(activeBill.people.length);
-
-  if (activeBill.people.length === 0) {
-    peopleList.innerHTML = '<li class="empty-state">Aun no has agregado personas.</li>';
-    return;
-  }
-
-  peopleList.innerHTML = activeBill.people.map((person) => `
-    <li class="list-item">
-      <div class="item-main">
-        <p class="item-title">${escapeHtml(person.name)}</p>
-      </div>
-      <div class="actions">
-        <button type="button" class="ghost-button" data-edit-person="${escapeHtml(person.id)}">Editar</button>
-        <button type="button" class="ghost-button" data-remove-person="${escapeHtml(person.id)}">Eliminar</button>
-      </div>
-    </li>
-  `).join('');
-}
-
-function renderProductsList() {
-  const activeBill = getActiveBill();
-  productCount.textContent = String(activeBill.products.length);
-
-  if (activeBill.products.length === 0) {
-    productsList.innerHTML = '<li class="empty-state">Aun no has agregado productos.</li>';
-    return;
-  }
-
-  productsList.innerHTML = activeBill.products.map((product) => `
-    <li class="list-item">
-      <div class="item-main">
-        <p class="item-title">${escapeHtml(product.name)} · ${product.quantity} x ${formatCurrency(product.unitPrice)} = ${formatCurrency(product.price)}</p>
-        <p class="item-detail">${product.splitMode === 'equal' ? 'Division igual' : 'Division proporcional por partes'}: ${escapeHtml(formatConsumerBreakdown(product, activeBill.people))}</p>
-      </div>
-      <div class="actions">
-        <button type="button" class="ghost-button" data-edit-product="${escapeHtml(product.id)}">Editar</button>
-        <button type="button" class="ghost-button" data-remove-product="${escapeHtml(product.id)}">Eliminar</button>
-      </div>
-    </li>
-  `).join('');
-}
-
-function renderSummary() {
-  const activeBill = getActiveBill();
-  const summary = calculateSummary();
-
-  accountHeading.textContent = getAccountTitle();
-  subtotalValue.textContent = formatCurrency(summary.subtotal);
-  tipValue.textContent = `${formatCurrency(summary.tipAmount)} (${activeBill.tipPercentage}%)`;
-  grandTotalValue.textContent = formatCurrency(summary.grandTotal);
-
-  if (summary.totalsByPerson.length === 0 || activeBill.products.length === 0) {
-    results.className = 'results empty-state';
-  results.innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:8px;text-align:center;">
-      <span style="font-size:1.6rem;">📝</span>
-      <p style="margin:0;font-weight:700;">Aun no hay cálculos</p>
-      <p style="margin:0;font-size:0.85rem;color:var(--muted);">Agrega personas y productos para ver el resumen aquí.</p>
-    </div>
-  `;
-  return;
-  }
-
-  results.className = 'results';
-  const paidCount = activeBill.paidPeople?.length || 0;
-  const totalCount = summary.totalsByPerson.length;
-
-  const unpaidAmount = summary.totalsByPerson
-    .filter((p) => !activeBill.paidPeople?.includes(p.id))
-    .reduce((sum, p) => sum + p.total, 0);
-
-  const progressHtml = (paidCount > 0 || unpaidAmount > 0) ? `
-    <div class="result-progress">
+  for (const bill of state.bills) {
+    const calculation = calculateBill(bill);
+    const button = document.createElement('button');
+    button.className = `bill-item ${bill.id === state.activeBillId ? 'active' : ''}`;
+    button.type = 'button';
+    button.innerHTML = `
       <div>
-        <span>${paidCount} de ${totalCount} personas han pagado</span>
-        ${unpaidAmount > 0 ? `<span class="unpaid-amount">Faltan ${formatCurrency(unpaidAmount)} por cobrar</span>` : ''}
+        <strong>${escapeHtml(bill.name)}</strong>
+        <span>${formatCurrency(calculation.grandTotal)} · ${bill.people.length} personas</span>
+        <span>${formatDate(bill.updatedAt)}</span>
       </div>
-      <strong>${Math.round((paidCount / totalCount) * 100)}%</strong>
-    </div>
-  ` : '';
-
-  results.innerHTML = progressHtml + summary.totalsByPerson.map((person) => {
-    const isPaid = activeBill.paidPeople?.includes(person.id);
-    const itemsHtml = person.items.length > 0
-      ? person.items.map((item) => `
-          <div class="breakdown-item">
-            <span>${escapeHtml(item.label)}${item.splitMode === 'weighted' ? ` · parte ${item.share}` : ''}</span>
-            <strong>${formatCurrency(item.value)}</strong>
-          </div>
-        `).join('')
-      : '<p class="item-detail">Sin productos asignados.</p>';
-
-    return `
-      <article class="result-card ${isPaid ? 'paid' : ''}">
-        <label class="paid-checkbox">
-          <input type="checkbox" data-paid-person="${escapeHtml(person.id)}" ${isPaid ? 'checked' : ''}>
-          <h3 class="result-name">${escapeHtml(person.name)}</h3>
-          ${isPaid ? '<span class="paid-badge">Pagado</span>' : ''}
-        </label>
-        <span class="result-detail">Subtotal: ${formatCurrency(person.subtotal)}</span>
-        <span class="result-detail">Propina: ${formatCurrency(person.tip)}</span>
-        <div class="result-breakdown">${itemsHtml}</div>
-        <strong class="result-total">Total: ${formatCurrency(person.total)}</strong>
-      </article>
+      <span class="bill-count">${bill.products.length}</span>
     `;
-  }).join('');
+
+    button.addEventListener('click', () => {
+      state.activeBillId = bill.id;
+      editingProductId = null;
+      saveState();
+      render();
+    });
+
+    dom.billList.appendChild(button);
+  }
+}
+
+function renderBillHeader() {
+  const bill = getActiveBill();
+
+  dom.billNameInput.value = bill.name;
+  dom.billMeta.textContent = `Creada: ${formatDate(bill.createdAt)} · Última edición: ${formatDate(bill.updatedAt)}`;
+  dom.tipPercentInput.value = bill.tipPercent;
+  dom.deleteBillButton.disabled = state.bills.length <= 1;
+}
+
+function renderPeople() {
+  const bill = getActiveBill();
+  dom.peopleList.innerHTML = '';
+
+  if (bill.people.length === 0) {
+    dom.peopleList.appendChild(cloneEmptyState());
+    return;
+  }
+
+  for (const person of bill.people) {
+    const row = document.createElement('div');
+    row.className = 'person-row';
+    row.innerHTML = `
+      <strong>${escapeHtml(person.name)}</strong>
+      <button class="paid-toggle ${person.paid ? 'is-paid' : ''}" type="button">
+        ${person.paid ? 'Pagado' : 'Pendiente'}
+      </button>
+      <button class="icon-button danger" type="button" aria-label="Eliminar ${escapeHtml(person.name)}">×</button>
+    `;
+
+    row.querySelector('.paid-toggle').addEventListener('click', () => {
+      person.paid = !person.paid;
+      persistAndRender();
+    });
+
+    row.querySelector('.icon-button').addEventListener('click', () => {
+      deletePerson(person.id);
+    });
+
+    row.querySelector('strong').addEventListener('dblclick', () => {
+      renamePerson(person.id);
+    });
+
+    dom.peopleList.appendChild(row);
+  }
+}
+
+function renderConsumers() {
+  const bill = getActiveBill();
+  const currentProduct = editingProductId
+    ? bill.products.find((product) => product.id === editingProductId)
+    : null;
+
+  dom.consumerList.innerHTML = '';
+
+  if (bill.people.length === 0) {
+    dom.consumerList.appendChild(cloneEmptyState());
+    return;
+  }
+
+  for (const person of bill.people) {
+    const existing = currentProduct?.consumers.find((consumer) => consumer.personId === person.id);
+    const checked = currentProduct ? Boolean(existing) : true;
+    const share = existing?.share || 1;
+
+    const row = document.createElement('label');
+    row.className = 'consumer-row';
+    row.innerHTML = `
+      <input type="checkbox" value="${person.id}" ${checked ? 'checked' : ''} />
+      <span>${escapeHtml(person.name)}</span>
+      <input type="number" min="1" step="1" value="${share}" aria-label="Partes de ${escapeHtml(person.name)}" />
+    `;
+
+    const checkbox = row.querySelector('input[type="checkbox"]');
+    const shareInput = row.querySelector('input[type="number"]');
+
+    shareInput.disabled = !checkbox.checked;
+
+    checkbox.addEventListener('change', () => {
+      shareInput.disabled = !checkbox.checked;
+    });
+
+    dom.consumerList.appendChild(row);
+  }
+}
+
+function renderProducts() {
+  const bill = getActiveBill();
+  dom.productList.innerHTML = '';
+
+  if (bill.products.length === 0) {
+    dom.productList.appendChild(cloneEmptyState());
+    return;
+  }
+
+  for (const product of bill.products) {
+    const productTotal = Number(product.unitPrice) * Number(product.quantity);
+    const consumerNames = product.consumers
+      .map((consumer) => {
+        const person = bill.people.find((item) => item.id === consumer.personId);
+        return person ? `${person.name}${consumer.share > 1 ? ` (${consumer.share} partes)` : ''}` : null;
+      })
+      .filter(Boolean)
+      .join(', ');
+
+    const row = document.createElement('article');
+    row.className = 'product-row';
+    row.innerHTML = `
+      <div>
+        <strong>${escapeHtml(product.name)}</strong>
+        <div class="product-meta">
+          ${formatCurrency(product.unitPrice)} × ${product.quantity} = ${formatCurrency(productTotal)}
+          <br />
+          Consumidores: ${escapeHtml(consumerNames || 'Sin consumidores')}
+        </div>
+      </div>
+      <div class="product-actions">
+        <button class="btn btn-light btn-small" data-action="edit" type="button">Editar</button>
+        <button class="btn btn-danger-light btn-small" data-action="delete" type="button">Eliminar</button>
+      </div>
+    `;
+
+    row.querySelector('[data-action="edit"]').addEventListener('click', () => {
+      startEditProduct(product.id);
+    });
+
+    row.querySelector('[data-action="delete"]').addEventListener('click', () => {
+      deleteProduct(product.id);
+    });
+
+    dom.productList.appendChild(row);
+  }
+}
+
+function renderProductForm() {
+  if (!editingProductId) {
+    dom.productFormTitle.textContent = 'Agregar producto';
+    dom.productSubmitButton.textContent = 'Agregar producto';
+    dom.cancelEditProductButton.classList.add('hidden');
+    renderConsumers();
+    return;
+  }
+
+  const bill = getActiveBill();
+  const product = bill.products.find((item) => item.id === editingProductId);
+
+  if (!product) {
+    editingProductId = null;
+    renderProductForm();
+    return;
+  }
+
+  dom.productFormTitle.textContent = 'Editar producto';
+  dom.productSubmitButton.textContent = 'Guardar cambios';
+  dom.cancelEditProductButton.classList.remove('hidden');
+
+  dom.productNameInput.value = product.name;
+  dom.productPriceInput.value = product.unitPrice;
+  dom.productQuantityInput.value = product.quantity;
+
+  renderConsumers();
+}
+
+function renderTotals() {
+  const bill = getActiveBill();
+  const calculation = calculateBill(bill);
+
+  dom.subtotalOutput.textContent = formatCurrency(calculation.subtotal);
+  dom.tipOutput.textContent = formatCurrency(calculation.tipAmount);
+  dom.grandTotalOutput.textContent = formatCurrency(calculation.grandTotal);
+  dom.paidTotalOutput.textContent = formatCurrency(calculation.paidTotal);
+  dom.pendingTotalOutput.textContent = formatCurrency(calculation.pendingTotal);
+
+  dom.personResults.innerHTML = '';
+
+  if (bill.people.length === 0) {
+    dom.personResults.appendChild(cloneEmptyState());
+    return;
+  }
+
+  for (const person of bill.people) {
+    const row = document.createElement('div');
+    row.className = 'result-row';
+    row.innerHTML = `
+      <span>${escapeHtml(person.name)} · ${person.paid ? 'Pagado' : 'Pendiente'}</span>
+      <strong>${formatCurrency(calculation.finalTotals[person.id] || 0)}</strong>
+    `;
+    dom.personResults.appendChild(row);
+  }
 }
 
 function render() {
-  const activeBill = getActiveBill();
-  applyTheme();
-  renderBillSelector();
-  renderBillHistory();
-  accountNameInput.value = activeBill.accountName;
-  tipPercentageInput.value = String(activeBill.tipPercentage);
-  renderPeopleList();
-  renderProductsList();
-  renderPeopleOptions(editingProductId ? activeBill.products.find((product) => product.id === editingProductId)?.consumerSplits ?? [] : []);
-  renderSummary();
+  renderBillList();
+  renderBillHeader();
+  renderPeople();
+  renderProductForm();
+  renderProducts();
+  renderTotals();
+
+  if (!dom.shareModal.classList.contains('hidden')) {
+    updateSharePreview();
+  }
 }
 
-function persistAndRender(message = '', type = '') {
+function addBill() {
+  const bill = makeDefaultBill();
+  bill.name = `Cuenta ${state.bills.length + 1}`;
+  state.bills.unshift(bill);
+  state.activeBillId = bill.id;
+  editingProductId = null;
   saveState();
   render();
-
-  if (message) {
-    setMessage(generalMessage, message, type);
-  }
+  showToast('Cuenta creada.');
 }
 
-function collectConsumerSplits() {
-  const splitMode = getSplitMode();
-  const checks = Array.from(productConsumers.querySelectorAll('[data-consumer-check]:checked'));
-
-  return checks.map((checkbox) => {
-    const shareInput = productConsumers.querySelector(`[data-consumer-share="${checkbox.value}"]`);
-    return {
-      personId: checkbox.value,
-      share: splitMode === 'weighted' ? Math.max(1, Number(shareInput?.value) || 1) : 1,
-    };
+function duplicateBill() {
+  const bill = getActiveBill();
+  const personMap = new Map();
+  const newPeople = bill.people.map((person) => {
+    const newId = createId('person');
+    personMap.set(person.id, newId);
+    return { ...person, id: newId, paid: false };
   });
-}
 
-// Exportaciones
-function copyTextFallback(text) {
-  const textarea = document.createElement('textarea');
-  textarea.value = text;
-  textarea.setAttribute('readonly', '');
-  textarea.style.position = 'fixed';
-  textarea.style.opacity = '0';
-  document.body.appendChild(textarea);
-  textarea.select();
-
-  try {
-    const copied = document.execCommand('copy');
-    document.body.removeChild(textarea);
-    return copied;
-  } catch (error) {
-    document.body.removeChild(textarea);
-    return false;
-  }
-}
-
-function createSummarySvg() {
-  const summary = calculateSummary();
-  const lines = buildShareText(summary).split('\n').slice(1);
-  const width = 980;
-  const lineHeight = 24;
-  const height = 110 + (lines.length * lineHeight);
-  const background = state.theme === 'dark' ? '#2a201c' : '#fffdfa';
-  const titleColor = state.theme === 'dark' ? '#ffc49f' : '#8f4218';
-  const textColor = state.theme === 'dark' ? '#f5ece5' : '#2a211c';
-  const textNodes = lines.map((line, index) => `
-    <text x="40" y="${66 + (index * lineHeight)}" font-size="18" font-family="Arial, Helvetica, sans-serif" fill="${textColor}">${escapeXml(line)}</text>
-  `).join('');
-
-  return `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-      <rect width="100%" height="100%" fill="${background}" rx="26" ry="26" />
-      <text x="40" y="38" font-size="28" font-family="Arial, Helvetica, sans-serif" font-weight="700" fill="${titleColor}">${escapeXml(getAccountTitle())}</text>
-      ${textNodes}
-    </svg>
-  `.trim();
-}
-
-function downloadBlob(blob, fileName) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-function getFileSafeName() {
-  return (getAccountTitle().trim() || 'cuenta').replace(/[^a-z0-9-_]+/gi, '-').toLowerCase();
-}
-
-function exportSvg() {
-  const summary = calculateSummary();
-  if (summary.totalsByPerson.length === 0 || getActiveBill().products.length === 0) {
-    setMessage(generalMessage, 'No hay datos suficientes para exportar.');
-    return;
-  }
-
-  const blob = new Blob([createSummarySvg()], { type: 'image/svg+xml;charset=utf-8' });
-  downloadBlob(blob, `${getFileSafeName()}.svg`);
-  setMessage(generalMessage, 'Resumen exportado como SVG.', 'success');
-}
-
-function exportPng() {
-  const summary = calculateSummary();
-  if (summary.totalsByPerson.length === 0 || getActiveBill().products.length === 0) {
-    setMessage(generalMessage, 'No hay datos suficientes para exportar.');
-    return;
-  }
-
-  const svgMarkup = createSummarySvg();
-  const svgBlob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
-  const svgUrl = URL.createObjectURL(svgBlob);
-  const image = new Image();
-
-  image.onload = () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = image.width;
-    canvas.height = image.height;
-    const context = canvas.getContext('2d');
-    context.drawImage(image, 0, 0);
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        setMessage(generalMessage, 'No fue posible generar el PNG.');
-        URL.revokeObjectURL(svgUrl);
-        return;
-      }
-
-      downloadBlob(blob, `${getFileSafeName()}.png`);
-      setMessage(generalMessage, 'Resumen exportado como PNG.', 'success');
-      URL.revokeObjectURL(svgUrl);
-    }, 'image/png');
+  const createdAt = nowIso();
+  const clonedBill = {
+    ...bill,
+    id: createId('bill'),
+    name: `${bill.name} copia`,
+    createdAt,
+    updatedAt: createdAt,
+    people: newPeople,
+    products: bill.products.map((product) => ({
+      ...product,
+      id: createId('product'),
+      consumers: product.consumers
+        .filter((consumer) => personMap.has(consumer.personId))
+        .map((consumer) => ({
+          personId: personMap.get(consumer.personId),
+          share: consumer.share,
+        })),
+    })),
   };
 
-  image.onerror = () => {
-    URL.revokeObjectURL(svgUrl);
-    setMessage(generalMessage, 'No fue posible generar el PNG.');
-  };
-
-  image.src = svgUrl;
+  state.bills.unshift(clonedBill);
+  state.activeBillId = clonedBill.id;
+  editingProductId = null;
+  saveState();
+  render();
+  showToast('Cuenta duplicada.');
 }
 
-async function shareImage() {
-  const summary = calculateSummary();
-  if (summary.totalsByPerson.length === 0 || getActiveBill().products.length === 0) {
-    setMessage(generalMessage, 'No hay datos suficientes para compartir.');
+function deleteActiveBill() {
+  if (state.bills.length <= 1) {
+    showToast('Debe existir al menos una cuenta.');
     return;
   }
 
-  const svgMarkup = createSummarySvg();
-  const svgBlob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
-  const svgUrl = URL.createObjectURL(svgBlob);
-  const image = new Image();
+  const bill = getActiveBill();
+  const confirmed = confirm(`¿Eliminar "${bill.name}"? Esta acción no se puede deshacer.`);
 
-  return new Promise((resolve, reject) => {
-    image.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = image.width;
-      canvas.height = image.height;
-      const context = canvas.getContext('2d');
-      context.drawImage(image, 0, 0);
-      canvas.toBlob(async (blob) => {
-        URL.revokeObjectURL(svgUrl);
-        if (!blob) {
-          setMessage(generalMessage, 'No fue posible generar la imagen.');
-          reject();
-          return;
-        }
-        const fileName = `${getFileSafeName()}.png`;
-        const file = new File([blob], fileName, { type: 'image/png' });
-        try {
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({ files: [file], title: getAccountTitle(), text: 'Resumen de cuenta' });
-            setMessage(generalMessage, 'Imagen lista para compartir.', 'success');
-          } else {
-            downloadBlob(blob, fileName);
-            setMessage(generalMessage, 'Imagen descargada. Abre WhatsApp y adjuntala manualmente.', 'success');
-          }
-          resolve();
-        } catch (error) {
-          if (error.name !== 'AbortError') {
-            setMessage(generalMessage, 'No fue posible compartir la imagen.');
-          }
-          reject();
-        }
-      }, 'image/png');
-    };
-    image.onerror = () => {
-      URL.revokeObjectURL(svgUrl);
-      setMessage(generalMessage, 'No fue posible generar la imagen.');
-      reject();
-    };
-    image.src = svgUrl;
+  if (!confirmed) {
+    return;
+  }
+
+  state.bills = state.bills.filter((item) => item.id !== bill.id);
+  state.activeBillId = state.bills[0].id;
+  editingProductId = null;
+  saveState();
+  render();
+  showToast('Cuenta eliminada.');
+}
+
+function addPerson(name) {
+  const bill = getActiveBill();
+  const cleanName = name.trim();
+
+  if (!cleanName) {
+    showToast('Ingresa un nombre.');
+    return;
+  }
+
+  const exists = bill.people.some((person) => person.name.toLowerCase() === cleanName.toLowerCase());
+
+  if (exists) {
+    showNotice('Nombre repetido', 'Ya existe una persona con ese nombre en esta cuenta. Usa un apellido, apodo o inicial para diferenciarla.');
+    return;
+  }
+
+  bill.people.push({
+    id: createId('person'),
+    name: cleanName,
+    paid: false,
   });
+
+  dom.personNameInput.value = '';
+  persistAndRender();
 }
 
-function exportData() {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json;charset=utf-8' });
-  downloadBlob(blob, `divisor-cuentas-${getFileSafeName()}.json`);
-  setMessage(generalMessage, 'Datos exportados como JSON.', 'success');
-}
+function deletePerson(personId) {
+  const bill = getActiveBill();
+  const person = bill.people.find((item) => item.id === personId);
 
-function importData(file) {
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const imported = normalizeAppState(JSON.parse(String(reader.result)));
-      Object.assign(state, imported);
-      state.activeBillId = imported.bills[0]?.id || imported.activeBillId;
-      clearMessages();
-      resetPersonForm();
-      resetProductForm();
-      persistAndRender('Datos importados correctamente.', 'success');
-    } catch (error) {
-      setMessage(generalMessage, 'El archivo JSON no tiene un formato valido.');
-    }
-  };
-
-  reader.onerror = () => {
-    setMessage(generalMessage, 'No fue posible leer el archivo seleccionado.');
-  };
-
-  reader.readAsText(file);
-}
-
-// Eventos
-personForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-  clearMessages();
-
-  const activeBill = getActiveBill();
-  const name = personNameInput.value.trim();
-  const validationMessage = validatePersonName(name, activeBill, editingPersonId);
-  if (validationMessage) {
-    setMessage(personError, validationMessage);
-    return;
-  }
-
-  if (editingPersonId) {
-    const person = activeBill.people.find((item) => item.id === editingPersonId);
-    if (!person) {
-      setMessage(personError, 'No fue posible editar la persona.');
-      return;
-    }
-    person.name = name;
-  } else {
-    activeBill.people.push({ id: crypto.randomUUID(), name });
-  }
-
-  resetPersonForm();
-  personNameInput.focus();
-  persistAndRender('Persona guardada correctamente.', 'success');
-});
-
-personCancelButton.addEventListener('click', () => {
-  setMessage(personError, '');
-  resetPersonForm();
-});
-
-productForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-  clearMessages();
-
-  const activeBill = getActiveBill();
-  const name = productNameInput.value.trim();
-  const unitPrice = Number(productPriceInput.value);
-  const quantity = Number(productQuantityInput.value);
-  const splitMode = getSplitMode();
-  const consumerSplits = collectConsumerSplits();
-
-  const validationMessage = validateProductData(name, unitPrice, quantity, consumerSplits);
-  if (validationMessage) {
-    setMessage(productError, validationMessage);
-    return;
-  }
-
-  const productData = {
-    name,
-    unitPrice,
-    quantity,
-    price: unitPrice * quantity,
-    splitMode,
-    consumerSplits,
-  };
-
-  if (editingProductId) {
-    const product = activeBill.products.find((item) => item.id === editingProductId);
-    if (!product) {
-      setMessage(productError, 'No fue posible editar el producto.');
-      return;
-    }
-    Object.assign(product, productData);
-  } else {
-    activeBill.products.push({ id: crypto.randomUUID(), ...productData });
-  }
-
-  resetProductForm();
-  productNameInput.focus();
-  persistAndRender('Producto guardado correctamente.', 'success');
-});
-
-productCancelButton.addEventListener('click', () => {
-  setMessage(productError, '');
-  resetProductForm();
-});
-
-selectAllConsumersButton.addEventListener('click', () => {
-  const splitMode = getSplitMode();
-  productConsumers.querySelectorAll('[data-consumer-check]').forEach((checkbox) => {
-    checkbox.checked = true;
-  });
-  productConsumers.querySelectorAll('[data-consumer-share]').forEach((input) => {
-    input.value = '1';
-    input.disabled = splitMode !== 'weighted';
-  });
-});
-
-productConsumers.addEventListener('input', (event) => {
-  const checkbox = event.target.closest('[data-consumer-check]');
-  if (!checkbox) {
-    return;
-  }
-
-  const shareInput = productConsumers.querySelector(`[data-consumer-share="${checkbox.value}"]`);
-  if (!shareInput) {
-    return;
-  }
-
-  const splitMode = getSplitMode();
-  shareInput.disabled = splitMode !== 'weighted' || !checkbox.checked;
-  if (!checkbox.checked || splitMode !== 'weighted') {
-    shareInput.value = '1';
-  }
-});
-
-productForm.addEventListener('change', (event) => {
-  if (!event.target.matches('input[name="splitMode"]')) {
-    return;
-  }
-
-  const activeBill = getActiveBill();
-  const selectedSplits = editingProductId
-    ? activeBill.products.find((product) => product.id === editingProductId)?.consumerSplits ?? []
-    : collectConsumerSplits();
-  renderPeopleOptions(selectedSplits);
-});
-
-peopleList.addEventListener('click', (event) => {
-  const activeBill = getActiveBill();
-  const editButton = event.target.closest('[data-edit-person]');
-  if (editButton) {
-    const personId = editButton.getAttribute('data-edit-person');
-    const person = activeBill.people.find((item) => item.id === personId);
-    if (!person) {
-      return;
-    }
-
-    setMessage(personError, '');
-    editingPersonId = person.id;
-    personNameInput.value = person.name;
-    personSubmitButton.textContent = 'Guardar persona';
-    personCancelButton.classList.remove('hidden');
-    personNameInput.focus();
-    return;
-  }
-
-  const removeButton = event.target.closest('[data-remove-person]');
-  if (!removeButton) {
-    return;
-  }
-
-  const personId = removeButton.getAttribute('data-remove-person');
-  const person = activeBill.people.find((item) => item.id === personId);
   if (!person) {
     return;
   }
 
-  const linkedProducts = getProductsLinkedToPerson(activeBill, personId);
-  const confirmationText = linkedProducts.length > 0
-    ? `${person.name} tiene productos asociados. Si la eliminas, se quitara de esos productos y algunos podrian desaparecer. ¿Deseas continuar?`
-    : `¿Deseas eliminar a ${person.name}?`;
+  const confirmed = confirm(`¿Eliminar a ${person.name}? También se quitará de los productos compartidos.`);
 
-  if (!window.confirm(confirmationText)) {
+  if (!confirmed) {
     return;
   }
 
-  pushUndo('Persona eliminada');
-  activeBill.people = activeBill.people.filter((item) => item.id !== personId);
-  if (editingPersonId === personId) {
-    resetPersonForm();
-  }
+  bill.people = bill.people.filter((item) => item.id !== personId);
+  bill.products = bill.products.map((product) => ({
+    ...product,
+    consumers: product.consumers.filter((consumer) => consumer.personId !== personId),
+  }));
 
-  for (let index = activeBill.products.length - 1; index >= 0; index -= 1) {
-    activeBill.products[index].consumerSplits = activeBill.products[index].consumerSplits.filter((split) => split.personId !== personId);
-    if (activeBill.products[index].consumerSplits.length === 0) {
-      activeBill.products.splice(index, 1);
-    }
-  }
+  persistAndRender();
+}
 
-  persistAndRender('Persona eliminada correctamente.', 'success');
-});
+function renamePerson(personId) {
+  const bill = getActiveBill();
+  const person = bill.people.find((item) => item.id === personId);
 
-productsList.addEventListener('click', (event) => {
-  const activeBill = getActiveBill();
-  const editButton = event.target.closest('[data-edit-product]');
-  if (editButton) {
-    const productId = editButton.getAttribute('data-edit-product');
-    const product = activeBill.products.find((item) => item.id === productId);
-    if (!product) {
-      return;
-    }
-
-    setMessage(productError, '');
-    editingProductId = product.id;
-    productNameInput.value = product.name;
-    productPriceInput.value = String(product.unitPrice);
-    productQuantityInput.value = String(product.quantity);
-    const selectedMode = productForm.querySelector(`input[name="splitMode"][value="${product.splitMode}"]`);
-    if (selectedMode) {
-      selectedMode.checked = true;
-    }
-    productSubmitButton.textContent = 'Guardar producto';
-    productCancelButton.classList.remove('hidden');
-    renderPeopleOptions(product.consumerSplits);
-    productNameInput.focus();
+  if (!person) {
     return;
   }
 
-  const removeButton = event.target.closest('[data-remove-product]');
-  if (!removeButton) {
+  const newName = prompt('Nuevo nombre:', person.name);
+
+  if (newName === null) {
     return;
   }
 
-  const productId = removeButton.getAttribute('data-remove-product');
-  pushUndo('Producto eliminado');
-  activeBill.products = activeBill.products.filter((product) => product.id !== productId);
+  const cleanName = newName.trim();
+
+  if (!cleanName) {
+    showToast('El nombre no puede quedar vacío.');
+    return;
+  }
+
+  const exists = bill.people.some(
+    (item) => item.id !== personId && item.name.toLowerCase() === cleanName.toLowerCase()
+  );
+
+  if (exists) {
+    showNotice('Nombre repetido', 'Ya existe una persona con ese nombre. Usa un apellido, apodo o inicial para diferenciarla.');
+    return;
+  }
+
+  person.name = cleanName;
+  persistAndRender();
+}
+
+function getConsumersFromForm() {
+  return [...dom.consumerList.querySelectorAll('.consumer-row')]
+    .map((row) => {
+      const checkbox = row.querySelector('input[type="checkbox"]');
+      const shareInput = row.querySelector('input[type="number"]');
+
+      return {
+        personId: checkbox.value,
+        checked: checkbox.checked,
+        share: Math.max(1, Number(shareInput.value || 1)),
+      };
+    })
+    .filter((consumer) => consumer.checked)
+    .map(({ personId, share }) => ({ personId, share }));
+}
+
+function submitProduct() {
+  const bill = getActiveBill();
+  const name = dom.productNameInput.value.trim();
+  const unitPrice = Number(dom.productPriceInput.value);
+  const quantity = Number(dom.productQuantityInput.value);
+  const consumers = getConsumersFromForm();
+
+  if (!name) {
+    showToast('Ingresa el nombre del producto.');
+    return;
+  }
+
+  if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+    showToast('Ingresa un precio unitario mayor a cero.');
+    return;
+  }
+
+  if (!Number.isFinite(quantity) || quantity <= 0) {
+    showToast('Ingresa una cantidad mayor a cero.');
+    return;
+  }
+
+  if (consumers.length === 0) {
+    showToast('Selecciona al menos una persona.');
+    return;
+  }
+
+  if (editingProductId) {
+    const product = bill.products.find((item) => item.id === editingProductId);
+
+    if (product) {
+      product.name = name;
+      product.unitPrice = unitPrice;
+      product.quantity = quantity;
+      product.consumers = consumers;
+    }
+
+    editingProductId = null;
+    showToast('Producto actualizado.');
+  } else {
+    bill.products.push({
+      id: createId('product'),
+      name,
+      unitPrice,
+      quantity,
+      consumers,
+    });
+
+    showToast('Producto agregado.');
+  }
+
+  resetProductForm();
+  persistAndRender();
+}
+
+function startEditProduct(productId) {
+  editingProductId = productId;
+  renderProductForm();
+  dom.productNameInput.focus();
+  window.scrollTo({ top: dom.productForm.offsetTop - 110, behavior: 'smooth' });
+}
+
+function deleteProduct(productId) {
+  const bill = getActiveBill();
+  const product = bill.products.find((item) => item.id === productId);
+
+  if (!product) {
+    return;
+  }
+
+  const confirmed = confirm(`¿Eliminar "${product.name}"?`);
+
+  if (!confirmed) {
+    return;
+  }
+
+  bill.products = bill.products.filter((item) => item.id !== productId);
+
   if (editingProductId === productId) {
+    editingProductId = null;
     resetProductForm();
   }
-  persistAndRender('Producto eliminado correctamente.', 'success');
-});
 
-accountNameInput.addEventListener('input', () => {
-  getActiveBill().accountName = accountNameInput.value;
   persistAndRender();
-});
+}
 
-tipPercentageInput.addEventListener('input', () => {
-  getActiveBill().tipPercentage = Math.max(0, Number(tipPercentageInput.value) || 0);
-  persistAndRender();
-});
+function resetProductForm() {
+  editingProductId = null;
+  dom.productForm.reset();
+  dom.productQuantityInput.value = 1;
+  dom.productFormTitle.textContent = 'Agregar producto';
+  dom.productSubmitButton.textContent = 'Agregar producto';
+  dom.cancelEditProductButton.classList.add('hidden');
+}
 
-billSelector.addEventListener('change', () => {
-  state.activeBillId = billSelector.value;
-  clearMessages();
-  resetPersonForm();
-  resetProductForm();
-  persistAndRender();
-});
+function getShareOptions() {
+  const format = document.querySelector('input[name="shareFormat"]:checked')?.value || 'text';
+  const content = document.querySelector('input[name="shareContent"]:checked')?.value || 'simple';
 
-newBillButton.addEventListener('click', () => {
-  const rawName = window.prompt('Nombre para la nueva cuenta:', `Cuenta ${state.bills.length + 1}`);
-  if (rawName === null) {
-    return;
-  }
+  return { format, content };
+}
 
-  const bill = createEmptyBill(rawName.trim() || `Cuenta ${state.bills.length + 1}`);
-  state.bills.unshift(bill);
-  state.activeBillId = bill.id;
-  clearMessages();
-  resetPersonForm();
-  resetProductForm();
-  persistAndRender('Nueva cuenta creada.', 'success');
-});
+function getSummaryText(content = 'simple') {
+  const bill = getActiveBill();
+  const calculation = calculateBill(bill);
+  const lines = [
+    `*Cuenta Clara - ${bill.name}*`,
+    '',
+  ];
 
-duplicateBillButton.addEventListener('click', () => {
-  const clonedBill = duplicateBill(getActiveBill());
-  state.bills.unshift(clonedBill);
-  state.activeBillId = clonedBill.id;
-  clearMessages();
-  resetPersonForm();
-  resetProductForm();
-  persistAndRender('Cuenta duplicada.', 'success');
-});
+  if (content === 'detail') {
+    for (const person of bill.people) {
+      const detail = calculation.personDetails[person.id];
+      lines.push(`*${person.name}: ${formatCurrency(detail.total)}*`);
+      lines.push(`Estado: ${person.paid ? 'Pagado' : 'Pendiente'}`);
 
-deleteBillButton.addEventListener('click', () => {
-  if (state.bills.length <= 1) {
-    setMessage(generalMessage, 'Debe existir al menos una cuenta guardada.');
-    return;
-  }
-
-  if (!window.confirm('La cuenta seleccionada se eliminara permanentemente.')) {
-    return;
-  }
-
-  pushUndo('Cuenta eliminada');
-  state.bills = state.bills.filter((bill) => bill.id !== state.activeBillId);
-  state.activeBillId = state.bills[0]?.id || '';
-  clearMessages();
-  resetPersonForm();
-  resetProductForm();
-  persistAndRender('Cuenta eliminada.', 'success');
-});
-
-themeToggleButton.addEventListener('click', () => {
-  const themes = ['light', 'dark', 'system'];
-  const currentIndex = themes.indexOf(state.theme);
-  state.theme = themes[(currentIndex + 1) % themes.length];
-  applyTheme();
-  saveState();
-});
-
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-  if (state.theme === 'system') {
-    applyTheme();
-  }
-});
-
-billHistory.addEventListener('click', (event) => {
-  const button = event.target.closest('[data-history-bill]');
-  if (!button) {
-    return;
-  }
-
-  state.activeBillId = button.getAttribute('data-history-bill');
-  clearMessages();
-  resetPersonForm();
-  resetProductForm();
-  persistAndRender();
-});
-
-shareButton.addEventListener('click', async () => {
-  const summary = calculateSummary();
-  if (summary.totalsByPerson.length === 0 || getActiveBill().products.length === 0) {
-    setMessage(generalMessage, 'No hay datos suficientes para compartir.');
-    return;
-  }
-
-  const text = buildShareText(summary);
-  await navigator.clipboard.writeText(text);
-  setMessage(generalMessage, 'Resumen copiado al portapapeles.', 'success');
-});
-
-const whatsappButton = document.querySelector('#whatsappButton');
-const whatsappOptions = document.querySelector('#whatsappOptions');
-const whatsappTextButton = document.querySelector('#whatsappTextButton');
-const whatsappImageButton = document.querySelector('#whatsappImageButton');
-
-whatsappButton.addEventListener('click', () => {
-  whatsappOptions.classList.toggle('hidden');
-});
-
-async function shareImage() {
-  const summary = calculateSummary();
-  if (summary.totalsByPerson.length === 0 || getActiveBill().products.length === 0) {
-    setMessage(generalMessage, 'No hay datos suficientes para compartir.');
-    return;
-  }
-  const svgMarkup = createSummarySvg();
-  const svgBlob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
-  const svgUrl = URL.createObjectURL(svgBlob);
-  const image = new Image();
-  return new Promise((resolve, reject) => {
-    image.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = image.width;
-      canvas.height = image.height;
-      const context = canvas.getContext('2d');
-      context.drawImage(image, 0, 0);
-      canvas.toBlob((blob) => {
-        URL.revokeObjectURL(svgUrl);
-        if (!blob) {
-          setMessage(generalMessage, 'No fue posible generar la imagen.');
-          reject();
-          return;
+      if (detail.items.length > 0) {
+        lines.push('Detalle:');
+        for (const item of detail.items) {
+          const shareText = item.totalShares > 1 ? ` (${item.share}/${item.totalShares} partes)` : '';
+          lines.push(`- ${item.productName}${shareText}: ${formatCurrency(item.amount)}`);
         }
-        const fileName = getFileSafeName() + '.png';
-        const file = new File([blob], fileName, { type: 'image/png' });
-        try {
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            navigator.share({ files: [file], title: getAccountTitle(), text: 'Resumen de cuenta' })
-              .then(() => {
-                setMessage(generalMessage, 'Imagen enviada por WhatsApp.', 'success');
-                resolve();
-              })
-              .catch(() => {
-                downloadBlob(blob, fileName);
-                setMessage(generalMessage, 'Imagen descargada. Abre WhatsApp y adjuntala manualmente.', 'success');
-                resolve();
-              });
-          } else {
-            downloadBlob(blob, fileName);
-            setMessage(generalMessage, 'Imagen descargada. Abre WhatsApp y adjuntala manualmente.', 'success');
-            resolve();
-          }
-        } catch (error) {
-          if (error.name !== 'AbortError') {
-            setMessage(generalMessage, 'No fue posible compartir la imagen.');
-          }
-          reject();
-        }
-      }, 'image/png');
-    };
-    image.onerror = () => {
-      URL.revokeObjectURL(svgUrl);
-      setMessage(generalMessage, 'No fue posible generar la imagen.');
-      reject();
-    };
-    image.src = svgUrl;
-  });
-}
+      } else {
+        lines.push('Detalle: sin consumos registrados');
+      }
 
-whatsappTextButton.addEventListener('click', () => {
-  const summary = calculateSummary();
-  if (summary.totalsByPerson.length === 0 || getActiveBill().products.length === 0) {
-    setMessage(generalMessage, 'No hay datos suficientes para compartir.');
-    return;
-  }
-  const text = buildShareText(summary);
-  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
-  setMessage(generalMessage, 'Se abrió WhatsApp con el resumen.', 'success');
-});
-
-whatsappImageButton.addEventListener('click', () => {
-  shareImage();
-});
-
-function getShareableLink() {
-  const activeBill = getActiveBill();
-  const shareData = {
-    n: activeBill.accountName,
-    t: activeBill.tipPercentage,
-    p: activeBill.people.map((person) => person.name),
-    pr: activeBill.products.map((product) => ({
-      n: product.name,
-      u: product.unitPrice,
-      q: product.quantity,
-      s: product.splitMode,
-      c: product.consumerSplits.map((split) => ({
-        i: activeBill.people.findIndex((p) => p.id === split.personId),
-        sh: split.share,
-      })),
-    })),
-  };
-  const encoded = btoa(encodeURIComponent(JSON.stringify(shareData)));
-  const url = new URL(window.location.href);
-  url.search = `?bill=${encoded}`;
-  return url.toString();
-}
-
-shareLinkButton.addEventListener('click', async () => {
-  const url = getShareableLink();
-  try {
-    await navigator.clipboard.writeText(url);
-    setMessage(generalMessage, 'Enlace copiado. Compartilo para que otros vean la cuenta.', 'success');
-  } catch (error) {
-    const textarea = document.createElement('textarea');
-    textarea.value = url;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textarea);
-    setMessage(generalMessage, 'Enlace copiado. Compartilo para que otros vean la cuenta.', 'success');
-  }
-});
-
-function loadFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  const billData = params.get('bill');
-  if (!billData) return;
-
-  try {
-    const decoded = JSON.parse(decodeURIComponent(atob(billData)));
-    const bill = createEmptyBill(decoded.n || 'Cuenta compartida');
-    bill.tipPercentage = decoded.t || 10;
-    bill.people = decoded.p.map((name) => ({ id: crypto.randomUUID(), name }));
-    bill.products = decoded.pr.map((product) => ({
-      id: crypto.randomUUID(),
-      name: product.n,
-      unitPrice: product.u,
-      quantity: product.q,
-      price: product.u * product.q,
-      splitMode: product.s || 'equal',
-      consumerSplits: (product.c || []).map((split) => ({
-        personId: bill.people[split.i]?.id || bill.people[0]?.id || '',
-        share: split.sh || 1,
-      })),
-    }));
-    bill.paidPeople = [];
-
-    state.bills.unshift(bill);
-    state.activeBillId = bill.id;
-    saveState();
-
-    window.history.replaceState({}, '', window.location.pathname);
-    setMessage(generalMessage, 'Cuenta compartida cargada correctamente.', 'success');
-  } catch (error) {
-    console.error('Failed to load shared bill:', error);
-  }
-}
-
-whatsAppButton.addEventListener('click', () => {
-  shareImage();
-});
-
-svgButton.addEventListener('click', exportSvg);
-pngButton.addEventListener('click', exportPng);
-pdfButton.addEventListener('click', () => {
-  const summary = calculateSummary();
-  if (summary.totalsByPerson.length === 0 || getActiveBill().products.length === 0) {
-    setMessage(generalMessage, 'No hay datos suficientes para exportar.');
-    return;
-  }
-
-  setMessage(generalMessage, 'Se abrio la impresion del navegador para guardar en PDF.', 'success');
-  window.print();
-});
-
-exportDataButton.addEventListener('click', exportData);
-importDataButton.addEventListener('click', () => {
-  importFileInput.value = '';
-  importFileInput.click();
-});
-importFileInput.addEventListener('change', (event) => {
-  const file = event.target.files?.[0];
-  if (!file) {
-    return;
-  }
-  importData(file);
-});
-
-resetButton.addEventListener('click', () => {
-  if (!window.confirm('Se borraran personas, productos y totales de esta cuenta.')) {
-    return;
-  }
-
-  pushUndo('Cuenta reiniciada');
-  const activeBill = getActiveBill();
-  activeBill.accountName = '';
-  activeBill.tipPercentage = 10;
-  activeBill.people = [];
-  activeBill.products = [];
-  activeBill.paidPeople = [];
-  clearMessages();
-  resetPersonForm();
-  resetProductForm();
-  persistAndRender('La cuenta fue reiniciada.', 'success');
-});
-
-results.addEventListener('change', (event) => {
-  const checkbox = event.target.closest('[data-paid-person]');
-  if (!checkbox) return;
-
-  const personId = checkbox.getAttribute('data-paid-person');
-  const activeBill = getActiveBill();
-  if (!activeBill.paidPeople) activeBill.paidPeople = [];
-
-  if (checkbox.checked) {
-    if (!activeBill.paidPeople.includes(personId)) {
-      activeBill.paidPeople.push(personId);
+      lines.push(`Subtotal: ${formatCurrency(detail.subtotal)}`);
+      lines.push(`Propina: ${formatCurrency(detail.tip)}`);
+      lines.push('');
     }
   } else {
-    activeBill.paidPeople = activeBill.paidPeople.filter((id) => id !== personId);
+    for (const person of bill.people) {
+      const detail = calculation.personDetails[person.id];
+      lines.push(`*${person.name}: ${formatCurrency(detail.total)}* - ${person.paid ? 'Pagado' : 'Pendiente'}`);
+    }
+
+    lines.push('');
   }
 
-  const resultCard = checkbox.closest('.result-card');
-  const nameHeading = resultCard?.querySelector('.result-name');
-  const paidBadge = resultCard?.querySelector('.paid-badge');
+  lines.push(`Subtotal: ${formatCurrency(calculation.subtotal)}`);
+  lines.push(`Propina (${bill.tipPercent}%): ${formatCurrency(calculation.tipAmount)}`);
+  lines.push(`Total cuenta: *${formatCurrency(calculation.grandTotal)}*`);
+  lines.push(`Total pagado: *${formatCurrency(calculation.paidTotal)}*`);
+  lines.push(`Total pendiente: *${formatCurrency(calculation.pendingTotal)}*`);
 
-  if (resultCard) {
-    resultCard.classList.toggle('paid', checkbox.checked);
-    if (checkbox.checked && !paidBadge) {
-      const badge = document.createElement('span');
-      badge.className = 'paid-badge';
-      badge.textContent = 'Pagado';
-      nameHeading?.after(badge);
-    } else if (!checkbox.checked && paidBadge) {
-      paidBadge.remove();
+  return lines.join('\n');
+}
+
+async function copySummary(content = 'simple') {
+  const summary = getSummaryText(content);
+
+  try {
+    await navigator.clipboard.writeText(summary);
+    showToast('Resumen copiado.');
+  } catch {
+    prompt('Copia el resumen:', summary);
+  }
+}
+
+function shareWhatsapp(content = 'simple') {
+  const summary = getSummaryText(content);
+  const url = `https://wa.me/?text=${encodeURIComponent(summary)}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+function openShareModal() {
+  dom.shareModal.classList.remove('hidden');
+  document.body.classList.add('modal-open');
+  updateSharePreview();
+}
+
+function closeShareModal() {
+  dom.shareModal.classList.add('hidden');
+  document.body.classList.remove('modal-open');
+}
+
+function updateSharePreview() {
+  const { format, content } = getShareOptions();
+  const contentLabel = content === 'detail' ? 'Monto con detalle' : 'Solo monto total';
+  const formatLabel = format === 'image' ? 'Imagen' : 'Texto';
+
+  dom.sharePreviewType.textContent = `${formatLabel} · ${contentLabel}`;
+  dom.textPreview.textContent = getSummaryText(content);
+
+  const isImage = format === 'image';
+  dom.imagePreviewWrap.classList.toggle('hidden', !isImage);
+  dom.textPreview.classList.toggle('hidden', isImage);
+
+  dom.copySelectedShareButton.disabled = isImage;
+  dom.whatsappSelectedShareButton.disabled = false;
+  dom.downloadImageButton.disabled = !isImage;
+  dom.nativeShareImageButton.disabled = !isImage;
+
+  if (isImage) {
+    drawShareImage(content);
+  }
+}
+
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = String(text).split(' ');
+  let line = '';
+  let currentY = y;
+
+  for (const word of words) {
+    const testLine = line ? `${line} ${word}` : word;
+    const metrics = ctx.measureText(testLine);
+
+    if (metrics.width > maxWidth && line) {
+      ctx.fillText(line, x, currentY);
+      line = word;
+      currentY += lineHeight;
+    } else {
+      line = testLine;
     }
   }
 
-  renderSummary();
-  saveState();
-});
+  if (line) {
+    ctx.fillText(line, x, currentY);
+    currentY += lineHeight;
+  }
 
-clearPaymentsButton.addEventListener('click', () => {
-  const activeBill = getActiveBill();
-  if (!activeBill.paidPeople || activeBill.paidPeople.length === 0) {
+  return currentY;
+}
+
+function roundRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + width, y, x + width, y + height, r);
+  ctx.arcTo(x + width, y + height, x, y + height, r);
+  ctx.arcTo(x, y + height, x, y, r);
+  ctx.arcTo(x, y, x + width, y, r);
+  ctx.closePath();
+}
+
+function getCanvasLines(content = 'simple') {
+  const bill = getActiveBill();
+  const calculation = calculateBill(bill);
+  const people = bill.people.map((person) => {
+    const detail = calculation.personDetails[person.id];
+    return {
+      name: person.name,
+      paid: person.paid,
+      subtotal: detail.subtotal,
+      tip: detail.tip,
+      total: detail.total,
+      items: detail.items,
+    };
+  });
+
+  return {
+    bill,
+    calculation,
+    people,
+    detailed: content === 'detail',
+  };
+}
+
+function drawShareImage(content = 'simple') {
+  const canvas = dom.shareCanvas;
+  const ctx = canvas.getContext('2d');
+  const data = getCanvasLines(content);
+  const width = 900;
+  const padding = 58;
+  const personBlockBase = data.detailed ? 178 : 74;
+  const itemLineHeight = 32;
+  const extraItems = data.detailed
+    ? data.people.reduce((sum, person) => sum + Math.max(1, person.items.length) * itemLineHeight, 0)
+    : 0;
+  const height = Math.max(900, 420 + data.people.length * personBlockBase + extraItems);
+
+  canvas.width = width;
+  canvas.height = height;
+
+  ctx.fillStyle = '#f5f7f8';
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.fillStyle = '#0f766e';
+  roundRect(ctx, 0, 0, width, 210, 0);
+  ctx.fill();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '800 54px Arial';
+  ctx.fillText('Cuenta Clara', padding, 92);
+
+  ctx.font = '700 30px Arial';
+  ctx.fillText(data.bill.name, padding, 142);
+
+  ctx.font = '500 22px Arial';
+  ctx.fillText(data.detailed ? 'Resumen detallado de pagos' : 'Resumen simple de pagos', padding, 176);
+
+  let y = 255;
+
+  for (const person of data.people) {
+    const blockHeight = data.detailed
+      ? 128 + Math.max(1, person.items.length) * itemLineHeight
+      : 74;
+
+    ctx.fillStyle = '#ffffff';
+    roundRect(ctx, padding, y, width - padding * 2, blockHeight, 24);
+    ctx.fill();
+
+    ctx.fillStyle = '#102a27';
+    ctx.font = '800 30px Arial';
+    ctx.fillText(person.name, padding + 28, y + 48);
+
+    ctx.fillStyle = '#0f766e';
+    ctx.font = '800 32px Arial';
+    const amount = formatCurrency(person.total);
+    const amountWidth = ctx.measureText(amount).width;
+    ctx.fillText(amount, width - padding - 28 - amountWidth, y + 48);
+
+    ctx.fillStyle = person.paid ? '#16a34a' : '#f59e0b';
+    ctx.font = '700 20px Arial';
+    ctx.fillText(person.paid ? 'Pagado' : 'Pendiente', padding + 28, y + 78);
+
+    if (data.detailed) {
+      let detailY = y + 112;
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '500 20px Arial';
+
+      if (person.items.length === 0) {
+        ctx.fillText('Sin consumos registrados', padding + 28, detailY);
+        detailY += itemLineHeight;
+      } else {
+        for (const item of person.items) {
+          const shareText = item.totalShares > 1 ? ` (${item.share}/${item.totalShares})` : '';
+          const line = `${item.productName}${shareText}: ${formatCurrency(item.amount)}`;
+          detailY = wrapCanvasText(ctx, line, padding + 28, detailY, width - padding * 2 - 56, itemLineHeight);
+        }
+      }
+
+      ctx.fillStyle = '#102a27';
+      ctx.font = '700 20px Arial';
+      ctx.fillText(`Subtotal: ${formatCurrency(person.subtotal)} · Propina: ${formatCurrency(person.tip)}`, padding + 28, detailY + 8);
+    }
+
+    y += blockHeight + 18;
+  }
+
+  y += 12;
+
+  ctx.fillStyle = '#ccfbf1';
+  roundRect(ctx, padding, y, width - padding * 2, 184, 26);
+  ctx.fill();
+
+  ctx.fillStyle = '#102a27';
+  ctx.font = '800 28px Arial';
+  ctx.fillText('Totales de la cuenta', padding + 28, y + 48);
+
+  ctx.font = '700 23px Arial';
+  ctx.fillText(`Subtotal: ${formatCurrency(data.calculation.subtotal)}`, padding + 28, y + 88);
+  ctx.fillText(`Propina (${data.bill.tipPercent}%): ${formatCurrency(data.calculation.tipAmount)}`, padding + 28, y + 122);
+
+  ctx.fillStyle = '#0f766e';
+  ctx.font = '800 34px Arial';
+  ctx.fillText(`Total: ${formatCurrency(data.calculation.grandTotal)}`, padding + 28, y + 164);
+
+  ctx.fillStyle = '#64748b';
+  ctx.font = '500 18px Arial';
+  ctx.fillText('Generado con Cuenta Clara', padding, height - 32);
+}
+
+function getCanvasBlob() {
+  return new Promise((resolve) => {
+    dom.shareCanvas.toBlob((blob) => resolve(blob), 'image/png', 1);
+  });
+}
+
+async function downloadShareImage() {
+  const { content } = getShareOptions();
+  drawShareImage(content);
+
+  const url = dom.shareCanvas.toDataURL('image/png');
+  const link = document.createElement('a');
+  const bill = getActiveBill();
+  const safeName = bill.name.toLowerCase().replace(/[^a-z0-9áéíóúñ]+/gi, '-').replace(/^-|-$/g, '') || 'cuenta-clara';
+
+  link.href = url;
+  link.download = `${safeName}-resumen.png`;
+  link.click();
+  showToast('Imagen descargada.');
+}
+
+async function shareImageNatively() {
+  const { content } = getShareOptions();
+  drawShareImage(content);
+
+  const shared = await tryNativeImageShare();
+
+  if (shared) {
     return;
   }
-  if (!window.confirm('¿Limpiar todos los pagos?')) {
+
+  await downloadShareImage();
+  showNotice('Imagen descargada', 'Tu navegador no permite compartir imagen directo. Se descargó el PNG para que puedas adjuntarlo manualmente.');
+}
+
+async function whatsappSelectedShare() {
+  const { format, content } = getShareOptions();
+
+  if (format === 'text') {
+    shareWhatsapp(content);
     return;
   }
-  pushUndo('Pagos limpiados');
-  activeBill.paidPeople = [];
-  persistAndRender('Pagos limpiados.', 'success');
+
+  drawShareImage(content);
+
+  const sharedByNativeMenu = await tryNativeImageShare();
+
+  if (sharedByNativeMenu) {
+    return;
+  }
+
+  const copied = await copyCanvasImageToClipboard();
+
+  await downloadShareImage();
+
+  const helperText = copied
+    ? 'Te copié la imagen al portapapeles y también la descargué. Se abrirá WhatsApp: pega la imagen en el chat con Ctrl+V o adjunta el archivo descargado.'
+    : 'Se descargó la imagen. Se abrirá WhatsApp: adjunta manualmente el archivo PNG descargado.';
+
+  showNotice('Imagen lista para WhatsApp', helperText);
+
+  const bill = getActiveBill();
+  const calculation = calculateBill(bill);
+  const message = [
+    `*Cuenta Clara - ${bill.name}*`,
+    '',
+    `Te envío el resumen en imagen.`,
+    `Total cuenta: *${formatCurrency(calculation.grandTotal)}*`,
+  ].join('\n');
+
+  window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+}
+
+async function tryNativeImageShare() {
+  const blob = await getCanvasBlob();
+
+  if (!blob) {
+    return false;
+  }
+
+  const file = new File([blob], 'cuenta-clara-resumen.png', { type: 'image/png' });
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: 'Cuenta Clara',
+        text: 'Resumen de la cuenta',
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
+}
+
+async function copyCanvasImageToClipboard() {
+  if (!navigator.clipboard || typeof ClipboardItem === 'undefined') {
+    return false;
+  }
+
+  const blob = await getCanvasBlob();
+
+  if (!blob) {
+    return false;
+  }
+
+  try {
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        'image/png': blob,
+      }),
+    ]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function initTheme() {
+  const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+  document.documentElement.dataset.theme = savedTheme;
+  dom.themeToggle.textContent = savedTheme === 'dark' ? 'Modo claro' : 'Modo oscuro';
+}
+
+function toggleTheme() {
+  const current = document.documentElement.dataset.theme;
+  const next = current === 'dark' ? 'light' : 'dark';
+
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem(THEME_KEY, next);
+  dom.themeToggle.textContent = next === 'dark' ? 'Modo claro' : 'Modo oscuro';
+}
+
+function initServiceWorker() {
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+  }
+}
+
+dom.closeNoticeTabButton.addEventListener('click', () => dom.noticeTab.classList.add('hidden'));
+
+dom.themeToggle.addEventListener('click', toggleTheme);
+dom.newBillButton.addEventListener('click', addBill);
+dom.duplicateBillButton.addEventListener('click', duplicateBill);
+dom.deleteBillButton.addEventListener('click', deleteActiveBill);
+
+dom.billNameInput.addEventListener('input', () => {
+  const bill = getActiveBill();
+  bill.name = dom.billNameInput.value.trim() || 'Cuenta sin nombre';
+  persistAndRender();
 });
 
-undoActionButton.addEventListener('click', performUndo);
+dom.personForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  addPerson(dom.personNameInput.value);
+});
 
+dom.tipPercentInput.addEventListener('input', () => {
+  const bill = getActiveBill();
+  const value = Number(dom.tipPercentInput.value);
+
+  bill.tipPercent = Number.isFinite(value) && value >= 0 ? value : 0;
+  persistAndRender();
+});
+
+dom.quickTipButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    const bill = getActiveBill();
+    bill.tipPercent = Number(button.dataset.tip);
+    persistAndRender();
+  });
+});
+
+dom.selectAllConsumersButton.addEventListener('click', () => {
+  const checkboxes = [...dom.consumerList.querySelectorAll('input[type="checkbox"]')];
+  const shouldSelect = checkboxes.some((checkbox) => !checkbox.checked);
+
+  for (const checkbox of checkboxes) {
+    checkbox.checked = shouldSelect;
+    const shareInput = checkbox.closest('.consumer-row').querySelector('input[type="number"]');
+    shareInput.disabled = !shouldSelect;
+  }
+});
+
+dom.productForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  submitProduct();
+});
+
+dom.cancelEditProductButton.addEventListener('click', () => {
+  resetProductForm();
+  renderProductForm();
+});
+
+dom.copySummaryButton.addEventListener('click', () => copySummary('simple'));
+dom.whatsappButton.addEventListener('click', () => shareWhatsapp('simple'));
+
+dom.shareButton.addEventListener('click', openShareModal);
+dom.closeShareModalButton.addEventListener('click', closeShareModal);
+dom.shareModal.addEventListener('click', (event) => {
+  if (event.target === dom.shareModal) {
+    closeShareModal();
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !dom.shareModal.classList.contains('hidden')) {
+    closeShareModal();
+  }
+});
+
+document.querySelectorAll('input[name="shareFormat"], input[name="shareContent"]').forEach((input) => {
+  input.addEventListener('change', updateSharePreview);
+});
+
+dom.copySelectedShareButton.addEventListener('click', () => {
+  const { content } = getShareOptions();
+  copySummary(content);
+});
+
+dom.whatsappSelectedShareButton.addEventListener('click', whatsappSelectedShare);
+dom.downloadImageButton.addEventListener('click', downloadShareImage);
+dom.nativeShareImageButton.addEventListener('click', shareImageNatively);
+
+initTheme();
 loadState();
-loadFromUrl();
-
-if (window.matchMedia('(display-mode: standalone)').matches) {
-  installButton.style.display = 'none';
-  installPromptButton.style.display = 'none';
-} else {
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    installButton.style.display = 'inline-flex';
-    installPromptButton.style.display = 'inline-flex';
-  });
-
-  installButton.addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      installButton.style.display = 'none';
-      installPromptButton.style.display = 'none';
-    }
-    deferredPrompt = null;
-  });
-
-  installPromptButton.addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      installButton.style.display = 'none';
-      installPromptButton.style.display = 'none';
-    }
-    deferredPrompt = null;
-  });
-}
-
-applyTheme();
-getActiveBill();
-resetPersonForm();
-resetProductForm();
+saveState();
 render();
-
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-  navigator.serviceWorker.register('./service-worker.js').catch(() => {});
-}
+initServiceWorker();
