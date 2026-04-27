@@ -1362,12 +1362,14 @@ loadFromUrl();
 
 if (window.matchMedia('(display-mode: standalone)').matches) {
   installButton.style.display = 'none';
+  installPromptButton.style.display = 'none';
 } else {
   let deferredPrompt;
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
     installButton.style.display = 'inline-flex';
+    installPromptButton.style.display = 'inline-flex';
   });
 
   installButton.addEventListener('click', async () => {
@@ -1376,6 +1378,18 @@ if (window.matchMedia('(display-mode: standalone)').matches) {
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
       installButton.style.display = 'none';
+      installPromptButton.style.display = 'none';
+    }
+    deferredPrompt = null;
+  });
+
+  installPromptButton.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      installButton.style.display = 'none';
+      installPromptButton.style.display = 'none';
     }
     deferredPrompt = null;
   });
