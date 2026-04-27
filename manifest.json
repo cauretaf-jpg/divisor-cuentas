@@ -1,0 +1,9 @@
+{
+  "name": "Cuentas Claras",
+  "short_name": "Cuentas",
+  "description": "Divisor de cuentas con moneda CLP",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5efe8",
+  "theme_color": "#b35c2e"
+}
