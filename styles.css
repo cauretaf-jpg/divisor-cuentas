@@ -227,11 +227,18 @@ body {
   margin-bottom: 16px;
 }
 
-.toolbar {
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-  gap: 8px;
-  margin-bottom: 8px;
-}
+  .toolbar {
+    grid-auto-flow: column;
+    gap: 6px;
+    justify-content: end;
+    align-items: center;
+  }
+
+  .whatsapp-options {
+    grid-auto-flow: column;
+    gap: 6px;
+    justify-content: end;
+  }
 
 .sidebar-actions {
   grid-template-columns: repeat(3, 1fr);
@@ -427,8 +434,18 @@ button:hover {
 }
 
 .share-wrap {
-  display: grid;
+  display: flex;
   gap: 4px;
+}
+
+.share-wrap span {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.share-input {
+  width: 72px;
+  padding: 8px 10px;
 }
 
 .share-wrap span {

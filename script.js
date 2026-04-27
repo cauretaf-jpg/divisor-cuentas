@@ -422,19 +422,19 @@ function buildShareText(summary = calculateSummary()) {
   const lines = [getAccountTitle(), `Propina: ${activeBill.tipPercentage}%`, ''];
 
   summary.totalsByPerson.forEach((person) => {
-    lines.push(`${person.name}: ${formatCurrency(person.total)}`);
+    lines.push(`<b>${person.name}: ${formatCurrency(person.total)}</b>`);
     person.items.forEach((item) => {
       const partDetail = item.splitMode === 'weighted' ? `, parte ${item.share}` : '';
-      lines.push(`- ${item.label}${partDetail}: ${formatCurrency(item.value)}`);
+      lines.push(`<b>- ${item.label}${partDetail}: ${formatCurrency(item.value)}</b>`);
     });
-    lines.push(`  Subtotal: ${formatCurrency(person.subtotal)}`);
-    lines.push(`  Propina: ${formatCurrency(person.tip)}`);
+    lines.push(`<b>Subtotal: ${formatCurrency(person.subtotal)}</b>`);
+    lines.push(`<b>Propina: ${formatCurrency(person.tip)}</b>`);
     lines.push('');
   });
 
-  lines.push(`Subtotal general: ${formatCurrency(summary.subtotal)}`);
-  lines.push(`Propina general: ${formatCurrency(summary.tipAmount)}`);
-  lines.push(`Total general: ${formatCurrency(summary.grandTotal)}`);
+  lines.push(`<b>Subtotal general: ${formatCurrency(summary.subtotal)}</b>`);
+  lines.push(`<b>Propina general: ${formatCurrency(summary.tipAmount)}</b>`);
+  lines.push(`<b>Total general: ${formatCurrency(summary.grandTotal)}</b>`);
   return lines.join('\n').trim();
 }
 
@@ -1168,22 +1168,92 @@ shareButton.addEventListener('click', async () => {
   }
 
   const text = buildShareText(summary);
+  await navigator.clipboard.writeText(text);
+  setMessage(generalMessage, 'Resumen copiado al portapapeles.', 'success');
+});
 
-  try {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-      setMessage(generalMessage, 'Resumen copiado al portapapeles.', 'success');
-      return;
-    }
-  } catch (error) {
-    // Usa el respaldo si falla el portapapeles moderno.
-  }
+const whatsappButton = document.querySelector('#whatsappButton');
+const whatsappOptions = document.querySelector('#whatsappOptions');
+const whatsappTextButton = document.querySelector('#whatsappTextButton');
+const whatsappImageButton = document.querySelector('#whatsappImageButton');
 
-  if (copyTextFallback(text)) {
-    setMessage(generalMessage, 'Resumen copiado al portapapeles.', 'success');
-  } else {
-    setMessage(generalMessage, 'No fue posible copiar el resumen.');
+whatsappButton.addEventListener('click', () => {
+  whatsappOptions.classList.toggle('hidden');
+});
+
+async function shareImage() {
+  const summary = calculateSummary();
+  if (summary.totalsByPerson.length === 0 || getActiveBill().products.length === 0) {
+    setMessage(generalMessage, 'No hay datos suficientes para compartir.');
+    return;
   }
+  const svgMarkup = createSummarySvg();
+  const svgBlob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
+  const svgUrl = URL.createObjectURL(svgBlob);
+  const image = new Image();
+  return new Promise((resolve, reject) => {
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const context = canvas.getContext('2d');
+      context.drawImage(image, 0, 0);
+      canvas.toBlob((blob) => {
+        URL.revokeObjectURL(svgUrl);
+        if (!blob) {
+          setMessage(generalMessage, 'No fue posible generar la imagen.');
+          reject();
+          return;
+        }
+        const fileName = getFileSafeName() + '.png';
+        const file = new File([blob], fileName, { type: 'image/png' });
+        try {
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({ files: [file], title: getAccountTitle(), text: 'Resumen de cuenta' })
+              .then(() => {
+                setMessage(generalMessage, 'Imagen enviada por WhatsApp.', 'success');
+                resolve();
+              })
+              .catch(() => {
+                downloadBlob(blob, fileName);
+                setMessage(generalMessage, 'Imagen descargada. Abre WhatsApp y adjuntala manualmente.', 'success');
+                resolve();
+              });
+          } else {
+            downloadBlob(blob, fileName);
+            setMessage(generalMessage, 'Imagen descargada. Abre WhatsApp y adjuntala manualmente.', 'success');
+            resolve();
+          }
+        } catch (error) {
+          if (error.name !== 'AbortError') {
+            setMessage(generalMessage, 'No fue posible compartir la imagen.');
+          }
+          reject();
+        }
+      }, 'image/png');
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(svgUrl);
+      setMessage(generalMessage, 'No fue posible generar la imagen.');
+      reject();
+    };
+    image.src = svgUrl;
+  });
+}
+
+whatsappTextButton.addEventListener('click', () => {
+  const summary = calculateSummary();
+  if (summary.totalsByPerson.length === 0 || getActiveBill().products.length === 0) {
+    setMessage(generalMessage, 'No hay datos suficientes para compartir.');
+    return;
+  }
+  const text = buildShareText(summary);
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
+  setMessage(generalMessage, 'Se abrió WhatsApp con el resumen.', 'success');
+});
+
+whatsappImageButton.addEventListener('click', () => {
+  shareImage();
 });
 
 function getShareableLink() {
