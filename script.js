@@ -63,6 +63,7 @@ const subtotalValue = document.querySelector('#subtotalValue');
 const tipValue = document.querySelector('#tipValue');
 const grandTotalValue = document.querySelector('#grandTotalValue');
 const results = document.querySelector('#results');
+const clearPaymentsButton = document.querySelector('#clearPaymentsButton');
 
 function createEmptyBill(name = 'Nueva cuenta') {
   return {
@@ -572,9 +573,17 @@ function renderSummary() {
   results.className = 'results';
   const paidCount = activeBill.paidPeople?.length || 0;
   const totalCount = summary.totalsByPerson.length;
-  const progressHtml = paidCount > 0 ? `
+
+  const unpaidAmount = summary.totalsByPerson
+    .filter((p) => !activeBill.paidPeople?.includes(p.id))
+    .reduce((sum, p) => sum + p.total, 0);
+
+  const progressHtml = (paidCount > 0 || unpaidAmount > 0) ? `
     <div class="result-progress">
-      <span>${paidCount} de ${totalCount} personas han pagado</span>
+      <div>
+        <span>${paidCount} de ${totalCount} personas han pagado</span>
+        ${unpaidAmount > 0 ? `<span class="unpaid-amount">Faltan ${formatCurrency(unpaidAmount)} por cobrar</span>` : ''}
+      </div>
       <strong>${Math.round((paidCount / totalCount) * 100)}%</strong>
     </div>
   ` : '';
@@ -1234,6 +1243,19 @@ results.addEventListener('change', (event) => {
 
   renderSummary();
   saveState();
+});
+
+clearPaymentsButton.addEventListener('click', () => {
+  const activeBill = getActiveBill();
+  if (!activeBill.paidPeople || activeBill.paidPeople.length === 0) {
+    return;
+  }
+  if (!window.confirm('¿Limpiar todos los pagos?')) {
+    return;
+  }
+  pushUndo('Pagos limpiados');
+  activeBill.paidPeople = [];
+  persistAndRender('Pagos limpiados.', 'success');
 });
 
 undoActionButton.addEventListener('click', performUndo);
