@@ -71,6 +71,7 @@ function createEmptyBill(name = 'Nueva cuenta') {
     tipPercentage: 10,
     people: [],
     products: [],
+    paidPeople: [],
   };
 }
 
@@ -157,6 +158,9 @@ function applyTheme() {
 }
 
 // Undo
+const paidPeople = [];
+let paidCount = 0;
+
 function captureActiveBill() {
   const bill = getActiveBill();
   return JSON.parse(JSON.stringify(bill));
@@ -241,6 +245,7 @@ function normalizeBill(rawBill) {
             };
           })
       : [],
+    paidPeople: Array.isArray(rawBill.paidPeople) ? rawBill.paidPeople : [],
   };
 }
 
@@ -566,6 +571,7 @@ function renderSummary() {
 
   results.className = 'results';
   results.innerHTML = summary.totalsByPerson.map((person) => {
+    const isPaid = activeBill.paidPeople?.includes(person.id);
     const itemsHtml = person.items.length > 0
       ? person.items.map((item) => `
           <div class="breakdown-item">
@@ -576,8 +582,11 @@ function renderSummary() {
       : '<p class="item-detail">Sin productos asignados.</p>';
 
     return `
-      <article class="result-card">
-        <h3 class="result-name">${escapeHtml(person.name)}</h3>
+      <article class="result-card ${isPaid ? 'paid' : ''}">
+        <label class="paid-checkbox">
+          <input type="checkbox" data-paid-person="${escapeHtml(person.id)}" ${isPaid ? 'checked' : ''}>
+          <h3 class="result-name">${escapeHtml(person.name)}</h3>
+        </label>
         <span class="result-detail">Subtotal: ${formatCurrency(person.subtotal)}</span>
         <span class="result-detail">Propina: ${formatCurrency(person.tip)}</span>
         <div class="result-breakdown">${itemsHtml}</div>
@@ -1174,10 +1183,35 @@ resetButton.addEventListener('click', () => {
   activeBill.tipPercentage = 10;
   activeBill.people = [];
   activeBill.products = [];
+  activeBill.paidPeople = [];
   clearMessages();
   resetPersonForm();
   resetProductForm();
   persistAndRender('La cuenta fue reiniciada.', 'success');
+});
+
+results.addEventListener('change', (event) => {
+  const checkbox = event.target.closest('[data-paid-person]');
+  if (!checkbox) return;
+
+  const personId = checkbox.getAttribute('data-paid-person');
+  const activeBill = getActiveBill();
+  if (!activeBill.paidPeople) activeBill.paidPeople = [];
+
+  if (checkbox.checked) {
+    if (!activeBill.paidPeople.includes(personId)) {
+      activeBill.paidPeople.push(personId);
+    }
+  } else {
+    activeBill.paidPeople = activeBill.paidPeople.filter((id) => id !== personId);
+  }
+
+  const resultCard = checkbox.closest('.result-card');
+  if (resultCard) {
+    resultCard.classList.toggle('paid', checkbox.checked);
+  }
+
+  saveState();
 });
 
 undoActionButton.addEventListener('click', performUndo);

@@ -479,6 +479,29 @@ button:hover {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 12px;
+  transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.result-card.paid {
+  opacity: 0.5;
+  background: var(--success-soft);
+  border-color: var(--success);
+}
+
+.paid-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.paid-checkbox input {
+  width: auto;
+  margin: 0;
+}
+
+.paid-checkbox .result-name {
+  margin: 0;
 }
 
 .totals strong {
