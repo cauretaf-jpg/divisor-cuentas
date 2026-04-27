@@ -53,6 +53,17 @@ body {
   color: var(--text);
 }
 
+.ad-banner {
+  text-align: center;
+  padding: 8px;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
+}
+
+.ad-banner ins {
+  display: block !important;
+}
+
 .app {
   width: min(1180px, calc(100% - 24px));
   margin: 0 auto;
