@@ -481,9 +481,9 @@ button:hover {
   padding: 12px;
 }
 
-.totals strong,
-.result-total {
+.totals strong {
   font-size: 1rem;
+  font-weight: 800;
 }
 
 .results {
@@ -494,6 +494,12 @@ button:hover {
 .result-name {
   margin: 0 0 8px;
   font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.result-total {
+  font-size: 1rem;
+  font-weight: 800;
 }
 
 .result-breakdown {
