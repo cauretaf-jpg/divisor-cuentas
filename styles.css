@@ -782,7 +782,6 @@ button:hover {
   .result-progress strong {
     align-self: flex-end;
   }
-}
 
   .consumer-card {
     grid-template-columns: 1fr;

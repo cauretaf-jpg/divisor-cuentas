@@ -31,6 +31,7 @@ const shareButton = document.querySelector('#shareButton');
 const shareLinkButton = document.querySelector('#shareLinkButton');
 const whatsAppButton = document.querySelector('#whatsAppButton');
 const installButton = document.querySelector('#installButton');
+const installPromptButton = document.querySelector('#installPromptButton');
 const svgButton = document.querySelector('#svgButton');
 const pngButton = document.querySelector('#pngButton');
 const pdfButton = document.querySelector('#pdfButton');
@@ -644,11 +645,8 @@ function render() {
 
 function persistAndRender(message = '', type = '') {
   saveState();
-render();
+  render();
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js').catch(() => {});
-}
   if (message) {
     setMessage(generalMessage, message, type);
   }
@@ -1199,7 +1197,10 @@ function getShareableLink() {
       u: product.unitPrice,
       q: product.quantity,
       s: product.splitMode,
-      c: product.consumerSplits,
+      c: product.consumerSplits.map((split) => ({
+        i: activeBill.people.findIndex((p) => p.id === split.personId),
+        sh: split.share,
+      })),
     })),
   };
   const encoded = btoa(encodeURIComponent(JSON.stringify(shareData)));
@@ -1235,7 +1236,7 @@ function loadFromUrl() {
     const decoded = JSON.parse(decodeURIComponent(atob(billData)));
     const bill = createEmptyBill(decoded.n || 'Cuenta compartida');
     bill.tipPercentage = decoded.t || 10;
-    bill.people = decoded.p.map((name, i) => ({ id: crypto.randomUUID(), name }));
+    bill.people = decoded.p.map((name) => ({ id: crypto.randomUUID(), name }));
     bill.products = decoded.pr.map((product) => ({
       id: crypto.randomUUID(),
       name: product.n,
@@ -1243,7 +1244,10 @@ function loadFromUrl() {
       quantity: product.q,
       price: product.u * product.q,
       splitMode: product.s || 'equal',
-      consumerSplits: product.c || [],
+      consumerSplits: (product.c || []).map((split) => ({
+        personId: bill.people[split.i]?.id || bill.people[0]?.id || '',
+        share: split.sh || 1,
+      })),
     }));
     bill.paidPeople = [];
 
@@ -1400,3 +1404,7 @@ getActiveBill();
 resetPersonForm();
 resetProductForm();
 render();
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+}
