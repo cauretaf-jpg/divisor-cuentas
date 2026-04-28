@@ -1,4 +1,4 @@
-# Cuenta Clara V2.8
+# Cuenta Clara V3.0
 
 App web funcional para dividir cuentas entre varias personas.
 
@@ -164,3 +164,30 @@ Nota: la exportación profesional usa ExcelJS desde CDN. Para exportar correctam
   - **Total producto** queda con ancho menor,
   - **Consumidores** queda con ancho mayor,
   - las filas tienen más alto para evitar amontonamiento.
+
+
+## Nuevo en V2.9
+
+- Las cuentas nuevas ya no vienen con **Carlos** y **Vale** como personas predeterminadas.
+- Al ingresar por primera vez, la cuenta parte sin participantes.
+- El placeholder del campo de persona ahora dice **Ej: Nombre**.
+- Si el navegador ya tenía datos guardados en localStorage, esas cuentas antiguas se conservan tal como estaban.
+
+
+## Nuevo en V3.0
+
+- Se integró Google AdSense Auto Ads con el editor `pub-4358472434423818`.
+- Se agregó la etiqueta `google-adsense-account`.
+- Se agregó el script oficial de AdSense con `client="ca-pub-4358472434423818"`.
+- Se creó `ads.txt` en la raíz del proyecto.
+- Se actualizó la página de privacidad con una sección de publicidad.
+- Se ajustó el service worker para no interceptar recursos externos de AdSense.
+
+## Importante sobre AdSense
+
+Esta versión queda lista para Auto Ads. Para que los anuncios aparezcan en producción:
+
+1. El sitio debe estar publicado en Vercel con HTTPS.
+2. La cuenta/sitio debe estar aprobado en Google AdSense.
+3. Auto Ads debe estar activado en AdSense para el dominio.
+4. Si quieres anuncios manuales en lugares específicos, debes crear unidades de anuncio en AdSense y reemplazar/insertar sus `data-ad-slot`.

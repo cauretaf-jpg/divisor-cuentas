@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cuenta-clara-v2.8.0';
+const CACHE_NAME = 'cuenta-clara-v3.0.0';
 const ASSETS = [
   './',
   './index.html',
@@ -6,6 +6,7 @@ const ASSETS = [
   './script.js',
   './manifest.json',
   './privacidad.html',
+  './ads.txt',
   './assets/logo.svg',
 ];
 
@@ -27,6 +28,13 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {
+    return;
+  }
+
+  const requestUrl = new URL(event.request.url);
+
+  // No interceptar recursos externos, como scripts/anuncios de Google AdSense.
+  if (requestUrl.origin !== self.location.origin) {
     return;
   }
 

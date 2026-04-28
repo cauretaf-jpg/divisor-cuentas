@@ -160,10 +160,7 @@ function makeDefaultBill() {
     archived: false,
     createdAt,
     updatedAt: createdAt,
-    people: [
-      { id: createId('person'), name: 'Carlos', paid: false },
-      { id: createId('person'), name: 'Vale', paid: false },
-    ],
+    people: [],
     products: [],
   };
 }
