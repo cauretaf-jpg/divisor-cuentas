@@ -1,10 +1,11 @@
-const CACHE_NAME = 'cuenta-clara-v1.2.0';
+const CACHE_NAME = 'cuenta-clara-v2.8.0';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
   './script.js',
   './manifest.json',
+  './privacidad.html',
   './assets/logo.svg',
 ];
 

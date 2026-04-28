@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Cuenta Clara permite dividir cuentas, productos compartidos y propinas de forma simple." />
+  <meta name="description" content="Cuenta Clara permite dividir cuentas, productos compartidos, propinas y transferencias de forma simple." />
   <meta name="theme-color" content="#0f766e" />
   <title>Cuenta Clara | Divide cuentas sin enredos</title>
 
@@ -19,11 +19,13 @@
         <img src="assets/logo.svg" alt="" class="brand-icon" />
         <div>
           <strong>Cuenta Clara</strong>
-          <span>Divide gastos sin enredos</span>
+          <span>Divide gastos, propinas y transferencias</span>
         </div>
       </a>
 
       <div class="header-actions">
+        <a class="btn btn-light" href="privacidad.html">Privacidad</a>
+        <button class="btn btn-light" id="installAppButton" type="button">Instalar App</button>
         <button class="btn btn-light" id="themeToggle" type="button">Modo oscuro</button>
         <button class="btn btn-primary" id="newBillButton" type="button">Nueva cuenta</button>
       </div>
@@ -39,11 +41,27 @@
         </div>
       </div>
 
+      <div class="history-tools">
+        <input id="historySearchInput" type="search" placeholder="Buscar cuenta..." />
+        <select id="historyFilterSelect" aria-label="Filtrar historial">
+          <option value="all">Todas</option>
+          <option value="pending">Pendientes</option>
+          <option value="paid">Pagadas</option>
+          <option value="archived">Archivadas</option>
+        </select>
+      </div>
+
       <div class="bill-list" id="billList"></div>
 
       <div class="sidebar-help">
-        <strong>Versión 1.2</strong>
-        <p>Incluye aviso visual para nombres repetidos y mejoras para enviar imágenes por WhatsApp.</p>
+        <strong>Versión 2.0</strong>
+        <p>Incluye pagador principal, transferencias, productos rápidos editables, Excel corregido e instalación como app.</p>
+      </div>
+
+      <div class="backup-actions">
+        <button class="btn btn-light btn-small" id="exportBackupButton" type="button">Exportar respaldo</button>
+        <button class="btn btn-light btn-small" id="importBackupButton" type="button">Importar respaldo</button>
+        <input class="hidden" id="backupFileInput" type="file" accept="application/json,.json" />
       </div>
     </aside>
 
@@ -57,8 +75,52 @@
 
         <div class="hero-actions">
           <button class="btn btn-light" id="duplicateBillButton" type="button">Duplicar</button>
+          <button class="btn btn-light" id="archiveBillButton" type="button">Archivar</button>
           <button class="btn btn-danger-light" id="deleteBillButton" type="button">Eliminar</button>
         </div>
+      </section>
+
+      <section class="grid-two">
+        <section class="card">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Modo de uso</p>
+              <h2>Tipo de cuenta</h2>
+            </div>
+          </div>
+
+          <div class="mode-switch">
+            <label class="radio-pill">
+              <input type="radio" name="billMode" value="detailed" checked />
+              <span>Detallada</span>
+            </label>
+            <label class="radio-pill">
+              <input type="radio" name="billMode" value="quick" />
+              <span>Rápida</span>
+            </label>
+          </div>
+
+          <div class="quick-total-panel hidden" id="quickTotalPanel">
+            <label for="quickTotalInput">Monto total de la cuenta</label>
+            <input id="quickTotalInput" type="number" min="0" step="1" placeholder="Ej: 60000" />
+            <p>En modo rápido, el total se divide en partes iguales entre todas las personas.</p>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Transferencias</p>
+              <h2>Pagador principal</h2>
+            </div>
+          </div>
+
+          <label for="payerSelect">Quién pagó o recibirá las transferencias</label>
+          <select id="payerSelect">
+            <option value="">Sin pagador principal</option>
+          </select>
+          <p class="helper-text">Si seleccionas una persona, la app mostrará quién debe transferirle y cuánto.</p>
+        </section>
       </section>
 
       <section class="grid-two">
@@ -74,6 +136,11 @@
             <input id="personNameInput" type="text" placeholder="Ej: Carlos" autocomplete="off" />
             <button class="btn btn-primary" type="submit">Agregar</button>
           </form>
+
+          <div class="bulk-actions">
+            <button class="btn btn-light btn-small" id="markAllPaidButton" type="button">Todos pagados</button>
+            <button class="btn btn-light btn-small" id="markAllPendingButton" type="button">Todos pendientes</button>
+          </div>
 
           <div class="people-list" id="peopleList"></div>
         </section>
@@ -99,16 +166,45 @@
             <button class="chip" data-tip="10" type="button">10%</button>
             <button class="chip" data-tip="15" type="button">15%</button>
           </div>
+
+          <div class="account-actions">
+            <button class="btn btn-light btn-small" id="clearProductsButton" type="button">Limpiar productos</button>
+            <button class="btn btn-danger-light btn-small" id="resetBillButton" type="button">Reiniciar cuenta</button>
+          </div>
         </section>
       </section>
 
-      <section class="card">
+      <section class="card detailed-only" id="productEditorCard">
         <div class="section-title">
           <div>
             <p class="eyebrow">Consumos</p>
             <h2 id="productFormTitle">Agregar producto</h2>
           </div>
           <button class="btn btn-light hidden" id="cancelEditProductButton" type="button">Cancelar edición</button>
+        </div>
+
+        <div class="quick-products-header">
+          <span>Productos rápidos:</span>
+          <button class="btn btn-light btn-small" id="toggleQuickProductsEditorButton" type="button">Editar rápidos</button>
+        </div>
+
+        <div class="quick-products" id="quickProductsList"></div>
+
+        <div class="quick-products-editor hidden" id="quickProductsEditor">
+          <form class="quick-product-form" id="quickProductForm">
+            <input id="quickProductNameInput" type="text" placeholder="Ej: Completo" autocomplete="off" />
+            <select id="quickProductCategoryInput">
+              <option>Comida</option>
+              <option>Bebestibles</option>
+              <option>Tragos</option>
+              <option>Postres</option>
+              <option>Transporte</option>
+              <option>Otros</option>
+            </select>
+            <button class="btn btn-primary btn-small" type="submit">Agregar rápido</button>
+          </form>
+
+          <div class="quick-products-manager" id="quickProductsManager"></div>
         </div>
 
         <form class="product-form" id="productForm">
@@ -127,6 +223,18 @@
             <input id="productQuantityInput" type="number" min="1" step="1" value="1" />
           </div>
 
+          <div class="field">
+            <label for="productCategoryInput">Categoría</label>
+            <select id="productCategoryInput">
+              <option>Comida</option>
+              <option>Bebestibles</option>
+              <option>Tragos</option>
+              <option>Postres</option>
+              <option>Transporte</option>
+              <option>Otros</option>
+            </select>
+          </div>
+
           <div class="consumer-panel">
             <div class="consumer-panel-header">
               <div>
@@ -143,7 +251,7 @@
         </form>
       </section>
 
-      <section class="card">
+      <section class="card detailed-only" id="productListCard">
         <div class="section-title">
           <div>
             <p class="eyebrow">Detalle</p>
@@ -151,6 +259,21 @@
           </div>
         </div>
 
+        <div class="product-tools">
+          <input id="productSearchInput" type="search" placeholder="Buscar producto..." />
+          <select id="productFilterSelect" aria-label="Filtrar productos">
+            <option value="all">Todos</option>
+            <option value="shared">Compartidos</option>
+            <option value="Comida">Comida</option>
+            <option value="Bebestibles">Bebestibles</option>
+            <option value="Tragos">Tragos</option>
+            <option value="Postres">Postres</option>
+            <option value="Transporte">Transporte</option>
+            <option value="Otros">Otros</option>
+          </select>
+        </div>
+
+        <div class="category-totals" id="categoryTotals"></div>
         <div class="product-list" id="productList"></div>
       </section>
 
@@ -162,6 +285,8 @@
               <h2>Totales</h2>
             </div>
           </div>
+
+          <div class="account-status" id="accountStatus"></div>
 
           <div class="totals-box">
             <div>
@@ -199,13 +324,35 @@
 
           <div class="summary-actions">
             <button class="btn btn-primary" id="shareButton" type="button">Compartir</button>
+            <button class="btn btn-light" id="shareLinkButton" type="button">Copiar enlace</button>
+            <button class="btn btn-light" id="exportExcelButton" type="button">Exportar Excel</button>
             <button class="btn btn-light" id="copySummaryButton" type="button">Copiar rápido</button>
             <button class="btn btn-light" id="whatsappButton" type="button">WhatsApp rápido</button>
           </div>
         </section>
       </section>
+
+      <section class="card transfer-card" id="transferCard">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Cobros</p>
+            <h2>Quién debe transferir</h2>
+          </div>
+        </div>
+
+        <div id="transferList" class="transfer-list"></div>
+      </section>
     </section>
   </main>
+
+  <div class="mobile-action-bar">
+    <div>
+      <span>Total</span>
+      <strong id="mobileTotalOutput">$0</strong>
+    </div>
+    <button class="btn btn-light btn-small" id="mobileAddProductButton" type="button">Agregar</button>
+    <button class="btn btn-primary btn-small" id="mobileShareButton" type="button">Compartir</button>
+  </div>
 
   <div class="modal-backdrop hidden" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
     <section class="modal-card">
@@ -282,6 +429,7 @@
     </div>
   </template>
 
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
