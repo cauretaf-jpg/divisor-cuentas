@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cuenta-clara-v3.0.0';
+const CACHE_NAME = 'cuenta-clara-v4.0.0';
 const ASSETS = [
   './',
   './index.html',

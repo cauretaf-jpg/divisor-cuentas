@@ -1364,3 +1364,121 @@ label {
     min-height: 72px;
   }
 }
+
+
+/* V4.0: modo Hogar */
+.mode-switch {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.home-panel {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+}
+
+.home-panel p {
+  margin: 8px 0 12px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.recurring-check {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  padding: 10px 12px;
+  font-weight: 900;
+}
+
+.recurring-check input {
+  width: 18px;
+  min-height: 18px;
+}
+
+.home-dashboard {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+
+.home-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.home-summary-grid > div {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  padding: 14px;
+}
+
+.home-summary-grid span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.home-summary-grid strong {
+  display: block;
+  color: var(--primary);
+  font-size: 1.45rem;
+  margin-top: 4px;
+}
+
+.home-due-list {
+  display: grid;
+  gap: 10px;
+}
+
+.home-due-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  padding: 13px;
+}
+
+.home-due-item strong,
+.home-due-item span {
+  display: block;
+}
+
+.home-due-item span {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.home-due-item.overdue {
+  background: var(--danger-soft);
+  border-color: color-mix(in srgb, var(--danger) 24%, var(--border));
+}
+
+.home-due-item.upcoming {
+  background: var(--warning-soft);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+
+@media (max-width: 760px) {
+  .mode-switch,
+  .home-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-due-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

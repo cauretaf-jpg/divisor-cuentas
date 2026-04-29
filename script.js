@@ -1,7 +1,22 @@
 const STORAGE_KEY = 'cuenta-clara-v1-state';
 const THEME_KEY = 'cuenta-clara-theme';
 
-const CATEGORIES = ['Comida', 'Bebestibles', 'Tragos', 'Postres', 'Transporte', 'Otros'];
+const CATEGORIES = [
+  'Comida',
+  'Bebestibles',
+  'Tragos',
+  'Postres',
+  'Transporte',
+  'Arriendo',
+  'Luz',
+  'Agua',
+  'Gas',
+  'Internet',
+  'Gastos comunes',
+  'Supermercado',
+  'Streaming',
+  'Otros',
+];
 
 const DEFAULT_QUICK_PRODUCTS = [
   { name: 'Papas fritas', category: 'Comida' },
@@ -10,6 +25,10 @@ const DEFAULT_QUICK_PRODUCTS = [
   { name: 'Pizza', category: 'Comida' },
   { name: 'Mojito', category: 'Tragos' },
   { name: 'Postre', category: 'Postres' },
+  { name: 'Luz', category: 'Luz' },
+  { name: 'Agua', category: 'Agua' },
+  { name: 'Internet', category: 'Internet' },
+  { name: 'Supermercado', category: 'Supermercado' },
 ];
 
 const dom = {
@@ -43,15 +62,23 @@ const dom = {
   payerSelect: document.querySelector('#payerSelect'),
   quickTotalPanel: document.querySelector('#quickTotalPanel'),
   quickTotalInput: document.querySelector('#quickTotalInput'),
+  homePanel: document.querySelector('#homePanel'),
+  homeMonthInput: document.querySelector('#homeMonthInput'),
+  duplicateHomeMonthButton: document.querySelector('#duplicateHomeMonthButton'),
 
   productEditorCard: document.querySelector('#productEditorCard'),
   productListCard: document.querySelector('#productListCard'),
   productForm: document.querySelector('#productForm'),
   productFormTitle: document.querySelector('#productFormTitle'),
+  productNameLabel: document.querySelector('#productNameLabel'),
   productNameInput: document.querySelector('#productNameInput'),
   productPriceInput: document.querySelector('#productPriceInput'),
   productQuantityInput: document.querySelector('#productQuantityInput'),
   productCategoryInput: document.querySelector('#productCategoryInput'),
+  productDueDateInput: document.querySelector('#productDueDateInput'),
+  productRecurringInput: document.querySelector('#productRecurringInput'),
+  consumerPanelTitle: document.querySelector('#consumerPanelTitle'),
+  consumerPanelHelp: document.querySelector('#consumerPanelHelp'),
   consumerList: document.querySelector('#consumerList'),
   selectAllConsumersButton: document.querySelector('#selectAllConsumersButton'),
   cancelEditProductButton: document.querySelector('#cancelEditProductButton'),
@@ -66,6 +93,12 @@ const dom = {
   productSearchInput: document.querySelector('#productSearchInput'),
   productFilterSelect: document.querySelector('#productFilterSelect'),
   categoryTotals: document.querySelector('#categoryTotals'),
+  productListTitle: document.querySelector('#productListTitle'),
+  homeDashboardCard: document.querySelector('#homeDashboardCard'),
+  homeRecurringOutput: document.querySelector('#homeRecurringOutput'),
+  homeUpcomingOutput: document.querySelector('#homeUpcomingOutput'),
+  homeOverdueOutput: document.querySelector('#homeOverdueOutput'),
+  homeDueList: document.querySelector('#homeDueList'),
   productList: document.querySelector('#productList'),
 
   accountStatus: document.querySelector('#accountStatus'),
@@ -147,6 +180,10 @@ function formatDate(iso) {
   }).format(new Date(iso));
 }
 
+function getCurrentMonthValue() {
+  return new Date().toISOString().slice(0, 7);
+}
+
 function makeDefaultBill() {
   const createdAt = nowIso();
 
@@ -155,6 +192,7 @@ function makeDefaultBill() {
     name: 'Nueva cuenta',
     mode: 'detailed',
     quickTotal: 0,
+    homeMonth: getCurrentMonthValue(),
     payerId: '',
     tipPercent: 10,
     archived: false,
@@ -205,8 +243,9 @@ function normalizeState(input) {
     const normalized = {
       id: bill.id || createId('bill'),
       name: String(bill.name || 'Cuenta sin nombre'),
-      mode: bill.mode === 'quick' ? 'quick' : 'detailed',
+      mode: ['quick', 'home'].includes(bill.mode) ? bill.mode : 'detailed',
       quickTotal: Number(bill.quickTotal || 0),
+      homeMonth: bill.homeMonth || getCurrentMonthValue(),
       payerId: bill.payerId && people.some((p) => p.id === bill.payerId) ? bill.payerId : '',
       tipPercent: Number.isFinite(Number(bill.tipPercent)) ? Number(bill.tipPercent) : 10,
       archived: Boolean(bill.archived),
@@ -220,6 +259,8 @@ function normalizeState(input) {
             unitPrice: Number(product.unitPrice ?? product.price ?? 0),
             quantity: Number(product.quantity ?? 1),
             category: CATEGORIES.includes(product.category) ? product.category : 'Otros',
+            dueDate: product.dueDate || '',
+            recurring: Boolean(product.recurring),
             consumers: Array.isArray(product.consumers)
               ? product.consumers.map((consumer) => ({
                   personId: consumer.personId,
@@ -614,6 +655,8 @@ function renderBillList() {
 
 function renderBillHeader() {
   const bill = getActiveBill();
+  const isQuick = bill.mode === 'quick';
+  const isHome = bill.mode === 'home';
 
   dom.billNameInput.value = bill.name;
   dom.billMeta.textContent = `Creada: ${formatDate(bill.createdAt)} · Última edición: ${formatDate(bill.updatedAt)}`;
@@ -624,12 +667,25 @@ function renderBillHeader() {
     input.checked = input.value === bill.mode;
   });
 
-  dom.quickTotalPanel.classList.toggle('hidden', bill.mode !== 'quick');
-  dom.productEditorCard.classList.toggle('hidden', bill.mode === 'quick');
-  dom.productListCard.classList.toggle('hidden', bill.mode === 'quick');
+  dom.quickTotalPanel.classList.toggle('hidden', !isQuick);
+  dom.homePanel.classList.toggle('hidden', !isHome);
+  dom.productEditorCard.classList.toggle('hidden', isQuick);
+  dom.productListCard.classList.toggle('hidden', isQuick);
+  dom.homeDashboardCard.classList.toggle('hidden', !isHome);
   dom.quickTotalInput.value = bill.quickTotal || '';
+  dom.homeMonthInput.value = bill.homeMonth || getCurrentMonthValue();
   dom.tipPercentInput.value = bill.tipPercent;
+
+  dom.productNameLabel.textContent = isHome ? 'Gasto' : 'Producto';
+  dom.productNameInput.placeholder = isHome ? 'Ej: Luz, Arriendo, Supermercado' : 'Ej: Papas fritas';
+  dom.productListTitle.textContent = isHome ? 'Gastos agregados' : 'Productos agregados';
+  dom.consumerPanelTitle.textContent = isHome ? '¿Entre quiénes se divide?' : '¿Quiénes consumieron?';
+  dom.consumerPanelHelp.textContent = isHome
+    ? 'Marca las personas que participan en este gasto y ajusta las partes si corresponde.'
+    : 'Marca las personas y ajusta las partes si alguien consumió más.';
+  document.querySelectorAll('.home-only').forEach((element) => element.classList.toggle('hidden', !isHome));
 }
+
 
 function renderPayerSelect() {
   const bill = getActiveBill();
@@ -782,8 +838,10 @@ function renderProducts() {
         <strong>${escapeHtml(product.name)}</strong>
         <div class="product-meta">
           ${escapeHtml(product.category)} · ${formatCurrency(product.unitPrice)} × ${product.quantity} = ${formatCurrency(productTotal)}
+          ${bill.mode === 'home' && product.dueDate ? `<br />Vence: ${escapeHtml(formatShortDate(product.dueDate))}` : ''}
+          ${bill.mode === 'home' && product.recurring ? '<br />Recurrente' : ''}
           <br />
-          Consumidores: ${escapeHtml(consumerNames || 'Sin consumidores')}
+          ${bill.mode === 'home' ? 'Participantes' : 'Consumidores'}: ${escapeHtml(consumerNames || 'Sin consumidores')}
         </div>
       </div>
       <div class="product-actions">
@@ -810,15 +868,19 @@ function renderProducts() {
 }
 
 function renderProductForm() {
+  const bill = getActiveBill();
+  const isHome = bill.mode === 'home';
+
   if (!editingProductId) {
-    dom.productFormTitle.textContent = 'Agregar producto';
-    dom.productSubmitButton.textContent = 'Agregar producto';
+    dom.productFormTitle.textContent = isHome ? 'Agregar gasto del hogar' : 'Agregar producto';
+    dom.productSubmitButton.textContent = isHome ? 'Agregar gasto' : 'Agregar producto';
     dom.cancelEditProductButton.classList.add('hidden');
+    dom.productDueDateInput.value = '';
+    dom.productRecurringInput.checked = false;
     renderConsumers();
     return;
   }
 
-  const bill = getActiveBill();
   const product = bill.products.find((item) => item.id === editingProductId);
 
   if (!product) {
@@ -827,7 +889,7 @@ function renderProductForm() {
     return;
   }
 
-  dom.productFormTitle.textContent = 'Editar producto';
+  dom.productFormTitle.textContent = isHome ? 'Editar gasto' : 'Editar producto';
   dom.productSubmitButton.textContent = 'Guardar cambios';
   dom.cancelEditProductButton.classList.remove('hidden');
 
@@ -835,8 +897,71 @@ function renderProductForm() {
   dom.productPriceInput.value = product.unitPrice;
   dom.productQuantityInput.value = product.quantity;
   dom.productCategoryInput.value = product.category || 'Otros';
+  dom.productDueDateInput.value = product.dueDate || '';
+  dom.productRecurringInput.checked = Boolean(product.recurring);
 
   renderConsumers();
+}
+
+
+function formatShortDate(value) {
+  if (!value) return 'Sin fecha';
+
+  return new Intl.DateTimeFormat('es-CL', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(`${value}T00:00:00`));
+}
+
+function daysUntil(dateValue) {
+  if (!dateValue) return null;
+
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const target = new Date(`${dateValue}T00:00:00`);
+  return Math.round((target - todayStart) / 86400000);
+}
+
+function renderHomeDashboard() {
+  const bill = getActiveBill();
+
+  if (bill.mode !== 'home') return;
+
+  const recurrent = bill.products.filter((product) => product.recurring).length;
+  const withDueDate = bill.products
+    .filter((product) => product.dueDate)
+    .map((product) => ({ ...product, days: daysUntil(product.dueDate) }))
+    .sort((a, b) => (a.days ?? 99999) - (b.days ?? 99999));
+
+  const upcoming = withDueDate.filter((product) => product.days !== null && product.days >= 0 && product.days <= 7).length;
+  const overdue = withDueDate.filter((product) => product.days !== null && product.days < 0).length;
+
+  dom.homeRecurringOutput.textContent = recurrent;
+  dom.homeUpcomingOutput.textContent = upcoming;
+  dom.homeOverdueOutput.textContent = overdue;
+  dom.homeDueList.innerHTML = '';
+
+  if (!withDueDate.length) {
+    dom.homeDueList.appendChild(emptyMessage('No hay vencimientos registrados todavía.'));
+    return;
+  }
+
+  for (const product of withDueDate.slice(0, 8)) {
+    const productTotal = Number(product.unitPrice) * Number(product.quantity);
+    const item = document.createElement('div');
+    const stateClass = product.days < 0 ? 'overdue' : product.days <= 7 ? 'upcoming' : '';
+
+    item.className = `home-due-item ${stateClass}`;
+    item.innerHTML = `
+      <div>
+        <strong>${escapeHtml(product.name)}</strong>
+        <span>${escapeHtml(product.category)} · vence ${escapeHtml(formatShortDate(product.dueDate))}</span>
+      </div>
+      <strong>${formatCurrency(productTotal)}</strong>
+    `;
+    dom.homeDueList.appendChild(item);
+  }
 }
 
 function renderTotals() {
@@ -920,12 +1045,71 @@ function render() {
   renderProductForm();
   renderCategoryTotals();
   renderProducts();
+  renderHomeDashboard();
   renderTotals();
   renderTransfers();
 
   if (!dom.shareModal.classList.contains('hidden')) {
     updateSharePreview();
   }
+}
+
+function getNextMonthValue(monthValue) {
+  const [year, month] = String(monthValue || getCurrentMonthValue()).split('-').map(Number);
+  const date = new Date(year, month, 1);
+  return date.toISOString().slice(0, 7);
+}
+
+function duplicateHomeMonth() {
+  const bill = getActiveBill();
+
+  if (bill.mode !== 'home') {
+    showToast('Esta opción es para cuentas del hogar.');
+    return;
+  }
+
+  const personMap = new Map();
+  const newPeople = bill.people.map((person) => {
+    const newId = createId('person');
+    personMap.set(person.id, newId);
+    return { ...person, id: newId, paid: false };
+  });
+
+  const nextMonth = getNextMonthValue(bill.homeMonth);
+  const createdAt = nowIso();
+
+  const newBill = {
+    ...bill,
+    id: createId('bill'),
+    name: `Hogar - ${nextMonth}`,
+    homeMonth: nextMonth,
+    payerId: bill.payerId ? personMap.get(bill.payerId) || '' : '',
+    archived: false,
+    createdAt,
+    updatedAt: createdAt,
+    people: newPeople,
+    products: bill.products
+      .filter((product) => product.recurring)
+      .map((product) => {
+        const dueDay = product.dueDate ? product.dueDate.slice(8, 10) : '';
+        const newDueDate = dueDay ? `${nextMonth}-${dueDay}` : '';
+        return {
+          ...product,
+          id: createId('product'),
+          dueDate: newDueDate,
+          consumers: product.consumers
+            .filter((consumer) => personMap.has(consumer.personId))
+            .map((consumer) => ({ personId: personMap.get(consumer.personId), share: consumer.share })),
+        };
+      }),
+  };
+
+  state.bills.unshift(newBill);
+  state.activeBillId = newBill.id;
+  editingProductId = null;
+  saveState();
+  render();
+  showToast('Mes del hogar duplicado.');
 }
 
 function addBill() {
@@ -1122,6 +1306,8 @@ function submitProduct() {
   const unitPrice = Number(dom.productPriceInput.value);
   const quantity = Number(dom.productQuantityInput.value);
   const category = CATEGORIES.includes(dom.productCategoryInput.value) ? dom.productCategoryInput.value : 'Otros';
+  const dueDate = dom.productDueDateInput.value || '';
+  const recurring = dom.productRecurringInput.checked;
   const consumers = getConsumersFromForm();
 
   if (!name) {
@@ -1152,6 +1338,8 @@ function submitProduct() {
       product.unitPrice = unitPrice;
       product.quantity = quantity;
       product.category = category;
+      product.dueDate = dueDate;
+      product.recurring = recurring;
       product.consumers = consumers;
     }
 
@@ -1164,6 +1352,8 @@ function submitProduct() {
       unitPrice,
       quantity,
       category,
+      dueDate,
+      recurring,
       consumers,
     });
 
@@ -1226,7 +1416,9 @@ function resetProductForm() {
   editingProductId = null;
   dom.productForm.reset();
   dom.productQuantityInput.value = 1;
-  dom.productCategoryInput.value = 'Comida';
+  dom.productCategoryInput.value = getActiveBill().mode === 'home' ? 'Luz' : 'Comida';
+  dom.productDueDateInput.value = '';
+  dom.productRecurringInput.checked = false;
   dom.productFormTitle.textContent = 'Agregar producto';
   dom.productSubmitButton.textContent = 'Agregar producto';
   dom.cancelEditProductButton.classList.add('hidden');
@@ -1289,8 +1481,9 @@ function getSummaryText(content = 'simple') {
   const calculation = calculateBill(bill);
   const lines = [
     `*Cuenta Clara - ${bill.name}*`,
+    bill.mode === 'home' ? `Mes hogar: *${bill.homeMonth || getCurrentMonthValue()}*` : '',
     '',
-  ];
+  ].filter((line, index) => index !== 1 || line);
 
   if (content === 'detail') {
     for (const person of bill.people) {
@@ -1371,6 +1564,7 @@ function compactBillForLink(bill) {
     name: bill.name,
     mode: bill.mode,
     quickTotal: bill.quickTotal,
+    homeMonth: bill.homeMonth,
     tipPercent: bill.tipPercent,
     payerIndex: bill.payerId && personIndex.has(bill.payerId) ? personIndex.get(bill.payerId) : null,
     people,
@@ -1379,6 +1573,8 @@ function compactBillForLink(bill) {
       unitPrice: product.unitPrice,
       quantity: product.quantity,
       category: product.category,
+      dueDate: product.dueDate || '',
+      recurring: Boolean(product.recurring),
       consumers: product.consumers
         .filter((consumer) => personIndex.has(consumer.personId))
         .map((consumer) => ({
@@ -1404,6 +1600,7 @@ function billFromCompactLink(data) {
     name: `${String(data.name || 'Cuenta compartida')} compartida`,
     mode: data.mode === 'quick' ? 'quick' : 'detailed',
     quickTotal: Number(data.quickTotal || 0),
+    homeMonth: data.homeMonth || getCurrentMonthValue(),
     tipPercent: Number.isFinite(Number(data.tipPercent)) ? Number(data.tipPercent) : 10,
     payerId: Number.isInteger(data.payerIndex) && people[data.payerIndex] ? people[data.payerIndex].id : '',
     archived: false,
@@ -1420,6 +1617,8 @@ function billFromCompactLink(data) {
         unitPrice: Number(product.unitPrice || 0),
         quantity: Number(product.quantity || 1),
         category: CATEGORIES.includes(product.category) ? product.category : 'Otros',
+        dueDate: product.dueDate || '',
+        recurring: Boolean(product.recurring),
         consumers: Array.isArray(product.consumers)
           ? product.consumers
               .filter((consumer) => people[consumer.personIndex])
@@ -1898,7 +2097,7 @@ async function exportExcel() {
     { width: 95 },
   ];
 
-  productos.mergeCells('A1:F2');
+  productos.mergeCells('A1:H2');
   styleTitleCell(productos.getCell('A1'), 'PRODUCTOS DE LA CUENTA');
   productos.getRow(1).height = 28;
   productos.getRow(2).height = 28;
@@ -1912,6 +2111,8 @@ async function exportExcel() {
       roundMoney(bill.quickTotal),
       1,
       roundMoney(bill.quickTotal),
+      '',
+      '',
       bill.people.map((person) => person.name).join(', '),
     ]);
   } else {
@@ -1930,6 +2131,8 @@ async function exportExcel() {
         roundMoney(product.unitPrice),
         Number(product.quantity) || 0,
         roundMoney((Number(product.unitPrice) || 0) * (Number(product.quantity) || 0)),
+        product.dueDate ? formatShortDate(product.dueDate) : '',
+        product.recurring ? 'Sí' : 'No',
         consumers,
       ]);
     }
@@ -1938,8 +2141,8 @@ async function exportExcel() {
   addStyledTable(
     productos,
     4,
-    ['Producto', 'Categoría', 'Precio unitario', 'Cantidad', 'Total producto', 'Consumidores'],
-    productosRows.length ? productosRows : [['Sin productos', '', 0, 0, 0, '']],
+    ['Producto', 'Categoría', 'Precio unitario', 'Cantidad', 'Total producto', 'Vencimiento', 'Recurrente', 'Consumidores'],
+    productosRows.length ? productosRows : [['Sin productos', '', 0, 0, 0, '', '', '']],
     [3, 5],
     []
   );
@@ -1947,7 +2150,7 @@ async function exportExcel() {
   for (let rowNumber = 5; rowNumber <= 4 + Math.max(1, productosRows.length); rowNumber++) {
     productos.getRow(rowNumber).height = 56;
     productos.getCell(`E${rowNumber}`).alignment = { vertical: 'middle', horizontal: 'right', wrapText: true };
-    productos.getCell(`F${rowNumber}`).alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+    productos.getCell(`H${rowNumber}`).alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
   }
 
   const detalle = workbook.addWorksheet('Detalle por persona', {
@@ -2572,6 +2775,9 @@ document.querySelectorAll('input[name="billMode"]').forEach((input) => {
   input.addEventListener('change', () => {
     const bill = getActiveBill();
     bill.mode = input.value;
+    if (bill.mode === 'home' && !bill.homeMonth) {
+      bill.homeMonth = getCurrentMonthValue();
+    }
     persistAndRender();
   });
 });
@@ -2583,6 +2789,14 @@ dom.quickTotalInput.addEventListener('input', () => {
   bill.quickTotal = Number.isFinite(value) && value >= 0 ? value : 0;
   persistAndRender();
 });
+
+dom.homeMonthInput.addEventListener('input', () => {
+  const bill = getActiveBill();
+  bill.homeMonth = dom.homeMonthInput.value || getCurrentMonthValue();
+  persistAndRender();
+});
+
+dom.duplicateHomeMonthButton.addEventListener('click', duplicateHomeMonth);
 
 dom.payerSelect.addEventListener('change', () => {
   const bill = getActiveBill();

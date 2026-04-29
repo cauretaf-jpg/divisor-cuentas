@@ -58,7 +58,7 @@
 
       <div class="sidebar-help">
         <strong>Versión 2.0</strong>
-        <p>Incluye pagador principal, transferencias, Excel corregido, instalación como app y AdSense Auto Ads.</p>
+        <p>Incluye salidas, cuentas rápidas, cuentas del hogar, Excel, instalación como app y AdSense.</p>
       </div>
 
       <div class="backup-actions">
@@ -101,12 +101,23 @@
               <input type="radio" name="billMode" value="quick" />
               <span>Rápida</span>
             </label>
+            <label class="radio-pill">
+              <input type="radio" name="billMode" value="home" />
+              <span>Hogar</span>
+            </label>
           </div>
 
           <div class="quick-total-panel hidden" id="quickTotalPanel">
             <label for="quickTotalInput">Monto total de la cuenta</label>
             <input id="quickTotalInput" type="number" min="0" step="1" placeholder="Ej: 60000" />
             <p>En modo rápido, el total se divide en partes iguales entre todas las personas.</p>
+          </div>
+
+          <div class="home-panel hidden" id="homePanel">
+            <label for="homeMonthInput">Mes de las cuentas del hogar</label>
+            <input id="homeMonthInput" type="month" />
+            <p>Registra gastos domésticos, vencimientos y gastos recurrentes.</p>
+            <button class="btn btn-light btn-small" id="duplicateHomeMonthButton" type="button">Duplicar mes anterior</button>
           </div>
         </section>
 
@@ -202,6 +213,14 @@
               <option>Tragos</option>
               <option>Postres</option>
               <option>Transporte</option>
+              <option>Arriendo</option>
+              <option>Luz</option>
+              <option>Agua</option>
+              <option>Gas</option>
+              <option>Internet</option>
+              <option>Gastos comunes</option>
+              <option>Supermercado</option>
+              <option>Streaming</option>
               <option>Otros</option>
             </select>
             <button class="btn btn-primary btn-small" type="submit">Agregar rápido</button>
@@ -212,7 +231,7 @@
 
         <form class="product-form" id="productForm">
           <div class="field">
-            <label for="productNameInput">Producto</label>
+            <label for="productNameInput" id="productNameLabel">Producto</label>
             <input id="productNameInput" type="text" placeholder="Ej: Papas fritas" autocomplete="off" />
           </div>
 
@@ -234,15 +253,33 @@
               <option>Tragos</option>
               <option>Postres</option>
               <option>Transporte</option>
+              <option>Arriendo</option>
+              <option>Luz</option>
+              <option>Agua</option>
+              <option>Gas</option>
+              <option>Internet</option>
+              <option>Gastos comunes</option>
+              <option>Supermercado</option>
+              <option>Streaming</option>
               <option>Otros</option>
             </select>
           </div>
 
+          <div class="field home-only hidden">
+            <label for="productDueDateInput">Vencimiento</label>
+            <input id="productDueDateInput" type="date" />
+          </div>
+
+          <label class="recurring-check home-only hidden">
+            <input id="productRecurringInput" type="checkbox" />
+            <span>Gasto recurrente</span>
+          </label>
+
           <div class="consumer-panel">
             <div class="consumer-panel-header">
               <div>
-                <h3>¿Quiénes consumieron?</h3>
-                <p>Marca las personas y ajusta las partes si alguien consumió más.</p>
+                <h3 id="consumerPanelTitle">¿Quiénes consumieron?</h3>
+                <p id="consumerPanelHelp">Marca las personas y ajusta las partes si alguien consumió más.</p>
               </div>
               <button class="btn btn-light btn-small" id="selectAllConsumersButton" type="button">Seleccionar todos</button>
             </div>
@@ -258,7 +295,7 @@
         <div class="section-title">
           <div>
             <p class="eyebrow">Detalle</p>
-            <h2>Productos agregados</h2>
+            <h2 id="productListTitle">Productos agregados</h2>
           </div>
         </div>
 
@@ -272,12 +309,46 @@
             <option value="Tragos">Tragos</option>
             <option value="Postres">Postres</option>
             <option value="Transporte">Transporte</option>
+            <option value="Arriendo">Arriendo</option>
+            <option value="Luz">Luz</option>
+            <option value="Agua">Agua</option>
+            <option value="Gas">Gas</option>
+            <option value="Internet">Internet</option>
+            <option value="Gastos comunes">Gastos comunes</option>
+            <option value="Supermercado">Supermercado</option>
+            <option value="Streaming">Streaming</option>
             <option value="Otros">Otros</option>
           </select>
         </div>
 
         <div class="category-totals" id="categoryTotals"></div>
         <div class="product-list" id="productList"></div>
+      </section>
+
+      <section class="card home-dashboard hidden" id="homeDashboardCard">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Hogar</p>
+            <h2>Resumen doméstico</h2>
+          </div>
+        </div>
+
+        <div class="home-summary-grid">
+          <div>
+            <span>Gastos recurrentes</span>
+            <strong id="homeRecurringOutput">0</strong>
+          </div>
+          <div>
+            <span>Próximos vencimientos</span>
+            <strong id="homeUpcomingOutput">0</strong>
+          </div>
+          <div>
+            <span>Gastos vencidos</span>
+            <strong id="homeOverdueOutput">0</strong>
+          </div>
+        </div>
+
+        <div class="home-due-list" id="homeDueList"></div>
       </section>
 
       <section class="results-grid">

@@ -1,4 +1,4 @@
-# Cuenta Clara V3.0
+# Cuenta Clara V4.0
 
 App web funcional para dividir cuentas entre varias personas.
 
@@ -191,3 +191,17 @@ Esta versión queda lista para Auto Ads. Para que los anuncios aparezcan en prod
 2. La cuenta/sitio debe estar aprobado en Google AdSense.
 3. Auto Ads debe estar activado en AdSense para el dominio.
 4. Si quieres anuncios manuales en lugares específicos, debes crear unidades de anuncio en AdSense y reemplazar/insertar sus `data-ad-slot`.
+
+
+## Nuevo en V4.0 - Cuentas del hogar
+
+- Se agregó un tercer modo de cuenta: **Hogar**.
+- Permite registrar gastos domésticos mensuales.
+- Incluye mes de la cuenta del hogar.
+- Permite agregar vencimiento por gasto.
+- Permite marcar gastos recurrentes.
+- Agrega categorías domésticas: Arriendo, Luz, Agua, Gas, Internet, Gastos comunes, Supermercado, Streaming, Transporte y Otros.
+- Agrega resumen doméstico con gastos recurrentes, próximos vencimientos y gastos vencidos.
+- Permite duplicar el mes del hogar usando los gastos recurrentes.
+- Ajusta textos de la interfaz: en modo Hogar se habla de gastos y participantes, no de productos y consumidores.
+- El enlace compartible y el Excel incluyen datos del modo Hogar.
