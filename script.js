@@ -1,4 +1,8 @@
-const STORAGE_KEY = 'cuenta-clara-v1-state';
+const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
+const LOCAL_USERS_KEY = 'cuenta-clara-local-users-v1';
+const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
+let activeStorageKey = GUEST_STORAGE_KEY;
+let currentSession = { mode: 'guest', email: '', name: '' };
 const THEME_KEY = 'cuenta-clara-theme';
 
 const CATEGORIES = [
@@ -34,6 +38,8 @@ const DEFAULT_QUICK_PRODUCTS = [
 const dom = {
   themeToggle: document.querySelector('#themeToggle'),
   installAppButton: document.querySelector('#installAppButton'),
+  authButton: document.querySelector('#authButton'),
+  authStatusBadge: document.querySelector('#authStatusBadge'),
   newBillButton: document.querySelector('#newBillButton'),
   duplicateBillButton: document.querySelector('#duplicateBillButton'),
   archiveBillButton: document.querySelector('#archiveBillButton'),
@@ -124,6 +130,26 @@ const dom = {
   mobileAddProductButton: document.querySelector('#mobileAddProductButton'),
   mobileShareButton: document.querySelector('#mobileShareButton'),
 
+  authModal: document.querySelector('#authModal'),
+  closeAuthModalButton: document.querySelector('#closeAuthModalButton'),
+  authSessionPanel: document.querySelector('#authSessionPanel'),
+  authFormsPanel: document.querySelector('#authFormsPanel'),
+  authSessionTitle: document.querySelector('#authSessionTitle'),
+  authSessionDescription: document.querySelector('#authSessionDescription'),
+  showLoginButton: document.querySelector('#showLoginButton'),
+  showRegisterButton: document.querySelector('#showRegisterButton'),
+  loginForm: document.querySelector('#loginForm'),
+  registerForm: document.querySelector('#registerForm'),
+  loginEmailInput: document.querySelector('#loginEmailInput'),
+  loginPasswordInput: document.querySelector('#loginPasswordInput'),
+  registerNameInput: document.querySelector('#registerNameInput'),
+  registerEmailInput: document.querySelector('#registerEmailInput'),
+  registerPasswordInput: document.querySelector('#registerPasswordInput'),
+  importGuestDataCheckbox: document.querySelector('#importGuestDataCheckbox'),
+  continueGuestButton: document.querySelector('#continueGuestButton'),
+  switchToGuestButton: document.querySelector('#switchToGuestButton'),
+  logoutButton: document.querySelector('#logoutButton'),
+
   shareModal: document.querySelector('#shareModal'),
   closeShareModalButton: document.querySelector('#closeShareModalButton'),
   sharePreviewType: document.querySelector('#sharePreviewType'),
@@ -181,6 +207,265 @@ function formatDate(iso) {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(new Date(iso));
+}
+
+
+
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function getUsers() {
+  try {
+    const users = JSON.parse(localStorage.getItem(LOCAL_USERS_KEY));
+    return Array.isArray(users) ? users : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveUsers(users) {
+  localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
+}
+
+function getUserStorageKey(email) {
+  return `cuenta-clara-user-state:${normalizeEmail(email)}`;
+}
+
+function createSalt() {
+  if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+    const bytes = new Uint8Array(12);
+    window.crypto.getRandomValues(bytes);
+    return [...bytes].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  return `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+async function digestText(text) {
+  if (window.crypto && window.crypto.subtle && typeof TextEncoder !== 'undefined') {
+    const data = new TextEncoder().encode(text);
+    const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+    return [...new Uint8Array(hashBuffer)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  let hash = 0;
+
+  for (let index = 0; index < text.length; index++) {
+    hash = ((hash << 5) - hash) + text.charCodeAt(index);
+    hash |= 0;
+  }
+
+  return `fallback_${Math.abs(hash)}`;
+}
+
+async function hashPassword(password, salt) {
+  return digestText(`${salt}:${password}`);
+}
+
+function loadAuthSession() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(AUTH_SESSION_KEY));
+
+    if (saved && saved.mode === 'user' && saved.email) {
+      const email = normalizeEmail(saved.email);
+      const user = getUsers().find((item) => normalizeEmail(item.email) === email);
+
+      if (user) {
+        currentSession = {
+          mode: 'user',
+          email,
+          name: user.name || email,
+        };
+        activeStorageKey = getUserStorageKey(email);
+        return;
+      }
+    }
+  } catch {
+    // Si la sesión guardada está corrupta, volvemos a invitado.
+  }
+
+  currentSession = { mode: 'guest', email: '', name: '' };
+  activeStorageKey = GUEST_STORAGE_KEY;
+}
+
+function saveAuthSession() {
+  localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(currentSession));
+}
+
+function clearAuthSession() {
+  localStorage.removeItem(AUTH_SESSION_KEY);
+  currentSession = { mode: 'guest', email: '', name: '' };
+  activeStorageKey = GUEST_STORAGE_KEY;
+}
+
+function renderAuthUI() {
+  if (!dom.authButton || !dom.authStatusBadge) {
+    return;
+  }
+
+  const isUser = currentSession.mode === 'user';
+
+  dom.authStatusBadge.textContent = isUser ? `Usuario: ${currentSession.name || currentSession.email}` : 'Invitado';
+  dom.authStatusBadge.classList.toggle('is-user', isUser);
+  dom.authButton.textContent = isUser ? 'Mi cuenta' : 'Ingresar';
+
+  if (dom.authSessionPanel && dom.authFormsPanel) {
+    dom.authSessionPanel.classList.toggle('hidden', !isUser);
+    dom.authFormsPanel.classList.toggle('hidden', isUser);
+
+    if (isUser) {
+      dom.authSessionTitle.textContent = `Hola, ${currentSession.name || currentSession.email}`;
+      dom.authSessionDescription.textContent = `Tus cuentas se están guardando en este navegador para ${currentSession.email}.`;
+    }
+  }
+}
+
+function openAuthModal() {
+  renderAuthUI();
+  dom.authModal.classList.remove('hidden');
+  document.body.classList.add('modal-open');
+}
+
+function closeAuthModal() {
+  dom.authModal.classList.add('hidden');
+  document.body.classList.remove('modal-open');
+}
+
+function showLoginForm() {
+  dom.loginForm.classList.remove('hidden');
+  dom.registerForm.classList.add('hidden');
+  dom.showLoginButton.classList.add('active');
+  dom.showRegisterButton.classList.remove('active');
+}
+
+function showRegisterForm() {
+  dom.registerForm.classList.remove('hidden');
+  dom.loginForm.classList.add('hidden');
+  dom.showRegisterButton.classList.add('active');
+  dom.showLoginButton.classList.remove('active');
+}
+
+async function registerLocalUser(event) {
+  event.preventDefault();
+
+  const name = dom.registerNameInput.value.trim();
+  const email = normalizeEmail(dom.registerEmailInput.value);
+  const password = dom.registerPasswordInput.value;
+
+  if (!name) {
+    showToast('Ingresa tu nombre.');
+    return;
+  }
+
+  if (!email) {
+    showToast('Ingresa tu correo.');
+    return;
+  }
+
+  if (!password || password.length < 4) {
+    showToast('La contraseña debe tener al menos 4 caracteres.');
+    return;
+  }
+
+  const users = getUsers();
+
+  if (users.some((user) => normalizeEmail(user.email) === email)) {
+    showNotice('Usuario existente', 'Ya existe una cuenta local con ese correo. Inicia sesión.');
+    return;
+  }
+
+  const salt = createSalt();
+  const passwordHash = await hashPassword(password, salt);
+  const createdAt = nowIso();
+
+  users.push({
+    id: createId('user'),
+    name,
+    email,
+    salt,
+    passwordHash,
+    createdAt,
+  });
+
+  saveUsers(users);
+
+  const userStorageKey = getUserStorageKey(email);
+
+  if (dom.importGuestDataCheckbox.checked) {
+    localStorage.setItem(userStorageKey, JSON.stringify(state));
+  } else {
+    localStorage.setItem(userStorageKey, JSON.stringify(normalizeState(null)));
+  }
+
+  currentSession = { mode: 'user', email, name };
+  activeStorageKey = userStorageKey;
+  saveAuthSession();
+  loadState();
+  migrateEmptyDefaultPeople();
+  saveState();
+  render();
+  closeAuthModal();
+  showToast('Cuenta creada e iniciada.');
+}
+
+async function loginLocalUser(event) {
+  event.preventDefault();
+
+  const email = normalizeEmail(dom.loginEmailInput.value);
+  const password = dom.loginPasswordInput.value;
+  const user = getUsers().find((item) => normalizeEmail(item.email) === email);
+
+  if (!user) {
+    showNotice('Usuario no encontrado', 'No existe una cuenta local con ese correo en este navegador.');
+    return;
+  }
+
+  const passwordHash = await hashPassword(password, user.salt);
+
+  if (passwordHash !== user.passwordHash) {
+    showNotice('Contraseña incorrecta', 'Revisa la contraseña e inténtalo nuevamente.');
+    return;
+  }
+
+  saveState();
+
+  currentSession = {
+    mode: 'user',
+    email: normalizeEmail(user.email),
+    name: user.name || user.email,
+  };
+  activeStorageKey = getUserStorageKey(user.email);
+  saveAuthSession();
+
+  loadState();
+  migrateEmptyDefaultPeople();
+  saveState();
+  render();
+  closeAuthModal();
+  showToast('Sesión iniciada.');
+}
+
+function switchToGuestMode() {
+  saveState();
+  clearAuthSession();
+  loadState();
+  migrateEmptyDefaultPeople();
+  saveState();
+  render();
+  closeAuthModal();
+  showToast('Modo invitado activo.');
+}
+
+function logoutLocalUser() {
+  saveState();
+  clearAuthSession();
+  loadState();
+  migrateEmptyDefaultPeople();
+  saveState();
+  render();
+  closeAuthModal();
+  showToast('Sesión cerrada.');
 }
 
 
@@ -376,7 +661,7 @@ function normalizeState(input) {
 
 function loadState() {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    const saved = JSON.parse(localStorage.getItem(activeStorageKey));
     state = normalizeState(saved);
   } catch {
     state = normalizeState(null);
@@ -409,7 +694,7 @@ function migrateEmptyDefaultPeople() {
 
 
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localStorage.setItem(activeStorageKey, JSON.stringify(state));
 }
 
 function getActiveBill() {
@@ -2183,6 +2468,130 @@ function addPersonFilterButtons(sheet, people, targetRows, firstRow) {
   return firstRow + 1 + Math.ceil(buttons.length / buttonsPerRow) + 1;
 }
 
+
+function getExcelCellDisplayValue(value) {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  if (typeof value === 'object') {
+    if (value.text) {
+      return String(value.text);
+    }
+
+    if (value.richText) {
+      return value.richText.map((part) => part.text || '').join('');
+    }
+
+    if (value.result !== undefined) {
+      return String(value.result);
+    }
+
+    if (value.formula) {
+      return String(value.formula);
+    }
+
+    return '';
+  }
+
+  return String(value);
+}
+
+function autoFitWorksheetColumns(sheet, options = {}) {
+  const minWidth = options.minWidth || 10;
+  const maxWidth = options.maxWidth || 34;
+  const wideColumns = options.wideColumns || {};
+  const narrowColumns = options.narrowColumns || {};
+  const padding = options.padding || 2;
+
+  sheet.columns.forEach((column, index) => {
+    const columnNumber = index + 1;
+    const columnLetter = column.letter;
+    let maxLength = 0;
+
+    column.eachCell({ includeEmpty: false }, (cell) => {
+      // Ignorar títulos grandes combinados para que no agranden toda la hoja.
+      if (cell.isMerged && cell.master && cell.address !== cell.master.address) {
+        return;
+      }
+
+      const value = getExcelCellDisplayValue(cell.value);
+      const longestLine = value
+        .split(/\r?\n/)
+        .reduce((longest, line) => Math.max(longest, line.length), 0);
+
+      maxLength = Math.max(maxLength, longestLine);
+    });
+
+    const customMax = wideColumns[columnLetter] || wideColumns[columnNumber] || maxWidth;
+    const customMin = narrowColumns[columnLetter] || narrowColumns[columnNumber] || minWidth;
+    const calculatedWidth = Math.min(customMax, Math.max(customMin, maxLength + padding));
+
+    column.width = calculatedWidth;
+  });
+}
+
+function autoFitWorkbookSheets(workbook) {
+  workbook.eachSheet((sheet) => {
+    const name = sheet.name;
+
+    if (name === 'Productos') {
+      autoFitWorksheetColumns(sheet, {
+        minWidth: 10,
+        maxWidth: 28,
+        wideColumns: { F: 30, I: 36, J: 48 },
+        narrowColumns: { D: 10, E: 14, G: 12 },
+      });
+
+      return;
+    }
+
+    if (name === 'Detalle por persona') {
+      autoFitWorksheetColumns(sheet, {
+        minWidth: 10,
+        maxWidth: 30,
+        wideColumns: { B: 34 },
+        narrowColumns: { G: 10, H: 14 },
+      });
+
+      return;
+    }
+
+    if (name === 'Resumen') {
+      autoFitWorksheetColumns(sheet, {
+        minWidth: 12,
+        maxWidth: 24,
+        narrowColumns: { E: 14 },
+      });
+
+      return;
+    }
+
+    if (name === 'Transferencias') {
+      autoFitWorksheetColumns(sheet, {
+        minWidth: 12,
+        maxWidth: 26,
+        narrowColumns: { C: 14, D: 14 },
+      });
+
+      return;
+    }
+
+    if (name === 'Categorías') {
+      autoFitWorksheetColumns(sheet, {
+        minWidth: 12,
+        maxWidth: 26,
+        narrowColumns: { B: 14, C: 14 },
+      });
+
+      return;
+    }
+
+    autoFitWorksheetColumns(sheet);
+  });
+}
+
+
 async function exportExcel() {
   if (typeof ExcelJS === 'undefined') {
     showNotice(
@@ -2329,7 +2738,7 @@ async function exportExcel() {
   );
 
   for (let rowNumber = 5; rowNumber <= 4 + Math.max(1, productosRows.length); rowNumber++) {
-    productos.getRow(rowNumber).height = 56;
+    productos.getRow(rowNumber).height = 38;
     productos.getCell(`E${rowNumber}`).alignment = { vertical: 'middle', horizontal: 'right', wrapText: true };
     productos.getCell(`H${rowNumber}`).alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
   }
@@ -2471,6 +2880,8 @@ async function exportExcel() {
   workbook.eachSheet((sheet) => {
     setSheetBaseStyle(sheet);
   });
+
+  autoFitWorkbookSheets(workbook);
 
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], {
@@ -2936,6 +3347,22 @@ function initServiceWorker() {
 
 dom.closeNoticeTabButton.addEventListener('click', () => dom.noticeTab.classList.add('hidden'));
 
+
+dom.authButton.addEventListener('click', openAuthModal);
+dom.closeAuthModalButton.addEventListener('click', closeAuthModal);
+dom.authModal.addEventListener('click', (event) => {
+  if (event.target === dom.authModal) {
+    closeAuthModal();
+  }
+});
+dom.showLoginButton.addEventListener('click', showLoginForm);
+dom.showRegisterButton.addEventListener('click', showRegisterForm);
+dom.loginForm.addEventListener('submit', loginLocalUser);
+dom.registerForm.addEventListener('submit', registerLocalUser);
+dom.continueGuestButton.addEventListener('click', switchToGuestMode);
+dom.switchToGuestButton.addEventListener('click', switchToGuestMode);
+dom.logoutButton.addEventListener('click', logoutLocalUser);
+
 dom.installAppButton.addEventListener('click', installApp);
 dom.themeToggle.addEventListener('click', toggleTheme);
 dom.newBillButton.addEventListener('click', addBill);
@@ -3100,6 +3527,10 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && !dom.shareModal.classList.contains('hidden')) {
     closeShareModal();
   }
+
+  if (event.key === 'Escape' && !dom.authModal.classList.contains('hidden')) {
+    closeAuthModal();
+  }
 });
 
 document.querySelectorAll('input[name="shareFormat"], input[name="shareContent"]').forEach((input) => {
@@ -3117,6 +3548,7 @@ dom.nativeShareImageButton.addEventListener('click', shareImageNatively);
 
 initTheme();
 updateInstallButton();
+loadAuthSession();
 loadState();
 migrateEmptyDefaultPeople();
 importBillFromUrl();

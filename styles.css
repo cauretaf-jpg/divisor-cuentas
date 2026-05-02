@@ -1770,3 +1770,134 @@ main,
     grid-template-columns: minmax(0, 1fr) 28px 28px 28px;
   }
 }
+
+
+/* V5.0: usuarios locales y modo invitado */
+.auth-badge {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  padding: 8px 12px;
+  font-size: 0.84rem;
+  font-weight: 900;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auth-badge.is-user {
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+}
+
+.auth-card {
+  width: min(620px, 100%);
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.auth-tab {
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.auth-tab.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.auth-form {
+  display: grid;
+  gap: 10px;
+}
+
+.auth-form .btn {
+  margin-top: 6px;
+}
+
+.auth-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 4px 0;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.auth-check input {
+  width: 18px;
+  min-height: 18px;
+  margin-top: 3px;
+}
+
+.guest-box,
+.auth-session-panel {
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  padding: 14px;
+}
+
+.guest-box p,
+.auth-session-panel p,
+.auth-note {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.guest-box .btn {
+  margin-top: 12px;
+}
+
+.auth-actions-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+@media (max-width: 900px) {
+  .auth-badge {
+    width: 100%;
+    max-width: none;
+  }
+
+  .header-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  .header-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .auth-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-actions-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,4 +1,4 @@
-# Cuenta Clara V4.4
+# Cuenta Clara V5.0
 
 App web funcional para dividir cuentas entre varias personas.
 
@@ -258,3 +258,30 @@ Esta versión queda lista para Auto Ads. Para que los anuncios aparezcan en prod
   - pagador principal si corresponde,
   - mes si es cuenta de hogar.
 - Los teléfonos también se guardan en enlaces compartibles.
+
+
+## Nuevo en V4.5
+
+- Se mejoró el Excel para que las columnas se ajusten mejor al contenido real.
+- Se evita que columnas como **Total producto** queden innecesariamente grandes.
+- Las columnas con texto largo, como **Consumidores / Responsables**, tienen más espacio sin ocupar demasiado.
+- Se ignoran los títulos grandes combinados al calcular el ancho automático, para que no deformen la hoja.
+- Se ajustaron altos de filas en Productos para que no se vean exagerados.
+
+
+## Nuevo en V5.0 - Usuarios y modo invitado
+
+- Se agregó botón **Ingresar / Mi cuenta**.
+- Se agregó **modo invitado**, manteniendo la experiencia actual.
+- Se agregó creación de usuarios locales.
+- Se agregó inicio de sesión local.
+- Se agregó cierre de sesión.
+- Cada usuario local tiene su propio espacio de cuentas en este navegador.
+- Al crear cuenta, se puede migrar la información del modo invitado al usuario.
+- La contraseña se guarda con hash local cuando el navegador permite Web Crypto.
+- La página de privacidad aclara que esta versión no sincroniza en la nube.
+
+### Importante
+
+Esta versión implementa usuarios locales en el navegador. Sirve para separar cuentas y preparar la app.
+Para sincronización real entre dispositivos se necesita una base de datos externa, por ejemplo Supabase.

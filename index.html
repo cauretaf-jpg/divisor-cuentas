@@ -30,6 +30,8 @@
         <a class="btn btn-light" href="privacidad.html">Privacidad</a>
         <button class="btn btn-light" id="installAppButton" type="button">Instalar App</button>
         <button class="btn btn-light" id="themeToggle" type="button">Modo oscuro</button>
+        <span class="auth-badge" id="authStatusBadge">Invitado</span>
+        <button class="btn btn-light" id="authButton" type="button">Ingresar</button>
         <button class="btn btn-primary" id="newBillButton" type="button">Nueva cuenta</button>
       </div>
     </div>
@@ -402,7 +404,7 @@
           <div class="summary-actions">
             <button class="btn btn-primary" id="shareButton" type="button">Compartir</button>
             <button class="btn btn-light" id="shareLinkButton" type="button">Copiar enlace</button>
-            <button class="btn btn-light" id="exportExcelButton" type="button">Exportar Excel</button>
+            <button class="btn btn-light" id="exportExcel ajustableButton" type="button">Exportar Excel</button>
             <button class="btn btn-light" id="copySummaryButton" type="button">Copiar rápido</button>
             <button class="btn btn-light" id="whatsappButton" type="button">WhatsApp rápido</button>
           </div>
@@ -430,6 +432,74 @@
     <button class="btn btn-light btn-small" id="mobileAddProductButton" type="button">Agregar</button>
     <button class="btn btn-primary btn-small" id="mobileShareButton" type="button">Compartir</button>
   </div>
+
+
+  <div class="modal-backdrop hidden" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+    <section class="modal-card auth-card">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">Cuenta de usuario</p>
+          <h2 id="authModalTitle">Iniciar sesión o crear cuenta</h2>
+        </div>
+        <button class="icon-button" id="closeAuthModalButton" type="button" aria-label="Cerrar">×</button>
+      </div>
+
+      <div class="auth-session-panel hidden" id="authSessionPanel">
+        <strong id="authSessionTitle">Sesión iniciada</strong>
+        <p id="authSessionDescription"></p>
+        <div class="auth-actions-row">
+          <button class="btn btn-light" id="switchToGuestButton" type="button">Usar como invitado</button>
+          <button class="btn btn-danger-light" id="logoutButton" type="button">Cerrar sesión</button>
+        </div>
+      </div>
+
+      <div class="auth-forms-panel" id="authFormsPanel">
+        <div class="auth-tabs" role="tablist">
+          <button class="auth-tab active" id="showLoginButton" type="button">Iniciar sesión</button>
+          <button class="auth-tab" id="showRegisterButton" type="button">Crear cuenta</button>
+        </div>
+
+        <form class="auth-form" id="loginForm">
+          <label for="loginEmailInput">Correo electrónico</label>
+          <input id="loginEmailInput" type="email" autocomplete="email" placeholder="correo@ejemplo.com" />
+
+          <label for="loginPasswordInput">Contraseña</label>
+          <input id="loginPasswordInput" type="password" autocomplete="current-password" placeholder="Tu contraseña" />
+
+          <button class="btn btn-primary" type="submit">Iniciar sesión</button>
+        </form>
+
+        <form class="auth-form hidden" id="registerForm">
+          <label for="registerNameInput">Nombre</label>
+          <input id="registerNameInput" type="text" autocomplete="name" placeholder="Tu nombre" />
+
+          <label for="registerEmailInput">Correo electrónico</label>
+          <input id="registerEmailInput" type="email" autocomplete="email" placeholder="correo@ejemplo.com" />
+
+          <label for="registerPasswordInput">Contraseña</label>
+          <input id="registerPasswordInput" type="password" autocomplete="new-password" placeholder="Mínimo 4 caracteres" />
+
+          <label class="auth-check">
+            <input id="importGuestDataCheckbox" type="checkbox" checked />
+            <span>Guardar mis cuentas actuales de invitado en este usuario</span>
+          </label>
+
+          <button class="btn btn-primary" type="submit">Crear cuenta</button>
+        </form>
+
+        <div class="guest-box">
+          <strong>Modo invitado</strong>
+          <p>Puedes seguir usando Cuenta Clara sin registrarte. Tus datos quedan guardados solo en este navegador.</p>
+          <button class="btn btn-light" id="continueGuestButton" type="button">Continuar como invitado</button>
+        </div>
+
+        <p class="auth-note">
+          En esta versión, las cuentas de usuario son locales en este navegador. Para sincronizar entre dispositivos, el siguiente paso será conectar una base de datos en la nube.
+        </p>
+      </div>
+    </section>
+  </div>
+
 
   <div class="modal-backdrop hidden" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
     <section class="modal-card">
