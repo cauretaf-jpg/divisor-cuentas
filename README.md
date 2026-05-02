@@ -1,4 +1,4 @@
-# Cuenta Clara V8.3
+# Cuenta Clara V8.4
 
 App web funcional para dividir cuentas entre varias personas.
 
@@ -513,4 +513,14 @@ Antes de usar amigos entre usuarios, ejecuta `supabase-social.sql` en Supabase �
   - Escanear boleta
   - Productos rápidos
 - Se mejoró el texto de "Responsables de pago" con explicación clara.
+- No requiere SQL nuevo.
+
+
+## Nuevo en V8.4 - Corrección experiencia guiada
+
+- Se corrigió el error al iniciar:
+  - `Cannot read properties of undefined (reading 'people')`.
+- La experiencia guiada ahora espera a que exista una cuenta activa antes de calcular pasos.
+- `getActiveBill()` ahora es más tolerante si el estado viene vacío o incompleto.
+- Se agregó protección para que la experiencia guiada no bloquee la app si falla.
 - No requiere SQL nuevo.

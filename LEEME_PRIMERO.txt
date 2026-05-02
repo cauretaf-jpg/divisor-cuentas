@@ -1,14 +1,7 @@
-CUENTA CLARA V8.3 - EXPERIENCIA GUIADA
+CUENTA CLARA V8.4 - CORRECCIÓN EXPERIENCIA GUIADA
 
-Esta versión mejora la facilidad de uso de la app.
-
-Incluye:
-- Inicio rápido: salida, hogar o cuenta rápida.
-- Progreso por pasos.
-- Botón inteligente de siguiente acción.
-- Vista Simple / Avanzada.
-- Mejor explicación de responsables de pago.
-- Agregar producto más guiado.
+Corrige el error:
+Cannot read properties of undefined (reading 'people')
 
 PASOS:
 1. Descomprime este ZIP.
@@ -18,5 +11,5 @@ PASOS:
    C:\Users\caure\Desktop\Paginas\Cuentas
 5. Reemplaza archivos.
 6. Prueba con Live Server / Super Live Server.
-7. No necesitas ejecutar SQL nuevo.
-8. Si todo funciona, usa subir-cuenta-clara-github.cmd.
+7. Recarga con Ctrl + F5.
+8. No necesitas ejecutar SQL nuevo.

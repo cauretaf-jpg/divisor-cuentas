@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V8.3 cargada');
+console.info('Cuenta Clara V8.4 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -1816,7 +1816,19 @@ function saveState() {
 }
 
 function getActiveBill() {
-  return state.bills.find((bill) => bill.id === state.activeBillId) || state.bills[0];
+  if (!state || !Array.isArray(state.bills) || state.bills.length === 0) {
+    const bill = makeDefaultBill();
+    state = normalizeState({ bills: [bill], activeBillId: bill.id });
+    return bill;
+  }
+
+  const activeBill = state.bills.find((bill) => bill.id === state.activeBillId) || state.bills[0];
+
+  if (!state.activeBillId || !state.bills.some((bill) => bill.id === state.activeBillId)) {
+    state.activeBillId = activeBill.id;
+  }
+
+  return activeBill;
 }
 
 function touchActiveBill() {
@@ -2140,7 +2152,11 @@ function setExperienceMode(mode) {
     dom.advancedModeButton.classList.toggle('is-active', selectedMode === 'advanced');
   }
 
-  renderGuidedExperience();
+  try {
+    renderGuidedExperience();
+  } catch (error) {
+    console.warn('No se pudo renderizar la experiencia guiada:', error);
+  }
 }
 
 function initExperienceMode() {
@@ -2158,15 +2174,20 @@ function scrollToGuideTarget(element) {
 }
 
 function getGuidedState() {
-  const bill = getActiveBill();
-  const calculation = calculateBill(bill);
-  const hasPeople = bill.people.length > 0;
-  const hasProducts = bill.mode === 'quick'
-    ? Number(bill.quickTotal || 0) > 0
-    : bill.products.length > 0;
+  const bill = getActiveBill() || makeDefaultBill();
+  const safeBill = {
+    ...bill,
+    people: Array.isArray(bill.people) ? bill.people : [],
+    products: Array.isArray(bill.products) ? bill.products : [],
+  };
+  const calculation = calculateBill(safeBill);
+  const hasPeople = safeBill.people.length > 0;
+  const hasProducts = safeBill.mode === 'quick'
+    ? Number(safeBill.quickTotal || 0) > 0
+    : safeBill.products.length > 0;
   const hasAmounts = calculation.grandTotal > 0;
 
-  return { bill, calculation, hasPeople, hasProducts, hasAmounts };
+  return { bill: safeBill, calculation, hasPeople, hasProducts, hasAmounts };
 }
 
 function getSmartActionCopy() {
@@ -2227,6 +2248,10 @@ function updateStepPill(element, state) {
 
 function renderGuidedExperience() {
   if (!dom.guidedNextTitle) {
+    return;
+  }
+
+  if (!state || !Array.isArray(state.bills) || state.bills.length === 0) {
     return;
   }
 
@@ -2949,7 +2974,11 @@ function render() {
   renderHomeDashboard();
   renderTotals();
   renderTransfers();
-  renderGuidedExperience();
+  try {
+    renderGuidedExperience();
+  } catch (error) {
+    console.warn('No se pudo renderizar la experiencia guiada:', error);
+  }
 
   if (!dom.shareModal.classList.contains('hidden')) {
     updateSharePreview();
