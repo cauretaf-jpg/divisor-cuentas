@@ -1,4 +1,4 @@
-# Cuenta Clara V4.3
+# Cuenta Clara V4.4
 
 App web funcional para dividir cuentas entre varias personas.
 
@@ -243,3 +243,18 @@ Esta versión queda lista para Auto Ads. Para que los anuncios aparezcan en prod
   - Pamela: 1 parte
 - Se corrigió un error potencial en la lista de productos/gastos donde el texto de "Responsables/Participantes/Consumidores" podía fallar.
 - Se guarda `splitMode` en cada producto/gasto para que el cálculo y el historial sean consistentes.
+
+
+## Nuevo en V4.4
+
+- Se agregó teléfono opcional a las personas.
+- El teléfono se normaliza para WhatsApp.
+  - Ejemplo Chile: 912345678 se transforma internamente en 56912345678.
+- Se agregó botón WhatsApp en cada persona.
+- Se agregó botón WhatsApp en el resumen por persona.
+- El mensaje personal incluye:
+  - nombre de la cuenta,
+  - monto a pagar,
+  - pagador principal si corresponde,
+  - mes si es cuenta de hogar.
+- Los teléfonos también se guardan en enlaces compartibles.

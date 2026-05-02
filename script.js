@@ -50,6 +50,7 @@ const dom = {
 
   personForm: document.querySelector('#personForm'),
   personNameInput: document.querySelector('#personNameInput'),
+  personPhoneInput: document.querySelector('#personPhoneInput'),
   peopleList: document.querySelector('#peopleList'),
   markAllPaidButton: document.querySelector('#markAllPaidButton'),
   markAllPendingButton: document.querySelector('#markAllPendingButton'),
@@ -182,6 +183,89 @@ function formatDate(iso) {
   }).format(new Date(iso));
 }
 
+
+function normalizePhoneNumber(value) {
+  const raw = String(value || '').trim();
+
+  if (!raw) {
+    return '';
+  }
+
+  let digits = raw.replace(/\D/g, '');
+
+  if (!digits) {
+    return '';
+  }
+
+  if (digits.length === 9 && digits.startsWith('9')) {
+    digits = `56${digits}`;
+  }
+
+  if (digits.length === 10 && digits.startsWith('09')) {
+    digits = `56${digits.slice(1)}`;
+  }
+
+  return digits;
+}
+
+function formatPhoneForDisplay(value) {
+  const digits = normalizePhoneNumber(value);
+
+  if (!digits) {
+    return '';
+  }
+
+  if (digits.startsWith('56') && digits.length === 11) {
+    return `+${digits.slice(0, 2)} ${digits.slice(2, 3)} ${digits.slice(3, 7)} ${digits.slice(7)}`;
+  }
+
+  return `+${digits}`;
+}
+
+function buildPersonalWhatsappMessage(person, amount) {
+  const bill = getActiveBill();
+  const calculation = calculateBill(bill);
+  const payer = bill.people.find((item) => item.id === bill.payerId);
+  const lines = [
+    `Hola ${person.name}, te comparto el resumen de *${bill.name}*.`,
+    '',
+    `Monto a pagar: *${formatCurrency(amount || 0)}*`,
+  ];
+
+  if (payer && payer.id !== person.id && amount > 0) {
+    lines.push(`Transferir a: *${payer.name}*`);
+  }
+
+  if (bill.mode === 'home' && bill.homeMonth) {
+    lines.push(`Mes: *${bill.homeMonth}*`);
+  }
+
+  lines.push('');
+  lines.push(`Total cuenta: *${formatCurrency(calculation.grandTotal)}*`);
+
+  return lines.join('\n');
+}
+
+function openPersonWhatsapp(personId, amount = 0) {
+  const bill = getActiveBill();
+  const person = bill.people.find((item) => item.id === personId);
+
+  if (!person) {
+    showToast('No se encontró la persona.');
+    return;
+  }
+
+  const phone = normalizePhoneNumber(person.phone);
+
+  if (!phone) {
+    showNotice('Teléfono faltante', `Agrega un teléfono a ${person.name} para enviarle WhatsApp.`);
+    return;
+  }
+
+  const message = buildPersonalWhatsappMessage(person, amount);
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+}
+
 function getCurrentMonthValue() {
   return new Date().toISOString().slice(0, 7);
 }
@@ -238,6 +322,7 @@ function normalizeState(input) {
       ? bill.people.map((person) => ({
           id: person.id || createId('person'),
           name: String(person.name || 'Persona'),
+          phone: normalizePhoneNumber(person.phone || ''),
           paid: Boolean(person.paid),
         }))
       : [];
@@ -739,10 +824,15 @@ function renderPeople() {
   }
 
   for (const person of bill.people) {
+    const hasPhone = Boolean(normalizePhoneNumber(person.phone));
     const row = document.createElement('div');
     row.className = 'person-row';
     row.innerHTML = `
-      <strong title="${escapeHtml(person.name)}">${escapeHtml(person.name)}</strong>
+      <div class="person-info">
+        <strong title="${escapeHtml(person.name)}">${escapeHtml(person.name)}</strong>
+        <small>${hasPhone ? escapeHtml(formatPhoneForDisplay(person.phone)) : 'Sin teléfono'}</small>
+      </div>
+      <button class="icon-button whatsapp ${hasPhone ? '' : 'muted'}" type="button" aria-label="Enviar WhatsApp a ${escapeHtml(person.name)}">☏</button>
       <button class="icon-button edit" type="button" aria-label="Editar ${escapeHtml(person.name)}">✎</button>
       <button class="icon-button danger" type="button" aria-label="Eliminar ${escapeHtml(person.name)}">×</button>
       <button class="paid-toggle ${person.paid ? 'is-paid' : ''}" type="button">
@@ -755,22 +845,26 @@ function renderPeople() {
       persistAndRender();
     });
 
+    row.querySelector('.icon-button.whatsapp').addEventListener('click', () => {
+      const calculation = calculateBill(bill);
+      openPersonWhatsapp(person.id, calculation.finalTotals[person.id] || 0);
+    });
+
     row.querySelector('.icon-button.danger').addEventListener('click', () => {
       deletePerson(person.id);
     });
 
     row.querySelector('.icon-button.edit').addEventListener('click', () => {
-      renamePerson(person.id);
+      editPerson(person.id);
     });
 
     row.querySelector('strong').addEventListener('dblclick', () => {
-      renamePerson(person.id);
+      editPerson(person.id);
     });
 
     dom.peopleList.appendChild(row);
   }
 }
-
 
 function updateDivisionCopy() {
   const bill = getActiveBill();
@@ -1041,10 +1135,20 @@ function renderTotals() {
   for (const person of bill.people) {
     const row = document.createElement('div');
     row.className = 'result-row';
+    const amount = calculation.finalTotals[person.id] || 0;
+    const hasPhone = Boolean(normalizePhoneNumber(person.phone));
     row.innerHTML = `
       <span>${escapeHtml(person.name)} · ${person.paid ? 'Pagado' : 'Pendiente'}</span>
-      <strong>${formatCurrency(calculation.finalTotals[person.id] || 0)}</strong>
+      <div class="result-actions">
+        <strong>${formatCurrency(amount)}</strong>
+        <button class="btn btn-light btn-small" type="button" ${hasPhone ? '' : 'disabled'}>WhatsApp</button>
+      </div>
     `;
+
+    row.querySelector('button').addEventListener('click', () => {
+      openPersonWhatsapp(person.id, amount);
+    });
+
     dom.personResults.appendChild(row);
   }
 }
@@ -1241,7 +1345,7 @@ function toggleArchiveBill() {
   showToast(bill.archived ? 'Cuenta archivada.' : 'Cuenta desarchivada.');
 }
 
-function addPerson(name) {
+function addPerson(name, phone = '') {
   const bill = getActiveBill();
   const cleanName = name.trim();
 
@@ -1260,10 +1364,12 @@ function addPerson(name) {
   bill.people.push({
     id: createId('person'),
     name: cleanName,
+    phone: normalizePhoneNumber(phone),
     paid: false,
   });
 
   dom.personNameInput.value = '';
+  dom.personPhoneInput.value = '';
   persistAndRender();
 }
 
@@ -1294,7 +1400,7 @@ function deletePerson(personId) {
   persistAndRender();
 }
 
-function renamePerson(personId) {
+function editPerson(personId) {
   const bill = getActiveBill();
   const person = bill.people.find((item) => item.id === personId);
 
@@ -1302,7 +1408,7 @@ function renamePerson(personId) {
     return;
   }
 
-  const newName = prompt('Nuevo nombre:', person.name);
+  const newName = prompt('Nombre de la persona:', person.name);
 
   if (newName === null) {
     return;
@@ -1324,8 +1430,19 @@ function renamePerson(personId) {
     return;
   }
 
+  const newPhone = prompt('Teléfono WhatsApp opcional. Ej: 56912345678', formatPhoneForDisplay(person.phone) || '');
+
+  if (newPhone === null) {
+    return;
+  }
+
   person.name = cleanName;
+  person.phone = normalizePhoneNumber(newPhone);
   persistAndRender();
+}
+
+function renamePerson(personId) {
+  editPerson(personId);
 }
 
 function markAllPaid(paid) {
@@ -1614,6 +1731,7 @@ function shareWhatsapp(content = 'simple') {
 function compactBillForLink(bill) {
   const people = bill.people.map((person) => ({
     name: person.name,
+    phone: normalizePhoneNumber(person.phone || ''),
     paid: person.paid,
   }));
 
@@ -1652,6 +1770,7 @@ function billFromCompactLink(data) {
     ? data.people.map((person) => ({
         id: createId('person'),
         name: String(person.name || 'Persona'),
+        phone: normalizePhoneNumber(person.phone || ''),
         paid: Boolean(person.paid),
       }))
     : [];
@@ -2880,7 +2999,7 @@ dom.payerSelect.addEventListener('change', () => {
 
 dom.personForm.addEventListener('submit', (event) => {
   event.preventDefault();
-  addPerson(dom.personNameInput.value);
+  addPerson(dom.personNameInput.value, dom.personPhoneInput.value);
 });
 
 dom.markAllPaidButton.addEventListener('click', () => markAllPaid(true));

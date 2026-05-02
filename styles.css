@@ -1680,3 +1680,93 @@ main,
 .consumer-row {
   cursor: pointer;
 }
+
+
+/* V4.4: teléfonos y WhatsApp por persona */
+.person-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, 0.85fr) auto;
+  gap: 10px;
+}
+
+.person-row {
+  grid-template-columns: minmax(0, 1fr) 32px 32px 32px;
+  grid-template-areas:
+    "name whatsapp edit delete"
+    "status status status status";
+}
+
+.person-info {
+  grid-area: name;
+  min-width: 0;
+}
+
+.person-info strong {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.person-info small {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.person-row .icon-button.whatsapp {
+  grid-area: whatsapp;
+  justify-self: end;
+  color: var(--success);
+  background: var(--success-soft);
+  border-color: color-mix(in srgb, var(--success) 30%, var(--border));
+}
+
+.person-row .icon-button.whatsapp.muted {
+  opacity: 0.45;
+  color: var(--text-muted);
+  background: var(--surface);
+}
+
+.result-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.result-actions strong {
+  min-width: 98px;
+  text-align: right;
+}
+
+@media (max-width: 760px) {
+  .person-form {
+    grid-template-columns: 1fr;
+  }
+
+  .person-row {
+    grid-template-columns: minmax(0, 1fr) 32px 32px 32px;
+  }
+
+  .result-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .result-actions strong {
+    text-align: left;
+  }
+}
+
+@media (max-width: 420px) {
+  .person-row {
+    grid-template-columns: minmax(0, 1fr) 28px 28px 28px;
+  }
+}
