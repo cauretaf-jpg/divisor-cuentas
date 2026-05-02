@@ -1901,3 +1901,26 @@ main,
     grid-template-columns: 1fr;
   }
 }
+
+/* V6.0: agregar productos desde boleta */
+.section-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.receipt-card { width: min(1120px, 100%); }
+.receipt-layout { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 18px; }
+.receipt-upload-panel, .receipt-results-panel { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-soft); padding: 16px; }
+.receipt-upload-panel { display: grid; gap: 12px; align-content: start; }
+.receipt-preview { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: 10px; }
+.receipt-preview img { display: block; width: 100%; max-height: 360px; object-fit: contain; border-radius: var(--radius-sm); }
+.receipt-status { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-muted); padding: 10px; font-size: 0.9rem; }
+.receipt-results-header, .receipt-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.receipt-results-header { margin-bottom: 12px; }
+.receipt-results-header span { color: var(--text-muted); font-size: 0.9rem; }
+.receipt-table-wrap { max-height: 520px; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
+.receipt-table { width: 100%; border-collapse: collapse; min-width: 680px; }
+.receipt-table th, .receipt-table td { border-bottom: 1px solid var(--border); padding: 8px; text-align: left; vertical-align: middle; }
+.receipt-table th { position: sticky; top: 0; z-index: 1; background: var(--primary); color: white; font-size: 0.86rem; }
+.receipt-table td:first-child, .receipt-table th:first-child { width: 72px; text-align: center; }
+.receipt-table input[type="checkbox"] { width: 18px; min-height: 18px; }
+.receipt-table input, .receipt-table select { min-height: 36px; padding: 7px 9px; }
+.receipt-actions { margin-top: 14px; justify-content: flex-end; }
+@media (max-width: 900px) { .section-actions { width: 100%; justify-content: stretch; } .section-actions .btn { flex: 1; } .receipt-layout { grid-template-columns: 1fr; } .receipt-table { min-width: 620px; } }
+@media (max-width: 520px) { .receipt-actions { display: grid; grid-template-columns: 1fr; } .receipt-actions .btn { width: 100%; } }

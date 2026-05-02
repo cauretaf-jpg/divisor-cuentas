@@ -191,7 +191,10 @@
             <p class="eyebrow">Consumos</p>
             <h2 id="productFormTitle">Agregar producto</h2>
           </div>
-          <button class="btn btn-light hidden" id="cancelEditProductButton" type="button">Cancelar edición</button>
+          <div class="section-actions">
+            <button class="btn btn-light" id="receiptButton" type="button">Agregar desde boleta</button>
+            <button class="btn btn-light hidden" id="cancelEditProductButton" type="button">Cancelar edición</button>
+          </div>
         </div>
 
         <div class="quick-products-header">
@@ -434,6 +437,45 @@
   </div>
 
 
+
+  <div class="modal-backdrop hidden" id="receiptModal" role="dialog" aria-modal="true" aria-labelledby="receiptModalTitle">
+    <section class="modal-card receipt-card">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">Agregar desde boleta</p>
+          <h2 id="receiptModalTitle">Leer productos desde una foto</h2>
+        </div>
+        <button class="icon-button" id="closeReceiptModalButton" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <div class="receipt-layout">
+        <div class="receipt-upload-panel">
+          <label for="receiptFileInput">Foto o imagen de la boleta</label>
+          <input id="receiptFileInput" type="file" accept="image/*" capture="environment" />
+          <div class="receipt-preview hidden" id="receiptPreviewWrap"><img id="receiptPreviewImage" alt="Vista previa de la boleta" /></div>
+          <p class="helper-text">La lectura automática puede tener errores. Revisa los productos antes de agregarlos.</p>
+          <button class="btn btn-primary" id="processReceiptButton" type="button">Leer boleta</button>
+          <button class="btn btn-light" id="clearReceiptButton" type="button">Limpiar lectura</button>
+          <div class="receipt-status" id="receiptStatus">Sube una foto clara para comenzar.</div>
+        </div>
+        <div class="receipt-results-panel">
+          <div class="receipt-results-header"><strong>Productos detectados</strong><span id="receiptDetectedCount">0 encontrados</span></div>
+          <div class="receipt-table-wrap">
+            <table class="receipt-table">
+              <thead><tr><th>Usar</th><th>Producto</th><th>Monto</th><th>Categoría</th></tr></thead>
+              <tbody id="receiptDetectedBody"></tbody>
+            </table>
+          </div>
+          <div class="receipt-actions">
+            <button class="btn btn-light" id="selectAllReceiptItemsButton" type="button">Seleccionar todo</button>
+            <button class="btn btn-light" id="unselectAllReceiptItemsButton" type="button">Deseleccionar</button>
+            <button class="btn btn-primary" id="addReceiptItemsButton" type="button">Agregar seleccionados</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+
   <div class="modal-backdrop hidden" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
     <section class="modal-card auth-card">
       <div class="modal-header">
@@ -577,6 +619,7 @@
   </template>
 
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

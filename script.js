@@ -92,6 +92,20 @@ const dom = {
   selectAllConsumersButton: document.querySelector('#selectAllConsumersButton'),
   cancelEditProductButton: document.querySelector('#cancelEditProductButton'),
   productSubmitButton: document.querySelector('#productSubmitButton'),
+  receiptButton: document.querySelector('#receiptButton'),
+  receiptModal: document.querySelector('#receiptModal'),
+  closeReceiptModalButton: document.querySelector('#closeReceiptModalButton'),
+  receiptFileInput: document.querySelector('#receiptFileInput'),
+  receiptPreviewWrap: document.querySelector('#receiptPreviewWrap'),
+  receiptPreviewImage: document.querySelector('#receiptPreviewImage'),
+  processReceiptButton: document.querySelector('#processReceiptButton'),
+  clearReceiptButton: document.querySelector('#clearReceiptButton'),
+  receiptStatus: document.querySelector('#receiptStatus'),
+  receiptDetectedBody: document.querySelector('#receiptDetectedBody'),
+  receiptDetectedCount: document.querySelector('#receiptDetectedCount'),
+  selectAllReceiptItemsButton: document.querySelector('#selectAllReceiptItemsButton'),
+  unselectAllReceiptItemsButton: document.querySelector('#unselectAllReceiptItemsButton'),
+  addReceiptItemsButton: document.querySelector('#addReceiptItemsButton'),
   toggleQuickProductsEditorButton: document.querySelector('#toggleQuickProductsEditorButton'),
   quickProductsList: document.querySelector('#quickProductsList'),
   quickProductsEditor: document.querySelector('#quickProductsEditor'),
@@ -176,6 +190,8 @@ let state = {
 };
 
 let editingProductId = null;
+let receiptSelectedFile = null;
+let receiptDetectedItems = [];
 let toastTimer = null;
 let noticeTimer = null;
 let deferredInstallPrompt = null;
@@ -319,6 +335,106 @@ function renderAuthUI() {
       dom.authSessionDescription.textContent = `Tus cuentas se están guardando en este navegador para ${currentSession.email}.`;
     }
   }
+}
+
+
+function openReceiptModal() {
+  if (getActiveBill().mode === 'quick') {
+    showNotice('Modo rápido activo', 'Para agregar desde boleta usa modo Detallada u Hogar.');
+    return;
+  }
+  dom.receiptModal.classList.remove('hidden');
+  document.body.classList.add('modal-open');
+  updateReceiptStatus('Sube una foto clara para comenzar.');
+}
+function closeReceiptModal() { dom.receiptModal.classList.add('hidden'); document.body.classList.remove('modal-open'); }
+function updateReceiptStatus(message) { dom.receiptStatus.textContent = message; }
+function clearReceiptReader() {
+  receiptSelectedFile = null; receiptDetectedItems = [];
+  dom.receiptFileInput.value = ''; dom.receiptPreviewImage.removeAttribute('src');
+  dom.receiptPreviewWrap.classList.add('hidden'); renderReceiptDetectedItems();
+  updateReceiptStatus('Sube una foto clara para comenzar.');
+}
+function handleReceiptFileChange() {
+  const file = dom.receiptFileInput.files?.[0];
+  if (!file) { clearReceiptReader(); return; }
+  receiptSelectedFile = file;
+  dom.receiptPreviewImage.src = URL.createObjectURL(file);
+  dom.receiptPreviewWrap.classList.remove('hidden');
+  receiptDetectedItems = []; renderReceiptDetectedItems();
+  updateReceiptStatus('Imagen cargada. Presiona “Leer boleta”.');
+}
+function parseMoneyFromReceipt(value) {
+  const clean = String(value || '').replace(/\$/g,'').replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'').replace(/[^\d-]/g,'');
+  const amount = Number(clean); return Number.isFinite(amount) ? Math.abs(amount) : 0;
+}
+function cleanReceiptProductName(value) {
+  return String(value || '').replace(/^\s*\d+\s*[xX]\s*/g,'').replace(/\s{2,}/g,' ').replace(/[|_*~]+/g,'').trim();
+}
+function shouldIgnoreReceiptLine(line) {
+  const normalized = String(line || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  if (!normalized || normalized.length < 3) return true;
+  const ignored = ['total','subtotal','sub total','propina','iva','neto','exento','vuelto','cambio','efectivo','tarjeta','debito','credito','transbank','redcompra','boleta','factura','rut','fecha','hora','folio','caja','mesa','garzon','vendedor','terminal','autorizacion','comercio','direccion','telefono','gracias','descuento','medio de pago','monto','pago'];
+  return ignored.some((word) => normalized.includes(word));
+}
+function guessReceiptCategory(name) {
+  const n = String(name || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  if (/(cerveza|pisco|mojito|piscola|ron|vino|trago|shop|jager|daiquiri|daikiri|tequila|whisky|vodka|royal|calafate)/.test(n)) return 'Tragos';
+  if (/(bebida|coca|sprite|fanta|jugo|agua mineral|limonada|cafe|te|latte)/.test(n)) return 'Bebestibles';
+  if (/(postre|helado|torta|kuchen|brownie|dulce)/.test(n)) return 'Postres';
+  if (/(pan|leche|huevo|arroz|verdura|fruta|detergente|supermercado)/.test(n)) return getActiveBill().mode === 'home' ? 'Supermercado' : 'Comida';
+  return getActiveBill().mode === 'home' ? 'Supermercado' : 'Comida';
+}
+function parseReceiptText(text) {
+  const lines = String(text || '').split(/\r?\n/).map((line) => line.replace(/\s{2,}/g,' ').trim()).filter(Boolean);
+  const items = []; const seen = new Set();
+  for (const line of lines) {
+    if (shouldIgnoreReceiptLine(line)) continue;
+    const match = line.match(/(.+?)\s+\$?\s*(-?\d{1,3}(?:[.\s]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
+    if (!match) continue;
+    const name = cleanReceiptProductName(match[1]); const price = parseMoneyFromReceipt(match[2]);
+    if (!name || price <= 0 || name.length < 3 || /^\d+$/.test(name)) continue;
+    const key = `${name.toLowerCase()}-${price}`; if (seen.has(key)) continue; seen.add(key);
+    items.push({ id: createId('receipt'), selected: true, name, price, category: guessReceiptCategory(name) });
+  }
+  return items;
+}
+async function processReceiptImage() {
+  if (!receiptSelectedFile) { showToast('Primero sube una foto de la boleta.'); return; }
+  if (typeof Tesseract === 'undefined') { showNotice('OCR no disponible', 'No se pudo cargar la librería de lectura. Prueba con internet activo o desde Vercel.'); return; }
+  try {
+    dom.processReceiptButton.disabled = true; updateReceiptStatus('Leyendo boleta... Esto puede tardar algunos segundos.');
+    const result = await Tesseract.recognize(receiptSelectedFile, 'spa+eng', { logger: (event) => { if (event.status === 'recognizing text' && Number.isFinite(event.progress)) updateReceiptStatus(`Leyendo texto... ${Math.round(event.progress * 100)}%`); } });
+    receiptDetectedItems = parseReceiptText(result?.data?.text || ''); renderReceiptDetectedItems();
+    updateReceiptStatus(receiptDetectedItems.length ? `Lectura terminada. Revisa y corrige ${receiptDetectedItems.length} productos antes de agregarlos.` : 'No se detectaron productos claros. Puedes probar con una foto más nítida.');
+  } catch (error) { console.error(error); showNotice('Error al leer boleta', 'No se pudo procesar la imagen. Prueba con otra foto más clara.'); updateReceiptStatus('No se pudo leer la boleta.'); }
+  finally { dom.processReceiptButton.disabled = false; }
+}
+function renderReceiptDetectedItems() {
+  dom.receiptDetectedBody.innerHTML = ''; dom.receiptDetectedCount.textContent = `${receiptDetectedItems.length} encontrados`;
+  if (!receiptDetectedItems.length) { const row = document.createElement('tr'); row.innerHTML = '<td colspan="4">No hay productos detectados todavía.</td>'; dom.receiptDetectedBody.appendChild(row); return; }
+  for (const item of receiptDetectedItems) {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td><input type="checkbox" ${item.selected ? 'checked' : ''} aria-label="Usar producto" /></td><td><input type="text" value="${escapeHtml(item.name)}" aria-label="Producto detectado" /></td><td><input type="number" min="0" step="1" value="${item.price}" aria-label="Monto detectado" /></td><td><select aria-label="Categoría detectada">${CATEGORIES.map((category) => `<option ${category === item.category ? 'selected' : ''}>${category}</option>`).join('')}</select></td>`;
+    const [checkbox, nameInput, priceInput] = row.querySelectorAll('input'); const categorySelect = row.querySelector('select');
+    checkbox.addEventListener('change', () => item.selected = checkbox.checked);
+    nameInput.addEventListener('input', () => item.name = nameInput.value);
+    priceInput.addEventListener('input', () => item.price = Number(priceInput.value || 0));
+    categorySelect.addEventListener('change', () => item.category = categorySelect.value);
+    dom.receiptDetectedBody.appendChild(row);
+  }
+}
+function setAllReceiptItems(selected) { receiptDetectedItems = receiptDetectedItems.map((item) => ({...item, selected})); renderReceiptDetectedItems(); }
+function addReceiptItemsToBill() {
+  const bill = getActiveBill();
+  if (bill.mode === 'quick') { showNotice('Modo rápido activo', 'Cambia a modo Detallada u Hogar para agregar productos desde boleta.'); return; }
+  const selectedItems = receiptDetectedItems.map((item) => ({...item, name: String(item.name || '').trim(), price: Number(item.price || 0)})).filter((item) => item.selected && item.name && item.price > 0);
+  if (!selectedItems.length) { showToast('Selecciona al menos un producto válido.'); return; }
+  if (!bill.people.length) { showNotice('Agrega personas primero', 'Para agregar productos desde boleta necesitas tener personas en la cuenta.'); return; }
+  const defaultSplitMode = bill.mode === 'home' ? 'responsibles' : 'participants';
+  const defaultConsumers = defaultSplitMode === 'responsibles' ? [] : bill.people.map((person) => ({ personId: person.id, share: 1 }));
+  for (const item of selectedItems) bill.products.push({ id: createId('product'), name: item.name, unitPrice: item.price, quantity: 1, category: CATEGORIES.includes(item.category) ? item.category : (bill.mode === 'home' ? 'Supermercado' : 'Comida'), splitMode: defaultSplitMode, dueDate: '', paidById: '', recurring: false, consumers: defaultConsumers.map((consumer) => ({...consumer})) });
+  persistAndRender(); closeReceiptModal(); clearReceiptReader(); showToast(`${selectedItems.length} productos agregados desde boleta.`);
 }
 
 function openAuthModal() {
@@ -3364,6 +3480,17 @@ function initServiceWorker() {
 }
 
 dom.closeNoticeTabButton.addEventListener('click', () => dom.noticeTab.classList.add('hidden'));
+
+
+dom.receiptButton.addEventListener('click', openReceiptModal);
+dom.closeReceiptModalButton.addEventListener('click', closeReceiptModal);
+dom.receiptModal.addEventListener('click', (event) => { if (event.target === dom.receiptModal) closeReceiptModal(); });
+dom.receiptFileInput.addEventListener('change', handleReceiptFileChange);
+dom.processReceiptButton.addEventListener('click', processReceiptImage);
+dom.clearReceiptButton.addEventListener('click', clearReceiptReader);
+dom.selectAllReceiptItemsButton.addEventListener('click', () => setAllReceiptItems(true));
+dom.unselectAllReceiptItemsButton.addEventListener('click', () => setAllReceiptItems(false));
+dom.addReceiptItemsButton.addEventListener('click', addReceiptItemsToBill);
 
 
 dom.authButton.addEventListener('click', openAuthModal);

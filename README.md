@@ -1,4 +1,4 @@
-# Cuenta Clara V5.1
+# Cuenta Clara V6.0
 
 App web funcional para dividir cuentas entre varias personas.
 
@@ -299,3 +299,18 @@ Para sincronización real entre dispositivos se necesita una base de datos exter
   - el respaldo se exporta con nombre de perfil/invitado;
   - al importar, se aclara si reemplazará el modo invitado o el usuario activo.
 - Se mantiene compatibilidad con respaldos anteriores.
+
+
+## Nuevo en V6.0 - Agregar desde boleta
+
+- Se agregó botón **Agregar desde boleta**.
+- Permite subir o tomar foto de una boleta.
+- Usa OCR en el navegador con Tesseract.js.
+- Detecta posibles productos y montos.
+- Muestra una tabla editable antes de agregar: usar/no usar, producto, monto y categoría.
+- Intenta ignorar líneas como total, subtotal, propina, IVA, tarjeta, efectivo y vuelto.
+- Los productos seleccionados se agregan a la cuenta actual.
+- En modo Detallada se agregan inicialmente divididos entre todas las personas.
+- En modo Hogar se agregan como gastos de responsables para que puedas asignar quién paga después.
+
+Importante: la lectura automática puede tener errores. Revisa siempre antes de agregar.
