@@ -1,4 +1,4 @@
-# Cuenta Clara V4.2
+# Cuenta Clara V4.3
 
 App web funcional para dividir cuentas entre varias personas.
 
@@ -230,3 +230,16 @@ Esta versión queda lista para Auto Ads. Para que los anuncios aparezcan en prod
   - el resumen compartido no muestra propina.
 - Se quitó la caja lateral de versión/descripción.
 - Se mantiene la corrección móvil y la limpieza de Carlos/Vale predeterminados.
+
+
+## Nuevo en V4.3
+
+- Se corrigió la lógica de **Responsables de pago**.
+- En modo Responsables, las personas ya no vienen todas seleccionadas por defecto.
+- Ahora debes seleccionar solo quién paga y asignar cuántas partes asume.
+- Ejemplo Spotify:
+  - Wladimir: 2 partes
+  - Carlos: 2 partes
+  - Pamela: 1 parte
+- Se corrigió un error potencial en la lista de productos/gastos donde el texto de "Responsables/Participantes/Consumidores" podía fallar.
+- Se guarda `splitMode` en cada producto/gasto para que el cálculo y el historial sean consistentes.

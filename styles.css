@@ -1662,3 +1662,21 @@ main,
     grid-template-columns: 1fr;
   }
 }
+
+
+/* V4.3: responsables de pago */
+#productSplitModeInput {
+  font-weight: 800;
+}
+
+.consumer-panel:has(#consumerPanelTitle) {
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+
+.consumer-row input[type="number"]:disabled {
+  opacity: 0.45;
+}
+
+.consumer-row {
+  cursor: pointer;
+}

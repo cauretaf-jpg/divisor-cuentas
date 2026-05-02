@@ -440,6 +440,7 @@ function calculateBill(bill = getActiveBill()) {
             totalShares,
             amount,
             category,
+            splitMode: product.splitMode || 'participants',
           });
         }
       }
@@ -777,7 +778,7 @@ function updateDivisionCopy() {
 
   if (splitMode === 'responsibles') {
     dom.consumerPanelTitle.textContent = 'Responsables de pago';
-    dom.consumerPanelHelp.textContent = 'Marca quién paga este gasto y cuántas partes asume cada responsable.';
+    dom.consumerPanelHelp.textContent = 'Marca quién paga este gasto y cuántas partes asume cada responsable. Ej: Wladimir 2, Carlos 2, Pamela 1.';
     return;
   }
 
@@ -792,6 +793,8 @@ function renderConsumers() {
   const currentProduct = editingProductId
     ? bill.products.find((product) => product.id === editingProductId)
     : null;
+  const splitMode = dom.productSplitModeInput?.value === 'responsibles' ? 'responsibles' : 'participants';
+  const defaultChecked = splitMode === 'responsibles' ? false : true;
 
   dom.consumerList.innerHTML = '';
 
@@ -802,7 +805,7 @@ function renderConsumers() {
 
   for (const person of bill.people) {
     const existing = currentProduct?.consumers.find((consumer) => consumer.personId === person.id);
-    const checked = currentProduct ? Boolean(existing) : true;
+    const checked = currentProduct ? Boolean(existing) : defaultChecked;
     const share = existing?.share || 1;
 
     const row = document.createElement('label');
@@ -866,6 +869,9 @@ function renderProducts() {
 
   for (const product of products) {
     const productTotal = Number(product.unitPrice) * Number(product.quantity);
+    const divisionLabel = product.splitMode === 'responsibles'
+      ? 'Responsables'
+      : (bill.mode === 'home' ? 'Participantes' : 'Consumidores');
     const consumerNames = product.consumers
       .map((consumer) => {
         const person = bill.people.find((item) => item.id === consumer.personId);
@@ -1544,6 +1550,7 @@ function getSummaryText(content = 'simple') {
         lines.push('Detalle:');
         for (const item of detail.items) {
           const shareText = item.totalShares > 1 ? ` (${item.share}/${item.totalShares} partes)` : '';
+          const detailLabel = item.splitMode === 'responsibles' ? 'Responsable' : 'Detalle';
           lines.push(`- ${item.productName}${shareText}: ${formatCurrency(item.amount)}`);
         }
       } else {
