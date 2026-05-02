@@ -10,7 +10,7 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818" crossorigin="anonymous"></script>
   <title>Cuenta Clara | Divide cuentas sin enredos</title>
 
-  <link rel="stylesheet" href="styles.css?v=8.2" />
+  <link rel="stylesheet" href="styles.css?v=8.3" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
 </head>
@@ -65,6 +65,57 @@
     </aside>
 
     <section class="workspace">
+
+      <section class="guided-start-card card" id="guidedStartCard">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Inicio rápido</p>
+            <h2>¿Qué quieres hacer hoy?</h2>
+          </div>
+        </div>
+
+        <div class="guided-choice-grid">
+          <button class="guided-choice" type="button" data-guided-mode="detailed">
+            <strong>Dividir una salida</strong>
+            <span>Restaurant, bar, propina y productos compartidos.</span>
+          </button>
+          <button class="guided-choice" type="button" data-guided-mode="home">
+            <strong>Cuentas del hogar</strong>
+            <span>Luz, agua, internet, supermercado, streaming y gastos mensuales.</span>
+          </button>
+          <button class="guided-choice" type="button" data-guided-mode="quick">
+            <strong>Cuenta rápida</strong>
+            <span>Solo total, personas y reparto simple.</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="guided-steps-card card" id="guidedStepsCard">
+        <div class="guided-next">
+          <div>
+            <p class="eyebrow">Siguiente paso</p>
+            <h2 id="guidedNextTitle">Agrega personas</h2>
+            <p id="guidedNextHelp">Primero agrega quienes participan en esta cuenta.</p>
+          </div>
+          <button class="btn btn-primary" id="smartActionButton" type="button">Continuar</button>
+        </div>
+
+        <div class="step-track" aria-label="Progreso de la cuenta">
+          <div class="step-pill" id="stepPeople"><span>1</span> Personas</div>
+          <div class="step-pill" id="stepProducts"><span>2</span> Productos</div>
+          <div class="step-pill" id="stepReview"><span>3</span> Revisar</div>
+          <div class="step-pill" id="stepShare"><span>4</span> Compartir</div>
+        </div>
+
+        <div class="experience-row">
+          <span>Vista de uso</span>
+          <div class="experience-toggle" role="group" aria-label="Modo de experiencia">
+            <button class="chip" id="simpleModeButton" type="button">Simple</button>
+            <button class="chip" id="advancedModeButton" type="button">Avanzado</button>
+          </div>
+        </div>
+      </section>
+
       <section class="hero-card card">
         <div>
           <p class="eyebrow">Cuenta actual</p>
@@ -198,6 +249,22 @@
           </div>
         </div>
 
+        
+        <div class="add-methods" id="addMethods">
+          <button class="method-card" id="manualProductMethodButton" type="button">
+            <strong>Escribir</strong>
+            <span>Agrega producto o gasto manualmente.</span>
+          </button>
+          <button class="method-card" id="receiptMethodButton" type="button">
+            <strong>Escanear boleta</strong>
+            <span>Sube una foto y revisa lo detectado.</span>
+          </button>
+          <button class="method-card" id="quickProductMethodButton" type="button">
+            <strong>Productos rápidos</strong>
+            <span>Usa accesos frecuentes.</span>
+          </button>
+        </div>
+
         <div class="quick-products-header">
           <span>Productos rápidos:</span>
           <button class="btn btn-light btn-small" id="toggleQuickProductsEditorButton" type="button">Editar rápidos</button>
@@ -277,11 +344,12 @@
           </label>
 
           <div class="field">
-            <label for="productSplitModeInput">Tipo de división</label>
+            <label for="productSplitModeInput">¿Cómo se divide este gasto?</label>
             <select id="productSplitModeInput">
               <option value="participants">Personas seleccionadas</option>
               <option value="responsibles">Responsables de pago</option>
             </select>
+            <p class="helper-text split-mode-help" id="splitModeHelp"></p>
           </div>
 
           <div class="consumer-panel">
@@ -752,7 +820,7 @@
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=8.2"></script>
-  <script src="script.js?v=8.2"></script>
+  <script src="supabase-config.js?v=8.3"></script>
+  <script src="script.js?v=8.3"></script>
 </body>
 </html>

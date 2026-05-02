@@ -1,6 +1,14 @@
-CUENTA CLARA V8.2 - AJUSTE MÓVIL
+CUENTA CLARA V8.3 - EXPERIENCIA GUIADA
 
-Esta versión corrige el problema visual en celular donde quedaba margen vacío a la derecha.
+Esta versión mejora la facilidad de uso de la app.
+
+Incluye:
+- Inicio rápido: salida, hogar o cuenta rápida.
+- Progreso por pasos.
+- Botón inteligente de siguiente acción.
+- Vista Simple / Avanzada.
+- Mejor explicación de responsables de pago.
+- Agregar producto más guiado.
 
 PASOS:
 1. Descomprime este ZIP.
@@ -10,6 +18,5 @@ PASOS:
    C:\Users\caure\Desktop\Paginas\Cuentas
 5. Reemplaza archivos.
 6. Prueba con Live Server / Super Live Server.
-7. En el celular, recarga fuerte o borra caché si sigue mostrando la versión anterior.
-
-No necesitas ejecutar SQL nuevo para esta versión.
+7. No necesitas ejecutar SQL nuevo.
+8. Si todo funciona, usa subir-cuenta-clara-github.cmd.

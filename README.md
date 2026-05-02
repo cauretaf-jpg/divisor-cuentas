@@ -1,4 +1,4 @@
-# Cuenta Clara V8.2
+# Cuenta Clara V8.3
 
 App web funcional para dividir cuentas entre varias personas.
 
@@ -492,3 +492,25 @@ Antes de usar amigos entre usuarios, ejecuta `supabase-social.sql` en Supabase �
 - Se reforzó el ancho de header, contenedores, tarjetas y barra inferior.
 - Se ajustó la grilla de botones superiores en pantallas pequeñas.
 - Se versionaron recursos con `v=8.2` para evitar caché del navegador.
+
+
+## Nuevo en V8.3 - Experiencia guiada
+
+- Se agregó una pantalla inicial: "¿Qué quieres hacer hoy?"
+  - Dividir una salida
+  - Cuentas del hogar
+  - Cuenta rápida
+- Se agregó una tarjeta de progreso:
+  - Personas
+  - Productos
+  - Revisar
+  - Compartir
+- Se agregó botón inteligente "Siguiente paso".
+- Se agregó vista Simple / Avanzada.
+- En vista Simple se ocultan acciones avanzadas para reducir ruido visual.
+- Se agregaron tarjetas para elegir cómo agregar un producto:
+  - Escribir
+  - Escanear boleta
+  - Productos rápidos
+- Se mejoró el texto de "Responsables de pago" con explicación clara.
+- No requiere SQL nuevo.

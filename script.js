@@ -1,6 +1,7 @@
-console.info('Cuenta Clara V8.2 cargada');
+console.info('Cuenta Clara V8.3 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
+const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
 let activeStorageKey = GUEST_STORAGE_KEY;
 let currentSession = { mode: 'guest', email: '', name: '', userId: '' };
 let cloudSaveTimer = null;
@@ -51,6 +52,18 @@ const dom = {
   billNameInput: document.querySelector('#billNameInput'),
   billMeta: document.querySelector('#billMeta'),
 
+  guidedStartCard: document.querySelector('#guidedStartCard'),
+  guidedChoiceButtons: document.querySelectorAll('[data-guided-mode]'),
+  guidedNextTitle: document.querySelector('#guidedNextTitle'),
+  guidedNextHelp: document.querySelector('#guidedNextHelp'),
+  smartActionButton: document.querySelector('#smartActionButton'),
+  simpleModeButton: document.querySelector('#simpleModeButton'),
+  advancedModeButton: document.querySelector('#advancedModeButton'),
+  stepPeople: document.querySelector('#stepPeople'),
+  stepProducts: document.querySelector('#stepProducts'),
+  stepReview: document.querySelector('#stepReview'),
+  stepShare: document.querySelector('#stepShare'),
+
   historySearchInput: document.querySelector('#historySearchInput'),
   historyFilterSelect: document.querySelector('#historyFilterSelect'),
   exportBackupButton: document.querySelector('#exportBackupButton'),
@@ -92,6 +105,10 @@ const dom = {
   productQuantityInput: document.querySelector('#productQuantityInput'),
   productCategoryInput: document.querySelector('#productCategoryInput'),
   productSplitModeInput: document.querySelector('#productSplitModeInput'),
+  splitModeHelp: document.querySelector('#splitModeHelp'),
+  manualProductMethodButton: document.querySelector('#manualProductMethodButton'),
+  receiptMethodButton: document.querySelector('#receiptMethodButton'),
+  quickProductMethodButton: document.querySelector('#quickProductMethodButton'),
   productDueDateInput: document.querySelector('#productDueDateInput'),
   productRecurringInput: document.querySelector('#productRecurringInput'),
   consumerPanelTitle: document.querySelector('#consumerPanelTitle'),
@@ -2107,6 +2124,196 @@ function deleteQuickProduct(productId) {
 }
 
 
+
+function getExperienceMode() {
+  return localStorage.getItem(EXPERIENCE_MODE_KEY) === 'advanced' ? 'advanced' : 'simple';
+}
+
+function setExperienceMode(mode) {
+  const selectedMode = mode === 'advanced' ? 'advanced' : 'simple';
+  localStorage.setItem(EXPERIENCE_MODE_KEY, selectedMode);
+  document.body.classList.toggle('simple-mode', selectedMode === 'simple');
+  document.body.classList.toggle('advanced-mode', selectedMode === 'advanced');
+
+  if (dom.simpleModeButton && dom.advancedModeButton) {
+    dom.simpleModeButton.classList.toggle('is-active', selectedMode === 'simple');
+    dom.advancedModeButton.classList.toggle('is-active', selectedMode === 'advanced');
+  }
+
+  renderGuidedExperience();
+}
+
+function initExperienceMode() {
+  setExperienceMode(getExperienceMode());
+}
+
+function scrollToGuideTarget(element) {
+  if (!element) return;
+
+  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  if (typeof element.focus === 'function') {
+    setTimeout(() => element.focus(), 260);
+  }
+}
+
+function getGuidedState() {
+  const bill = getActiveBill();
+  const calculation = calculateBill(bill);
+  const hasPeople = bill.people.length > 0;
+  const hasProducts = bill.mode === 'quick'
+    ? Number(bill.quickTotal || 0) > 0
+    : bill.products.length > 0;
+  const hasAmounts = calculation.grandTotal > 0;
+
+  return { bill, calculation, hasPeople, hasProducts, hasAmounts };
+}
+
+function getSmartActionCopy() {
+  const { bill, hasPeople, hasProducts, hasAmounts } = getGuidedState();
+
+  if (!hasPeople) {
+    return {
+      title: 'Agrega personas',
+      help: 'Empieza agregando quienes participarán en esta cuenta. También puedes usar tus amigos frecuentes.',
+      button: 'Agregar personas',
+      step: 'people',
+    };
+  }
+
+  if (bill.mode === 'quick' && !hasProducts) {
+    return {
+      title: 'Ingresa el monto total',
+      help: 'En modo rápido solo necesitas el total de la cuenta. La app lo divide entre las personas agregadas.',
+      button: 'Ingresar total',
+      step: 'products',
+    };
+  }
+
+  if (bill.mode !== 'quick' && !hasProducts) {
+    return {
+      title: bill.mode === 'home' ? 'Agrega el primer gasto' : 'Agrega el primer producto',
+      help: bill.mode === 'home'
+        ? 'Registra gastos del hogar como luz, agua, internet, supermercado o streaming.'
+        : 'Puedes escribir productos manualmente o usar la opción de escanear boleta.',
+      button: bill.mode === 'home' ? 'Agregar gasto' : 'Agregar producto',
+      step: 'products',
+    };
+  }
+
+  if (hasAmounts) {
+    return {
+      title: 'Revisa y comparte',
+      help: 'Ya tienes montos calculados. Revisa quién debe pagar y comparte el resumen por WhatsApp o imagen.',
+      button: 'Compartir cuenta',
+      step: 'share',
+    };
+  }
+
+  return {
+    title: 'Revisa la cuenta',
+    help: 'Verifica personas, productos y forma de división antes de compartir.',
+    button: 'Revisar cuenta',
+    step: 'review',
+  };
+}
+
+function updateStepPill(element, state) {
+  if (!element) return;
+  element.classList.remove('is-current', 'is-done');
+  if (state === 'current') element.classList.add('is-current');
+  if (state === 'done') element.classList.add('is-done');
+}
+
+function renderGuidedExperience() {
+  if (!dom.guidedNextTitle) {
+    return;
+  }
+
+  const { hasPeople, hasProducts, hasAmounts } = getGuidedState();
+  const copy = getSmartActionCopy();
+
+  dom.guidedNextTitle.textContent = copy.title;
+  dom.guidedNextHelp.textContent = copy.help;
+  dom.smartActionButton.textContent = copy.button;
+
+  updateStepPill(dom.stepPeople, hasPeople ? 'done' : 'current');
+  updateStepPill(dom.stepProducts, hasProducts ? 'done' : (hasPeople ? 'current' : ''));
+  updateStepPill(dom.stepReview, hasAmounts ? 'done' : (hasPeople && hasProducts ? 'current' : ''));
+  updateStepPill(dom.stepShare, copy.step === 'share' ? 'current' : '');
+
+  const mode = getExperienceMode();
+  dom.simpleModeButton?.classList.toggle('is-active', mode === 'simple');
+  dom.advancedModeButton?.classList.toggle('is-active', mode === 'advanced');
+}
+
+function applyGuidedMode(mode) {
+  const bill = getActiveBill();
+  bill.mode = mode;
+
+  if (mode === 'home') {
+    bill.name = bill.name && !/^Cuenta\s+\d+|Nueva cuenta$/i.test(bill.name) ? bill.name : 'Cuentas del hogar';
+    bill.tipPercent = 0;
+    bill.homeMonth = bill.homeMonth || getCurrentMonthValue();
+  }
+
+  if (mode === 'quick') {
+    bill.name = bill.name && !/^Cuenta\s+\d+|Nueva cuenta$/i.test(bill.name) ? bill.name : 'Cuenta rápida';
+  }
+
+  if (mode === 'detailed') {
+    bill.name = bill.name && !/^Cuenta\s+\d+|Nueva cuenta$/i.test(bill.name) ? bill.name : 'Salida';
+  }
+
+  persistAndRender();
+
+  if (mode === 'quick') {
+    scrollToGuideTarget(dom.quickTotalInput);
+  } else {
+    scrollToGuideTarget(dom.personNameInput);
+  }
+}
+
+function handleSmartAction() {
+  const { bill, hasPeople, hasProducts } = getGuidedState();
+
+  if (!hasPeople) {
+    scrollToGuideTarget(dom.personNameInput);
+    return;
+  }
+
+  if (bill.mode === 'quick' && !hasProducts) {
+    scrollToGuideTarget(dom.quickTotalInput);
+    return;
+  }
+
+  if (bill.mode !== 'quick' && !hasProducts) {
+    scrollToGuideTarget(dom.productNameInput);
+    return;
+  }
+
+  openShareModal();
+}
+
+function focusManualProductForm() {
+  if (getActiveBill().mode === 'quick') {
+    showToast('Cambia a Detallada u Hogar para agregar productos.');
+    return;
+  }
+
+  scrollToGuideTarget(dom.productNameInput);
+}
+
+function showQuickProductsArea() {
+  if (getActiveBill().mode === 'quick') {
+    showToast('Los productos rápidos se usan en modo Detallada u Hogar.');
+    return;
+  }
+
+  dom.quickProductsList?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+
 function renderBillList() {
   const search = dom.historySearchInput.value.trim().toLowerCase();
   const filter = dom.historyFilterSelect.value;
@@ -2400,6 +2607,11 @@ function updateDivisionCopy() {
   if (splitMode === 'responsibles') {
     dom.consumerPanelTitle.textContent = 'Responsables de pago';
     dom.consumerPanelHelp.textContent = 'Marca quién paga este gasto y cuántas partes asume cada responsable. Ej: Wladimir 2, Carlos 2, Pamela 1.';
+
+    if (dom.splitModeHelp) {
+      dom.splitModeHelp.textContent = 'Útil para plataformas o gastos donde una persona paga por otra. Ejemplo: Carlos paga 2 partes, Wladimir 2 y Pamela 1.';
+    }
+
     return;
   }
 
@@ -2407,6 +2619,12 @@ function updateDivisionCopy() {
   dom.consumerPanelHelp.textContent = bill.mode === 'home'
     ? 'Marca las personas que participan en este gasto y ajusta las partes si corresponde.'
     : 'Marca las personas y ajusta las partes si alguien consumió más.';
+
+  if (dom.splitModeHelp) {
+    dom.splitModeHelp.textContent = bill.mode === 'home'
+      ? 'Divide este gasto entre las personas seleccionadas.'
+      : 'Usa esta opción cuando cada persona consume una parte del producto o gasto.';
+  }
 }
 
 function renderConsumers() {
@@ -2731,6 +2949,7 @@ function render() {
   renderHomeDashboard();
   renderTotals();
   renderTransfers();
+  renderGuidedExperience();
 
   if (!dom.shareModal.classList.contains('hidden')) {
     updateSharePreview();
@@ -4658,6 +4877,19 @@ dom.syncNowButton && dom.syncNowButton.addEventListener('click', async () => {
 
 dom.installAppButton.addEventListener('click', installApp);
 dom.themeToggle.addEventListener('click', toggleTheme);
+
+dom.guidedChoiceButtons?.forEach((button) => {
+  button.addEventListener('click', () => applyGuidedMode(button.dataset.guidedMode));
+});
+
+dom.smartActionButton?.addEventListener('click', handleSmartAction);
+dom.simpleModeButton?.addEventListener('click', () => setExperienceMode('simple'));
+dom.advancedModeButton?.addEventListener('click', () => setExperienceMode('advanced'));
+dom.manualProductMethodButton?.addEventListener('click', focusManualProductForm);
+dom.receiptMethodButton?.addEventListener('click', openReceiptModal);
+dom.quickProductMethodButton?.addEventListener('click', showQuickProductsArea);
+
+
 dom.newBillButton.addEventListener('click', addBill);
 dom.duplicateBillButton.addEventListener('click', duplicateBill);
 dom.archiveBillButton.addEventListener('click', toggleArchiveBill);
@@ -4874,6 +5106,7 @@ dom.nativeShareImageButton.addEventListener('click', shareImageNatively);
 
 async function initApp() {
   initTheme();
+  initExperienceMode();
   updateInstallButton();
   await initializeAuthSession();
   loadState();

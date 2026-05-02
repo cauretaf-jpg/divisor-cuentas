@@ -2588,3 +2588,202 @@ main,
     max-width: calc(100vw - 20px);
   }
 }
+
+
+/* V8.3: experiencia guiada e interfaz más intuitiva */
+.guided-start-card,
+.guided-steps-card {
+  border-color: color-mix(in srgb, var(--primary) 22%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--primary) 12%, transparent), transparent 36%),
+    var(--surface);
+}
+
+.guided-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.guided-choice,
+.method-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  color: var(--text);
+  padding: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+
+.guided-choice:hover,
+.method-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 38%, var(--border));
+  background: var(--primary-soft);
+}
+
+.guided-choice strong,
+.method-card strong {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.guided-choice span,
+.method-card span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.guided-next {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.step-track {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.step-pill {
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.step-pill span {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.step-pill.is-current {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.step-pill.is-done {
+  border-color: color-mix(in srgb, var(--success) 34%, var(--border));
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.experience-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+  margin-top: 14px;
+  padding-top: 14px;
+  color: var(--text-muted);
+  font-weight: 900;
+}
+
+.experience-toggle {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.experience-toggle .chip.is-active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.add-methods {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.split-mode-help {
+  margin-top: 6px;
+}
+
+body.simple-mode #duplicateBillButton,
+body.simple-mode #archiveBillButton,
+body.simple-mode #deleteBillButton,
+body.simple-mode #clearProductsButton,
+body.simple-mode #resetBillButton,
+body.simple-mode #toggleQuickProductsEditorButton,
+body.simple-mode #quickProductsEditor,
+body.simple-mode #exportBackupButton,
+body.simple-mode #importBackupButton,
+body.simple-mode #exportExcelButton {
+  display: none !important;
+}
+
+body.simple-mode .backup-actions {
+  justify-content: center;
+}
+
+body.simple-mode .hero-actions {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .guided-choice-grid,
+  .add-methods,
+  .step-track {
+    grid-template-columns: 1fr;
+  }
+
+  .guided-next {
+    grid-template-columns: 1fr;
+  }
+
+  .guided-next .btn {
+    width: 100%;
+  }
+
+  .experience-row {
+    align-items: stretch;
+  }
+
+  .experience-toggle {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .experience-toggle .chip {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .guided-start-card,
+  .guided-steps-card {
+    padding: 16px;
+  }
+
+  .step-pill {
+    justify-content: flex-start;
+    padding: 8px 12px;
+  }
+}
