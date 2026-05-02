@@ -102,6 +102,8 @@ const dom = {
   clearReceiptButton: document.querySelector('#clearReceiptButton'),
   receiptStatus: document.querySelector('#receiptStatus'),
   receiptDetectedBody: document.querySelector('#receiptDetectedBody'),
+  receiptRawTextInput: document.querySelector('#receiptRawTextInput'),
+  reparseReceiptTextButton: document.querySelector('#reparseReceiptTextButton'),
   receiptDetectedCount: document.querySelector('#receiptDetectedCount'),
   selectAllReceiptItemsButton: document.querySelector('#selectAllReceiptItemsButton'),
   unselectAllReceiptItemsButton: document.querySelector('#unselectAllReceiptItemsButton'),
@@ -338,104 +340,545 @@ function renderAuthUI() {
 }
 
 
+
 function openReceiptModal() {
   if (getActiveBill().mode === 'quick') {
     showNotice('Modo rápido activo', 'Para agregar desde boleta usa modo Detallada u Hogar.');
     return;
   }
+
   dom.receiptModal.classList.remove('hidden');
   document.body.classList.add('modal-open');
   updateReceiptStatus('Sube una foto clara para comenzar.');
 }
-function closeReceiptModal() { dom.receiptModal.classList.add('hidden'); document.body.classList.remove('modal-open'); }
-function updateReceiptStatus(message) { dom.receiptStatus.textContent = message; }
+
+function closeReceiptModal() {
+  dom.receiptModal.classList.add('hidden');
+  document.body.classList.remove('modal-open');
+}
+
+function updateReceiptStatus(message) {
+  dom.receiptStatus.textContent = message;
+}
+
 function clearReceiptReader() {
-  receiptSelectedFile = null; receiptDetectedItems = [];
-  dom.receiptFileInput.value = ''; dom.receiptPreviewImage.removeAttribute('src');
-  dom.receiptPreviewWrap.classList.add('hidden'); renderReceiptDetectedItems();
+  receiptSelectedFile = null;
+  receiptDetectedItems = [];
+  dom.receiptFileInput.value = '';
+  dom.receiptPreviewImage.removeAttribute('src');
+  dom.receiptPreviewWrap.classList.add('hidden');
+
+  if (dom.receiptRawTextInput) {
+    dom.receiptRawTextInput.value = '';
+  }
+
+  renderReceiptDetectedItems();
   updateReceiptStatus('Sube una foto clara para comenzar.');
 }
+
 function handleReceiptFileChange() {
   const file = dom.receiptFileInput.files?.[0];
-  if (!file) { clearReceiptReader(); return; }
+
+  if (!file) {
+    clearReceiptReader();
+    return;
+  }
+
   receiptSelectedFile = file;
-  dom.receiptPreviewImage.src = URL.createObjectURL(file);
+
+  const url = URL.createObjectURL(file);
+  dom.receiptPreviewImage.src = url;
   dom.receiptPreviewWrap.classList.remove('hidden');
-  receiptDetectedItems = []; renderReceiptDetectedItems();
+  receiptDetectedItems = [];
+  if (dom.receiptRawTextInput) {
+    dom.receiptRawTextInput.value = '';
+  }
+  renderReceiptDetectedItems();
   updateReceiptStatus('Imagen cargada. Presiona “Leer boleta”.');
 }
+
 function parseMoneyFromReceipt(value) {
-  const clean = String(value || '').replace(/\$/g,'').replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'').replace(/[^\d-]/g,'');
-  const amount = Number(clean); return Number.isFinite(amount) ? Math.abs(amount) : 0;
-}
-function cleanReceiptProductName(value) {
-  return String(value || '').replace(/^\s*\d+\s*[xX]\s*/g,'').replace(/\s{2,}/g,' ').replace(/[|_*~]+/g,'').trim();
-}
-function shouldIgnoreReceiptLine(line) {
-  const normalized = String(line || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-  if (!normalized || normalized.length < 3) return true;
-  const ignored = ['total','subtotal','sub total','propina','iva','neto','exento','vuelto','cambio','efectivo','tarjeta','debito','credito','transbank','redcompra','boleta','factura','rut','fecha','hora','folio','caja','mesa','garzon','vendedor','terminal','autorizacion','comercio','direccion','telefono','gracias','descuento','medio de pago','monto','pago'];
-  return ignored.some((word) => normalized.includes(word));
-}
-function guessReceiptCategory(name) {
-  const n = String(name || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-  if (/(cerveza|pisco|mojito|piscola|ron|vino|trago|shop|jager|daiquiri|daikiri|tequila|whisky|vodka|royal|calafate)/.test(n)) return 'Tragos';
-  if (/(bebida|coca|sprite|fanta|jugo|agua mineral|limonada|cafe|te|latte)/.test(n)) return 'Bebestibles';
-  if (/(postre|helado|torta|kuchen|brownie|dulce)/.test(n)) return 'Postres';
-  if (/(pan|leche|huevo|arroz|verdura|fruta|detergente|supermercado)/.test(n)) return getActiveBill().mode === 'home' ? 'Supermercado' : 'Comida';
-  return getActiveBill().mode === 'home' ? 'Supermercado' : 'Comida';
-}
-function parseReceiptText(text) {
-  const lines = String(text || '').split(/\r?\n/).map((line) => line.replace(/\s{2,}/g,' ').trim()).filter(Boolean);
-  const items = []; const seen = new Set();
-  for (const line of lines) {
-    if (shouldIgnoreReceiptLine(line)) continue;
-    const match = line.match(/(.+?)\s+\$?\s*(-?\d{1,3}(?:[.\s]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
-    if (!match) continue;
-    const name = cleanReceiptProductName(match[1]); const price = parseMoneyFromReceipt(match[2]);
-    if (!name || price <= 0 || name.length < 3 || /^\d+$/.test(name)) continue;
-    const key = `${name.toLowerCase()}-${price}`; if (seen.has(key)) continue; seen.add(key);
-    items.push({ id: createId('receipt'), selected: true, name, price, category: guessReceiptCategory(name) });
+  const raw = String(value || '').trim();
+
+  if (!raw) {
+    return 0;
   }
+
+  const clean = raw
+    .replace(/\$/g, '')
+    .replace(/\s/g, '')
+    .replace(/\./g, '')
+    .replace(/,/g, '')
+    .replace(/[^\d-]/g, '');
+
+  const amount = Number(clean);
+
+  return Number.isFinite(amount) ? Math.abs(amount) : 0;
+}
+
+function cleanReceiptProductName(value) {
+  return String(value || '')
+    .replace(/^\s*\d+\s*[xX]\s*/g, '')
+    .replace(/\b\d+[,.]\d{1,2}\b\s*$/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/[|_*~]+/g, '')
+    .replace(/^[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ$]+/g, '')
+    .trim();
+}
+
+function normalizeReceiptLine(line) {
+  return String(line || '')
+    .replace(/[|]/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function normalizeReceiptKeyword(line) {
+  return String(line || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function shouldIgnoreReceiptLine(line) {
+  const normalized = normalizeReceiptKeyword(line);
+
+  if (!normalized || normalized.length < 3) {
+    return true;
+  }
+
+  const exactSectionWords = [
+    'comidas',
+    'bebidas',
+    'detalle de cuenta',
+    'terraza',
+  ];
+
+  if (exactSectionWords.includes(normalized.trim())) {
+    return true;
+  }
+
+  const ignoredWords = [
+    'total',
+    'sub-total',
+    'subtotal',
+    'sub total',
+    'propina',
+    'tips',
+    'iva',
+    'neto',
+    'exento',
+    'vuelto',
+    'cambio',
+    'efectivo',
+    'tarjeta',
+    'debito',
+    'credito',
+    'transbank',
+    'redcompra',
+    'boleta',
+    'factura',
+    'rut',
+    'fecha',
+    'hora',
+    'folio',
+    'caja',
+    'mesa',
+    'cubiertos',
+    'cuenta',
+    'garzon',
+    'vendedor',
+    'terminal',
+    'autorizacion',
+    'comercio',
+    'direccion',
+    'telefono',
+    'gracias',
+    'descuento',
+    'medio de pago',
+    'monto',
+    'pago',
+    'atendido',
+    'preferencia',
+  ];
+
+  return ignoredWords.some((word) => normalized.includes(word));
+}
+
+function guessReceiptCategory(name) {
+  const normalized = normalizeReceiptKeyword(name);
+
+  if (/(cerveza|pisco|mojito|piscola|ron|vino|trago|shop|sch|kunstmann|austral|escudo|jager|daiquiri|daikiri|tequila|whisky|vodka|royal|calafate)/.test(normalized)) {
+    return 'Tragos';
+  }
+
+  if (/(bebida|coca|sprite|fanta|jugo|agua mineral|limonada|cafe|te|latte)/.test(normalized)) {
+    return 'Bebestibles';
+  }
+
+  if (/(postre|helado|torta|kuchen|brownie|dulce)/.test(normalized)) {
+    return 'Postres';
+  }
+
+  if (/(supermercado|mercado|pan|leche|huevo|arroz|verdura|fruta|detergente)/.test(normalized)) {
+    return getActiveBill().mode === 'home' ? 'Supermercado' : 'Comida';
+  }
+
+  if (getActiveBill().mode === 'home') {
+    return 'Supermercado';
+  }
+
+  return 'Comida';
+}
+
+function isLikelyReceiptSubtotalLine(name, price, previousItems) {
+  const normalized = normalizeReceiptKeyword(name);
+
+  if (!name || shouldIgnoreReceiptLine(name)) {
+    return true;
+  }
+
+  // Líneas que solo son un monto, sin producto.
+  if (/^[\d\s.,$-]+$/.test(name)) {
+    return true;
+  }
+
+  // En boletas de restaurante suelen aparecer subtotales por sección justo después de varios productos.
+  // Si la línea no tiene letras claras o tiene texto de sección, se ignora.
+  if (!/[a-záéíóúñ]/i.test(name)) {
+    return true;
+  }
+
+  // Evitar tomar como producto un subtotal que sea igual a la suma parcial cercana.
+  const recentSum = previousItems.slice(-5).reduce((sum, item) => sum + item.price, 0);
+  if (recentSum > 0 && Math.abs(recentSum - price) <= 5 && normalized.length <= 16) {
+    return true;
+  }
+
+  return false;
+}
+
+function createReceiptItem(name, price, seen, items) {
+  const cleanName = cleanReceiptProductName(name);
+  const amount = parseMoneyFromReceipt(price);
+
+  if (!cleanName || amount <= 0) {
+    return null;
+  }
+
+  if (isLikelyReceiptSubtotalLine(cleanName, amount, items)) {
+    return null;
+  }
+
+  if (cleanName.length < 3 || /^\d+$/.test(cleanName)) {
+    return null;
+  }
+
+  const key = `${cleanName.toLowerCase()}-${amount}`;
+
+  if (seen.has(key)) {
+    return null;
+  }
+
+  seen.add(key);
+
+  return {
+    id: createId('receipt'),
+    selected: true,
+    name: cleanName,
+    price: amount,
+    category: guessReceiptCategory(cleanName),
+  };
+}
+
+function parseReceiptText(text) {
+  const rawLines = String(text || '')
+    .split(/\r?\n/)
+    .map(normalizeReceiptLine)
+    .filter(Boolean);
+
+  const items = [];
+  const seen = new Set();
+
+  for (let index = 0; index < rawLines.length; index++) {
+    const line = rawLines[index];
+
+    if (shouldIgnoreReceiptLine(line)) {
+      continue;
+    }
+
+    // Caso A: Producto + cantidad + precio. Ej: VIAN ITALIANA 2.00 8,180
+    let match = line.match(/^(.+?)\s+(\d+[,.]\d{1,2})\s+\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
+    if (match) {
+      const item = createReceiptItem(match[1], match[3], seen, items);
+      if (item) {
+        items.push(item);
+      }
+      continue;
+    }
+
+    // Caso B: Producto + precio. Ej: Papas fritas 8.250
+    match = line.match(/^(.+?)\s+\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
+    if (match) {
+      const item = createReceiptItem(match[1], match[2], seen, items);
+      if (item) {
+        items.push(item);
+      }
+      continue;
+    }
+
+    // Caso C: OCR separó producto y números en líneas distintas.
+    // Ej:
+    // VIAN ITALIANA
+    // 2.00 8,180
+    const nextLine = rawLines[index + 1] || '';
+    const splitMatch = nextLine.match(/^(?:\d+[,.]\d{1,2}\s+)?\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
+    if (splitMatch && !shouldIgnoreReceiptLine(line)) {
+      const item = createReceiptItem(line, splitMatch[1], seen, items);
+      if (item) {
+        items.push(item);
+        index += 1;
+      }
+    }
+  }
+
   return items;
 }
-async function processReceiptImage() {
-  if (!receiptSelectedFile) { showToast('Primero sube una foto de la boleta.'); return; }
-  if (typeof Tesseract === 'undefined') { showNotice('OCR no disponible', 'No se pudo cargar la librería de lectura. Prueba con internet activo o desde Vercel.'); return; }
-  try {
-    dom.processReceiptButton.disabled = true; updateReceiptStatus('Leyendo boleta... Esto puede tardar algunos segundos.');
-    const result = await Tesseract.recognize(receiptSelectedFile, 'spa+eng', { logger: (event) => { if (event.status === 'recognizing text' && Number.isFinite(event.progress)) updateReceiptStatus(`Leyendo texto... ${Math.round(event.progress * 100)}%`); } });
-    receiptDetectedItems = parseReceiptText(result?.data?.text || ''); renderReceiptDetectedItems();
-    updateReceiptStatus(receiptDetectedItems.length ? `Lectura terminada. Revisa y corrige ${receiptDetectedItems.length} productos antes de agregarlos.` : 'No se detectaron productos claros. Puedes probar con una foto más nítida.');
-  } catch (error) { console.error(error); showNotice('Error al leer boleta', 'No se pudo procesar la imagen. Prueba con otra foto más clara.'); updateReceiptStatus('No se pudo leer la boleta.'); }
-  finally { dom.processReceiptButton.disabled = false; }
+
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const url = URL.createObjectURL(file);
+
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('No se pudo cargar la imagen.'));
+    };
+
+    image.src = url;
+  });
 }
+
+async function preprocessReceiptImage(file) {
+  const image = await loadImageFromFile(file);
+  const maxWidth = 1800;
+  const scale = Math.min(2.2, Math.max(1, maxWidth / image.width));
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+
+  canvas.width = Math.round(image.width * scale);
+  canvas.height = Math.round(image.height * scale);
+
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+
+  for (let index = 0; index < data.length; index += 4) {
+    const gray = data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114;
+    // Contraste fuerte para papel térmico / boleta.
+    const contrasted = gray > 170 ? 255 : gray < 95 ? 0 : Math.max(0, Math.min(255, (gray - 95) * 2.2));
+    data[index] = contrasted;
+    data[index + 1] = contrasted;
+    data[index + 2] = contrasted;
+  }
+
+  context.putImageData(imageData, 0, 0);
+
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => {
+      resolve(blob || file);
+    }, 'image/png', 1);
+  });
+}
+
+async function processReceiptImage() {
+  if (!receiptSelectedFile) {
+    showToast('Primero sube una foto de la boleta.');
+    return;
+  }
+
+  if (typeof Tesseract === 'undefined') {
+    showNotice('OCR no disponible', 'No se pudo cargar la librería de lectura. Prueba con internet activo o desde Vercel.');
+    return;
+  }
+
+  try {
+    dom.processReceiptButton.disabled = true;
+    updateReceiptStatus('Mejorando imagen para lectura...');
+
+    const processedImage = await preprocessReceiptImage(receiptSelectedFile);
+
+    updateReceiptStatus('Leyendo boleta... Esto puede tardar algunos segundos.');
+
+    const result = await Tesseract.recognize(processedImage, 'spa+eng', {
+      logger: (event) => {
+        if (event.status === 'recognizing text' && Number.isFinite(event.progress)) {
+          updateReceiptStatus(`Leyendo texto... ${Math.round(event.progress * 100)}%`);
+        }
+      },
+      tessedit_pageseg_mode: '6',
+      preserve_interword_spaces: '1',
+    });
+
+    const text = result?.data?.text || '';
+
+    if (dom.receiptRawTextInput) {
+      dom.receiptRawTextInput.value = text.trim();
+    }
+
+    receiptDetectedItems = parseReceiptText(text);
+    renderReceiptDetectedItems();
+
+    if (receiptDetectedItems.length === 0) {
+      updateReceiptStatus('No se detectaron productos claros. Revisa el texto leído, edítalo si hace falta y presiona “Volver a detectar”.');
+      return;
+    }
+
+    updateReceiptStatus(`Lectura terminada. Revisa y corrige ${receiptDetectedItems.length} productos antes de agregarlos.`);
+  } catch (error) {
+    console.error(error);
+    showNotice('Error al leer boleta', 'No se pudo procesar la imagen. Prueba con otra foto más clara.');
+    updateReceiptStatus('No se pudo leer la boleta.');
+  } finally {
+    dom.processReceiptButton.disabled = false;
+  }
+}
+
+function reparseReceiptRawText() {
+  const text = dom.receiptRawTextInput?.value || '';
+
+  if (!text.trim()) {
+    showToast('No hay texto para detectar.');
+    return;
+  }
+
+  receiptDetectedItems = parseReceiptText(text);
+  renderReceiptDetectedItems();
+
+  if (receiptDetectedItems.length === 0) {
+    updateReceiptStatus('No se detectaron productos. Puedes editar el texto leído y volver a intentar.');
+    return;
+  }
+
+  updateReceiptStatus(`Se detectaron ${receiptDetectedItems.length} productos desde el texto.`);
+}
+
 function renderReceiptDetectedItems() {
-  dom.receiptDetectedBody.innerHTML = ''; dom.receiptDetectedCount.textContent = `${receiptDetectedItems.length} encontrados`;
-  if (!receiptDetectedItems.length) { const row = document.createElement('tr'); row.innerHTML = '<td colspan="4">No hay productos detectados todavía.</td>'; dom.receiptDetectedBody.appendChild(row); return; }
+  dom.receiptDetectedBody.innerHTML = '';
+  dom.receiptDetectedCount.textContent = `${receiptDetectedItems.length} encontrados`;
+
+  if (receiptDetectedItems.length === 0) {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td colspan="4">No hay productos detectados todavía.</td>`;
+    dom.receiptDetectedBody.appendChild(row);
+    return;
+  }
+
   for (const item of receiptDetectedItems) {
     const row = document.createElement('tr');
-    row.innerHTML = `<td><input type="checkbox" ${item.selected ? 'checked' : ''} aria-label="Usar producto" /></td><td><input type="text" value="${escapeHtml(item.name)}" aria-label="Producto detectado" /></td><td><input type="number" min="0" step="1" value="${item.price}" aria-label="Monto detectado" /></td><td><select aria-label="Categoría detectada">${CATEGORIES.map((category) => `<option ${category === item.category ? 'selected' : ''}>${category}</option>`).join('')}</select></td>`;
-    const [checkbox, nameInput, priceInput] = row.querySelectorAll('input'); const categorySelect = row.querySelector('select');
-    checkbox.addEventListener('change', () => item.selected = checkbox.checked);
-    nameInput.addEventListener('input', () => item.name = nameInput.value);
-    priceInput.addEventListener('input', () => item.price = Number(priceInput.value || 0));
-    categorySelect.addEventListener('change', () => item.category = categorySelect.value);
+    row.dataset.itemId = item.id;
+    row.innerHTML = `
+      <td><input type="checkbox" ${item.selected ? 'checked' : ''} aria-label="Usar producto" /></td>
+      <td><input type="text" value="${escapeHtml(item.name)}" aria-label="Producto detectado" /></td>
+      <td><input type="number" min="0" step="1" value="${item.price}" aria-label="Monto detectado" /></td>
+      <td>
+        <select aria-label="Categoría detectada">
+          ${CATEGORIES.map((category) => `<option ${category === item.category ? 'selected' : ''}>${category}</option>`).join('')}
+        </select>
+      </td>
+    `;
+
+    const checkbox = row.querySelector('input[type="checkbox"]');
+    const nameInput = row.querySelector('input[type="text"]');
+    const priceInput = row.querySelector('input[type="number"]');
+    const categorySelect = row.querySelector('select');
+
+    checkbox.addEventListener('change', () => {
+      item.selected = checkbox.checked;
+    });
+
+    nameInput.addEventListener('input', () => {
+      item.name = nameInput.value;
+    });
+
+    priceInput.addEventListener('input', () => {
+      item.price = Number(priceInput.value || 0);
+    });
+
+    categorySelect.addEventListener('change', () => {
+      item.category = categorySelect.value;
+    });
+
     dom.receiptDetectedBody.appendChild(row);
   }
 }
-function setAllReceiptItems(selected) { receiptDetectedItems = receiptDetectedItems.map((item) => ({...item, selected})); renderReceiptDetectedItems(); }
+
+function setAllReceiptItems(selected) {
+  receiptDetectedItems = receiptDetectedItems.map((item) => ({ ...item, selected }));
+  renderReceiptDetectedItems();
+}
+
 function addReceiptItemsToBill() {
   const bill = getActiveBill();
-  if (bill.mode === 'quick') { showNotice('Modo rápido activo', 'Cambia a modo Detallada u Hogar para agregar productos desde boleta.'); return; }
-  const selectedItems = receiptDetectedItems.map((item) => ({...item, name: String(item.name || '').trim(), price: Number(item.price || 0)})).filter((item) => item.selected && item.name && item.price > 0);
-  if (!selectedItems.length) { showToast('Selecciona al menos un producto válido.'); return; }
-  if (!bill.people.length) { showNotice('Agrega personas primero', 'Para agregar productos desde boleta necesitas tener personas en la cuenta.'); return; }
+
+  if (bill.mode === 'quick') {
+    showNotice('Modo rápido activo', 'Cambia a modo Detallada u Hogar para agregar productos desde boleta.');
+    return;
+  }
+
+  const selectedItems = receiptDetectedItems
+    .map((item) => ({
+      ...item,
+      name: String(item.name || '').trim(),
+      price: Number(item.price || 0),
+    }))
+    .filter((item) => item.selected && item.name && item.price > 0);
+
+  if (selectedItems.length === 0) {
+    showToast('Selecciona al menos un producto válido.');
+    return;
+  }
+
+  if (bill.people.length === 0) {
+    showNotice('Agrega personas primero', 'Para agregar productos desde boleta necesitas tener personas en la cuenta.');
+    return;
+  }
+
   const defaultSplitMode = bill.mode === 'home' ? 'responsibles' : 'participants';
-  const defaultConsumers = defaultSplitMode === 'responsibles' ? [] : bill.people.map((person) => ({ personId: person.id, share: 1 }));
-  for (const item of selectedItems) bill.products.push({ id: createId('product'), name: item.name, unitPrice: item.price, quantity: 1, category: CATEGORIES.includes(item.category) ? item.category : (bill.mode === 'home' ? 'Supermercado' : 'Comida'), splitMode: defaultSplitMode, dueDate: '', paidById: '', recurring: false, consumers: defaultConsumers.map((consumer) => ({...consumer})) });
-  persistAndRender(); closeReceiptModal(); clearReceiptReader(); showToast(`${selectedItems.length} productos agregados desde boleta.`);
+  const defaultConsumers = defaultSplitMode === 'responsibles'
+    ? []
+    : bill.people.map((person) => ({
+        personId: person.id,
+        share: 1,
+      }));
+
+  for (const item of selectedItems) {
+    bill.products.push({
+      id: createId('product'),
+      name: item.name,
+      unitPrice: item.price,
+      quantity: 1,
+      category: CATEGORIES.includes(item.category) ? item.category : (bill.mode === 'home' ? 'Supermercado' : 'Comida'),
+      splitMode: defaultSplitMode,
+      dueDate: '',
+      paidById: '',
+      recurring: false,
+      consumers: defaultConsumers.map((consumer) => ({ ...consumer })),
+    });
+  }
+
+  persistAndRender();
+  closeReceiptModal();
+  clearReceiptReader();
+  showToast(`${selectedItems.length} productos agregados desde boleta.`);
 }
+
 
 function openAuthModal() {
   renderAuthUI();
@@ -3488,6 +3931,7 @@ dom.receiptModal.addEventListener('click', (event) => { if (event.target === dom
 dom.receiptFileInput.addEventListener('change', handleReceiptFileChange);
 dom.processReceiptButton.addEventListener('click', processReceiptImage);
 dom.clearReceiptButton.addEventListener('click', clearReceiptReader);
+dom.reparseReceiptTextButton.addEventListener('click', reparseReceiptRawText);
 dom.selectAllReceiptItemsButton.addEventListener('click', () => setAllReceiptItems(true));
 dom.unselectAllReceiptItemsButton.addEventListener('click', () => setAllReceiptItems(false));
 dom.addReceiptItemsButton.addEventListener('click', addReceiptItemsToBill);

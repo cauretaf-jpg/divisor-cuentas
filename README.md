@@ -1,4 +1,4 @@
-# Cuenta Clara V6.0
+# Cuenta Clara V6.1
 
 App web funcional para dividir cuentas entre varias personas.
 
@@ -314,3 +314,28 @@ Para sincronización real entre dispositivos se necesita una base de datos exter
 - En modo Hogar se agregan como gastos de responsables para que puedas asignar quién paga después.
 
 Importante: la lectura automática puede tener errores. Revisa siempre antes de agregar.
+
+
+## Nuevo en V6.1 - OCR mejorado
+
+- Se agregó preprocesamiento de imagen antes del OCR:
+  - escala mayor,
+  - blanco y negro,
+  - contraste alto.
+- Se mejoró la detección de boletas con columnas:
+  - producto + cantidad + precio,
+  - producto + precio,
+  - producto en una línea y monto en la siguiente.
+- Se agregó área **Texto leído**:
+  - muestra el texto detectado por OCR,
+  - permite editarlo manualmente,
+  - permite presionar **Volver a detectar**.
+- Se mejoraron filtros para ignorar:
+  - subtotales,
+  - total,
+  - propina,
+  - exento,
+  - mesa,
+  - cubiertos,
+  - datos de pago.
+- Se agregó ayuda visual con consejos para tomar mejores fotos de boletas.
