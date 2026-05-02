@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V8.1 cargada');
+console.info('Cuenta Clara V8.2 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 let activeStorageKey = GUEST_STORAGE_KEY;

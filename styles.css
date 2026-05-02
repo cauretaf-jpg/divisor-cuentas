@@ -2442,3 +2442,149 @@ button.auth-badge {
     width: 100%;
   }
 }
+
+
+/* V8.2: corrección de margen y ancho en celular */
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+}
+
+.app-header,
+main,
+.container,
+.app-layout,
+.workspace,
+.sidebar,
+.card,
+.mobile-action-bar,
+.profile-page-layout {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  body {
+    min-width: 0;
+  }
+
+  .container {
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: clamp(12px, 3vw, 18px);
+    padding-right: clamp(12px, 3vw, 18px);
+  }
+
+  .app-header {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .header-grid {
+    width: 100%;
+    max-width: none;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding-left: clamp(12px, 3vw, 18px);
+    padding-right: clamp(12px, 3vw, 18px);
+  }
+
+  .brand {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .brand div {
+    min-width: 0;
+  }
+
+  .brand strong,
+  .brand span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .header-actions {
+    width: 100%;
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .header-actions .btn,
+  .header-actions .auth-badge,
+  .header-actions a {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .app-layout {
+    width: 100%;
+    max-width: none;
+    grid-template-columns: minmax(0, 1fr);
+    padding-left: clamp(12px, 3vw, 18px);
+    padding-right: clamp(12px, 3vw, 18px);
+  }
+
+  .sidebar,
+  .workspace {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .mobile-action-bar {
+    left: clamp(12px, 3vw, 18px);
+    right: clamp(12px, 3vw, 18px);
+    width: auto;
+    max-width: calc(100vw - (clamp(12px, 3vw, 18px) * 2));
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 480px) {
+  .container,
+  .header-grid,
+  .app-layout {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .header-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .header-actions .btn,
+  .header-actions .auth-badge {
+    min-height: 54px;
+    padding-left: 8px;
+    padding-right: 8px;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .mobile-action-bar {
+    left: 10px;
+    right: 10px;
+    max-width: calc(100vw - 20px);
+  }
+}

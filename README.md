@@ -1,4 +1,4 @@
-# Cuenta Clara V8.1
+# Cuenta Clara V8.2
 
 App web funcional para dividir cuentas entre varias personas.
 
@@ -484,3 +484,11 @@ Luego sube la app a Vercel o pruébala con Live Server.
 ## Paso obligatorio para V8.1
 
 Antes de usar amigos entre usuarios, ejecuta `supabase-social.sql` en Supabase → SQL Editor.
+
+
+## Nuevo en V8.2 - Ajuste móvil
+
+- Se corrigió el ancho en celulares para evitar el margen vacío a la derecha.
+- Se reforzó el ancho de header, contenedores, tarjetas y barra inferior.
+- Se ajustó la grilla de botones superiores en pantallas pequeñas.
+- Se versionaron recursos con `v=8.2` para evitar caché del navegador.
