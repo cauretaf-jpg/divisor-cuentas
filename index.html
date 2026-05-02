@@ -456,8 +456,25 @@
           <button class="btn btn-primary" id="processReceiptButton" type="button">Leer boleta</button>
           <button class="btn btn-light" id="clearReceiptButton" type="button">Limpiar lectura</button>
           <div class="receipt-status" id="receiptStatus">Sube una foto clara para comenzar.</div>
+          <details class="receipt-tips">
+            <summary>Consejos para mejorar la lectura</summary>
+            <ul>
+              <li>Toma la foto de frente.</li>
+              <li>Haz que la boleta ocupe casi toda la imagen.</li>
+              <li>Evita sombras y reflejos.</li>
+              <li>Procura que los precios se vean nítidos.</li>
+            </ul>
+          </details>
         </div>
         <div class="receipt-results-panel">
+          <div class="receipt-raw-panel">
+            <div class="receipt-results-header">
+              <strong>Texto leído</strong>
+              <button class="btn btn-light btn-small" id="reparseReceiptTextButton" type="button">Volver a detectar</button>
+            </div>
+            <textarea id="receiptRawTextInput" placeholder="Aquí aparecerá el texto leído de la boleta. Puedes editarlo y volver a detectar productos."></textarea>
+          </div>
+
           <div class="receipt-results-header"><strong>Productos detectados</strong><span id="receiptDetectedCount">0 encontrados</span></div>
           <div class="receipt-table-wrap">
             <table class="receipt-table">

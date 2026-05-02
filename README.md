@@ -1,4 +1,4 @@
-# Cuenta Clara V6.1
+# Cuenta Clara V6.2
 
 App web funcional para dividir cuentas entre varias personas.
 
@@ -339,3 +339,13 @@ Importante: la lectura automática puede tener errores. Revisa siempre antes de 
   - cubiertos,
   - datos de pago.
 - Se agregó ayuda visual con consejos para tomar mejores fotos de boletas.
+
+
+## Nuevo en V6.2 - Corrección boleta
+
+- Se corrigió un error de V6.1: el JavaScript esperaba `receiptRawTextInput` y `reparseReceiptTextButton`, pero esos elementos no habían quedado insertados en el HTML.
+- Ese error podía detener la carga de la app.
+- Se agregó el panel **Texto leído** correctamente.
+- Se agregó el botón **Volver a detectar** correctamente.
+- Se reforzó el listener para que, si faltara un elemento, no se rompa toda la app.
+- Escape ahora también cierra el modal de boleta.

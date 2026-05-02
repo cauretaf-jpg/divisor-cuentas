@@ -3931,7 +3931,9 @@ dom.receiptModal.addEventListener('click', (event) => { if (event.target === dom
 dom.receiptFileInput.addEventListener('change', handleReceiptFileChange);
 dom.processReceiptButton.addEventListener('click', processReceiptImage);
 dom.clearReceiptButton.addEventListener('click', clearReceiptReader);
-dom.reparseReceiptTextButton.addEventListener('click', reparseReceiptRawText);
+if (dom.reparseReceiptTextButton) {
+  dom.reparseReceiptTextButton.addEventListener('click', reparseReceiptRawText);
+}
 dom.selectAllReceiptItemsButton.addEventListener('click', () => setAllReceiptItems(true));
 dom.unselectAllReceiptItemsButton.addEventListener('click', () => setAllReceiptItems(false));
 dom.addReceiptItemsButton.addEventListener('click', addReceiptItemsToBill);
@@ -4121,6 +4123,10 @@ document.addEventListener('keydown', (event) => {
 
   if (event.key === 'Escape' && !dom.authModal.classList.contains('hidden')) {
     closeAuthModal();
+  }
+
+  if (event.key === 'Escape' && !dom.receiptModal.classList.contains('hidden')) {
+    closeReceiptModal();
   }
 });
 
