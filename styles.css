@@ -1971,3 +1971,474 @@ main,
 .receipt-tips li + li {
   margin-top: 4px;
 }
+
+
+/* V6.3: mejor detección de productos en columnas */
+.receipt-status strong {
+  color: var(--primary);
+}
+
+
+/* V7.0: estado de nube */
+.auth-badge.is-user {
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--border));
+}
+
+
+/* V7.4: perfil de usuario y estadísticas */
+.profile-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.profile-hero h2 {
+  margin: 2px 0 4px;
+}
+
+.profile-avatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+  background: var(--primary);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 950;
+  font-size: 1.2rem;
+  box-shadow: var(--shadow-soft);
+  flex: 0 0 auto;
+}
+
+.profile-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.profile-tab {
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.profile-tab.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.profile-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  padding: 14px;
+}
+
+.profile-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profile-form-grid label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.profile-form-grid input[readonly] {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.stat-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding: 12px;
+}
+
+.stat-card span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+.stat-card strong {
+  display: block;
+  color: var(--primary);
+  font-size: 1.25rem;
+  margin-top: 4px;
+}
+
+.stats-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.stats-box {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding: 12px;
+}
+
+.mini-ranking {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.mini-ranking-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px dashed var(--border);
+  padding-bottom: 6px;
+  font-size: 0.9rem;
+}
+
+.mini-ranking-row span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-ranking-row strong {
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .profile-form-grid,
+  .stats-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .profile-hero {
+    align-items: flex-start;
+  }
+
+  .profile-tabs,
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* V8.0: Perfil navegable y amigos */
+.profile-page-body {
+  background: var(--app-bg);
+}
+
+.profile-page-layout {
+  display: grid;
+  gap: 18px;
+  padding-top: 18px;
+  padding-bottom: 60px;
+}
+
+.profile-page-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+}
+
+.profile-page-avatar,
+.friend-avatar,
+.friend-mini-avatar {
+  display: inline-grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--border));
+  font-weight: 1000;
+}
+
+.profile-page-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 28px;
+  font-size: 1.8rem;
+}
+
+.profile-avatar img,
+.profile-page-avatar img,
+.friend-avatar img,
+.friend-mini-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-page-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.profile-nav {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 10px;
+  z-index: 5;
+}
+
+.profile-nav a {
+  text-decoration: none;
+  color: var(--primary);
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-weight: 900;
+}
+
+.profile-page-section {
+  scroll-margin-top: 100px;
+}
+
+.avatar-upload-box {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, auto) auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+}
+
+.friend-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto auto;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.friends-page-list,
+.friends-picker-list {
+  display: grid;
+  gap: 10px;
+}
+
+.friend-card,
+.friend-picker-row {
+  display: grid;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  padding: 12px;
+}
+
+.friend-card {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.friend-picker-row {
+  grid-template-columns: auto auto minmax(0, 1fr);
+  cursor: pointer;
+}
+
+.friend-picker-row.is-disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.friend-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+}
+
+.friend-mini-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+}
+
+.friend-card-body {
+  min-width: 0;
+}
+
+.friend-card-body strong,
+.friend-card-body span,
+.friend-card-body small {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friend-card-body span,
+.friend-card-body small {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.friend-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.friends-picker-card {
+  width: min(720px, 100%);
+}
+
+@media (max-width: 900px) {
+  .profile-page-hero,
+  .avatar-upload-box,
+  .friend-form,
+  .friend-card {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-page-avatar {
+    width: 82px;
+    height: 82px;
+  }
+
+  .profile-page-actions,
+  .friend-card-actions {
+    justify-content: stretch;
+  }
+
+  .profile-page-actions .btn,
+  .friend-card-actions .btn,
+  .friend-form .btn {
+    width: 100%;
+  }
+
+  .profile-nav {
+    position: static;
+  }
+}
+
+
+/* V8.1: perfil como acceso y amigos entre usuarios */
+.auth-badge {
+  cursor: pointer;
+}
+
+button.auth-badge {
+  font-family: inherit;
+}
+
+.social-friends-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.social-box {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  padding: 14px;
+}
+
+.social-search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.social-results-list {
+  display: grid;
+  gap: 10px;
+}
+
+.social-user-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 10px;
+}
+
+.social-user-body {
+  min-width: 0;
+}
+
+.social-user-body strong,
+.social-user-body span,
+.social-user-body small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.social-user-body span,
+.social-user-body small {
+  color: var(--text-muted);
+  font-size: 0.84rem;
+}
+
+.social-user-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 900px) {
+  .social-friends-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .social-search-row,
+  .social-user-card {
+    grid-template-columns: 1fr;
+  }
+
+  .social-user-actions .btn {
+    width: 100%;
+  }
+}

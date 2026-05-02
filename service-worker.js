@@ -1,29 +1,36 @@
-const CACHE_NAME = 'cuenta-clara-v6.2.0';
+const CACHE_NAME = 'cuenta-clara-v8.1.0';
+
 const ASSETS = [
   './',
   './index.html',
-  './styles.css',
-  './script.js',
+  './styles.css?v=8.1',
+  './script.js?v=8.1',
+  './supabase-config.js?v=8.1',
   './manifest.json',
   './privacidad.html',
+  './perfil.html',
+  './profile.js?v=8.1',
   './ads.txt',
   './assets/logo.svg',
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
   self.skipWaiting();
+
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS).catch(() => {}))
+  );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
-    )
+    Promise.all([
+      self.clients.claim(),
+      caches.keys().then((keys) =>
+        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+      ),
+    ])
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
@@ -33,12 +40,17 @@ self.addEventListener('fetch', (event) => {
 
   const requestUrl = new URL(event.request.url);
 
-  // No interceptar recursos externos, como scripts/anuncios de Google AdSense.
   if (requestUrl.origin !== self.location.origin) {
     return;
   }
 
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone)).catch(() => {});
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

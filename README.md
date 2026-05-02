@@ -1,4 +1,4 @@
-# Cuenta Clara V6.2
+# Cuenta Clara V8.1
 
 App web funcional para dividir cuentas entre varias personas.
 
@@ -349,3 +349,138 @@ Importante: la lectura automática puede tener errores. Revisa siempre antes de 
 - Se agregó el botón **Volver a detectar** correctamente.
 - Se reforzó el listener para que, si faltara un elemento, no se rompa toda la app.
 - Escape ahora también cierra el modal de boleta.
+
+
+## Nuevo en V6.3 - Detección de productos reforzada
+
+- Se mejoró el parser de boletas para detectar productos que el OCR deja separados por columnas.
+- Ahora intenta reconocer:
+  - producto + cantidad + precio en una misma línea;
+  - producto + precio;
+  - producto en una línea y cantidad/precio en la siguiente;
+  - varios nombres de productos seguidos, luego cantidades y luego precios.
+- Esto mejora casos como boletas de restaurante donde el OCR lee:
+  - VIAN ITALIANA
+  - VIAN VEG ITALIANA
+  - 2.00
+  - 1.00
+  - 8,180
+  - 4,390
+- Se mantienen filtros para evitar tomar subtotales, totales y propinas como productos.
+
+
+## Nuevo en V7.0 - Supabase experimental
+
+- Se integró Supabase Auth real.
+- El modo invitado sigue funcionando con localStorage.
+- El modo usuario usa Supabase para iniciar sesión y sincronizar el estado completo de Cuenta Clara.
+- Se agregó `supabase-config.js`.
+- Se agregó `supabase-app-state.sql`.
+- Se usa una tabla nueva `app_states` para guardar el estado completo por usuario.
+- Al crear cuenta puedes migrar tus cuentas de invitado a Supabase.
+- Al iniciar sesión, la app carga el estado guardado en Supabase.
+- Al editar la app, los cambios se guardan localmente y se sincronizan con Supabase.
+
+## Paso obligatorio antes de probar V7.0
+
+Ejecuta el archivo `supabase-app-state.sql` en Supabase:
+
+1. Supabase → SQL Editor.
+2. New query.
+3. Pega el contenido de `supabase-app-state.sql`.
+4. Run.
+
+Luego sube la app a Vercel o pruébala con Live Server.
+
+
+## Nuevo en V7.1 - Fix Supabase
+
+- Se corrigió un error de V7.0 que impedía que la app inicializara correctamente.
+- Faltaban funciones internas de Supabase como `initializeAuthSession`, `hasSupabaseClient`, `setUserSession`, `saveAuthSession`, `loadCloudState` y `saveCloudStateNow`.
+- Se eliminó el bloque heredado de usuarios locales que generaba conflictos.
+- Se protegieron listeners de autenticación para que no rompan la carga si falta algún elemento.
+- La app vuelve a responder a los botones y mantiene:
+  - modo invitado,
+  - login Supabase,
+  - sincronización con `app_states`.
+
+
+## Nuevo en V7.2 - Corrección de inicio
+
+- Se corrigió el error `Uncaught ReferenceError: async is not defined`.
+- Se eliminó una línea `async` suelta que impedía que el JavaScript terminara de cargar.
+- Se agregó captura de error al inicio para mostrar un aviso si la app no logra inicializar.
+
+
+## Nuevo en V7.3 - Limpieza de caché y service worker
+
+- Se agregaron versiones en `styles.css`, `script.js` y `supabase-config.js`.
+- Se reemplazó el service worker por una versión network-first.
+- El service worker elimina cachés antiguas al activarse.
+- Se agregó un mensaje de consola: `Cuenta Clara V7.3 cargada`.
+- Esto ayuda a evitar que el navegador siga usando scripts antiguos.
+
+
+## Nuevo en V7.4 - Perfil de usuario y estadísticas
+
+- Se agregó sección **Mi perfil** para usuarios con Supabase.
+- El usuario puede editar:
+  - nick visible,
+  - nombre,
+  - teléfono opcional,
+  - moneda,
+  - preferencia visual.
+- El perfil se guarda en el estado sincronizado con Supabase.
+- Se actualiza metadata básica del usuario en Supabase cuando se guarda el perfil.
+- Se agregaron estadísticas de uso:
+  - cuentas creadas,
+  - cuentas activas,
+  - total histórico dividido,
+  - promedio por cuenta,
+  - personas agregadas,
+  - productos/gastos registrados,
+  - cuentas del hogar,
+  - salidas/rápidas,
+  - categorías más usadas,
+  - personas frecuentes,
+  - última actividad.
+- Se agregó botón **Sincronizar ahora**.
+
+
+## Nuevo en V8.0 - Perfil navegable y amigos
+
+- Se agregó una nueva página `perfil.html`.
+- El perfil ahora se puede navegar por secciones:
+  - Perfil
+  - Estadísticas
+  - Amigos
+  - Configuración
+- Se agregó foto de perfil.
+- Se agregó lista de amigos frecuentes.
+- Se puede agregar, editar y eliminar amigos.
+- Cada amigo puede tener nombre, teléfono, correo y notas.
+- En la app principal se agregó **Agregar desde amigos**.
+- Los amigos seleccionados se agregan como participantes de la cuenta actual.
+- Perfil, foto y amigos se guardan dentro del estado sincronizado con Supabase.
+- Se agregó `profile.js` para que la página de perfil funcione separada de la app principal.
+
+
+## Nuevo en V8.1 - Amigos entre usuarios
+
+- El indicador **Nube: usuario** ahora funciona como acceso directo al perfil.
+- Se quitó el botón separado **Perfil** de la cabecera principal.
+- Se agregó búsqueda de usuarios registrados desde `perfil.html`.
+- Se agregaron solicitudes de amistad entre usuarios:
+  - enviar solicitud,
+  - ver solicitudes recibidas,
+  - aceptar/rechazar,
+  - ver solicitudes enviadas,
+  - ver amigos registrados.
+- En la app principal, **Agregar desde amigos** ahora muestra:
+  - amigos manuales,
+  - amigos registrados aceptados.
+- Se agregó `supabase-social.sql`.
+
+## Paso obligatorio para V8.1
+
+Antes de usar amigos entre usuarios, ejecuta `supabase-social.sql` en Supabase → SQL Editor.

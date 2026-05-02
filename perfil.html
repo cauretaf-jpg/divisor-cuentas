@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f766e" />
+  <meta name="google-adsense-account" content="ca-pub-4358472434423818" />
+  <title>Mi perfil | Cuenta Clara</title>
+  <link rel="stylesheet" href="styles.css?v=8.1" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+</head>
+<body class="profile-page-body">
+  <header class="app-header">
+    <div class="container header-grid">
+      <a href="index.html" class="brand" aria-label="Cuenta Clara">
+        <img src="assets/logo.svg" alt="" class="brand-icon" />
+        <div>
+          <strong>Cuenta Clara</strong>
+          <span>Perfil, estadísticas y amigos</span>
+        </div>
+      </a>
+
+      <div class="header-actions">
+        <a class="btn btn-light" href="index.html">Volver a la app</a>
+        <a class="btn btn-light" href="privacidad.html">Privacidad</a>
+        <button class="btn btn-light" id="profileThemeToggle" type="button">Modo oscuro</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container profile-page-layout">
+    <section class="card profile-page-hero">
+      <div class="profile-page-avatar" id="pageAvatar">CC</div>
+      <div>
+        <p class="eyebrow">Mi perfil</p>
+        <h1 id="pageProfileTitle">Cuenta Clara</h1>
+        <p class="helper-text" id="pageProfileSubtitle">Carga tu sesión para administrar tu perfil.</p>
+      </div>
+      <div class="profile-page-actions">
+        <button class="btn btn-primary" id="saveFullProfileButton" type="button">Guardar perfil</button>
+        <button class="btn btn-light" id="syncProfileButton" type="button">Sincronizar</button>
+        <button class="btn btn-danger-light" id="profileLogoutButton" type="button">Cerrar sesión</button>
+      </div>
+    </section>
+
+    <section class="profile-nav card">
+      <a href="#perfil">Perfil</a>
+      <a href="#estadisticas">Estadísticas</a>
+      <a href="#amigos">Amigos</a>
+      <a href="#configuracion">Configuración</a>
+    </section>
+
+    <section class="card profile-page-section" id="loginRequiredCard">
+      <p class="eyebrow">Sesión requerida</p>
+      <h2>Inicia sesión desde la app principal</h2>
+      <p class="helper-text">Para editar tu perfil, subir foto y administrar amigos, primero inicia sesión con Supabase en Cuenta Clara.</p>
+      <a class="btn btn-primary" href="index.html">Ir a Cuenta Clara</a>
+    </section>
+
+    <section class="card profile-page-section hidden" id="perfil">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Identidad</p>
+          <h2>Datos del perfil</h2>
+        </div>
+      </div>
+
+      <div class="profile-form-grid">
+        <label>
+          Nick visible
+          <input id="pageNickInput" type="text" placeholder="Ej: Carloco" />
+        </label>
+        <label>
+          Nombre
+          <input id="pageNameInput" type="text" placeholder="Tu nombre" />
+        </label>
+        <label>
+          Teléfono opcional
+          <input id="pagePhoneInput" type="tel" placeholder="Ej: 56912345678" />
+        </label>
+        <label>
+          Correo
+          <input id="pageEmailInput" type="email" readonly />
+        </label>
+      </div>
+
+      <div class="avatar-upload-box">
+        <div>
+          <strong>Foto de perfil</strong>
+          <p class="helper-text">Se guardará en tu perfil de Cuenta Clara y se sincronizará con Supabase.</p>
+        </div>
+        <input id="avatarFileInput" type="file" accept="image/*" />
+        <button class="btn btn-light" id="removeAvatarButton" type="button">Quitar foto</button>
+      </div>
+    </section>
+
+    <section class="card profile-page-section hidden" id="estadisticas">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Uso</p>
+          <h2>Estadísticas</h2>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card"><span>Cuentas creadas</span><strong id="pageStatTotalBills">0</strong></div>
+        <div class="stat-card"><span>Cuentas activas</span><strong id="pageStatActiveBills">0</strong></div>
+        <div class="stat-card"><span>Total histórico</span><strong id="pageStatHistoricalTotal">$0</strong></div>
+        <div class="stat-card"><span>Promedio por cuenta</span><strong id="pageStatAverageBill">$0</strong></div>
+        <div class="stat-card"><span>Personas agregadas</span><strong id="pageStatPeopleCount">0</strong></div>
+        <div class="stat-card"><span>Productos / gastos</span><strong id="pageStatProductCount">0</strong></div>
+        <div class="stat-card"><span>Cuentas del hogar</span><strong id="pageStatHomeBills">0</strong></div>
+        <div class="stat-card"><span>Salidas / rápidas</span><strong id="pageStatOutingBills">0</strong></div>
+      </div>
+
+      <div class="stats-detail-grid">
+        <div class="stats-box">
+          <strong>Categorías más usadas</strong>
+          <div id="pageTopCategories" class="mini-ranking"></div>
+        </div>
+        <div class="stats-box">
+          <strong>Personas frecuentes</strong>
+          <div id="pageTopPeople" class="mini-ranking"></div>
+        </div>
+        <div class="stats-box">
+          <strong>Última actividad</strong>
+          <p id="pageLastActivity" class="helper-text">Sin actividad registrada.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card profile-page-section hidden" id="amigos">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Contactos frecuentes</p>
+          <h2>Amigos</h2>
+        </div>
+      </div>
+
+      <form class="friend-form" id="friendForm">
+        <input id="friendNameInput" type="text" placeholder="Nombre o nick" />
+        <input id="friendPhoneInput" type="tel" placeholder="Teléfono WhatsApp" />
+        <input id="friendEmailInput" type="email" placeholder="Correo opcional" />
+        <input id="friendNotesInput" type="text" placeholder="Notas opcionales" />
+        <button class="btn btn-primary" type="submit">Guardar amigo</button>
+        <button class="btn btn-light hidden" id="cancelFriendEditButton" type="button">Cancelar edición</button>
+      </form>
+
+      
+      <div class="social-friends-grid">
+        <div class="social-box">
+          <div class="receipt-results-header">
+            <strong>Buscar usuarios registrados</strong>
+            <span>Por nick, nombre o correo</span>
+          </div>
+          <div class="social-search-row">
+            <input id="userSearchInput" type="search" placeholder="Buscar usuario..." />
+            <button class="btn btn-primary" id="searchUsersButton" type="button">Buscar</button>
+          </div>
+          <div class="social-results-list" id="userSearchResults"></div>
+        </div>
+
+        <div class="social-box">
+          <div class="receipt-results-header">
+            <strong>Solicitudes recibidas</strong>
+            <span id="incomingRequestsCount">0</span>
+          </div>
+          <div class="social-results-list" id="incomingRequestsList"></div>
+        </div>
+
+        <div class="social-box">
+          <div class="receipt-results-header">
+            <strong>Solicitudes enviadas</strong>
+            <span id="outgoingRequestsCount">0</span>
+          </div>
+          <div class="social-results-list" id="outgoingRequestsList"></div>
+        </div>
+
+        <div class="social-box">
+          <div class="receipt-results-header">
+            <strong>Amigos registrados</strong>
+            <span id="registeredFriendsCount">0</span>
+          </div>
+          <div class="social-results-list" id="registeredFriendsList"></div>
+        </div>
+      </div>
+
+      <div class="friends-page-list" id="friendsPageList"></div>
+    </section>
+
+    <section class="card profile-page-section hidden" id="configuracion">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Preferencias</p>
+          <h2>Configuración</h2>
+        </div>
+      </div>
+
+      <div class="profile-form-grid">
+        <label>
+          Moneda
+          <select id="pageCurrencyInput">
+            <option value="CLP">Peso chileno (CLP)</option>
+          </select>
+        </label>
+        <label>
+          Preferencia visual
+          <select id="pageThemePreferenceInput">
+            <option value="system">Usar preferencia actual</option>
+            <option value="light">Modo claro</option>
+            <option value="dark">Modo oscuro</option>
+          </select>
+        </label>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast hidden" id="profileToast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js?v=8.1"></script>
+  <script src="profile.js?v=8.1"></script>
+</body>
+</html>

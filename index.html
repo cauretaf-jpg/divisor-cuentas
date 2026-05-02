@@ -10,7 +10,7 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818" crossorigin="anonymous"></script>
   <title>Cuenta Clara | Divide cuentas sin enredos</title>
 
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=8.1" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
 </head>
@@ -30,7 +30,7 @@
         <a class="btn btn-light" href="privacidad.html">Privacidad</a>
         <button class="btn btn-light" id="installAppButton" type="button">Instalar App</button>
         <button class="btn btn-light" id="themeToggle" type="button">Modo oscuro</button>
-        <span class="auth-badge" id="authStatusBadge">Invitado</span>
+        <button class="auth-badge" id="authStatusBadge" type="button">Invitado</button>
         <button class="btn btn-light" id="authButton" type="button">Ingresar</button>
         <button class="btn btn-primary" id="newBillButton" type="button">Nueva cuenta</button>
       </div>
@@ -151,6 +151,7 @@
           <div class="bulk-actions">
             <button class="btn btn-light btn-small" id="markAllPaidButton" type="button">Todos pagados</button>
             <button class="btn btn-light btn-small" id="markAllPendingButton" type="button">Todos pendientes</button>
+            <button class="btn btn-light btn-small" id="openFriendsPickerButton" type="button">Agregar desde amigos</button>
           </div>
 
           <div class="people-list" id="peopleList"></div>
@@ -438,6 +439,31 @@
 
 
 
+
+  <div class="modal-backdrop hidden" id="friendsPickerModal" role="dialog" aria-modal="true" aria-labelledby="friendsPickerTitle">
+    <section class="modal-card friends-picker-card">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">Amigos frecuentes</p>
+          <h2 id="friendsPickerTitle">Agregar personas desde amigos</h2>
+        </div>
+        <button class="icon-button" id="closeFriendsPickerButton" type="button" aria-label="Cerrar">×</button>
+      </div>
+
+      <p class="helper-text">
+        Selecciona amigos de tu perfil para agregarlos como participantes de esta cuenta.
+      </p>
+
+      <div class="friends-picker-list" id="friendsPickerList"></div>
+
+      <div class="auth-actions-row">
+        <a class="btn btn-light" href="perfil.html">Administrar amigos</a>
+        <button class="btn btn-primary" id="addSelectedFriendsButton" type="button">Agregar seleccionados</button>
+      </div>
+    </section>
+  </div>
+
+
   <div class="modal-backdrop hidden" id="receiptModal" role="dialog" aria-modal="true" aria-labelledby="receiptModalTitle">
     <section class="modal-card receipt-card">
       <div class="modal-header">
@@ -463,6 +489,7 @@
               <li>Haz que la boleta ocupe casi toda la imagen.</li>
               <li>Evita sombras y reflejos.</li>
               <li>Procura que los precios se vean nítidos.</li>
+              <li>Si faltan productos, revisa el texto leído y presiona “Volver a detectar”.</li>
             </ul>
           </details>
         </div>
@@ -504,11 +531,98 @@
       </div>
 
       <div class="auth-session-panel hidden" id="authSessionPanel">
-        <strong id="authSessionTitle">Sesión iniciada</strong>
-        <p id="authSessionDescription"></p>
-        <div class="auth-actions-row">
-          <button class="btn btn-light" id="switchToGuestButton" type="button">Usar como invitado</button>
-          <button class="btn btn-danger-light" id="logoutButton" type="button">Cerrar sesión</button>
+        <div class="profile-hero">
+          <div>
+            <p class="eyebrow">Mi perfil</p>
+            <h2 id="authSessionTitle">Sesión iniciada</h2>
+            <p id="authSessionDescription"></p>
+          </div>
+          <div class="profile-avatar" id="profileAvatar">CC</div>
+        </div>
+
+        <div class="profile-tabs" role="tablist">
+          <button class="profile-tab active" data-profile-tab="profile" type="button">Perfil</button>
+          <button class="profile-tab" data-profile-tab="stats" type="button">Estadísticas</button>
+          <button class="profile-tab" data-profile-tab="settings" type="button">Configuración</button>
+        </div>
+
+        <div class="profile-panel" id="profilePanel">
+          <div class="profile-form-grid">
+            <label>
+              Nick visible
+              <input id="profileNickInput" type="text" placeholder="Ej: Carloco" />
+            </label>
+            <label>
+              Nombre
+              <input id="profileNameInput" type="text" placeholder="Tu nombre" />
+            </label>
+            <label>
+              Teléfono opcional
+              <input id="profilePhoneInput" type="tel" placeholder="Ej: 56912345678" />
+            </label>
+            <label>
+              Correo
+              <input id="profileEmailInput" type="email" readonly />
+            </label>
+          </div>
+
+          <div class="auth-actions-row">
+            <button class="btn btn-primary" id="saveProfileButton" type="button">Guardar perfil</button>
+            <button class="btn btn-light" id="syncNowButton" type="button">Sincronizar ahora</button>
+          </div>
+        </div>
+
+        <div class="profile-panel hidden" id="profileStatsPanel">
+          <div class="stats-grid">
+            <div class="stat-card"><span>Cuentas creadas</span><strong id="statTotalBills">0</strong></div>
+            <div class="stat-card"><span>Cuentas activas</span><strong id="statActiveBills">0</strong></div>
+            <div class="stat-card"><span>Total histórico</span><strong id="statHistoricalTotal">$0</strong></div>
+            <div class="stat-card"><span>Promedio por cuenta</span><strong id="statAverageBill">$0</strong></div>
+            <div class="stat-card"><span>Personas agregadas</span><strong id="statPeopleCount">0</strong></div>
+            <div class="stat-card"><span>Productos / gastos</span><strong id="statProductCount">0</strong></div>
+            <div class="stat-card"><span>Cuentas del hogar</span><strong id="statHomeBills">0</strong></div>
+            <div class="stat-card"><span>Salidas / rápidas</span><strong id="statOutingBills">0</strong></div>
+          </div>
+
+          <div class="stats-detail-grid">
+            <div class="stats-box">
+              <strong>Categorías más usadas</strong>
+              <div id="statTopCategories" class="mini-ranking"></div>
+            </div>
+            <div class="stats-box">
+              <strong>Personas frecuentes</strong>
+              <div id="statTopPeople" class="mini-ranking"></div>
+            </div>
+            <div class="stats-box">
+              <strong>Actividad</strong>
+              <p id="statLastActivity" class="helper-text">Sin actividad registrada.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-panel hidden" id="profileSettingsPanel">
+          <div class="profile-form-grid">
+            <label>
+              Moneda
+              <select id="profileCurrencyInput">
+                <option value="CLP">Peso chileno (CLP)</option>
+              </select>
+            </label>
+            <label>
+              Preferencia visual
+              <select id="profileThemePreferenceInput">
+                <option value="system">Usar preferencia actual</option>
+                <option value="light">Modo claro</option>
+                <option value="dark">Modo oscuro</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="auth-actions-row">
+            <button class="btn btn-primary" id="savePreferencesButton" type="button">Guardar preferencias</button>
+            <button class="btn btn-light" id="switchToGuestButton" type="button">Usar como invitado</button>
+            <button class="btn btn-danger-light" id="logoutButton" type="button">Cerrar sesión</button>
+          </div>
         </div>
       </div>
 
@@ -540,7 +654,7 @@
 
           <label class="auth-check">
             <input id="importGuestDataCheckbox" type="checkbox" checked />
-            <span>Guardar mis cuentas actuales de invitado en este usuario</span>
+            <span>Guardar mis cuentas actuales de invitado en mi cuenta Supabase</span>
           </label>
 
           <button class="btn btn-primary" type="submit">Crear cuenta</button>
@@ -553,7 +667,7 @@
         </div>
 
         <p class="auth-note">
-          En esta versión, las cuentas de usuario son locales en este navegador. Para sincronizar entre dispositivos, el siguiente paso será conectar una base de datos en la nube.
+          En esta versión, las cuentas de usuario usan Supabase. El modo invitado sigue guardando datos solo en este navegador.
         </p>
       </div>
     </section>
@@ -637,6 +751,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js?v=8.1"></script>
+  <script src="script.js?v=8.1"></script>
 </body>
 </html>

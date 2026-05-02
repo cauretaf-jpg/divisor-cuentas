@@ -1,8 +1,11 @@
+console.info('Cuenta Clara V8.1 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
-const LOCAL_USERS_KEY = 'cuenta-clara-local-users-v1';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 let activeStorageKey = GUEST_STORAGE_KEY;
-let currentSession = { mode: 'guest', email: '', name: '' };
+let currentSession = { mode: 'guest', email: '', name: '', userId: '' };
+let cloudSaveTimer = null;
+let isCloudLoading = false;
+let lastCloudSyncAt = null;
 const THEME_KEY = 'cuenta-clara-theme';
 
 const CATEGORIES = [
@@ -60,6 +63,11 @@ const dom = {
   peopleList: document.querySelector('#peopleList'),
   markAllPaidButton: document.querySelector('#markAllPaidButton'),
   markAllPendingButton: document.querySelector('#markAllPendingButton'),
+  openFriendsPickerButton: document.querySelector('#openFriendsPickerButton'),
+  friendsPickerModal: document.querySelector('#friendsPickerModal'),
+  closeFriendsPickerButton: document.querySelector('#closeFriendsPickerButton'),
+  friendsPickerList: document.querySelector('#friendsPickerList'),
+  addSelectedFriendsButton: document.querySelector('#addSelectedFriendsButton'),
 
   tipCard: document.querySelector('#tipCard'),
   tipPercentInput: document.querySelector('#tipPercentInput'),
@@ -165,6 +173,31 @@ const dom = {
   continueGuestButton: document.querySelector('#continueGuestButton'),
   switchToGuestButton: document.querySelector('#switchToGuestButton'),
   logoutButton: document.querySelector('#logoutButton'),
+  profileAvatar: document.querySelector('#profileAvatar'),
+  profileTabs: document.querySelectorAll('[data-profile-tab]'),
+  profilePanel: document.querySelector('#profilePanel'),
+  profileStatsPanel: document.querySelector('#profileStatsPanel'),
+  profileSettingsPanel: document.querySelector('#profileSettingsPanel'),
+  profileNickInput: document.querySelector('#profileNickInput'),
+  profileNameInput: document.querySelector('#profileNameInput'),
+  profilePhoneInput: document.querySelector('#profilePhoneInput'),
+  profileEmailInput: document.querySelector('#profileEmailInput'),
+  profileCurrencyInput: document.querySelector('#profileCurrencyInput'),
+  profileThemePreferenceInput: document.querySelector('#profileThemePreferenceInput'),
+  saveProfileButton: document.querySelector('#saveProfileButton'),
+  savePreferencesButton: document.querySelector('#savePreferencesButton'),
+  syncNowButton: document.querySelector('#syncNowButton'),
+  statTotalBills: document.querySelector('#statTotalBills'),
+  statActiveBills: document.querySelector('#statActiveBills'),
+  statHistoricalTotal: document.querySelector('#statHistoricalTotal'),
+  statAverageBill: document.querySelector('#statAverageBill'),
+  statPeopleCount: document.querySelector('#statPeopleCount'),
+  statProductCount: document.querySelector('#statProductCount'),
+  statHomeBills: document.querySelector('#statHomeBills'),
+  statOutingBills: document.querySelector('#statOutingBills'),
+  statTopCategories: document.querySelector('#statTopCategories'),
+  statTopPeople: document.querySelector('#statTopPeople'),
+  statLastActivity: document.querySelector('#statLastActivity'),
 
   shareModal: document.querySelector('#shareModal'),
   closeShareModalButton: document.querySelector('#closeShareModalButton'),
@@ -189,11 +222,13 @@ let state = {
   bills: [],
   activeBillId: null,
   quickProducts: [],
+  profile: {},
 };
 
 let editingProductId = null;
 let receiptSelectedFile = null;
 let receiptDetectedItems = [];
+let friendsPickerItems = [];
 let toastTimer = null;
 let noticeTimer = null;
 let deferredInstallPrompt = null;
@@ -233,78 +268,34 @@ function normalizeEmail(value) {
   return String(value || '').trim().toLowerCase();
 }
 
-function getUsers() {
-  try {
-    const users = JSON.parse(localStorage.getItem(LOCAL_USERS_KEY));
-    return Array.isArray(users) ? users : [];
-  } catch {
-    return [];
-  }
+
+function hasSupabaseClient() {
+  return typeof supabaseClient !== 'undefined' && Boolean(supabaseClient?.auth);
 }
 
-function saveUsers(users) {
-  localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
+
+
+function getUserStorageKey(identifier) {
+  return `cuenta-clara-supabase-state:${String(identifier || '').trim()}`;
 }
 
-function getUserStorageKey(email) {
-  return `cuenta-clara-user-state:${normalizeEmail(email)}`;
-}
-
-function createSalt() {
-  if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
-    const bytes = new Uint8Array(12);
-    window.crypto.getRandomValues(bytes);
-    return [...bytes].map((byte) => byte.toString(16).padStart(2, '0')).join('');
-  }
-
-  return `${Date.now()}_${Math.random().toString(16).slice(2)}`;
-}
-
-async function digestText(text) {
-  if (window.crypto && window.crypto.subtle && typeof TextEncoder !== 'undefined') {
-    const data = new TextEncoder().encode(text);
-    const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
-    return [...new Uint8Array(hashBuffer)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
-  }
-
-  let hash = 0;
-
-  for (let index = 0; index < text.length; index++) {
-    hash = ((hash << 5) - hash) + text.charCodeAt(index);
-    hash |= 0;
-  }
-
-  return `fallback_${Math.abs(hash)}`;
-}
-
-async function hashPassword(password, salt) {
-  return digestText(`${salt}:${password}`);
-}
-
-function loadAuthSession() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(AUTH_SESSION_KEY));
-
-    if (saved && saved.mode === 'user' && saved.email) {
-      const email = normalizeEmail(saved.email);
-      const user = getUsers().find((item) => normalizeEmail(item.email) === email);
-
-      if (user) {
-        currentSession = {
-          mode: 'user',
-          email,
-          name: user.name || email,
-        };
-        activeStorageKey = getUserStorageKey(email);
-        return;
-      }
-    }
-  } catch {
-    // Si la sesión guardada está corrupta, volvemos a invitado.
-  }
-
-  currentSession = { mode: 'guest', email: '', name: '' };
+function setGuestSession() {
+  currentSession = { mode: 'guest', email: '', name: '', userId: '' };
   activeStorageKey = GUEST_STORAGE_KEY;
+  clearTimeout(cloudSaveTimer);
+}
+
+function setUserSession(user) {
+  const name = user?.user_metadata?.nick || user?.user_metadata?.nombre || user?.email || 'Usuario';
+
+  currentSession = {
+    mode: 'user',
+    email: user?.email || '',
+    name,
+    userId: user?.id || '',
+  };
+
+  activeStorageKey = getUserStorageKey(currentSession.userId || currentSession.email);
 }
 
 function saveAuthSession() {
@@ -313,9 +304,316 @@ function saveAuthSession() {
 
 function clearAuthSession() {
   localStorage.removeItem(AUTH_SESSION_KEY);
-  currentSession = { mode: 'guest', email: '', name: '' };
-  activeStorageKey = GUEST_STORAGE_KEY;
+  setGuestSession();
 }
+
+async function initializeAuthSession() {
+  if (!hasSupabaseClient()) {
+    setGuestSession();
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error || !data?.session?.user) {
+    setGuestSession();
+    return;
+  }
+
+  setUserSession(data.session.user);
+  saveAuthSession();
+}
+
+async function loadAuthSession() {
+  await initializeAuthSession();
+}
+
+async function saveCloudStateNow() {
+  if (!hasSupabaseClient() || currentSession.mode !== 'user' || !currentSession.userId || isCloudLoading) {
+    return;
+  }
+
+  try {
+    const { error } = await supabaseClient
+      .from('app_states')
+      .upsert({
+        user_id: currentSession.userId,
+        state,
+        updated_at: nowIso(),
+      }, { onConflict: 'user_id' });
+
+    if (error) {
+      console.error(error);
+      showNotice('No se pudo guardar en la nube', error.message || 'Los cambios siguen guardados localmente.');
+      return;
+    }
+
+    lastCloudSyncAt = nowIso();
+    renderAuthUI();
+  } catch (error) {
+    console.error(error);
+    showNotice('Error de sincronización', 'No se pudo guardar en Supabase. Los cambios siguen en este navegador.');
+  }
+}
+
+function scheduleCloudSave() {
+  if (currentSession.mode !== 'user' || !currentSession.userId || isCloudLoading) {
+    return;
+  }
+
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(() => {
+    saveCloudStateNow();
+  }, 700);
+}
+
+async function loadCloudState() {
+  if (!hasSupabaseClient() || currentSession.mode !== 'user' || !currentSession.userId) {
+    return false;
+  }
+
+  isCloudLoading = true;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('app_states')
+      .select('state, updated_at')
+      .eq('user_id', currentSession.userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error(error);
+      showNotice('No se pudo cargar la nube', error.message || 'Se usará la copia local de este navegador.');
+      return false;
+    }
+
+    if (data?.state) {
+      state = normalizeState(data.state);
+      localStorage.setItem(activeStorageKey, JSON.stringify(state));
+      lastCloudSyncAt = data.updated_at || nowIso();
+      return true;
+    }
+
+    const localSaved = localStorage.getItem(activeStorageKey);
+    state = normalizeState(localSaved ? JSON.parse(localSaved) : null);
+    await saveCloudStateNow();
+    return true;
+  } catch (error) {
+    console.error(error);
+    showNotice('Error de sincronización', 'No se pudo cargar tu información desde Supabase.');
+    return false;
+  } finally {
+    isCloudLoading = false;
+  }
+}
+
+
+
+function setProfileTab(tabName = 'profile') {
+  const panels = {
+    profile: dom.profilePanel,
+    stats: dom.profileStatsPanel,
+    settings: dom.profileSettingsPanel,
+  };
+
+  Object.entries(panels).forEach(([key, panel]) => {
+    panel?.classList.toggle('hidden', key !== tabName);
+  });
+
+  dom.profileTabs?.forEach((button) => {
+    button.classList.toggle('active', button.dataset.profileTab === tabName);
+  });
+}
+
+function renderMiniRanking(container, entries, emptyText) {
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = '';
+
+  if (!entries.length) {
+    const empty = document.createElement('p');
+    empty.className = 'helper-text';
+    empty.textContent = emptyText;
+    container.appendChild(empty);
+    return;
+  }
+
+  entries.slice(0, 5).forEach(([label, value]) => {
+    const row = document.createElement('div');
+    row.className = 'mini-ranking-row';
+    row.innerHTML = `
+      <span>${escapeHtml(label)}</span>
+      <strong>${value}</strong>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function getUsageStats() {
+  const bills = Array.isArray(state.bills) ? state.bills : [];
+  const stats = {
+    totalBills: bills.length,
+    activeBills: bills.filter((bill) => !bill.archived).length,
+    archivedBills: bills.filter((bill) => bill.archived).length,
+    historicalTotal: 0,
+    averageBill: 0,
+    peopleCount: 0,
+    productCount: 0,
+    homeBills: 0,
+    outingBills: 0,
+    topCategories: new Map(),
+    topPeople: new Map(),
+    lastActivity: null,
+  };
+
+  for (const bill of bills) {
+    const calculation = calculateBill(bill);
+    stats.historicalTotal += calculation.grandTotal || 0;
+    stats.peopleCount += Array.isArray(bill.people) ? bill.people.length : 0;
+    stats.productCount += Array.isArray(bill.products) ? bill.products.length : 0;
+
+    if (bill.mode === 'home') {
+      stats.homeBills += 1;
+    } else {
+      stats.outingBills += 1;
+    }
+
+    for (const [category, total] of Object.entries(calculation.categoryTotals || {})) {
+      if (total > 0) {
+        stats.topCategories.set(category, (stats.topCategories.get(category) || 0) + Math.round(total));
+      }
+    }
+
+    for (const person of bill.people || []) {
+      const key = person.name || 'Persona';
+      stats.topPeople.set(key, (stats.topPeople.get(key) || 0) + 1);
+    }
+
+    const activity = bill.updatedAt || bill.createdAt;
+    if (activity && (!stats.lastActivity || new Date(activity) > new Date(stats.lastActivity))) {
+      stats.lastActivity = activity;
+    }
+  }
+
+  stats.averageBill = stats.totalBills > 0 ? stats.historicalTotal / stats.totalBills : 0;
+  stats.topCategories = [...stats.topCategories.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([label, value]) => [label, formatCurrency(value)]);
+  stats.topPeople = [...stats.topPeople.entries()].sort((a, b) => b[1] - a[1]);
+
+  return stats;
+}
+
+function renderProfilePanels() {
+  const isUser = currentSession.mode === 'user';
+
+  if (!isUser || !dom.profileNickInput) {
+    return;
+  }
+
+  const profile = getProfile();
+  const displayName = getProfileDisplayName();
+  const activeElement = document.activeElement;
+  const editableFields = [
+    dom.profileNickInput,
+    dom.profileNameInput,
+    dom.profilePhoneInput,
+    dom.profileCurrencyInput,
+    dom.profileThemePreferenceInput,
+  ];
+
+  if (!editableFields.includes(activeElement)) {
+    dom.profileNickInput.value = profile.nick || '';
+    dom.profileNameInput.value = profile.name || '';
+    dom.profilePhoneInput.value = profile.phone ? formatPhoneForDisplay(profile.phone) : '';
+    dom.profileEmailInput.value = currentSession.email || '';
+    dom.profileCurrencyInput.value = profile.currency || 'CLP';
+    dom.profileThemePreferenceInput.value = profile.themePreference || 'system';
+  }
+
+  if (dom.profileAvatar) {
+    if (profile.avatarDataUrl) {
+      dom.profileAvatar.innerHTML = `<img src="${profile.avatarDataUrl}" alt="Foto de perfil" />`;
+    } else {
+      dom.profileAvatar.textContent = getInitials(displayName);
+    }
+  }
+
+  const stats = getUsageStats();
+
+  dom.statTotalBills.textContent = stats.totalBills;
+  dom.statActiveBills.textContent = stats.activeBills;
+  dom.statHistoricalTotal.textContent = formatCurrency(stats.historicalTotal);
+  dom.statAverageBill.textContent = formatCurrency(stats.averageBill);
+  dom.statPeopleCount.textContent = stats.peopleCount;
+  dom.statProductCount.textContent = stats.productCount;
+  dom.statHomeBills.textContent = stats.homeBills;
+  dom.statOutingBills.textContent = stats.outingBills;
+  dom.statLastActivity.textContent = stats.lastActivity
+    ? `Última actividad: ${formatDate(stats.lastActivity)}`
+    : 'Sin actividad registrada.';
+
+  renderMiniRanking(dom.statTopCategories, stats.topCategories, 'Sin categorías todavía.');
+  renderMiniRanking(dom.statTopPeople, stats.topPeople, 'Sin personas todavía.');
+}
+
+async function saveProfileFromModal() {
+  if (currentSession.mode !== 'user') {
+    return;
+  }
+
+  const profile = getProfile();
+  const nick = dom.profileNickInput.value.trim();
+  const name = dom.profileNameInput.value.trim();
+  const phone = normalizePhoneNumber(dom.profilePhoneInput.value);
+  const currency = dom.profileCurrencyInput.value === 'CLP' ? 'CLP' : 'CLP';
+  const themePreference = ['system', 'light', 'dark'].includes(dom.profileThemePreferenceInput.value)
+    ? dom.profileThemePreferenceInput.value
+    : 'system';
+
+  profile.nick = nick;
+  profile.name = name;
+  profile.phone = phone;
+  profile.currency = currency;
+  profile.themePreference = themePreference;
+  profile.updatedAt = nowIso();
+
+  currentSession.name = nick || name || currentSession.email || 'Usuario';
+  saveAuthSession();
+
+  if (themePreference === 'light' || themePreference === 'dark') {
+    document.documentElement.dataset.theme = themePreference;
+    localStorage.setItem(THEME_KEY, themePreference);
+    dom.themeToggle.textContent = themePreference === 'dark' ? 'Modo claro' : 'Modo oscuro';
+  }
+
+  saveState();
+
+  if (hasSupabaseClient()) {
+    const { error } = await supabaseClient.auth.updateUser({
+      data: {
+        nick,
+        nombre: name,
+        phone,
+      },
+    });
+
+    if (error) {
+      showNotice('Perfil guardado localmente', `No se pudo actualizar metadata en Supabase: ${error.message}`);
+    }
+  }
+
+  await saveCloudStateNow();
+  render();
+  showToast('Perfil actualizado.');
+}
+
+async function saveProfilePreferences() {
+  await saveProfileFromModal();
+}
+
 
 function renderAuthUI() {
   if (!dom.authButton || !dom.authStatusBadge) {
@@ -324,8 +622,10 @@ function renderAuthUI() {
 
   const isUser = currentSession.mode === 'user';
 
-  dom.authStatusBadge.textContent = isUser ? `Usuario: ${currentSession.name || currentSession.email}` : 'Invitado';
+  const displayName = isUser ? getProfileDisplayName() : '';
+  dom.authStatusBadge.textContent = isUser ? `Nube: ${displayName}` : 'Invitado';
   dom.authStatusBadge.classList.toggle('is-user', isUser);
+  dom.authStatusBadge.title = isUser ? 'Abrir perfil' : 'Iniciar sesión';
   dom.authButton.textContent = isUser ? 'Mi cuenta' : 'Ingresar';
 
   if (dom.authSessionPanel && dom.authFormsPanel) {
@@ -333,8 +633,9 @@ function renderAuthUI() {
     dom.authFormsPanel.classList.toggle('hidden', isUser);
 
     if (isUser) {
-      dom.authSessionTitle.textContent = `Hola, ${currentSession.name || currentSession.email}`;
-      dom.authSessionDescription.textContent = `Tus cuentas se están guardando en este navegador para ${currentSession.email}.`;
+      dom.authSessionTitle.textContent = `Hola, ${displayName}`;
+      dom.authSessionDescription.textContent = `Tus cuentas se están sincronizando con Supabase para ${currentSession.email}. ${lastCloudSyncAt ? 'Última sincronización: ' + new Date(lastCloudSyncAt).toLocaleString('es-CL') : ''}`;
+      renderProfilePanels();
     }
   }
 }
@@ -591,6 +892,145 @@ function createReceiptItem(name, price, seen, items) {
   };
 }
 
+
+function isReceiptProductNameLine(line) {
+  const cleanLine = cleanReceiptProductName(line);
+
+  if (!cleanLine || shouldIgnoreReceiptLine(cleanLine)) {
+    return false;
+  }
+
+  if (!/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ$]/.test(cleanLine)) {
+    return false;
+  }
+
+  if (/^\$?\s*-?\d/.test(cleanLine)) {
+    return false;
+  }
+
+  // Evita encabezados o nombres demasiado genéricos.
+  const normalized = normalizeReceiptKeyword(cleanLine);
+  const nonProductWords = ['comidas', 'bebidas', 'detalle', 'restaurant', 'restaurante', 'terraza'];
+
+  if (nonProductWords.some((word) => normalized === word || normalized.includes(`${word} de`))) {
+    return false;
+  }
+
+  return true;
+}
+
+function extractReceiptAmounts(line) {
+  const matches = String(line || '').match(/-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{4,7}/g) || [];
+
+  return matches
+    .map(parseMoneyFromReceipt)
+    .filter((amount) => amount > 0);
+}
+
+function isReceiptQuantityLine(line) {
+  return /^\s*\d+[,.]\d{1,2}\s*$/.test(String(line || ''));
+}
+
+function isReceiptQuantityAndAmountLine(line) {
+  return /^\s*\d+[,.]\d{1,2}\s+\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/.test(String(line || ''));
+}
+
+function amountFromQuantityAndAmountLine(line) {
+  const match = String(line || '').match(/^\s*\d+[,.]\d{1,2}\s+\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
+  return match ? parseMoneyFromReceipt(match[1]) : 0;
+}
+
+function addReceiptItemFromParts(items, seen, name, price) {
+  const item = createReceiptItem(name, price, seen, items);
+
+  if (item) {
+    items.push(item);
+    return true;
+  }
+
+  return false;
+}
+
+function detectSeparatedReceiptColumns(rawLines, items, seen) {
+  let index = 0;
+
+  while (index < rawLines.length) {
+    const productLines = [];
+
+    // Buscar bloque de nombres de productos.
+    while (index < rawLines.length) {
+      const line = rawLines[index];
+
+      if (isReceiptProductNameLine(line)) {
+        productLines.push(line);
+        index += 1;
+        continue;
+      }
+
+      break;
+    }
+
+    if (productLines.length === 0) {
+      index += 1;
+      continue;
+    }
+
+    // Capturar líneas siguientes hasta la próxima sección con texto.
+    const numericLines = [];
+    let scan = index;
+
+    while (scan < rawLines.length) {
+      const line = rawLines[scan];
+
+      if (isReceiptProductNameLine(line)) {
+        break;
+      }
+
+      if (shouldIgnoreReceiptLine(line) && !extractReceiptAmounts(line).length) {
+        break;
+      }
+
+      if (extractReceiptAmounts(line).length || isReceiptQuantityLine(line) || isReceiptQuantityAndAmountLine(line)) {
+        numericLines.push(line);
+      }
+
+      scan += 1;
+    }
+
+    // Caso 1: cada línea numérica trae cantidad + monto.
+    const quantityAmountLines = numericLines
+      .filter(isReceiptQuantityAndAmountLine)
+      .map(amountFromQuantityAndAmountLine)
+      .filter((amount) => amount > 0);
+
+    if (quantityAmountLines.length >= productLines.length) {
+      productLines.forEach((name, productIndex) => {
+        addReceiptItemFromParts(items, seen, name, quantityAmountLines[productIndex]);
+      });
+      index = scan;
+      continue;
+    }
+
+    // Caso 2: OCR separa nombres, cantidades y montos por columnas.
+    const amounts = numericLines
+      .flatMap(extractReceiptAmounts)
+      .filter((amount) => amount >= 300);
+
+    // Si viene un subtotal al final, normalmente sobra un monto.
+    const usableAmounts = amounts.slice(0, productLines.length);
+
+    if (usableAmounts.length >= productLines.length) {
+      productLines.forEach((name, productIndex) => {
+        addReceiptItemFromParts(items, seen, name, usableAmounts[productIndex]);
+      });
+      index = scan;
+      continue;
+    }
+
+    index = Math.max(index + 1, scan);
+  }
+}
+
 function parseReceiptText(text) {
   const rawLines = String(text || '')
     .split(/\r?\n/)
@@ -610,20 +1050,14 @@ function parseReceiptText(text) {
     // Caso A: Producto + cantidad + precio. Ej: VIAN ITALIANA 2.00 8,180
     let match = line.match(/^(.+?)\s+(\d+[,.]\d{1,2})\s+\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
     if (match) {
-      const item = createReceiptItem(match[1], match[3], seen, items);
-      if (item) {
-        items.push(item);
-      }
+      addReceiptItemFromParts(items, seen, match[1], match[3]);
       continue;
     }
 
     // Caso B: Producto + precio. Ej: Papas fritas 8.250
     match = line.match(/^(.+?)\s+\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
     if (match) {
-      const item = createReceiptItem(match[1], match[2], seen, items);
-      if (item) {
-        items.push(item);
-      }
+      addReceiptItemFromParts(items, seen, match[1], match[2]);
       continue;
     }
 
@@ -633,17 +1067,21 @@ function parseReceiptText(text) {
     // 2.00 8,180
     const nextLine = rawLines[index + 1] || '';
     const splitMatch = nextLine.match(/^(?:\d+[,.]\d{1,2}\s+)?\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
-    if (splitMatch && !shouldIgnoreReceiptLine(line)) {
-      const item = createReceiptItem(line, splitMatch[1], seen, items);
-      if (item) {
-        items.push(item);
+    if (splitMatch && isReceiptProductNameLine(line)) {
+      const added = addReceiptItemFromParts(items, seen, line, splitMatch[1]);
+      if (added) {
         index += 1;
       }
     }
   }
 
+  // Caso D: OCR leyó las columnas completas por separado:
+  // nombres primero, cantidades después, montos después.
+  detectSeparatedReceiptColumns(rawLines, items, seen);
+
   return items;
 }
+
 
 function loadImageFromFile(file) {
   return new Promise((resolve, reject) => {
@@ -880,6 +1318,16 @@ function addReceiptItemsToBill() {
 }
 
 
+
+function handleAuthBadgeClick() {
+  if (currentSession.mode === 'user') {
+    window.location.href = 'perfil.html';
+    return;
+  }
+
+  openAuthModal();
+}
+
 function openAuthModal() {
   renderAuthUI();
   dom.authModal.classList.remove('hidden');
@@ -904,13 +1352,18 @@ function showRegisterForm() {
   dom.showRegisterButton.classList.add('active');
   dom.showLoginButton.classList.remove('active');
 }
-
 async function registerLocalUser(event) {
   event.preventDefault();
+
+  if (!hasSupabaseClient()) {
+    showNotice('Supabase no disponible', 'No se pudo cargar la conexión a Supabase.');
+    return;
+  }
 
   const name = dom.registerNameInput.value.trim();
   const email = normalizeEmail(dom.registerEmailInput.value);
   const password = dom.registerPasswordInput.value;
+  const guestState = normalizeState(state);
 
   if (!name) {
     showToast('Ingresa tu nombre.');
@@ -922,91 +1375,104 @@ async function registerLocalUser(event) {
     return;
   }
 
-  if (!password || password.length < 4) {
-    showToast('La contraseña debe tener al menos 4 caracteres.');
+  if (!password || password.length < 6) {
+    showToast('La contraseña debe tener al menos 6 caracteres.');
     return;
   }
 
-  const users = getUsers();
-
-  if (users.some((user) => normalizeEmail(user.email) === email)) {
-    showNotice('Usuario existente', 'Ya existe una cuenta local con ese correo. Inicia sesión.');
-    return;
-  }
-
-  const salt = createSalt();
-  const passwordHash = await hashPassword(password, salt);
-  const createdAt = nowIso();
-
-  users.push({
-    id: createId('user'),
-    name,
+  const { data, error } = await supabaseClient.auth.signUp({
     email,
-    salt,
-    passwordHash,
-    createdAt,
+    password,
+    options: {
+      data: {
+        nombre: name,
+      },
+    },
   });
 
-  saveUsers(users);
-
-  const userStorageKey = getUserStorageKey(email);
-
-  if (dom.importGuestDataCheckbox.checked) {
-    localStorage.setItem(userStorageKey, JSON.stringify(state));
-  } else {
-    localStorage.setItem(userStorageKey, JSON.stringify(normalizeState(null)));
+  if (error) {
+    showNotice('No se pudo crear la cuenta', error.message);
+    return;
   }
 
-  currentSession = { mode: 'user', email, name };
-  activeStorageKey = userStorageKey;
+  const sessionUser = data?.session?.user || data?.user;
+
+  if (!data?.session) {
+    showNotice('Cuenta creada', 'Supabase creó el usuario, pero requiere confirmación de correo antes de iniciar sesión.');
+    return;
+  }
+
+  setUserSession(sessionUser);
   saveAuthSession();
-  loadState();
+
+  if (dom.importGuestDataCheckbox.checked) {
+    state = guestState;
+  } else {
+    state = normalizeState(null);
+  }
+
+  state.profile = makeDefaultProfile({
+    nick: name,
+    name,
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
+  });
+
   migrateEmptyDefaultPeople();
-  saveState();
+  localStorage.setItem(activeStorageKey, JSON.stringify(state));
+  await saveCloudStateNow();
   render();
   closeAuthModal();
-  showToast('Cuenta creada e iniciada.');
+  showToast('Cuenta creada y sincronizada.');
 }
 
 async function loginLocalUser(event) {
   event.preventDefault();
 
-  const email = normalizeEmail(dom.loginEmailInput.value);
-  const password = dom.loginPasswordInput.value;
-  const user = getUsers().find((item) => normalizeEmail(item.email) === email);
-
-  if (!user) {
-    showNotice('Usuario no encontrado', 'No existe una cuenta local con ese correo en este navegador.');
+  if (!hasSupabaseClient()) {
+    showNotice('Supabase no disponible', 'No se pudo cargar la conexión a Supabase.');
     return;
   }
 
-  const passwordHash = await hashPassword(password, user.salt);
+  const email = normalizeEmail(dom.loginEmailInput.value);
+  const password = dom.loginPasswordInput.value;
 
-  if (passwordHash !== user.passwordHash) {
-    showNotice('Contraseña incorrecta', 'Revisa la contraseña e inténtalo nuevamente.');
+  if (!email || !password) {
+    showToast('Ingresa correo y contraseña.');
     return;
   }
 
   saveState();
 
-  currentSession = {
-    mode: 'user',
-    email: normalizeEmail(user.email),
-    name: user.name || user.email,
-  };
-  activeStorageKey = getUserStorageKey(user.email);
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    showNotice('No se pudo iniciar sesión', error.message);
+    return;
+  }
+
+  setUserSession(data.user);
   saveAuthSession();
 
-  loadState();
+  const loaded = await loadCloudState();
+
+  if (!loaded) {
+    loadState();
+  }
+
   migrateEmptyDefaultPeople();
   saveState();
   render();
   closeAuthModal();
-  showToast('Sesión iniciada.');
+  showToast('Sesión iniciada con Supabase.');
 }
 
 function switchToGuestMode() {
   saveState();
+  supabaseClient?.auth?.signOut?.();
   clearAuthSession();
   loadState();
   migrateEmptyDefaultPeople();
@@ -1016,8 +1482,14 @@ function switchToGuestMode() {
   showToast('Modo invitado activo.');
 }
 
-function logoutLocalUser() {
+async function logoutLocalUser() {
   saveState();
+
+  if (hasSupabaseClient()) {
+    await saveCloudStateNow();
+    await supabaseClient.auth.signOut();
+  }
+
   clearAuthSession();
   loadState();
   migrateEmptyDefaultPeople();
@@ -1155,10 +1627,79 @@ function normalizeQuickProducts(products) {
     .filter((product) => product.name);
 }
 
+
+function makeDefaultProfile(input = {}) {
+  const sessionName = currentSession?.name && currentSession.name !== 'Usuario'
+    ? currentSession.name
+    : '';
+
+  return {
+    nick: String(input.nick || input.displayName || sessionName || '').trim(),
+    name: String(input.name || sessionName || '').trim(),
+    phone: normalizePhoneNumber(input.phone || ''),
+    avatarDataUrl: String(input.avatarDataUrl || input.avatar || '').startsWith('data:image/') ? String(input.avatarDataUrl || input.avatar) : '',
+    currency: input.currency === 'CLP' ? 'CLP' : 'CLP',
+    themePreference: ['system', 'light', 'dark'].includes(input.themePreference) ? input.themePreference : 'system',
+    createdAt: input.createdAt || nowIso(),
+    updatedAt: input.updatedAt || nowIso(),
+  };
+}
+
+function getProfile() {
+  state.profile = makeDefaultProfile(state.profile || {});
+  return state.profile;
+}
+
+function getProfileDisplayName() {
+  const profile = getProfile();
+  return profile.nick || profile.name || currentSession.name || currentSession.email || 'Usuario';
+}
+
+function getInitials(value) {
+  const parts = String(value || 'CC')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2);
+
+  if (!parts.length) {
+    return 'CC';
+  }
+
+  return parts.map((part) => part.charAt(0).toUpperCase()).join('');
+}
+
+
+
+function normalizeFriends(input = []) {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return input
+    .map((friend) => ({
+      id: friend.id || createId('friend'),
+      name: String(friend.name || '').trim(),
+      phone: normalizePhoneNumber(friend.phone || ''),
+      email: String(friend.email || '').trim(),
+      notes: String(friend.notes || '').trim(),
+      avatarDataUrl: String(friend.avatarDataUrl || '').startsWith('data:image/') ? String(friend.avatarDataUrl) : '',
+      createdAt: friend.createdAt || nowIso(),
+      updatedAt: friend.updatedAt || friend.createdAt || nowIso(),
+    }))
+    .filter((friend) => friend.name);
+}
+
+function getFriends() {
+  state.friends = normalizeFriends(state.friends || []);
+  return state.friends;
+}
+
+
 function normalizeState(input) {
   if (!input || !Array.isArray(input.bills)) {
     const bill = makeDefaultBill();
-    return { bills: [bill], activeBillId: bill.id, quickProducts: makeDefaultQuickProducts() };
+    return { bills: [bill], activeBillId: bill.id, quickProducts: makeDefaultQuickProducts(), profile: makeDefaultProfile(input?.profile || {}), friends: normalizeFriends(input?.friends || []) };
   }
 
   const bills = input.bills.map((bill) => {
@@ -1208,14 +1749,14 @@ function normalizeState(input) {
 
   if (bills.length === 0) {
     const bill = makeDefaultBill();
-    return { bills: [bill], activeBillId: bill.id, quickProducts: normalizeQuickProducts(input?.quickProducts) };
+    return { bills: [bill], activeBillId: bill.id, quickProducts: normalizeQuickProducts(input?.quickProducts), profile: makeDefaultProfile(input?.profile || {}), friends: normalizeFriends(input?.friends || []) };
   }
 
   const activeBillId = bills.some((bill) => bill.id === input.activeBillId)
     ? input.activeBillId
     : bills[0].id;
 
-  return { bills, activeBillId, quickProducts: normalizeQuickProducts(input.quickProducts) };
+  return { bills, activeBillId, quickProducts: normalizeQuickProducts(input.quickProducts), profile: makeDefaultProfile(input.profile || {}), friends: normalizeFriends(input.friends || []) };
 }
 
 function loadState() {
@@ -1254,6 +1795,7 @@ function migrateEmptyDefaultPeople() {
 
 function saveState() {
   localStorage.setItem(activeStorageKey, JSON.stringify(state));
+  scheduleCloudSave();
 }
 
 function getActiveBill() {
@@ -1658,6 +2200,147 @@ function renderPayerSelect() {
   dom.payerSelect.value = bill.people.some((person) => person.id === current) ? current : '';
 }
 
+
+
+function canUseRegisteredFriends() {
+  return typeof supabaseClient !== 'undefined' && currentSession.mode === 'user' && Boolean(currentSession.userId);
+}
+
+async function fetchRegisteredFriendsForPicker() {
+  if (!canUseRegisteredFriends()) {
+    return [];
+  }
+
+  try {
+    const { data: requests, error } = await supabaseClient
+      .from('friend_requests')
+      .select('id, requester_id, recipient_id, status')
+      .eq('status', 'accepted')
+      .or(`requester_id.eq.${currentSession.userId},recipient_id.eq.${currentSession.userId}`);
+
+    if (error) {
+      console.error(error);
+      return [];
+    }
+
+    const otherIds = [...new Set((requests || []).map((request) =>
+      request.requester_id === currentSession.userId ? request.recipient_id : request.requester_id
+    ))];
+
+    if (!otherIds.length) {
+      return [];
+    }
+
+    const { data: profiles, error: profileError } = await supabaseClient
+      .from('public_profiles')
+      .select('id, nick, nombre, email, telefono, avatar_data_url')
+      .in('id', otherIds);
+
+    if (profileError) {
+      console.error(profileError);
+      return [];
+    }
+
+    return (profiles || []).map((profile) => ({
+      id: `registered_${profile.id}`,
+      userId: profile.id,
+      source: 'registered',
+      name: profile.nick || profile.nombre || profile.email || 'Usuario',
+      phone: normalizePhoneNumber(profile.telefono || ''),
+      email: profile.email || '',
+      avatarDataUrl: profile.avatar_data_url || '',
+    }));
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+async function openFriendsPicker() {
+  const manualFriends = getFriends().map((friend) => ({ ...friend, source: 'manual' }));
+  const registeredFriends = await fetchRegisteredFriendsForPicker();
+  friendsPickerItems = [...registeredFriends, ...manualFriends];
+
+  if (friendsPickerItems.length === 0) {
+    showNotice('Sin amigos guardados', 'Agrega amigos desde tu perfil. También puedes buscar usuarios registrados y enviar solicitudes de amistad.');
+    return;
+  }
+
+  renderFriendsPicker();
+  dom.friendsPickerModal.classList.remove('hidden');
+  document.body.classList.add('modal-open');
+}
+
+function closeFriendsPicker() {
+  dom.friendsPickerModal.classList.add('hidden');
+  document.body.classList.remove('modal-open');
+}
+
+function renderFriendsPicker() {
+  const bill = getActiveBill();
+  const existingNames = new Set(bill.people.map((person) => person.name.toLowerCase()));
+
+  dom.friendsPickerList.innerHTML = '';
+
+  for (const friend of friendsPickerItems) {
+    const alreadyInBill = existingNames.has(friend.name.toLowerCase());
+    const row = document.createElement('label');
+    row.className = `friend-picker-row ${alreadyInBill ? 'is-disabled' : ''}`;
+    row.innerHTML = `
+      <input type="checkbox" value="${friend.id}" ${alreadyInBill ? 'disabled' : ''} />
+      <div class="friend-mini-avatar">${friend.avatarDataUrl ? `<img src="${friend.avatarDataUrl}" alt="" />` : getInitials(friend.name)}</div>
+      <div>
+        <strong>${escapeHtml(friend.name)}</strong>
+        <small>${friend.source === 'registered' ? 'Usuario registrado' : 'Amigo manual'} · ${friend.phone ? escapeHtml(formatPhoneForDisplay(friend.phone)) : 'Sin teléfono'}${alreadyInBill ? ' · Ya está en esta cuenta' : ''}</small>
+      </div>
+    `;
+
+    dom.friendsPickerList.appendChild(row);
+  }
+}
+
+function addSelectedFriendsToBill() {
+  const selected = [...dom.friendsPickerList.querySelectorAll('input[type="checkbox"]:checked')]
+    .map((input) => input.value);
+  const friends = friendsPickerItems.filter((friend) => selected.includes(friend.id));
+
+  if (friends.length === 0) {
+    showToast('Selecciona al menos un amigo.');
+    return;
+  }
+
+  const bill = getActiveBill();
+  let added = 0;
+
+  for (const friend of friends) {
+    const exists = bill.people.some((person) => person.name.toLowerCase() === friend.name.toLowerCase());
+
+    if (exists) {
+      continue;
+    }
+
+    bill.people.push({
+      id: createId('person'),
+      name: friend.name,
+      phone: normalizePhoneNumber(friend.phone || ''),
+      userId: friend.userId || '',
+      paid: false,
+    });
+
+    added += 1;
+  }
+
+  if (added === 0) {
+    showToast('No se agregaron personas nuevas.');
+    return;
+  }
+
+  persistAndRender();
+  closeFriendsPicker();
+  showToast(`${added} amigo${added === 1 ? '' : 's'} agregado${added === 1 ? '' : 's'} a la cuenta.`);
+}
+
+
 function renderPeople() {
   const bill = getActiveBill();
   dom.peopleList.innerHTML = '';
@@ -2036,6 +2719,7 @@ function emptyMessage(message) {
 }
 
 function render() {
+  renderAuthUI();
   renderQuickProducts();
   renderBillList();
   renderBillHeader();
@@ -3939,20 +4623,38 @@ dom.unselectAllReceiptItemsButton.addEventListener('click', () => setAllReceiptI
 dom.addReceiptItemsButton.addEventListener('click', addReceiptItemsToBill);
 
 
-dom.authButton.addEventListener('click', openAuthModal);
-dom.closeAuthModalButton.addEventListener('click', closeAuthModal);
-dom.authModal.addEventListener('click', (event) => {
-  if (event.target === dom.authModal) {
-    closeAuthModal();
-  }
+dom.authButton && dom.authButton.addEventListener('click', openAuthModal);
+dom.authStatusBadge && dom.authStatusBadge.addEventListener('click', handleAuthBadgeClick);
+dom.closeAuthModalButton && dom.closeAuthModalButton.addEventListener('click', closeAuthModal);
+if (dom.authModal) {
+  dom.authModal.addEventListener('click', (event) => {
+    if (event.target === dom.authModal) {
+      closeAuthModal();
+    }
+  });
+}
+dom.showLoginButton && dom.showLoginButton.addEventListener('click', showLoginForm);
+dom.showRegisterButton && dom.showRegisterButton.addEventListener('click', showRegisterForm);
+dom.loginForm && dom.loginForm.addEventListener('submit', loginLocalUser);
+dom.registerForm && dom.registerForm.addEventListener('submit', registerLocalUser);
+dom.continueGuestButton && dom.continueGuestButton.addEventListener('click', switchToGuestMode);
+dom.switchToGuestButton && dom.switchToGuestButton.addEventListener('click', switchToGuestMode);
+dom.logoutButton && dom.logoutButton.addEventListener('click', logoutLocalUser);
+
+
+dom.profileTabs?.forEach((button) => {
+  button.addEventListener('click', () => {
+    setProfileTab(button.dataset.profileTab || 'profile');
+    renderProfilePanels();
+  });
 });
-dom.showLoginButton.addEventListener('click', showLoginForm);
-dom.showRegisterButton.addEventListener('click', showRegisterForm);
-dom.loginForm.addEventListener('submit', loginLocalUser);
-dom.registerForm.addEventListener('submit', registerLocalUser);
-dom.continueGuestButton.addEventListener('click', switchToGuestMode);
-dom.switchToGuestButton.addEventListener('click', switchToGuestMode);
-dom.logoutButton.addEventListener('click', logoutLocalUser);
+
+dom.saveProfileButton && dom.saveProfileButton.addEventListener('click', saveProfileFromModal);
+dom.savePreferencesButton && dom.savePreferencesButton.addEventListener('click', saveProfilePreferences);
+dom.syncNowButton && dom.syncNowButton.addEventListener('click', async () => {
+  await saveCloudStateNow();
+  showToast('Sincronización solicitada.');
+});
 
 dom.installAppButton.addEventListener('click', installApp);
 dom.themeToggle.addEventListener('click', toggleTheme);
@@ -4022,6 +4724,29 @@ dom.personForm.addEventListener('submit', (event) => {
 
 dom.markAllPaidButton.addEventListener('click', () => markAllPaid(true));
 dom.markAllPendingButton.addEventListener('click', () => markAllPaid(false));
+
+
+if (dom.openFriendsPickerButton) {
+  dom.openFriendsPickerButton.addEventListener('click', openFriendsPicker);
+}
+
+if (dom.closeFriendsPickerButton) {
+  dom.closeFriendsPickerButton.addEventListener('click', closeFriendsPicker);
+}
+
+if (dom.friendsPickerModal) {
+  dom.friendsPickerModal.addEventListener('click', (event) => {
+    if (event.target === dom.friendsPickerModal) {
+      closeFriendsPicker();
+    }
+  });
+}
+
+if (dom.addSelectedFriendsButton) {
+  dom.addSelectedFriendsButton.addEventListener('click', addSelectedFriendsToBill);
+}
+
+
 
 dom.tipPercentInput.addEventListener('input', () => {
   const bill = getActiveBill();
@@ -4128,6 +4853,10 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && !dom.receiptModal.classList.contains('hidden')) {
     closeReceiptModal();
   }
+
+  if (dom.friendsPickerModal && event.key === 'Escape' && !dom.friendsPickerModal.classList.contains('hidden')) {
+    closeFriendsPicker();
+  }
 });
 
 document.querySelectorAll('input[name="shareFormat"], input[name="shareContent"]').forEach((input) => {
@@ -4143,12 +4872,46 @@ dom.whatsappSelectedShareButton.addEventListener('click', whatsappSelectedShare)
 dom.downloadImageButton.addEventListener('click', downloadShareImage);
 dom.nativeShareImageButton.addEventListener('click', shareImageNatively);
 
-initTheme();
-updateInstallButton();
-loadAuthSession();
-loadState();
-migrateEmptyDefaultPeople();
-importBillFromUrl();
-saveState();
-render();
-initServiceWorker();
+async function initApp() {
+  initTheme();
+  updateInstallButton();
+  await initializeAuthSession();
+  loadState();
+
+  if (currentSession.mode === 'user') {
+    await loadCloudState();
+  }
+
+  migrateEmptyDefaultPeople();
+  importBillFromUrl();
+  saveState();
+  render();
+  initServiceWorker();
+
+  if (hasSupabaseClient()) {
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        return;
+      }
+
+      if (session?.user && currentSession.userId !== session.user.id) {
+        setUserSession(session.user);
+        saveAuthSession();
+        await loadCloudState();
+        migrateEmptyDefaultPeople();
+        saveState();
+        render();
+      }
+    });
+  }
+}
+
+initApp().catch((error) => {
+  console.error('Error al iniciar Cuenta Clara:', error);
+  const message = error?.message || 'Error desconocido al iniciar la app.';
+  try {
+    showNotice('Error al iniciar la app', message);
+  } catch {
+    alert(`Error al iniciar Cuenta Clara: ${message}`);
+  }
+});

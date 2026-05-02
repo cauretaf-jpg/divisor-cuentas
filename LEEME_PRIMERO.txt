@@ -1,0 +1,26 @@
+CUENTA CLARA V8.1 - CARPETA COMPLETA
+
+Esta carpeta contiene todos los archivos de la app y el ejecutable para subir cambios a GitHub.
+
+RUTA DE TU PROYECTO:
+C:\Users\caure\Desktop\Paginas\Cuentas
+
+PASOS RECOMENDADOS:
+
+1. Descomprime este ZIP.
+2. Entra a la carpeta "Cuentas".
+3. Copia TODO su contenido.
+4. Pégalo dentro de:
+   C:\Users\caure\Desktop\Paginas\Cuentas
+5. Reemplaza los archivos existentes.
+6. Prueba con Live Server / Super Live Server.
+7. Antes de probar amigos entre usuarios, ejecuta en Supabase:
+   supabase-social.sql
+8. Si todo funciona, ejecuta:
+   subir-cuenta-clara-github.cmd
+
+IMPORTANTE:
+- supabase-app-state.sql ya lo ejecutaste antes.
+- supabase-social.sql es necesario para amigos entre usuarios.
+- El ejecutable sube la carpeta real del proyecto:
+  C:\Users\caure\Desktop\Paginas\Cuentas
