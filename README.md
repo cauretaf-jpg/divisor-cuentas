@@ -1,4 +1,4 @@
-# Cuenta Clara V4.0
+# Cuenta Clara V4.2
 
 App web funcional para dividir cuentas entre varias personas.
 
@@ -205,3 +205,28 @@ Esta versión queda lista para Auto Ads. Para que los anuncios aparezcan en prod
 - Permite duplicar el mes del hogar usando los gastos recurrentes.
 - Ajusta textos de la interfaz: en modo Hogar se habla de gastos y participantes, no de productos y consumidores.
 - El enlace compartible y el Excel incluyen datos del modo Hogar.
+
+
+## Nuevo en V4.1
+
+- Se corrigió la vista móvil para que la app use todo el ancho disponible del celular.
+- Se ajustó el header móvil para que los botones no dejen un espacio vacío a la derecha.
+- Se reforzó el diseño responsive de tarjetas, secciones, acciones y barra inferior.
+- Las cuentas nuevas ya no traen Carlos/Vale como personas predeterminadas.
+- Se agregó una migración segura: si existe una cuenta inicial vacía llamada "Nueva cuenta" con solo Carlos y Vale, se limpia automáticamente.
+
+
+## Nuevo en V4.2
+
+- Se corrigió la edición del nombre de cuenta:
+  - puedes borrar el nombre completo sin que se reemplace inmediatamente por "Cuenta sin nombre";
+  - si sales del campo vacío, vuelve a "Nueva cuenta".
+- Se agregó tipo de división **Responsables de pago**.
+  - Útil para plataformas o gastos donde una persona paga varias partes.
+  - Ejemplo: Wladimir 2 partes, Carlos 2 partes, Pamela 1 parte.
+- En modo **Hogar**:
+  - se oculta la sección Propina;
+  - la propina se fuerza a 0;
+  - el resumen compartido no muestra propina.
+- Se quitó la caja lateral de versión/descripción.
+- Se mantiene la corrección móvil y la limpieza de Carlos/Vale predeterminados.

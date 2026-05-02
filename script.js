@@ -54,6 +54,7 @@ const dom = {
   markAllPaidButton: document.querySelector('#markAllPaidButton'),
   markAllPendingButton: document.querySelector('#markAllPendingButton'),
 
+  tipCard: document.querySelector('#tipCard'),
   tipPercentInput: document.querySelector('#tipPercentInput'),
   quickTipButtons: document.querySelectorAll('[data-tip]'),
   clearProductsButton: document.querySelector('#clearProductsButton'),
@@ -75,6 +76,7 @@ const dom = {
   productPriceInput: document.querySelector('#productPriceInput'),
   productQuantityInput: document.querySelector('#productQuantityInput'),
   productCategoryInput: document.querySelector('#productCategoryInput'),
+  productSplitModeInput: document.querySelector('#productSplitModeInput'),
   productDueDateInput: document.querySelector('#productDueDateInput'),
   productRecurringInput: document.querySelector('#productRecurringInput'),
   consumerPanelTitle: document.querySelector('#consumerPanelTitle'),
@@ -259,6 +261,7 @@ function normalizeState(input) {
             unitPrice: Number(product.unitPrice ?? product.price ?? 0),
             quantity: Number(product.quantity ?? 1),
             category: CATEGORIES.includes(product.category) ? product.category : 'Otros',
+            splitMode: product.splitMode === 'responsibles' ? 'responsibles' : 'participants',
             dueDate: product.dueDate || '',
             recurring: Boolean(product.recurring),
             consumers: Array.isArray(product.consumers)
@@ -294,6 +297,31 @@ function loadState() {
     state = normalizeState(null);
   }
 }
+
+
+function migrateEmptyDefaultPeople() {
+  let changed = false;
+
+  for (const bill of state.bills) {
+    const names = (bill.people || []).map((person) => person.name).sort().join('|');
+    const isOldEmptyStarter =
+      bill.name === 'Nueva cuenta' &&
+      names === 'Carlos|Vale' &&
+      (!Array.isArray(bill.products) || bill.products.length === 0) &&
+      (!bill.quickTotal || Number(bill.quickTotal) === 0);
+
+    if (isOldEmptyStarter) {
+      bill.people = [];
+      bill.payerId = '';
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    saveState();
+  }
+}
+
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -419,7 +447,7 @@ function calculateBill(bill = getActiveBill()) {
   }
 
   const subtotal = Object.values(baseTotals).reduce((sum, value) => sum + value, 0);
-  const tipPercent = Number(bill.tipPercent) || 0;
+  const tipPercent = bill.mode === 'home' ? 0 : (Number(bill.tipPercent) || 0);
   const tipAmount = subtotal * (tipPercent / 100);
   const finalTotals = {};
   let paidTotal = 0;
@@ -668,6 +696,7 @@ function renderBillHeader() {
   });
 
   dom.quickTotalPanel.classList.toggle('hidden', !isQuick);
+  dom.tipCard.classList.toggle('hidden', isHome);
   dom.homePanel.classList.toggle('hidden', !isHome);
   dom.productEditorCard.classList.toggle('hidden', isQuick);
   dom.productListCard.classList.toggle('hidden', isQuick);
@@ -679,10 +708,7 @@ function renderBillHeader() {
   dom.productNameLabel.textContent = isHome ? 'Gasto' : 'Producto';
   dom.productNameInput.placeholder = isHome ? 'Ej: Luz, Arriendo, Supermercado' : 'Ej: Papas fritas';
   dom.productListTitle.textContent = isHome ? 'Gastos agregados' : 'Productos agregados';
-  dom.consumerPanelTitle.textContent = isHome ? '¿Entre quiénes se divide?' : '¿Quiénes consumieron?';
-  dom.consumerPanelHelp.textContent = isHome
-    ? 'Marca las personas que participan en este gasto y ajusta las partes si corresponde.'
-    : 'Marca las personas y ajusta las partes si alguien consumió más.';
+  updateDivisionCopy();
   document.querySelectorAll('.home-only').forEach((element) => element.classList.toggle('hidden', !isHome));
 }
 
@@ -742,6 +768,23 @@ function renderPeople() {
 
     dom.peopleList.appendChild(row);
   }
+}
+
+
+function updateDivisionCopy() {
+  const bill = getActiveBill();
+  const splitMode = dom.productSplitModeInput?.value === 'responsibles' ? 'responsibles' : 'participants';
+
+  if (splitMode === 'responsibles') {
+    dom.consumerPanelTitle.textContent = 'Responsables de pago';
+    dom.consumerPanelHelp.textContent = 'Marca quién paga este gasto y cuántas partes asume cada responsable.';
+    return;
+  }
+
+  dom.consumerPanelTitle.textContent = bill.mode === 'home' ? '¿Entre quiénes se divide?' : '¿Quiénes consumieron?';
+  dom.consumerPanelHelp.textContent = bill.mode === 'home'
+    ? 'Marca las personas que participan en este gasto y ajusta las partes si corresponde.'
+    : 'Marca las personas y ajusta las partes si alguien consumió más.';
 }
 
 function renderConsumers() {
@@ -841,7 +884,7 @@ function renderProducts() {
           ${bill.mode === 'home' && product.dueDate ? `<br />Vence: ${escapeHtml(formatShortDate(product.dueDate))}` : ''}
           ${bill.mode === 'home' && product.recurring ? '<br />Recurrente' : ''}
           <br />
-          ${bill.mode === 'home' ? 'Participantes' : 'Consumidores'}: ${escapeHtml(consumerNames || 'Sin consumidores')}
+          ${divisionLabel}: ${escapeHtml(consumerNames || 'Sin personas seleccionadas')}
         </div>
       </div>
       <div class="product-actions">
@@ -875,6 +918,7 @@ function renderProductForm() {
     dom.productFormTitle.textContent = isHome ? 'Agregar gasto del hogar' : 'Agregar producto';
     dom.productSubmitButton.textContent = isHome ? 'Agregar gasto' : 'Agregar producto';
     dom.cancelEditProductButton.classList.add('hidden');
+    dom.productSplitModeInput.value = isHome ? 'responsibles' : 'participants';
     dom.productDueDateInput.value = '';
     dom.productRecurringInput.checked = false;
     renderConsumers();
@@ -897,6 +941,7 @@ function renderProductForm() {
   dom.productPriceInput.value = product.unitPrice;
   dom.productQuantityInput.value = product.quantity;
   dom.productCategoryInput.value = product.category || 'Otros';
+  dom.productSplitModeInput.value = product.splitMode === 'responsibles' ? 'responsibles' : 'participants';
   dom.productDueDateInput.value = product.dueDate || '';
   dom.productRecurringInput.checked = Boolean(product.recurring);
 
@@ -1306,6 +1351,7 @@ function submitProduct() {
   const unitPrice = Number(dom.productPriceInput.value);
   const quantity = Number(dom.productQuantityInput.value);
   const category = CATEGORIES.includes(dom.productCategoryInput.value) ? dom.productCategoryInput.value : 'Otros';
+  const splitMode = dom.productSplitModeInput.value === 'responsibles' ? 'responsibles' : 'participants';
   const dueDate = dom.productDueDateInput.value || '';
   const recurring = dom.productRecurringInput.checked;
   const consumers = getConsumersFromForm();
@@ -1338,6 +1384,7 @@ function submitProduct() {
       product.unitPrice = unitPrice;
       product.quantity = quantity;
       product.category = category;
+      product.splitMode = splitMode;
       product.dueDate = dueDate;
       product.recurring = recurring;
       product.consumers = consumers;
@@ -1352,6 +1399,7 @@ function submitProduct() {
       unitPrice,
       quantity,
       category,
+      splitMode,
       dueDate,
       recurring,
       consumers,
@@ -1417,6 +1465,7 @@ function resetProductForm() {
   dom.productForm.reset();
   dom.productQuantityInput.value = 1;
   dom.productCategoryInput.value = getActiveBill().mode === 'home' ? 'Luz' : 'Comida';
+  dom.productSplitModeInput.value = getActiveBill().mode === 'home' ? 'responsibles' : 'participants';
   dom.productDueDateInput.value = '';
   dom.productRecurringInput.checked = false;
   dom.productFormTitle.textContent = 'Agregar producto';
@@ -1515,7 +1564,11 @@ function getSummaryText(content = 'simple') {
   }
 
   lines.push(`Subtotal: ${formatCurrency(calculation.subtotal)}`);
-  lines.push(`Propina (${bill.tipPercent}%): ${formatCurrency(calculation.tipAmount)}`);
+
+  if (bill.mode !== 'home') {
+    lines.push(`Propina (${bill.tipPercent}%): ${formatCurrency(calculation.tipAmount)}`);
+  }
+
   lines.push(`Total cuenta: *${formatCurrency(calculation.grandTotal)}*`);
   lines.push(`Total pagado: *${formatCurrency(calculation.paidTotal)}*`);
   lines.push(`Total pendiente: *${formatCurrency(calculation.pendingTotal)}*`);
@@ -1573,6 +1626,7 @@ function compactBillForLink(bill) {
       unitPrice: product.unitPrice,
       quantity: product.quantity,
       category: product.category,
+      splitMode: product.splitMode || 'participants',
       dueDate: product.dueDate || '',
       recurring: Boolean(product.recurring),
       consumers: product.consumers
@@ -1617,6 +1671,7 @@ function billFromCompactLink(data) {
         unitPrice: Number(product.unitPrice || 0),
         quantity: Number(product.quantity || 1),
         category: CATEGORIES.includes(product.category) ? product.category : 'Otros',
+        splitMode: product.splitMode === 'responsibles' ? 'responsibles' : 'participants',
         dueDate: product.dueDate || '',
         recurring: Boolean(product.recurring),
         consumers: Array.isArray(product.consumers)
@@ -2767,7 +2822,16 @@ dom.historyFilterSelect.addEventListener('change', renderBillList);
 
 dom.billNameInput.addEventListener('input', () => {
   const bill = getActiveBill();
-  bill.name = dom.billNameInput.value.trim() || 'Cuenta sin nombre';
+  bill.name = dom.billNameInput.value;
+  touchActiveBill();
+  saveState();
+});
+
+dom.billNameInput.addEventListener('blur', () => {
+  const bill = getActiveBill();
+  const cleanName = dom.billNameInput.value.trim();
+
+  bill.name = cleanName || 'Nueva cuenta';
   persistAndRender();
 });
 
@@ -2775,8 +2839,11 @@ document.querySelectorAll('input[name="billMode"]').forEach((input) => {
   input.addEventListener('change', () => {
     const bill = getActiveBill();
     bill.mode = input.value;
-    if (bill.mode === 'home' && !bill.homeMonth) {
-      bill.homeMonth = getCurrentMonthValue();
+    if (bill.mode === 'home') {
+      if (!bill.homeMonth) {
+        bill.homeMonth = getCurrentMonthValue();
+      }
+      bill.tipPercent = 0;
     }
     persistAndRender();
   });
@@ -2816,14 +2883,18 @@ dom.tipPercentInput.addEventListener('input', () => {
   const bill = getActiveBill();
   const value = Number(dom.tipPercentInput.value);
 
-  bill.tipPercent = Number.isFinite(value) && value >= 0 ? value : 0;
+  bill.tipPercent = bill.mode === 'home' ? 0 : (Number.isFinite(value) && value >= 0 ? value : 0);
   persistAndRender();
 });
 
 dom.quickTipButtons.forEach((button) => {
   button.addEventListener('click', () => {
     const bill = getActiveBill();
-    bill.tipPercent = Number(button.dataset.tip);
+    if (bill.mode === 'home') {
+      bill.tipPercent = 0;
+    } else {
+      bill.tipPercent = Number(button.dataset.tip);
+    }
     persistAndRender();
   });
 });
@@ -2851,6 +2922,8 @@ dom.quickProductForm.addEventListener('submit', (event) => {
   event.preventDefault();
   addQuickProduct(dom.quickProductNameInput.value, dom.quickProductCategoryInput.value);
 });
+
+dom.productSplitModeInput.addEventListener('change', updateDivisionCopy);
 
 dom.productForm.addEventListener('submit', (event) => {
   event.preventDefault();
@@ -2919,6 +2992,7 @@ dom.nativeShareImageButton.addEventListener('click', shareImageNatively);
 initTheme();
 updateInstallButton();
 loadState();
+migrateEmptyDefaultPeople();
 importBillFromUrl();
 saveState();
 render();

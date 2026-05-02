@@ -55,12 +55,6 @@
       </div>
 
       <div class="bill-list" id="billList"></div>
-
-      <div class="sidebar-help">
-        <strong>Versión 2.0</strong>
-        <p>Incluye salidas, cuentas rápidas, cuentas del hogar, Excel, instalación como app y AdSense.</p>
-      </div>
-
       <div class="backup-actions">
         <button class="btn btn-light btn-small" id="exportBackupButton" type="button">Exportar respaldo</button>
         <button class="btn btn-light btn-small" id="importBackupButton" type="button">Importar respaldo</button>
@@ -159,7 +153,7 @@
           <div class="people-list" id="peopleList"></div>
         </section>
 
-        <section class="card">
+        <section class="card" id="tipCard">
           <div class="section-title">
             <div>
               <p class="eyebrow">Configuración</p>
@@ -274,6 +268,14 @@
             <input id="productRecurringInput" type="checkbox" />
             <span>Gasto recurrente</span>
           </label>
+
+          <div class="field">
+            <label for="productSplitModeInput">Tipo de división</label>
+            <select id="productSplitModeInput">
+              <option value="participants">Personas seleccionadas</option>
+              <option value="responsibles">Responsables de pago</option>
+            </select>
+          </div>
 
           <div class="consumer-panel">
             <div class="consumer-panel-header">
