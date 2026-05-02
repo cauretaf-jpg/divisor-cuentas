@@ -1,4 +1,4 @@
-# Cuenta Clara V5.0
+# Cuenta Clara V5.1
 
 App web funcional para dividir cuentas entre varias personas.
 
@@ -285,3 +285,17 @@ Esta versión queda lista para Auto Ads. Para que los anuncios aparezcan en prod
 
 Esta versión implementa usuarios locales en el navegador. Sirve para separar cuentas y preparar la app.
 Para sincronización real entre dispositivos se necesita una base de datos externa, por ejemplo Supabase.
+
+
+## Nuevo en V5.1
+
+- Se corrigió el botón **Exportar Excel**:
+  - el `id` había quedado como `exportExcel ajustableButton`;
+  - eso hacía que `dom.exportExcelButton` fuera `null`;
+  - el error detenía parte del JavaScript y por eso podían fallar Importar/Exportar respaldo.
+- Se reforzó el listener de Exportar Excel para que no rompa el resto de la app si falta el botón.
+- Se mejoró el respaldo en modo usuarios:
+  - el JSON ahora incluye información del perfil activo;
+  - el respaldo se exporta con nombre de perfil/invitado;
+  - al importar, se aclara si reemplazará el modo invitado o el usuario activo.
+- Se mantiene compatibilidad con respaldos anteriores.

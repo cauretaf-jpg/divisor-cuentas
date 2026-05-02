@@ -2158,16 +2158,25 @@ function exportBackup() {
   const payload = {
     exportedAt: nowIso(),
     app: 'Cuenta Clara',
-    version: 2,
+    version: 5,
+    profile: {
+      mode: currentSession.mode,
+      email: currentSession.email || '',
+      name: currentSession.name || '',
+      storageKey: activeStorageKey,
+    },
     state,
   };
 
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
+  const profileName = currentSession.mode === 'user'
+    ? currentSession.email.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '')
+    : 'invitado';
 
   link.href = url;
-  link.download = `cuenta-clara-respaldo-${new Date().toISOString().slice(0, 10)}.json`;
+  link.download = `cuenta-clara-respaldo-${profileName}-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
 
   URL.revokeObjectURL(url);
@@ -2184,16 +2193,25 @@ function importBackupFile(file) {
       const payload = JSON.parse(reader.result);
       const importedState = payload.state || payload;
 
-      const confirmed = confirm('¿Importar este respaldo? Reemplazará las cuentas guardadas en este navegador.');
+      if (!importedState || !Array.isArray(importedState.bills)) {
+        throw new Error('El archivo no contiene cuentas válidas.');
+      }
+
+      const profileLabel = currentSession.mode === 'user'
+        ? `el usuario ${currentSession.email}`
+        : 'el modo invitado';
+
+      const confirmed = confirm(`¿Importar este respaldo? Reemplazará las cuentas guardadas en ${profileLabel}.`);
 
       if (!confirmed) return;
 
       state = normalizeState(importedState);
+      migrateEmptyDefaultPeople();
       saveState();
       render();
       showToast('Respaldo importado.');
     } catch {
-      showNotice('Respaldo inválido', 'No se pudo leer el archivo seleccionado.');
+      showNotice('Respaldo inválido', 'No se pudo leer el archivo seleccionado o no contiene datos válidos de Cuenta Clara.');
     }
   };
 
@@ -3495,7 +3513,9 @@ dom.copySummaryButton.addEventListener('click', () => copySummary('simple'));
 dom.whatsappButton.addEventListener('click', () => shareWhatsapp('simple'));
 dom.shareButton.addEventListener('click', openShareModal);
 dom.shareLinkButton.addEventListener('click', copyShareLink);
-dom.exportExcelButton.addEventListener('click', exportExcel);
+if (dom.exportExcelButton) {
+  dom.exportExcelButton.addEventListener('click', exportExcel);
+}
 dom.mobileShareButton.addEventListener('click', openShareModal);
 dom.mobileAddProductButton.addEventListener('click', () => {
   const bill = getActiveBill();
