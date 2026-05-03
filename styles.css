@@ -3176,3 +3176,186 @@ body .hidden {
     overflow: visible;
   }
 }
+
+/* V9.0: cuentas recurrentes y compartidas */
+.sidebar-details-summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+  margin: -4px 0 12px;
+}
+
+.sidebar-details-summary::-webkit-details-marker {
+  display: none;
+}
+
+.sidebar-details-summary h2 {
+  font-size: 1.25rem;
+}
+
+.sidebar-details-summary > span {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 900;
+  transition: transform 0.18s ease;
+}
+
+details[open] .sidebar-details-summary > span {
+  transform: rotate(180deg);
+}
+
+.compact-text {
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.sidebar-action-stack {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+.sidebar-action-stack .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.shared-invite-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.shared-invite-row input {
+  min-width: 0;
+}
+
+.recurring-groups-list,
+.shared-list,
+.recurring-debt-list {
+  display: grid;
+  gap: 8px;
+}
+
+.recurring-group-item,
+.shared-row-button {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  color: var(--text);
+  padding: 11px 12px;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.recurring-group-item.active,
+.shared-row-button.active {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.recurring-group-item strong,
+.shared-row strong {
+  display: block;
+  margin-bottom: 3px;
+}
+
+.recurring-group-item span,
+.recurring-group-item small,
+.shared-row small {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.shared-list-title {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shared-row {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.shared-status {
+  margin-bottom: 10px;
+}
+
+.sidebar-recurring-card {
+  border-color: color-mix(in srgb, var(--primary) 22%, var(--border));
+}
+
+.sidebar-shared-card {
+  border-color: color-mix(in srgb, var(--accent, var(--primary)) 18%, var(--border));
+}
+
+.recurring-dashboard {
+  border-color: color-mix(in srgb, var(--primary) 25%, var(--border));
+}
+
+.recurring-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.recurring-summary-grid > div {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  padding: 14px;
+}
+
+.recurring-summary-grid span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.recurring-summary-grid strong {
+  color: var(--text);
+  font-size: 1.2rem;
+}
+
+.recurring-debt-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+
+.recurring-debt-row span {
+  color: var(--text-muted);
+}
+
+.recurring-debt-row strong {
+  color: var(--primary);
+}
+
+@media (max-width: 760px) {
+  .shared-invite-row,
+  .recurring-summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

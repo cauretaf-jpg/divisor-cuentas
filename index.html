@@ -10,7 +10,7 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818" crossorigin="anonymous"></script>
   <title>Cuenta Clara | Divide cuentas sin enredos</title>
 
-  <link rel="stylesheet" href="styles.css?v=8.9" />
+  <link rel="stylesheet" href="styles.css?v=9.0" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
 </head>
@@ -40,6 +40,46 @@
 
   <main class="container app-layout">
     <aside class="sidebar">
+      <details class="card sidebar-recurring-card" id="recurringSidebarPanel" open>
+        <summary class="sidebar-details-summary">
+          <div>
+            <p class="eyebrow">Hogar</p>
+            <h2>Recurrentes</h2>
+          </div>
+          <span>▾</span>
+        </summary>
+
+        <p class="helper-text compact-text">Crea carpetas mensuales como Streaming, Luz o Internet y arrastra deudas impagas al mes siguiente.</p>
+        <div class="sidebar-action-stack">
+          <button class="btn btn-primary btn-small" id="createRecurringGroupButton" type="button">Crear carpeta actual</button>
+          <button class="btn btn-light btn-small" id="createNextRecurringMonthButton" type="button">Crear siguiente mes</button>
+        </div>
+        <div class="recurring-groups-list" id="recurringGroupsList"></div>
+      </details>
+
+      <details class="card sidebar-shared-card" id="sharedSidebarPanel">
+        <summary class="sidebar-details-summary">
+          <div>
+            <p class="eyebrow">Colaboración</p>
+            <h2>Compartidas</h2>
+          </div>
+          <span>▾</span>
+        </summary>
+
+        <p class="helper-text compact-text">Publica la cuenta actual e invita usuarios registrados para que puedan verla y editarla.</p>
+        <div class="sidebar-action-stack">
+          <button class="btn btn-primary btn-small" id="publishSharedAccountButton" type="button">Compartir cuenta actual</button>
+          <div class="shared-invite-row">
+            <input id="sharedInviteSearchInput" type="search" placeholder="Correo o nick registrado" />
+            <button class="btn btn-light btn-small" id="inviteSharedUserButton" type="button">Invitar</button>
+          </div>
+          <button class="btn btn-light btn-small" id="refreshSharedAccountsButton" type="button">Actualizar compartidas</button>
+        </div>
+        <div class="shared-status" id="sharedAccountStatus"></div>
+        <div class="shared-list" id="sharedInvitesList"></div>
+        <div class="shared-list" id="sharedAccountsList"></div>
+      </details>
+
       <section class="card sidebar-history-card">
         <div class="section-title compact">
           <div>
@@ -476,6 +516,23 @@
         <div class="home-due-list" id="homeDueList"></div>
       </section>
 
+      <section class="card recurring-dashboard hidden" id="recurringDashboardCard">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Cuenta recurrente</p>
+            <h2 id="recurringDashboardTitle">Repositorio mensual</h2>
+          </div>
+          <button class="btn btn-primary btn-small" id="createNextRecurringMonthButtonInline" type="button">Crear siguiente mes</button>
+        </div>
+        <p class="helper-text" id="recurringDashboardHelp">Conecta meses de una misma cuenta y acumula pendientes cuando alguien no paga.</p>
+        <div class="recurring-summary-grid">
+          <div><span>Mes actual</span><strong id="recurringCurrentMonthOutput">-</strong></div>
+          <div><span>Meses conectados</span><strong id="recurringMonthsOutput">0</strong></div>
+          <div><span>Deuda arrastrada</span><strong id="recurringCarryoverOutput">$0</strong></div>
+        </div>
+        <div class="recurring-debt-list" id="recurringDebtList"></div>
+      </section>
+
       <section class="results-grid results-grid-single">
         <section class="card results-card">
           <div class="section-title">
@@ -838,7 +895,7 @@
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=8.9"></script>
-  <script src="script.js?v=8.9"></script>
+  <script src="supabase-config.js?v=9.0"></script>
+  <script src="script.js?v=9.0"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V8.9 cargada');
+console.info('Cuenta Clara V9.0 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -10,6 +10,10 @@ let lastCloudSyncAt = null;
 let cloudSyncStatus = 'local';
 let accountSettingsPinnedOpenBillId = '';
 let suppressAccountSettingsToggle = false;
+let sharedSaveTimer = null;
+let sharedAccountsCache = [];
+let sharedInvitesCache = [];
+let sharedUiBusy = false;
 const THEME_KEY = 'cuenta-clara-theme';
 
 const CATEGORIES = [
@@ -100,6 +104,26 @@ const dom = {
   homePanel: document.querySelector('#homePanel'),
   homeMonthInput: document.querySelector('#homeMonthInput'),
   duplicateHomeMonthButton: document.querySelector('#duplicateHomeMonthButton'),
+
+  createRecurringGroupButton: document.querySelector('#createRecurringGroupButton'),
+  createNextRecurringMonthButton: document.querySelector('#createNextRecurringMonthButton'),
+  createNextRecurringMonthButtonInline: document.querySelector('#createNextRecurringMonthButtonInline'),
+  recurringGroupsList: document.querySelector('#recurringGroupsList'),
+  recurringDashboardCard: document.querySelector('#recurringDashboardCard'),
+  recurringDashboardTitle: document.querySelector('#recurringDashboardTitle'),
+  recurringDashboardHelp: document.querySelector('#recurringDashboardHelp'),
+  recurringCurrentMonthOutput: document.querySelector('#recurringCurrentMonthOutput'),
+  recurringMonthsOutput: document.querySelector('#recurringMonthsOutput'),
+  recurringCarryoverOutput: document.querySelector('#recurringCarryoverOutput'),
+  recurringDebtList: document.querySelector('#recurringDebtList'),
+
+  publishSharedAccountButton: document.querySelector('#publishSharedAccountButton'),
+  inviteSharedUserButton: document.querySelector('#inviteSharedUserButton'),
+  refreshSharedAccountsButton: document.querySelector('#refreshSharedAccountsButton'),
+  sharedInviteSearchInput: document.querySelector('#sharedInviteSearchInput'),
+  sharedAccountStatus: document.querySelector('#sharedAccountStatus'),
+  sharedInvitesList: document.querySelector('#sharedInvitesList'),
+  sharedAccountsList: document.querySelector('#sharedAccountsList'),
 
   productEditorCard: document.querySelector('#productEditorCard'),
   productListCard: document.querySelector('#productListCard'),
@@ -1730,6 +1754,12 @@ function makeDefaultBill() {
     payerId: '',
     tipPercent: 10,
     archived: false,
+    recurringGroupId: '',
+    recurringSequence: 1,
+    previousBillId: '',
+    sharedAccountId: '',
+    sharedRole: '',
+    sharedOwnerId: '',
     createdAt,
     updatedAt: createdAt,
     people: [],
@@ -1828,10 +1858,47 @@ function getFriends() {
 }
 
 
+function normalizeRecurringGroups(input = []) {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return input
+    .map((group) => ({
+      id: group.id || createId('recurring'),
+      name: String(group.name || 'Cuenta recurrente').trim() || 'Cuenta recurrente',
+      category: String(group.category || 'Hogar').trim() || 'Hogar',
+      frequency: group.frequency === 'monthly' ? 'monthly' : 'monthly',
+      billIds: Array.isArray(group.billIds) ? [...new Set(group.billIds.filter(Boolean))] : [],
+      members: Array.isArray(group.members)
+        ? group.members.map((member) => ({
+            name: String(member.name || '').trim(),
+            phone: normalizePhoneNumber(member.phone || ''),
+            email: normalizeEmail(member.email || ''),
+            userId: String(member.userId || ''),
+          })).filter((member) => member.name || member.email || member.userId)
+        : [],
+      createdAt: group.createdAt || nowIso(),
+      updatedAt: group.updatedAt || group.createdAt || nowIso(),
+    }))
+    .filter((group) => group.name);
+}
+
+function createStatePayload(bills, activeBillId, input = {}) {
+  return {
+    bills,
+    activeBillId,
+    quickProducts: normalizeQuickProducts(input?.quickProducts),
+    profile: makeDefaultProfile(input?.profile || {}),
+    friends: normalizeFriends(input?.friends || []),
+    recurringGroups: normalizeRecurringGroups(input?.recurringGroups || []),
+  };
+}
+
 function normalizeState(input) {
   if (!input || !Array.isArray(input.bills)) {
     const bill = makeDefaultBill();
-    return { bills: [bill], activeBillId: bill.id, quickProducts: makeDefaultQuickProducts(), profile: makeDefaultProfile(input?.profile || {}), friends: normalizeFriends(input?.friends || []) };
+    return createStatePayload([bill], bill.id, input);
   }
 
   const bills = input.bills.map((bill) => {
@@ -1840,6 +1907,9 @@ function normalizeState(input) {
           id: person.id || createId('person'),
           name: String(person.name || 'Persona'),
           phone: normalizePhoneNumber(person.phone || ''),
+          email: normalizeEmail(person.email || ''),
+          userId: String(person.userId || person.profileId || ''),
+          previousDebt: Math.max(0, Number(person.previousDebt || 0)),
           paid: Boolean(person.paid),
         }))
       : [];
@@ -1853,6 +1923,12 @@ function normalizeState(input) {
       payerId: bill.payerId && people.some((p) => p.id === bill.payerId) ? bill.payerId : '',
       tipPercent: Number.isFinite(Number(bill.tipPercent)) ? Number(bill.tipPercent) : 10,
       archived: Boolean(bill.archived),
+      recurringGroupId: String(bill.recurringGroupId || ''),
+      recurringSequence: Math.max(1, Number(bill.recurringSequence || 1)),
+      previousBillId: String(bill.previousBillId || ''),
+      sharedAccountId: String(bill.sharedAccountId || ''),
+      sharedRole: String(bill.sharedRole || ''),
+      sharedOwnerId: String(bill.sharedOwnerId || ''),
       createdAt: bill.createdAt || nowIso(),
       updatedAt: bill.updatedAt || bill.createdAt || nowIso(),
       people,
@@ -1881,14 +1957,14 @@ function normalizeState(input) {
 
   if (bills.length === 0) {
     const bill = makeDefaultBill();
-    return { bills: [bill], activeBillId: bill.id, quickProducts: normalizeQuickProducts(input?.quickProducts), profile: makeDefaultProfile(input?.profile || {}), friends: normalizeFriends(input?.friends || []) };
+    return createStatePayload([bill], bill.id, input);
   }
 
   const activeBillId = bills.some((bill) => bill.id === input.activeBillId)
     ? input.activeBillId
     : bills[0].id;
 
-  return { bills, activeBillId, quickProducts: normalizeQuickProducts(input.quickProducts), profile: makeDefaultProfile(input.profile || {}), friends: normalizeFriends(input.friends || []) };
+  return createStatePayload(bills, activeBillId, input);
 }
 
 function loadState() {
@@ -1928,6 +2004,7 @@ function migrateEmptyDefaultPeople() {
 function saveState() {
   localStorage.setItem(activeStorageKey, JSON.stringify(state));
   scheduleCloudSave();
+  scheduleSharedActiveBillSave();
 }
 
 function getActiveBill() {
@@ -2058,6 +2135,29 @@ function calculateBill(bill = getActiveBill()) {
             splitMode: product.splitMode || 'participants',
           });
         }
+      }
+    }
+  }
+
+  for (const person of bill.people) {
+    const previousDebt = Math.max(0, Number(person.previousDebt || 0));
+
+    if (previousDebt > 0) {
+      baseTotals[person.id] = (baseTotals[person.id] || 0) + previousDebt;
+
+      if (personDetails[person.id]) {
+        personDetails[person.id].items.push({
+          productId: 'previous_debt',
+          productName: 'Deuda anterior',
+          unitPrice: previousDebt,
+          quantity: 1,
+          productTotal: previousDebt,
+          share: 1,
+          totalShares: 1,
+          amount: previousDebt,
+          category: 'Otros',
+          splitMode: 'carryover',
+        });
       }
     }
   }
@@ -2454,6 +2554,619 @@ function showQuickProductsArea() {
 }
 
 
+function getRecurringGroups() {
+  state.recurringGroups = normalizeRecurringGroups(state.recurringGroups || []);
+  return state.recurringGroups;
+}
+
+function getPersonStableKey(person = {}) {
+  if (person.userId) return `user:${person.userId}`;
+  if (person.email) return `email:${normalizeEmail(person.email)}`;
+  if (person.phone) return `phone:${normalizePhoneNumber(person.phone)}`;
+  return `name:${String(person.name || '').trim().toLowerCase()}`;
+}
+
+function getRecurringGroup(groupId) {
+  return getRecurringGroups().find((group) => group.id === groupId) || null;
+}
+
+function getGroupBills(group) {
+  if (!group) return [];
+  const ids = new Set(group.billIds || []);
+  return state.bills
+    .filter((bill) => bill.recurringGroupId === group.id || ids.has(bill.id))
+    .sort((a, b) => String(a.homeMonth || '').localeCompare(String(b.homeMonth || '')) || String(a.createdAt || '').localeCompare(String(b.createdAt || '')));
+}
+
+function getLatestGroupBill(group) {
+  const bills = getGroupBills(group);
+  return bills[bills.length - 1] || null;
+}
+
+function getGroupPendingFromLatest(group) {
+  const latestBill = getLatestGroupBill(group);
+  const pending = new Map();
+
+  if (!latestBill) {
+    return pending;
+  }
+
+  const calculation = calculateBill(latestBill);
+
+  for (const person of latestBill.people || []) {
+    if (!person.paid) {
+      const amount = calculation.finalTotals[person.id] || 0;
+      if (amount > 0) {
+        pending.set(getPersonStableKey(person), {
+          name: person.name,
+          amount,
+          person,
+        });
+      }
+    }
+  }
+
+  return pending;
+}
+
+function getActiveRecurringGroup() {
+  const bill = getActiveBill();
+  return bill.recurringGroupId ? getRecurringGroup(bill.recurringGroupId) : null;
+}
+
+function createRecurringGroupFromActiveBill() {
+  const bill = getActiveBill();
+
+  if (!bill.people.length) {
+    showNotice('Faltan participantes', 'Agrega primero las personas que participan en esta cuenta recurrente.');
+    return;
+  }
+
+  const suggestedName = bill.name && bill.name !== 'Nueva cuenta' ? bill.name : 'Streaming';
+  const name = prompt('Nombre de la carpeta recurrente:', suggestedName);
+
+  if (name === null) return;
+
+  const cleanName = name.trim();
+
+  if (!cleanName) {
+    showToast('El nombre no puede quedar vacío.');
+    return;
+  }
+
+  const groups = getRecurringGroups();
+  let group = bill.recurringGroupId ? getRecurringGroup(bill.recurringGroupId) : null;
+
+  if (!group) {
+    group = {
+      id: createId('recurring'),
+      name: cleanName,
+      category: 'Hogar',
+      frequency: 'monthly',
+      billIds: [],
+      members: [],
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    };
+    groups.unshift(group);
+  } else {
+    group.name = cleanName;
+    group.updatedAt = nowIso();
+  }
+
+  bill.mode = 'home';
+  bill.tipPercent = 0;
+  bill.homeMonth = bill.homeMonth || getCurrentMonthValue();
+  bill.recurringGroupId = group.id;
+  bill.recurringSequence = Math.max(1, Number(bill.recurringSequence || 1));
+
+  if (!group.billIds.includes(bill.id)) {
+    group.billIds.push(bill.id);
+  }
+
+  group.members = bill.people.map((person) => ({
+    name: person.name,
+    phone: normalizePhoneNumber(person.phone || ''),
+    email: normalizeEmail(person.email || ''),
+    userId: person.userId || '',
+  }));
+
+  persistAndRender();
+  showToast(`Carpeta "${cleanName}" creada.`);
+}
+
+function createNextRecurringMonthFromActive() {
+  const bill = getActiveBill();
+  let group = bill.recurringGroupId ? getRecurringGroup(bill.recurringGroupId) : null;
+
+  if (!group) {
+    createRecurringGroupFromActiveBill();
+    group = getActiveRecurringGroup();
+  }
+
+  if (!group) {
+    return;
+  }
+
+  const latestBill = getLatestGroupBill(group) || bill;
+  const pendingFromLatest = getGroupPendingFromLatest(group);
+  const nextMonth = getNextMonthValue(latestBill.homeMonth || getCurrentMonthValue());
+  const createdAt = nowIso();
+  const personMap = new Map();
+
+  const newPeople = (latestBill.people || []).map((person) => {
+    const newId = createId('person');
+    const key = getPersonStableKey(person);
+    const pending = pendingFromLatest.get(key);
+    personMap.set(person.id, newId);
+
+    return {
+      ...person,
+      id: newId,
+      paid: false,
+      previousDebt: pending ? Math.round(pending.amount) : 0,
+    };
+  });
+
+  const recurringProducts = (latestBill.products || []).filter((product) => product.recurring);
+  const productsToClone = recurringProducts.length ? recurringProducts : (latestBill.products || []);
+
+  const newBill = {
+    ...latestBill,
+    id: createId('bill'),
+    name: `${group.name} - ${nextMonth}`,
+    mode: 'home',
+    homeMonth: nextMonth,
+    payerId: latestBill.payerId ? personMap.get(latestBill.payerId) || '' : '',
+    tipPercent: 0,
+    archived: false,
+    recurringGroupId: group.id,
+    recurringSequence: Math.max(1, Number(latestBill.recurringSequence || 1)) + 1,
+    previousBillId: latestBill.id,
+    sharedAccountId: '',
+    sharedRole: '',
+    sharedOwnerId: '',
+    createdAt,
+    updatedAt: createdAt,
+    people: newPeople,
+    products: productsToClone.map((product) => {
+      const dueDay = product.dueDate ? product.dueDate.slice(8, 10) : '';
+      const newDueDate = dueDay ? `${nextMonth}-${dueDay}` : '';
+      return {
+        ...product,
+        id: createId('product'),
+        dueDate: newDueDate,
+        recurring: true,
+        consumers: product.consumers
+          .filter((consumer) => personMap.has(consumer.personId))
+          .map((consumer) => ({ personId: personMap.get(consumer.personId), share: consumer.share })),
+      };
+    }),
+  };
+
+  group.billIds = [...new Set([...(group.billIds || []), latestBill.id, newBill.id])];
+  group.members = newBill.people.map((person) => ({
+    name: person.name,
+    phone: normalizePhoneNumber(person.phone || ''),
+    email: normalizeEmail(person.email || ''),
+    userId: person.userId || '',
+  }));
+  group.updatedAt = nowIso();
+
+  state.bills.unshift(newBill);
+  state.activeBillId = newBill.id;
+  editingProductId = null;
+  saveState();
+  render();
+  showToast('Siguiente mes creado con deudas acumuladas.');
+}
+
+function renderRecurringGroups() {
+  if (!dom.recurringGroupsList) return;
+
+  const groups = getRecurringGroups();
+  dom.recurringGroupsList.innerHTML = '';
+
+  if (!groups.length) {
+    const empty = document.createElement('p');
+    empty.className = 'helper-text compact-text';
+    empty.textContent = 'Aún no hay carpetas recurrentes.';
+    dom.recurringGroupsList.appendChild(empty);
+    return;
+  }
+
+  for (const group of groups) {
+    const bills = getGroupBills(group);
+    const latestBill = getLatestGroupBill(group);
+    const pending = getGroupPendingFromLatest(group);
+    const pendingTotal = [...pending.values()].reduce((sum, item) => sum + item.amount, 0);
+    const button = document.createElement('button');
+    button.className = `recurring-group-item ${latestBill?.id === state.activeBillId ? 'active' : ''}`;
+    button.type = 'button';
+    button.innerHTML = `
+      <div>
+        <strong>${escapeHtml(group.name)}</strong>
+        <span>${bills.length} mes${bills.length === 1 ? '' : 'es'} · ${latestBill?.homeMonth || 'Sin mes'}</span>
+        <small>${pendingTotal > 0 ? `Pendiente acumulado ${formatCurrency(pendingTotal)}` : 'Sin deuda acumulada'}</small>
+      </div>
+      <span class="bill-count">${bills.length}</span>
+    `;
+
+    button.addEventListener('click', () => {
+      const target = latestBill || bills[0];
+      if (!target) return;
+      state.activeBillId = target.id;
+      accountSettingsPinnedOpenBillId = '';
+      editingProductId = null;
+      saveState();
+      render();
+    });
+
+    dom.recurringGroupsList.appendChild(button);
+  }
+}
+
+function renderRecurringDashboard() {
+  if (!dom.recurringDashboardCard) return;
+
+  const bill = getActiveBill();
+  const group = getActiveRecurringGroup();
+  const show = Boolean(group && bill.mode === 'home');
+  dom.recurringDashboardCard.classList.toggle('hidden', !show);
+
+  if (!show) return;
+
+  const bills = getGroupBills(group);
+  const carryover = (bill.people || []).reduce((sum, person) => sum + Math.max(0, Number(person.previousDebt || 0)), 0);
+  dom.recurringDashboardTitle.textContent = group.name;
+  dom.recurringDashboardHelp.textContent = `Esta cuenta pertenece a la carpeta ${group.name}. Al crear el siguiente mes se copian los gastos recurrentes y se arrastran pagos pendientes.`;
+  dom.recurringCurrentMonthOutput.textContent = bill.homeMonth || '-';
+  dom.recurringMonthsOutput.textContent = bills.length;
+  dom.recurringCarryoverOutput.textContent = formatCurrency(carryover);
+  dom.recurringDebtList.innerHTML = '';
+
+  const debtPeople = (bill.people || []).filter((person) => Number(person.previousDebt || 0) > 0);
+
+  if (!debtPeople.length) {
+    const empty = document.createElement('p');
+    empty.className = 'helper-text';
+    empty.textContent = 'Este mes no tiene deudas arrastradas.';
+    dom.recurringDebtList.appendChild(empty);
+    return;
+  }
+
+  for (const person of debtPeople) {
+    const row = document.createElement('div');
+    row.className = 'recurring-debt-row';
+    row.innerHTML = `<span>${escapeHtml(person.name)}</span><strong>${formatCurrency(person.previousDebt)}</strong>`;
+    dom.recurringDebtList.appendChild(row);
+  }
+}
+
+function canUseSharedAccounts() {
+  return hasSupabaseClient() && currentSession.mode === 'user' && Boolean(currentSession.userId);
+}
+
+function renderSharedPanel() {
+  if (!dom.sharedAccountStatus) return;
+
+  const bill = getActiveBill();
+  const isUser = currentSession.mode === 'user';
+
+  if (!isUser) {
+    dom.sharedAccountStatus.innerHTML = '<p class="helper-text compact-text">Inicia sesión para compartir cuentas.</p>';
+    dom.sharedAccountsList.innerHTML = '';
+    dom.sharedInvitesList.innerHTML = '';
+    return;
+  }
+
+  const sharedLabel = bill.sharedAccountId
+    ? `Cuenta actual compartida · ${bill.sharedRole === 'owner' ? 'Dueño' : 'Editor'}`
+    : 'Cuenta actual aún no compartida.';
+  dom.sharedAccountStatus.innerHTML = `<p class="helper-text compact-text">${escapeHtml(sharedLabel)}</p>`;
+
+  dom.sharedInvitesList.innerHTML = '';
+  const pending = sharedInvitesCache.filter((invite) => invite.status === 'pending');
+
+  if (pending.length) {
+    const title = document.createElement('strong');
+    title.className = 'shared-list-title';
+    title.textContent = 'Invitaciones pendientes';
+    dom.sharedInvitesList.appendChild(title);
+  }
+
+  for (const invite of pending) {
+    const row = document.createElement('div');
+    row.className = 'shared-row';
+    row.innerHTML = `
+      <div><strong>${escapeHtml(invite.title || 'Cuenta compartida')}</strong><small>Te invitaron como ${escapeHtml(invite.role || 'editor')}</small></div>
+      <button class="btn btn-primary btn-small" type="button">Aceptar</button>
+    `;
+    row.querySelector('button').addEventListener('click', () => acceptSharedInvite(invite));
+    dom.sharedInvitesList.appendChild(row);
+  }
+
+  dom.sharedAccountsList.innerHTML = '';
+
+  if (!sharedAccountsCache.length) {
+    const empty = document.createElement('p');
+    empty.className = 'helper-text compact-text';
+    empty.textContent = 'No hay cuentas compartidas cargadas.';
+    dom.sharedAccountsList.appendChild(empty);
+    return;
+  }
+
+  const title = document.createElement('strong');
+  title.className = 'shared-list-title';
+  title.textContent = 'Mis compartidas';
+  dom.sharedAccountsList.appendChild(title);
+
+  for (const account of sharedAccountsCache) {
+    const accountBill = account.account_state || {};
+    const row = document.createElement('button');
+    row.className = `shared-row shared-row-button ${bill.sharedAccountId === account.id ? 'active' : ''}`;
+    row.type = 'button';
+    row.innerHTML = `
+      <div><strong>${escapeHtml(account.title || accountBill.name || 'Cuenta compartida')}</strong><small>${account.owner_id === currentSession.userId ? 'Dueño' : 'Editor'} · ${accountBill.homeMonth || getBillModeLabel(accountBill.mode)}</small></div>
+      <span>↗</span>
+    `;
+    row.addEventListener('click', () => openSharedAccount(account.id));
+    dom.sharedAccountsList.appendChild(row);
+  }
+}
+
+async function fetchSharedAccounts() {
+  if (!canUseSharedAccounts() || sharedUiBusy) {
+    renderSharedPanel();
+    return;
+  }
+
+  sharedUiBusy = true;
+
+  try {
+    const { data: owned, error: ownedError } = await supabaseClient
+      .from('shared_accounts')
+      .select('id, owner_id, title, account_state, updated_at')
+      .eq('owner_id', currentSession.userId)
+      .order('updated_at', { ascending: false });
+
+    if (ownedError) throw ownedError;
+
+    const { data: memberships, error: membershipError } = await supabaseClient
+      .from('shared_account_members')
+      .select('account_id, role, status, shared_accounts(id, owner_id, title, account_state, updated_at)')
+      .eq('user_id', currentSession.userId)
+      .order('created_at', { ascending: false });
+
+    if (membershipError) throw membershipError;
+
+    const accepted = (memberships || [])
+      .filter((item) => item.status === 'accepted' && item.shared_accounts)
+      .map((item) => ({ ...item.shared_accounts, role: item.role }));
+
+    sharedInvitesCache = (memberships || [])
+      .filter((item) => item.status === 'pending')
+      .map((item) => ({
+        accountId: item.account_id,
+        role: item.role,
+        status: item.status,
+        title: item.shared_accounts?.title || item.shared_accounts?.account_state?.name || 'Cuenta compartida',
+      }));
+
+    const merged = [...(owned || []), ...accepted];
+    const seen = new Set();
+    sharedAccountsCache = merged.filter((account) => {
+      if (!account?.id || seen.has(account.id)) return false;
+      seen.add(account.id);
+      return true;
+    });
+  } catch (error) {
+    console.error(error);
+    if (String(error.message || '').toLowerCase().includes('shared_accounts')) {
+      showNotice('Cuentas compartidas no disponibles', 'Ejecuta supabase-shared-accounts.sql en Supabase para activar invitaciones y edición compartida.');
+    } else {
+      showNotice('No se pudieron cargar compartidas', error.message || 'Revisa la conexión con Supabase.');
+    }
+  } finally {
+    sharedUiBusy = false;
+    renderSharedPanel();
+  }
+}
+
+function sanitizeSupabaseSearch(value) {
+  return String(value || '').trim().replace(/[%,]/g, '');
+}
+
+async function publishActiveBillAsShared() {
+  if (!canUseSharedAccounts()) {
+    showNotice('Inicia sesión', 'Debes iniciar sesión para compartir una cuenta con otras personas registradas.');
+    return;
+  }
+
+  const bill = getActiveBill();
+
+  try {
+    const payload = {
+      owner_id: currentSession.userId,
+      title: bill.name || 'Cuenta compartida',
+      account_state: { ...bill, sharedRole: 'owner', sharedOwnerId: currentSession.userId },
+      updated_at: nowIso(),
+    };
+
+    if (bill.sharedAccountId) {
+      const { error } = await supabaseClient
+        .from('shared_accounts')
+        .update(payload)
+        .eq('id', bill.sharedAccountId);
+      if (error) throw error;
+    } else {
+      const { data, error } = await supabaseClient
+        .from('shared_accounts')
+        .insert(payload)
+        .select('id')
+        .single();
+      if (error) throw error;
+      bill.sharedAccountId = data.id;
+      bill.sharedRole = 'owner';
+      bill.sharedOwnerId = currentSession.userId;
+      saveState();
+    }
+
+    await fetchSharedAccounts();
+    showToast('Cuenta compartida actualizada.');
+  } catch (error) {
+    console.error(error);
+    showNotice('No se pudo compartir', error.message || 'Ejecuta supabase-shared-accounts.sql y vuelve a intentar.');
+  }
+}
+
+async function inviteUserToSharedAccount() {
+  if (!canUseSharedAccounts()) {
+    showNotice('Inicia sesión', 'Debes iniciar sesión para invitar usuarios registrados.');
+    return;
+  }
+
+  const bill = getActiveBill();
+
+  if (!bill.sharedAccountId) {
+    await publishActiveBillAsShared();
+  }
+
+  if (!getActiveBill().sharedAccountId) return;
+
+  const rawQuery = dom.sharedInviteSearchInput?.value || prompt('Correo o nick del usuario registrado:');
+  const query = sanitizeSupabaseSearch(rawQuery);
+
+  if (!query) {
+    showToast('Escribe un correo o nick registrado.');
+    return;
+  }
+
+  try {
+    const { data: profiles, error: profileError } = await supabaseClient
+      .from('public_profiles')
+      .select('id, email, nick, nombre')
+      .or(`email.ilike.%${query}%,nick.ilike.%${query}%,nombre.ilike.%${query}%`)
+      .limit(5);
+
+    if (profileError) throw profileError;
+
+    const profile = (profiles || []).find((item) => item.id !== currentSession.userId);
+
+    if (!profile) {
+      showNotice('Usuario no encontrado', 'La persona debe tener cuenta registrada y perfil público activo.');
+      return;
+    }
+
+    const { error } = await supabaseClient
+      .from('shared_account_members')
+      .upsert({
+        account_id: getActiveBill().sharedAccountId,
+        user_id: profile.id,
+        role: 'editor',
+        status: 'pending',
+        invited_by: currentSession.userId,
+        updated_at: nowIso(),
+      }, { onConflict: 'account_id,user_id' });
+
+    if (error) throw error;
+
+    if (dom.sharedInviteSearchInput) dom.sharedInviteSearchInput.value = '';
+    await fetchSharedAccounts();
+    showToast(`Invitación enviada a ${profile.nick || profile.nombre || profile.email}.`);
+  } catch (error) {
+    console.error(error);
+    showNotice('No se pudo invitar', error.message || 'Revisa Supabase y vuelve a intentar.');
+  }
+}
+
+async function acceptSharedInvite(invite) {
+  if (!canUseSharedAccounts() || !invite?.accountId) return;
+
+  try {
+    const { error } = await supabaseClient
+      .from('shared_account_members')
+      .update({ status: 'accepted', updated_at: nowIso() })
+      .eq('account_id', invite.accountId)
+      .eq('user_id', currentSession.userId);
+
+    if (error) throw error;
+
+    await fetchSharedAccounts();
+    await openSharedAccount(invite.accountId);
+    showToast('Invitación aceptada.');
+  } catch (error) {
+    console.error(error);
+    showNotice('No se pudo aceptar', error.message || 'Revisa Supabase y vuelve a intentar.');
+  }
+}
+
+async function openSharedAccount(accountId) {
+  if (!canUseSharedAccounts()) return;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('shared_accounts')
+      .select('id, owner_id, title, account_state, updated_at')
+      .eq('id', accountId)
+      .single();
+
+    if (error) throw error;
+
+    const incoming = normalizeState({ bills: [data.account_state || makeDefaultBill()], activeBillId: (data.account_state || {}).id }).bills[0];
+    incoming.sharedAccountId = data.id;
+    incoming.sharedOwnerId = data.owner_id;
+    incoming.sharedRole = data.owner_id === currentSession.userId ? 'owner' : 'editor';
+    incoming.updatedAt = data.account_state?.updatedAt || data.updated_at || nowIso();
+
+    const existingIndex = state.bills.findIndex((bill) => bill.sharedAccountId === data.id || bill.id === incoming.id);
+    if (existingIndex >= 0) {
+      state.bills[existingIndex] = incoming;
+    } else {
+      state.bills.unshift(incoming);
+    }
+
+    state.activeBillId = incoming.id;
+    saveState();
+    render();
+  } catch (error) {
+    console.error(error);
+    showNotice('No se pudo abrir', error.message || 'No tienes acceso a esa cuenta compartida.');
+  }
+}
+
+function scheduleSharedActiveBillSave() {
+  const bill = state?.bills?.find((item) => item.id === state.activeBillId);
+
+  if (!bill?.sharedAccountId || !canUseSharedAccounts() || isCloudLoading) {
+    return;
+  }
+
+  clearTimeout(sharedSaveTimer);
+  sharedSaveTimer = setTimeout(saveSharedActiveBillNow, 450);
+}
+
+async function saveSharedActiveBillNow() {
+  const bill = getActiveBill();
+
+  if (!bill.sharedAccountId || !canUseSharedAccounts()) return;
+
+  try {
+    const { error } = await supabaseClient
+      .from('shared_accounts')
+      .update({
+        title: bill.name || 'Cuenta compartida',
+        account_state: bill,
+        updated_at: nowIso(),
+      })
+      .eq('id', bill.sharedAccountId);
+
+    if (error) throw error;
+  } catch (error) {
+    console.warn('No se pudo sincronizar cuenta compartida:', error);
+  }
+}
+
 function renderBillList() {
   const search = dom.historySearchInput.value.trim().toLowerCase();
   const filter = dom.historyFilterSelect.value;
@@ -2538,7 +3251,9 @@ function renderBillHeader() {
   renderAccountSettingsSummary(bill);
 
   dom.billNameInput.value = bill.name;
-  dom.billMeta.textContent = `Creada: ${formatDate(bill.createdAt)} · Última edición: ${formatDate(bill.updatedAt)}`;
+  const recurringLabel = bill.recurringGroupId ? ` · Recurrente` : '';
+  const sharedLabel = bill.sharedAccountId ? ` · Compartida` : '';
+  dom.billMeta.textContent = `Creada: ${formatDate(bill.createdAt)} · Última edición: ${formatDate(bill.updatedAt)}${recurringLabel}${sharedLabel}`;
   dom.deleteBillButton.disabled = state.bills.length <= 1;
   dom.archiveBillButton.textContent = bill.archived ? 'Desarchivar' : 'Archivar';
 
@@ -2702,7 +3417,9 @@ function addSelectedFriendsToBill() {
       id: createId('person'),
       name: friend.name,
       phone: normalizePhoneNumber(friend.phone || ''),
+      email: normalizeEmail(friend.email || ''),
       userId: friend.userId || '',
+      previousDebt: 0,
       paid: false,
     });
 
@@ -2736,7 +3453,7 @@ function renderPeople() {
     row.innerHTML = `
       <div class="person-info">
         <strong title="${escapeHtml(person.name)}">${escapeHtml(person.name)}</strong>
-        <small>${hasPhone ? escapeHtml(formatPhoneForDisplay(person.phone)) : 'Sin teléfono'}</small>
+        <small>${hasPhone ? escapeHtml(formatPhoneForDisplay(person.phone)) : 'Sin teléfono'}${Number(person.previousDebt || 0) > 0 ? ` · Arrastre ${formatCurrency(person.previousDebt)}` : ''}</small>
       </div>
       <button class="icon-button whatsapp ${hasPhone ? '' : 'muted'}" type="button" aria-label="Enviar WhatsApp a ${escapeHtml(person.name)}">☏</button>
       <button class="icon-button edit" type="button" aria-label="Editar ${escapeHtml(person.name)}">✎</button>
@@ -3113,6 +3830,8 @@ function render() {
   renderAuthUI();
   renderQuickProducts();
   renderBillList();
+  renderRecurringGroups();
+  renderSharedPanel();
   renderBillHeader();
   renderPayerSelect();
   renderPeople();
@@ -3120,6 +3839,7 @@ function render() {
   renderCategoryTotals();
   renderProducts();
   renderHomeDashboard();
+  renderRecurringDashboard();
   renderTotals();
   renderTransfers();
   try {
@@ -3164,6 +3884,12 @@ function duplicateHomeMonth() {
     homeMonth: nextMonth,
     payerId: bill.payerId ? personMap.get(bill.payerId) || '' : '',
     archived: false,
+    recurringGroupId: '',
+    recurringSequence: 1,
+    previousBillId: '',
+    sharedAccountId: '',
+    sharedRole: '',
+    sharedOwnerId: '',
     createdAt,
     updatedAt: createdAt,
     people: newPeople,
@@ -3218,6 +3944,12 @@ function duplicateBill() {
     name: `${bill.name} copia`,
     payerId: bill.payerId ? personMap.get(bill.payerId) || '' : '',
     archived: false,
+    recurringGroupId: '',
+    recurringSequence: 1,
+    previousBillId: '',
+    sharedAccountId: '',
+    sharedRole: '',
+    sharedOwnerId: '',
     createdAt,
     updatedAt: createdAt,
     people: newPeople,
@@ -3289,6 +4021,9 @@ function addPerson(name, phone = '') {
     id: createId('person'),
     name: cleanName,
     phone: normalizePhoneNumber(phone),
+    email: '',
+    userId: '',
+    previousDebt: 0,
     paid: false,
   });
 
@@ -3656,6 +4391,9 @@ function compactBillForLink(bill) {
   const people = bill.people.map((person) => ({
     name: person.name,
     phone: normalizePhoneNumber(person.phone || ''),
+    email: normalizeEmail(person.email || ''),
+    userId: person.userId || '',
+    previousDebt: Math.max(0, Number(person.previousDebt || 0)),
     paid: person.paid,
   }));
 
@@ -3695,6 +4433,9 @@ function billFromCompactLink(data) {
         id: createId('person'),
         name: String(person.name || 'Persona'),
         phone: normalizePhoneNumber(person.phone || ''),
+        email: normalizeEmail(person.email || ''),
+        userId: String(person.userId || ''),
+        previousDebt: Math.max(0, Number(person.previousDebt || 0)),
         paid: Boolean(person.paid),
       }))
     : [];
@@ -3702,12 +4443,18 @@ function billFromCompactLink(data) {
   const bill = {
     id: createId('bill'),
     name: `${String(data.name || 'Cuenta compartida')} compartida`,
-    mode: data.mode === 'quick' ? 'quick' : 'detailed',
+    mode: ['quick', 'home'].includes(data.mode) ? data.mode : 'detailed',
     quickTotal: Number(data.quickTotal || 0),
     homeMonth: data.homeMonth || getCurrentMonthValue(),
     tipPercent: Number.isFinite(Number(data.tipPercent)) ? Number(data.tipPercent) : 10,
     payerId: Number.isInteger(data.payerIndex) && people[data.payerIndex] ? people[data.payerIndex].id : '',
     archived: false,
+    recurringGroupId: '',
+    recurringSequence: 1,
+    previousBillId: '',
+    sharedAccountId: '',
+    sharedRole: '',
+    sharedOwnerId: '',
     createdAt,
     updatedAt: createdAt,
     people,
@@ -5127,6 +5874,32 @@ dom.homeMonthInput.addEventListener('input', () => {
 });
 
 dom.duplicateHomeMonthButton.addEventListener('click', duplicateHomeMonth);
+if (dom.createRecurringGroupButton) {
+  dom.createRecurringGroupButton.addEventListener('click', createRecurringGroupFromActiveBill);
+}
+if (dom.createNextRecurringMonthButton) {
+  dom.createNextRecurringMonthButton.addEventListener('click', createNextRecurringMonthFromActive);
+}
+if (dom.createNextRecurringMonthButtonInline) {
+  dom.createNextRecurringMonthButtonInline.addEventListener('click', createNextRecurringMonthFromActive);
+}
+if (dom.publishSharedAccountButton) {
+  dom.publishSharedAccountButton.addEventListener('click', publishActiveBillAsShared);
+}
+if (dom.inviteSharedUserButton) {
+  dom.inviteSharedUserButton.addEventListener('click', inviteUserToSharedAccount);
+}
+if (dom.refreshSharedAccountsButton) {
+  dom.refreshSharedAccountsButton.addEventListener('click', fetchSharedAccounts);
+}
+if (dom.sharedInviteSearchInput) {
+  dom.sharedInviteSearchInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      inviteUserToSharedAccount();
+    }
+  });
+}
 
 dom.payerSelect.addEventListener('change', () => {
   const bill = getActiveBill();
@@ -5300,6 +6073,7 @@ async function initApp() {
   if (currentSession.mode === 'user') {
     await loadCloudState();
     await savePublicProfileFromMain();
+    await fetchSharedAccounts();
   }
 
   migrateEmptyDefaultPeople();
@@ -5318,6 +6092,8 @@ async function initApp() {
         setUserSession(session.user);
         saveAuthSession();
         await loadCloudState();
+        await savePublicProfileFromMain();
+        await fetchSharedAccounts();
         migrateEmptyDefaultPeople();
         saveState();
         render();

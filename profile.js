@@ -1,4 +1,4 @@
-console.info('Cuenta Clara Perfil V8.9 cargado');
+console.info('Cuenta Clara Perfil V9.0 cargado');
 
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 let currentUser = null;

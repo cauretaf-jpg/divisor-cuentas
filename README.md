@@ -1,6 +1,18 @@
-# Cuenta Clara V8.9
+# Cuenta Clara V9.0
 
 App web funcional para dividir cuentas entre varias personas.
+
+## Nuevo en V9.0 - Cuentas recurrentes y compartidas
+
+- Nueva sección **Hogar / Recurrentes** en la barra lateral.
+- Permite crear una carpeta recurrente mensual desde la cuenta actual, por ejemplo **Streaming**.
+- Permite crear el siguiente mes conectado con el anterior.
+- Si alguien queda pendiente, su deuda se arrastra al mes siguiente como **Deuda anterior**.
+- Nueva sección **Compartidas**.
+- Permite publicar una cuenta e invitar usuarios registrados por correo o nick.
+- Los invitados aceptados pueden abrir y editar la cuenta compartida.
+- Agrega el archivo **supabase-shared-accounts.sql** para crear las tablas `shared_accounts` y `shared_account_members`.
+
 
 ## Incluye
 
