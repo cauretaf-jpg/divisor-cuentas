@@ -5005,3 +5005,602 @@ button,
     grid-template-columns: 1fr;
   }
 }
+
+
+/* V10.8 - Pulido visual final: identidad, tarjetas, botones, estados y modo oscuro */
+:root {
+  --surface-muted: var(--surface-soft);
+  --warning: #f59e0b;
+  --shadow-soft: 0 12px 30px rgba(15, 118, 110, 0.10);
+  --shadow-card: 0 18px 42px rgba(15, 23, 42, 0.08);
+  --shadow-hover: 0 24px 55px rgba(15, 118, 110, 0.16);
+  --ring: 0 0 0 4px color-mix(in srgb, var(--primary) 16%, transparent);
+  --gradient-brand: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 70%, var(--secondary)));
+  --gradient-soft: linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, var(--surface)), color-mix(in srgb, var(--secondary) 7%, var(--surface)) 58%, var(--surface));
+  --gradient-warm: linear-gradient(135deg, color-mix(in srgb, var(--accent) 13%, var(--surface)), color-mix(in srgb, var(--primary) 7%, var(--surface)));
+}
+
+[data-theme="dark"] {
+  --surface-muted: var(--surface-soft);
+  --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.20);
+  --shadow-card: 0 18px 42px rgba(0, 0, 0, 0.24);
+  --shadow-hover: 0 24px 55px rgba(0, 0, 0, 0.34);
+  --ring: 0 0 0 4px color-mix(in srgb, var(--primary) 22%, transparent);
+  --gradient-soft: linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, var(--surface)), color-mix(in srgb, var(--secondary) 8%, var(--surface)) 58%, var(--surface));
+  --gradient-warm: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, var(--surface)), color-mix(in srgb, var(--primary) 7%, var(--surface)));
+}
+
+body {
+  background:
+    radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--primary) 20%, transparent), transparent 32%),
+    radial-gradient(circle at 92% 12%, color-mix(in srgb, var(--secondary) 12%, transparent), transparent 28%),
+    linear-gradient(135deg, var(--bg) 0%, color-mix(in srgb, var(--surface) 76%, var(--bg)) 48%, color-mix(in srgb, var(--primary-soft) 48%, var(--bg)) 100%);
+}
+
+[data-theme="dark"] body,
+body:has([data-theme="dark"]) {
+  background:
+    radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--primary) 13%, transparent), transparent 32%),
+    radial-gradient(circle at 92% 12%, color-mix(in srgb, var(--secondary) 10%, transparent), transparent 28%),
+    linear-gradient(135deg, #061210 0%, var(--bg) 62%, #0b1f1d 100%);
+}
+
+.app-header {
+  border-bottom-color: color-mix(in srgb, var(--border) 70%, transparent);
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="dark"] .app-header {
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+}
+
+.brand-icon {
+  filter: drop-shadow(0 10px 20px color-mix(in srgb, var(--primary) 22%, transparent));
+}
+
+.brand strong {
+  font-weight: 1000;
+}
+
+.card,
+.modal-card,
+.section-nav-button,
+.guided-choice,
+.method-card,
+.bill-item,
+.person-row,
+.product-row,
+.result-row,
+.transfer-row,
+.stats-box,
+.stat-card,
+.profile-panel,
+.social-box,
+.friend-card,
+.shared-row,
+.shared-row-button,
+.recurring-group-item,
+.recurring-payment-row,
+.recurring-month-row,
+.profile-payer-summary {
+  box-shadow: var(--shadow-card);
+}
+
+.card,
+.modal-card {
+  border-color: color-mix(in srgb, var(--border) 78%, transparent);
+}
+
+.card:hover:not(.section-nav-card):not(.modal-card) {
+  border-color: color-mix(in srgb, var(--primary) 18%, var(--border));
+}
+
+.btn,
+.chip,
+.auth-badge,
+.profile-page-tab,
+.profile-stats-tab,
+.section-nav-button,
+.guided-choice,
+.method-card,
+.bill-item,
+.icon-button,
+.paid-toggle {
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+.btn-primary {
+  background: var(--gradient-brand);
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--primary-hover), color-mix(in srgb, var(--primary-hover) 70%, var(--secondary)));
+  box-shadow: 0 16px 32px color-mix(in srgb, var(--primary) 25%, transparent);
+}
+
+.btn-light,
+.chip,
+.profile-page-tab,
+.profile-stats-tab {
+  background: color-mix(in srgb, var(--surface) 76%, var(--surface-soft));
+}
+
+.btn-light:hover,
+.chip:hover,
+.profile-page-tab:hover,
+.profile-stats-tab:hover {
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-danger-light:hover {
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--danger) 14%, transparent);
+}
+
+input,
+select,
+textarea {
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 88%, var(--surface-soft));
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  box-shadow: var(--ring);
+}
+
+label {
+  letter-spacing: -0.01em;
+}
+
+/* Barra lateral: más clara, con iconos suaves y mejor estado activo */
+.section-nav-card {
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--primary) 11%, transparent), transparent 34%),
+    var(--surface);
+}
+
+.section-nav-title h2 {
+  letter-spacing: -0.05em;
+}
+
+.section-nav-button {
+  position: relative;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-areas:
+    "icon title"
+    "icon desc";
+  column-gap: 10px;
+  align-items: center;
+  overflow: hidden;
+}
+
+.section-nav-button::before {
+  grid-area: icon;
+  width: 34px;
+  height: 34px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  color: var(--primary);
+  font-size: 1rem;
+  content: "•";
+}
+
+.section-nav-button[data-app-section="home"]::before { content: "⌂"; }
+.section-nav-button[data-app-section="people"]::before { content: "👥"; }
+.section-nav-button[data-app-section="expenses"]::before { content: "＋"; }
+.section-nav-button[data-app-section="summary"]::before { content: "Σ"; }
+.section-nav-button[data-app-section="payments"]::before { content: "$"; }
+.section-nav-button[data-app-section="history"]::before { content: "↺"; }
+.section-nav-button[data-app-section="recurring"]::before { content: "⟳"; }
+.section-nav-button[data-app-section="shared"]::before { content: "↔"; }
+.section-nav-button[data-app-section="settings"]::before { content: "⚙"; }
+
+.section-nav-button strong {
+  grid-area: title;
+}
+
+.section-nav-button span {
+  grid-area: desc;
+}
+
+.section-nav-button.is-active {
+  background: var(--gradient-brand);
+  box-shadow: 0 16px 36px color-mix(in srgb, var(--primary) 24%, transparent);
+}
+
+.section-nav-button.is-active::before {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+/* Inicio rápido tipo dashboard */
+.section-page-heading,
+.current-list-indicator,
+.guided-start-card,
+.guided-steps-card {
+  background: var(--gradient-soft);
+}
+
+.guided-start-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.guided-start-card::after {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  right: -80px;
+  top: -80px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  pointer-events: none;
+}
+
+.guided-choice-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.guided-choice {
+  min-height: 140px;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 18px;
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--surface) 82%, var(--surface-soft));
+}
+
+.guided-choice::before {
+  width: 42px;
+  height: 42px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 16px;
+  margin-bottom: 6px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 1.18rem;
+  font-weight: 1000;
+  content: "✓";
+}
+
+.guided-choice[data-guided-mode="detailed"]::before { content: "🍽"; }
+.guided-choice[data-guided-mode="home"]::before { content: "🏠"; }
+.guided-choice[data-guided-mode="quick"]::before { content: "⚡"; }
+.guided-choice[data-app-section="history"]::before { content: "📁"; }
+
+.guided-choice:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+
+.guided-choice strong {
+  font-size: 1.08rem;
+  letter-spacing: -0.03em;
+}
+
+.step-pill {
+  background: color-mix(in srgb, var(--surface) 78%, var(--surface-soft));
+}
+
+.step-pill.is-current,
+.step-pill.is-done {
+  box-shadow: var(--shadow-soft);
+}
+
+/* Formularios, personas y gastos con terminación más limpia */
+.person-row,
+.product-row,
+.result-row,
+.transfer-row,
+.profile-payer-debtor-row,
+.recurring-payment-row,
+.recurring-month-row,
+.shared-row,
+.shared-row-button,
+.bill-item {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 72%, var(--surface-soft)), var(--surface));
+}
+
+.person-row:hover,
+.product-row:hover,
+.result-row:hover,
+.transfer-row:hover,
+.recurring-payment-row:hover,
+.recurring-month-row:hover,
+.shared-row-button:hover,
+.bill-item:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+}
+
+.paid-toggle {
+  border-width: 0;
+  background: color-mix(in srgb, var(--accent) 20%, var(--surface));
+  color: color-mix(in srgb, var(--accent) 70%, var(--text));
+}
+
+.paid-toggle.is-paid,
+.recurring-payment-row.is-paid {
+  background: color-mix(in srgb, var(--success) 12%, var(--surface));
+}
+
+.paid-toggle.is-paid {
+  color: var(--success);
+}
+
+.recurring-payment-row.is-pending {
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.method-card,
+.quick-products .chip,
+.quick-products button,
+.quick-tip-buttons .chip {
+  border-color: color-mix(in srgb, var(--border) 78%, transparent);
+}
+
+.method-card:hover,
+.quick-products .chip:hover,
+.quick-products button:hover,
+.quick-tip-buttons .chip:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+
+.consumer-panel,
+.settings-inner-card,
+.quick-products-editor,
+.account-status,
+.home-panel,
+.profile-panel,
+.social-box {
+  background: color-mix(in srgb, var(--surface-soft) 68%, var(--surface));
+}
+
+.consumer-row {
+  background: var(--surface);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+}
+
+.consumer-row:has(input[type="checkbox"]:checked) {
+  border-color: color-mix(in srgb, var(--primary) 36%, var(--border));
+  background: color-mix(in srgb, var(--primary) 7%, var(--surface));
+}
+
+/* Resúmenes y pagos */
+.totals-box > div,
+.sidebar-total-pill,
+.home-summary-grid > div,
+.recurring-summary-grid > div,
+.profile-payer-kpis div,
+.stat-card {
+  background: linear-gradient(180deg, var(--surface), color-mix(in srgb, var(--surface-soft) 56%, var(--surface)));
+}
+
+.totals-box .grand-total,
+.sidebar-total-pill {
+  background: linear-gradient(135deg, var(--primary-soft), color-mix(in srgb, var(--secondary) 8%, var(--surface)));
+}
+
+.grand-total strong,
+.sidebar-total-pill strong,
+.profile-payer-kpis strong,
+.stat-card strong {
+  letter-spacing: -0.04em;
+}
+
+.profile-payer-summary {
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--primary) 12%, transparent), transparent 34%),
+    var(--surface);
+}
+
+.profile-payer-debtors > strong::before {
+  content: "↳ ";
+  color: var(--primary);
+}
+
+/* Estados vacíos menos técnicos */
+.empty-state {
+  position: relative;
+  padding: 18px 18px 18px 58px;
+  border-style: solid;
+  background: color-mix(in srgb, var(--surface-soft) 74%, var(--surface));
+}
+
+.empty-state::before {
+  content: "○";
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 1000;
+}
+
+/* Perfil más premium */
+.profile-page-hero,
+.profile-panel,
+.stats-box,
+.social-box {
+  box-shadow: var(--shadow-card);
+}
+
+.profile-page-hero {
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--primary) 13%, transparent), transparent 34%),
+    var(--surface);
+}
+
+.profile-page-avatar,
+.profile-avatar,
+.friend-avatar,
+.friend-mini-avatar {
+  box-shadow: var(--shadow-soft);
+}
+
+.profile-page-tab.active,
+.profile-tab.active,
+.auth-tab.active,
+.profile-stats-tab.active {
+  background: var(--gradient-brand);
+  border-color: transparent;
+  color: #fff;
+}
+
+.profile-stats-tab.active {
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.mini-ranking > div,
+.profile-insight-row,
+.profile-activity-row {
+  background: linear-gradient(180deg, var(--surface), color-mix(in srgb, var(--surface-soft) 58%, var(--surface)));
+}
+
+/* Microinteracciones y accesibilidad */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.toast,
+.notice-tab {
+  box-shadow: var(--modal-shadow);
+}
+
+.sync-status-badge {
+  letter-spacing: 0.01em;
+}
+
+.auth-badge.is-user,
+.sync-status-badge.is-saved,
+.sync-status-badge.is-local,
+.self-person-badge,
+.category-pill,
+.bill-count {
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  border-color: color-mix(in srgb, var(--primary) 20%, var(--border));
+}
+
+/* Dark mode refinado */
+[data-theme="dark"] .card,
+[data-theme="dark"] .modal-card,
+[data-theme="dark"] .section-nav-button,
+[data-theme="dark"] .guided-choice,
+[data-theme="dark"] .method-card,
+[data-theme="dark"] .bill-item,
+[data-theme="dark"] .person-row,
+[data-theme="dark"] .product-row,
+[data-theme="dark"] .result-row,
+[data-theme="dark"] .transfer-row,
+[data-theme="dark"] .stats-box,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .profile-panel,
+[data-theme="dark"] .social-box,
+[data-theme="dark"] .friend-card,
+[data-theme="dark"] .shared-row,
+[data-theme="dark"] .shared-row-button,
+[data-theme="dark"] .recurring-group-item,
+[data-theme="dark"] .recurring-payment-row,
+[data-theme="dark"] .recurring-month-row {
+  border-color: color-mix(in srgb, var(--border) 72%, transparent);
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: color-mix(in srgb, var(--surface) 82%, #000);
+}
+
+[data-theme="dark"] .btn-primary,
+[data-theme="dark"] .section-nav-button.is-active,
+[data-theme="dark"] .profile-page-tab.active,
+[data-theme="dark"] .profile-tab.active,
+[data-theme="dark"] .auth-tab.active,
+[data-theme="dark"] .profile-stats-tab.active {
+  color: #042f2e;
+}
+
+/* Mantener móvil limpio tras el pulido visual */
+@media (max-width: 1040px) {
+  .section-nav-button {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+
+  .section-nav-button::before {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 760px) {
+  .guided-choice {
+    min-height: auto;
+    padding: 16px;
+  }
+
+  .guided-choice::before {
+    width: 38px;
+    height: 38px;
+    border-radius: 14px;
+  }
+
+  .empty-state {
+    padding: 16px 16px 16px 54px;
+  }
+
+  .section-nav-button {
+    min-height: 72px;
+  }
+
+  .card:hover:not(.section-nav-card):not(.modal-card),
+  .person-row:hover,
+  .product-row:hover,
+  .result-row:hover,
+  .transfer-row:hover,
+  .recurring-payment-row:hover,
+  .recurring-month-row:hover,
+  .shared-row-button:hover,
+  .bill-item:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .section-nav-button {
+    min-height: 66px;
+    grid-template-columns: 30px minmax(0, 1fr);
+    column-gap: 9px;
+  }
+
+  .section-nav-button::before {
+    width: 30px;
+    height: 30px;
+    border-radius: 12px;
+    font-size: 0.92rem;
+  }
+
+  .guided-choice strong {
+    font-size: 1rem;
+  }
+}

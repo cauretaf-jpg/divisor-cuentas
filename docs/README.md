@@ -1,9 +1,16 @@
-# Cuenta Clara V10.7
+# Cuenta Clara V10.8
 
+
+- Diseño visual más consistente en tarjetas, botones e insignias.
+- Inicio rápido con tarjetas más limpias y jerarquía visual.
+- Barra lateral descriptiva más elegante, con estados activos más claros.
+- Formularios, chips, listas y estados vacíos con terminación más moderna.
+- Mejoras visuales en Perfil, estadísticas, pagos y modo oscuro.
+- Sin cambios en SQL ni en la lógica de cálculos.
 App web funcional para dividir cuentas entre varias personas.
 
 
-## Nuevo en V10.7 - Corrección responsiva móvil
+## Nuevo en V10.8 - Pulido visual final
 
 - Se reforzó la vista móvil de la app principal.
 - La navegación por secciones ahora se adapta mejor en celular y mantiene descripciones visibles.

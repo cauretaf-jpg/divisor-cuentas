@@ -1,4 +1,4 @@
-CUENTA CLARA V10.7 - RESPONSIVIDAD MÓVIL
+CUENTA CLARA V10.8 - PULIDO VISUAL FINAL
 
 Esta versión corrige la visualización en celulares sin cambiar la lógica de cálculos, Supabase ni SQL.
 
@@ -11,3 +11,8 @@ INSTRUCCIONES:
 SQL:
 - No se modificó.
 - Se mantienen los archivos en la carpeta sql/.
+
+NUEVO EN V10.8
+- Pulido estético general sin modificar SQL.
+- Tarjetas, botones, insignias, estados vacíos y modo oscuro más consistentes.
+- Mantiene la responsividad móvil de V10.7.
