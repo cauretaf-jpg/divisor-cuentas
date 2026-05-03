@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0f766e" />
   <meta name="google-adsense-account" content="ca-pub-4358472434423818" />
   <title>Mi perfil | Cuenta Clara</title>
-  <link rel="stylesheet" href="styles.css?v=8.5" />
+  <link rel="stylesheet" href="styles.css?v=8.9" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
 </head>
@@ -44,11 +44,11 @@
       </div>
     </section>
 
-    <section class="profile-nav card">
-      <a href="#perfil">Perfil</a>
-      <a href="#estadisticas">Estadísticas</a>
-      <a href="#amigos">Amigos</a>
-      <a href="#configuracion">Configuración</a>
+    <section class="profile-nav card" role="tablist" aria-label="Secciones del perfil">
+      <button class="profile-page-tab active" data-page-profile-tab="perfil" type="button">Perfil</button>
+      <button class="profile-page-tab" data-page-profile-tab="estadisticas" type="button">Estadísticas</button>
+      <button class="profile-page-tab" data-page-profile-tab="amigos" type="button">Amigos</button>
+      <button class="profile-page-tab" data-page-profile-tab="configuracion" type="button">Configuración</button>
     </section>
 
     <section class="card profile-page-section" id="loginRequiredCard">
@@ -219,7 +219,7 @@
   <div class="toast hidden" id="profileToast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=8.5"></script>
-  <script src="profile.js?v=8.5"></script>
+  <script src="supabase-config.js?v=8.9"></script>
+  <script src="profile.js?v=8.9"></script>
 </body>
 </html>

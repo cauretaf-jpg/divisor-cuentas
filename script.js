@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V8.5 cargada');
+console.info('Cuenta Clara V8.9 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -8,6 +8,8 @@ let cloudSaveTimer = null;
 let isCloudLoading = false;
 let lastCloudSyncAt = null;
 let cloudSyncStatus = 'local';
+let accountSettingsPinnedOpenBillId = '';
+let suppressAccountSettingsToggle = false;
 const THEME_KEY = 'cuenta-clara-theme';
 
 const CATEGORIES = [
@@ -53,6 +55,8 @@ const dom = {
   billList: document.querySelector('#billList'),
   billNameInput: document.querySelector('#billNameInput'),
   billMeta: document.querySelector('#billMeta'),
+  accountSettingsPanel: document.querySelector('#accountSettingsPanel'),
+  accountSettingsSummaryText: document.querySelector('#accountSettingsSummaryText'),
 
   guidedStartCard: document.querySelector('#guidedStartCard'),
   guidedChoiceButtons: document.querySelectorAll('[data-guided-mode]'),
@@ -157,6 +161,7 @@ const dom = {
   subtotalOutput: document.querySelector('#subtotalOutput'),
   tipOutput: document.querySelector('#tipOutput'),
   grandTotalOutput: document.querySelector('#grandTotalOutput'),
+  sidebarGrandTotalOutput: document.querySelector('#sidebarGrandTotalOutput'),
   paidTotalOutput: document.querySelector('#paidTotalOutput'),
   pendingTotalOutput: document.querySelector('#pendingTotalOutput'),
   personResults: document.querySelector('#personResults'),
@@ -370,6 +375,7 @@ async function saveCloudStateNow() {
       return;
     }
 
+    await savePublicProfileFromMain();
     lastCloudSyncAt = nowIso();
     setSyncStatus('saved', getCloudSavedText());
     renderAuthUI();
@@ -666,9 +672,9 @@ function setSyncStatus(status, message = '') {
   }
 
   if (status === 'saving') {
-    dom.syncStatusBadge.textContent = 'Guardando...';
+    dom.syncStatusBadge.textContent = 'Sincronizando...';
   } else if (status === 'saved') {
-    dom.syncStatusBadge.textContent = 'Guardado en la nube';
+    dom.syncStatusBadge.textContent = 'Sincronizado';
   } else if (status === 'error') {
     dom.syncStatusBadge.textContent = 'Guardado local';
   } else {
@@ -678,13 +684,62 @@ function setSyncStatus(status, message = '') {
 
 function getCloudSavedText() {
   if (!lastCloudSyncAt) {
-    return 'Guardado en la nube';
+    return 'Sincronizado';
   }
 
-  return `Guardado ${new Date(lastCloudSyncAt).toLocaleTimeString('es-CL', {
+  return `Sincronizado ${new Date(lastCloudSyncAt).toLocaleTimeString('es-CL', {
     hour: '2-digit',
     minute: '2-digit',
   })}`;
+}
+
+
+
+function getPublicProfilePayloadFromMain() {
+  if (!currentSession.userId) {
+    return null;
+  }
+
+  const profile = state?.profile || {};
+  const displayName = profile.nick || profile.name || currentSession.name || currentSession.email || 'Usuario';
+
+  return {
+    id: currentSession.userId,
+    email: currentSession.email || '',
+    nick: profile.nick || displayName,
+    nombre: profile.name || currentSession.name || displayName,
+    telefono: normalizePhoneNumber(profile.phone || ''),
+    avatar_data_url: profile.avatarDataUrl || '',
+    allow_search: true,
+    updated_at: nowIso(),
+  };
+}
+
+async function savePublicProfileFromMain() {
+  if (!hasSupabaseClient() || currentSession.mode !== 'user' || !currentSession.userId || !state) {
+    return;
+  }
+
+  const payload = getPublicProfilePayloadFromMain();
+
+  if (!payload) {
+    return;
+  }
+
+  try {
+    const { error } = await supabaseClient
+      .from('public_profiles')
+      .upsert(payload, { onConflict: 'id' });
+
+    if (error) {
+      console.warn('No se pudo actualizar public_profiles:', error);
+      if (String(error.message || '').toLowerCase().includes('public_profiles')) {
+        showNotice('Perfil público no disponible', 'Ejecuta supabase-social.sql en Supabase para activar búsqueda y amigos entre usuarios.');
+      }
+    }
+  } catch (error) {
+    console.warn('No se pudo actualizar public_profiles:', error);
+  }
 }
 
 
@@ -1496,6 +1551,7 @@ async function registerLocalUser(event) {
   migrateEmptyDefaultPeople();
   localStorage.setItem(activeStorageKey, JSON.stringify(state));
   await saveCloudStateNow();
+  await savePublicProfileFromMain();
   render();
   closeAuthModal();
   showToast('Cuenta creada y sincronizada.');
@@ -1533,6 +1589,7 @@ async function loginLocalUser(event) {
   saveAuthSession();
 
   const loaded = await loadCloudState();
+  await savePublicProfileFromMain();
 
   if (!loaded) {
     loadState();
@@ -2434,6 +2491,7 @@ function renderBillList() {
 
     button.addEventListener('click', () => {
       state.activeBillId = bill.id;
+      accountSettingsPinnedOpenBillId = '';
       editingProductId = null;
       saveState();
       render();
@@ -2443,10 +2501,41 @@ function renderBillList() {
   }
 }
 
+
+function getBillModeLabel(mode) {
+  if (mode === 'quick') return 'Rápida';
+  if (mode === 'home') return 'Hogar';
+  return 'Detallada';
+}
+
+function renderAccountSettingsSummary(bill) {
+  if (!dom.accountSettingsSummaryText) return;
+
+  const payer = bill.people.find((person) => person.id === bill.payerId);
+  const payerLabel = payer ? `Pagador: ${payer.name}` : 'Sin pagador principal';
+  const tipLabel = bill.mode === 'home' ? 'sin propina' : `propina ${Number(bill.tipPercent || 0)}%`;
+  dom.accountSettingsSummaryText.textContent = `${getBillModeLabel(bill.mode)} · ${payerLabel} · ${bill.people.length} personas · ${tipLabel}`;
+
+  if (!dom.accountSettingsPanel) return;
+
+  const hasValidPayer = Boolean(payer);
+  const shouldStayOpen = !hasValidPayer || accountSettingsPinnedOpenBillId === bill.id;
+
+  if (dom.accountSettingsPanel.open !== shouldStayOpen) {
+    suppressAccountSettingsToggle = true;
+    dom.accountSettingsPanel.open = shouldStayOpen;
+    requestAnimationFrame(() => {
+      suppressAccountSettingsToggle = false;
+    });
+  }
+}
+
 function renderBillHeader() {
   const bill = getActiveBill();
   const isQuick = bill.mode === 'quick';
   const isHome = bill.mode === 'home';
+
+  renderAccountSettingsSummary(bill);
 
   dom.billNameInput.value = bill.name;
   dom.billMeta.textContent = `Creada: ${formatDate(bill.createdAt)} · Última edición: ${formatDate(bill.updatedAt)}`;
@@ -2949,6 +3038,7 @@ function renderTotals() {
   dom.subtotalOutput.textContent = formatCurrency(calculation.subtotal);
   dom.tipOutput.textContent = formatCurrency(calculation.tipAmount);
   dom.grandTotalOutput.textContent = formatCurrency(calculation.grandTotal);
+  if (dom.sidebarGrandTotalOutput) dom.sidebarGrandTotalOutput.textContent = formatCurrency(calculation.grandTotal);
   dom.paidTotalOutput.textContent = formatCurrency(calculation.paidTotal);
   dom.pendingTotalOutput.textContent = formatCurrency(calculation.pendingTotal);
   dom.mobileTotalOutput.textContent = formatCurrency(calculation.grandTotal);
@@ -4969,6 +5059,13 @@ dom.guidedChoiceButtons?.forEach((button) => {
   button.addEventListener('click', () => applyGuidedMode(button.dataset.guidedMode));
 });
 
+
+dom.accountSettingsPanel?.addEventListener('toggle', () => {
+  if (suppressAccountSettingsToggle) return;
+  const bill = getActiveBill();
+  accountSettingsPinnedOpenBillId = dom.accountSettingsPanel.open ? bill.id : '';
+});
+
 dom.smartActionButton?.addEventListener('click', handleSmartAction);
 dom.simpleModeButton?.addEventListener('click', () => setExperienceMode('simple'));
 dom.advancedModeButton?.addEventListener('click', () => setExperienceMode('advanced'));
@@ -5004,6 +5101,7 @@ document.querySelectorAll('input[name="billMode"]').forEach((input) => {
   input.addEventListener('change', () => {
     const bill = getActiveBill();
     bill.mode = input.value;
+    accountSettingsPinnedOpenBillId = bill.id;
     if (bill.mode === 'home') {
       if (!bill.homeMonth) {
         bill.homeMonth = getCurrentMonthValue();
@@ -5033,6 +5131,7 @@ dom.duplicateHomeMonthButton.addEventListener('click', duplicateHomeMonth);
 dom.payerSelect.addEventListener('change', () => {
   const bill = getActiveBill();
   bill.payerId = dom.payerSelect.value;
+  accountSettingsPinnedOpenBillId = '';
   persistAndRender();
 });
 
@@ -5200,6 +5299,7 @@ async function initApp() {
 
   if (currentSession.mode === 'user') {
     await loadCloudState();
+    await savePublicProfileFromMain();
   }
 
   migrateEmptyDefaultPeople();

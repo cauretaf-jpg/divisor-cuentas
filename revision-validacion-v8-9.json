@@ -1,0 +1,16 @@
+{
+  "version": "8.9",
+  "syntax": {
+    "script_js": "ok",
+    "profile_js": "ok"
+  },
+  "html": {
+    "index_duplicate_ids": [],
+    "perfil_duplicate_ids": []
+  },
+  "changes": [
+    "Historial arriba de Por persona/Pagos",
+    "Propina dentro de Editar cuenta",
+    "Perfil por secciones exclusivas"
+  ]
+}

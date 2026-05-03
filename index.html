@@ -10,7 +10,7 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818" crossorigin="anonymous"></script>
   <title>Cuenta Clara | Divide cuentas sin enredos</title>
 
-  <link rel="stylesheet" href="styles.css?v=8.5" />
+  <link rel="stylesheet" href="styles.css?v=8.9" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
 </head>
@@ -39,30 +39,64 @@
   </header>
 
   <main class="container app-layout">
-    <aside class="sidebar card">
-      <div class="section-title compact">
-        <div>
-          <p class="eyebrow">Historial</p>
-          <h2>Tus cuentas</h2>
+    <aside class="sidebar">
+      <section class="card sidebar-history-card">
+        <div class="section-title compact">
+          <div>
+            <p class="eyebrow">Historial</p>
+            <h2>Tus cuentas</h2>
+          </div>
         </div>
-      </div>
 
-      <div class="history-tools">
-        <input id="historySearchInput" type="search" placeholder="Buscar cuenta..." />
-        <select id="historyFilterSelect" aria-label="Filtrar historial">
-          <option value="all">Todas</option>
-          <option value="pending">Pendientes</option>
-          <option value="paid">Pagadas</option>
-          <option value="archived">Archivadas</option>
-        </select>
-      </div>
+        <div class="history-tools">
+          <input id="historySearchInput" type="search" placeholder="Buscar cuenta..." />
+          <select id="historyFilterSelect" aria-label="Filtrar historial">
+            <option value="all">Todas</option>
+            <option value="pending">Pendientes</option>
+            <option value="paid">Pagadas</option>
+            <option value="archived">Archivadas</option>
+          </select>
+        </div>
 
-      <div class="bill-list" id="billList"></div>
-      <div class="backup-actions">
-        <button class="btn btn-light btn-small" id="exportBackupButton" type="button">Exportar respaldo</button>
-        <button class="btn btn-light btn-small" id="importBackupButton" type="button">Importar respaldo</button>
-        <input class="hidden" id="backupFileInput" type="file" accept="application/json,.json" />
-      </div>
+        <div class="bill-list" id="billList"></div>
+        <div class="backup-actions">
+          <button class="btn btn-light btn-small" id="exportBackupButton" type="button">Exportar respaldo</button>
+          <button class="btn btn-light btn-small" id="importBackupButton" type="button">Importar respaldo</button>
+          <input class="hidden" id="backupFileInput" type="file" accept="application/json,.json" />
+        </div>
+      </section>
+
+      <section class="card sidebar-payments-panel" id="sidebarPaymentsCard">
+        <div class="section-title compact">
+          <div>
+            <p class="eyebrow">Por persona</p>
+            <h2>Pagos</h2>
+          </div>
+        </div>
+
+        <div class="sidebar-total-pill">
+          <span>Total final</span>
+          <strong id="sidebarGrandTotalOutput">$0</strong>
+        </div>
+
+        <div class="person-results" id="personResults"></div>
+
+        <div class="sidebar-transfer-block" id="transferCard">
+          <div class="sidebar-subtitle">
+            <span>Cobros</span>
+            <strong>Quién debe transferir</strong>
+          </div>
+          <div id="transferList" class="transfer-list"></div>
+        </div>
+
+        <div class="summary-actions sidebar-summary-actions">
+          <button class="btn btn-primary" id="shareButton" type="button">Compartir</button>
+          <button class="btn btn-light" id="shareLinkButton" type="button">Copiar enlace</button>
+          <button class="btn btn-light" id="exportExcelButton" type="button">Exportar Excel</button>
+          <button class="btn btn-light" id="copySummaryButton" type="button">Copiar rápido</button>
+          <button class="btn btn-light" id="whatsappButton" type="button">WhatsApp rápido</button>
+        </div>
+      </section>
     </aside>
 
     <section class="workspace">
@@ -131,85 +165,70 @@
         </div>
       </section>
 
-      <section class="grid-two">
-        <section class="card">
-          <div class="section-title">
-            <div>
-              <p class="eyebrow">Modo de uso</p>
-              <h2>Tipo de cuenta</h2>
+      <details class="card account-settings-card" id="accountSettingsPanel" open>
+        <summary class="account-settings-summary">
+          <div>
+            <p class="eyebrow">Configuración</p>
+            <h2>Editar cuenta</h2>
+            <p id="accountSettingsSummaryText">Tipo, pagador y opciones principales.</p>
+          </div>
+          <span>Mostrar / ocultar</span>
+        </summary>
+
+        <div class="account-settings-content grid-two">
+          <section class="settings-inner-card">
+            <div class="section-title compact">
+              <div>
+                <p class="eyebrow">Modo de uso</p>
+                <h2>Tipo de cuenta</h2>
+              </div>
             </div>
-          </div>
 
-          <div class="mode-switch">
-            <label class="radio-pill">
-              <input type="radio" name="billMode" value="detailed" checked />
-              <span>Detallada</span>
-            </label>
-            <label class="radio-pill">
-              <input type="radio" name="billMode" value="quick" />
-              <span>Rápida</span>
-            </label>
-            <label class="radio-pill">
-              <input type="radio" name="billMode" value="home" />
-              <span>Hogar</span>
-            </label>
-          </div>
-
-          <div class="quick-total-panel hidden" id="quickTotalPanel">
-            <label for="quickTotalInput">Monto total de la cuenta</label>
-            <input id="quickTotalInput" type="number" min="0" step="1" placeholder="Ej: 60000" />
-            <p>En modo rápido, el total se divide en partes iguales entre todas las personas.</p>
-          </div>
-
-          <div class="home-panel hidden" id="homePanel">
-            <label for="homeMonthInput">Mes de las cuentas del hogar</label>
-            <input id="homeMonthInput" type="month" />
-            <p>Registra gastos domésticos, vencimientos y gastos recurrentes.</p>
-            <button class="btn btn-light btn-small" id="duplicateHomeMonthButton" type="button">Duplicar mes anterior</button>
-          </div>
-        </section>
-
-        <section class="card">
-          <div class="section-title">
-            <div>
-              <p class="eyebrow">Transferencias</p>
-              <h2>Pagador principal</h2>
+            <div class="mode-switch">
+              <label class="radio-pill">
+                <input type="radio" name="billMode" value="detailed" checked />
+                <span>Detallada</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="billMode" value="quick" />
+                <span>Rápida</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="billMode" value="home" />
+                <span>Hogar</span>
+              </label>
             </div>
-          </div>
 
-          <label for="payerSelect">Quién pagó o recibirá las transferencias</label>
-          <select id="payerSelect">
-            <option value="">Sin pagador principal</option>
-          </select>
-          <p class="helper-text">Si seleccionas una persona, la app mostrará quién debe transferirle y cuánto.</p>
-        </section>
-      </section>
-
-      <section class="grid-two">
-        <section class="card">
-          <div class="section-title">
-            <div>
-              <p class="eyebrow">Participantes</p>
-              <h2>Personas</h2>
+            <div class="quick-total-panel hidden" id="quickTotalPanel">
+              <label for="quickTotalInput">Monto total de la cuenta</label>
+              <input id="quickTotalInput" type="number" min="0" step="1" placeholder="Ej: 60000" />
+              <p>En modo rápido, el total se divide en partes iguales entre todas las personas.</p>
             </div>
-          </div>
 
-          <form class="person-form" id="personForm">
-            <input id="personNameInput" type="text" placeholder="Ej: Nombre" autocomplete="off" />
-            <input id="personPhoneInput" type="tel" placeholder="Teléfono WhatsApp opcional" autocomplete="tel" />
-            <button class="btn btn-primary" type="submit">Agregar</button>
-          </form>
+            <div class="home-panel hidden" id="homePanel">
+              <label for="homeMonthInput">Mes de las cuentas del hogar</label>
+              <input id="homeMonthInput" type="month" />
+              <p>Registra gastos domésticos, vencimientos y gastos recurrentes.</p>
+              <button class="btn btn-light btn-small" id="duplicateHomeMonthButton" type="button">Duplicar mes anterior</button>
+            </div>
+          </section>
 
-          <div class="bulk-actions">
-            <button class="btn btn-light btn-small" id="markAllPaidButton" type="button">Todos pagados</button>
-            <button class="btn btn-light btn-small" id="markAllPendingButton" type="button">Todos pendientes</button>
-            <button class="btn btn-light btn-small" id="openFriendsPickerButton" type="button">Agregar desde amigos</button>
-          </div>
+          <section class="settings-inner-card" id="payerSettingsCard">
+            <div class="section-title compact">
+              <div>
+                <p class="eyebrow">Transferencias</p>
+                <h2>Pagador principal</h2>
+              </div>
+            </div>
 
-          <div class="people-list" id="peopleList"></div>
-        </section>
+            <label for="payerSelect">Quién pagó o recibirá las transferencias</label>
+            <select id="payerSelect">
+              <option value="">Sin pagador principal</option>
+            </select>
+            <p class="helper-text">Al seleccionar una persona, esta sección se resume y queda disponible dentro de “Editar cuenta”.</p>
+          </section>
 
-        <section class="card" id="tipCard">
+          <section class="settings-inner-card" id="tipCard">
           <div class="section-title">
             <div>
               <p class="eyebrow">Configuración</p>
@@ -235,7 +254,35 @@
             <button class="btn btn-light btn-small" id="clearProductsButton" type="button">Limpiar productos</button>
             <button class="btn btn-danger-light btn-small" id="resetBillButton" type="button">Reiniciar cuenta</button>
           </div>
+          </section>
+        </div>
+      </details>
+
+      <section class="grid-two">
+        <section class="card">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Participantes</p>
+              <h2>Personas</h2>
+            </div>
+          </div>
+
+          <form class="person-form" id="personForm">
+            <input id="personNameInput" type="text" placeholder="Ej: Nombre" autocomplete="off" />
+            <input id="personPhoneInput" type="tel" placeholder="Teléfono WhatsApp opcional" autocomplete="tel" />
+            <button class="btn btn-primary" type="submit">Agregar</button>
+          </form>
+
+          <div class="bulk-actions">
+            <button class="btn btn-light btn-small" id="markAllPaidButton" type="button">Todos pagados</button>
+            <button class="btn btn-light btn-small" id="markAllPendingButton" type="button">Todos pendientes</button>
+            <button class="btn btn-light btn-small" id="openFriendsPickerButton" type="button">Agregar desde amigos</button>
+          </div>
+
+          <div class="people-list" id="peopleList"></div>
         </section>
+
+
       </section>
 
       <section class="card detailed-only" id="productEditorCard">
@@ -429,7 +476,7 @@
         <div class="home-due-list" id="homeDueList"></div>
       </section>
 
-      <section class="results-grid">
+      <section class="results-grid results-grid-single">
         <section class="card results-card">
           <div class="section-title">
             <div>
@@ -463,36 +510,6 @@
             </div>
           </div>
         </section>
-
-        <section class="card results-card">
-          <div class="section-title">
-            <div>
-              <p class="eyebrow">Por persona</p>
-              <h2>Pagos</h2>
-            </div>
-          </div>
-
-          <div class="person-results" id="personResults"></div>
-
-          <div class="summary-actions">
-            <button class="btn btn-primary" id="shareButton" type="button">Compartir</button>
-            <button class="btn btn-light" id="shareLinkButton" type="button">Copiar enlace</button>
-            <button class="btn btn-light" id="exportExcelButton" type="button">Exportar Excel</button>
-            <button class="btn btn-light" id="copySummaryButton" type="button">Copiar rápido</button>
-            <button class="btn btn-light" id="whatsappButton" type="button">WhatsApp rápido</button>
-          </div>
-        </section>
-      </section>
-
-      <section class="card transfer-card" id="transferCard">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Cobros</p>
-            <h2>Quién debe transferir</h2>
-          </div>
-        </div>
-
-        <div id="transferList" class="transfer-list"></div>
       </section>
     </section>
   </main>
@@ -821,7 +838,7 @@
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=8.5"></script>
-  <script src="script.js?v=8.5"></script>
+  <script src="supabase-config.js?v=8.9"></script>
+  <script src="script.js?v=8.9"></script>
 </body>
 </html>

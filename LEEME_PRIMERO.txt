@@ -1,20 +1,20 @@
-CUENTA CLARA V8.5 - PULIDO PERFIL Y SINCRONIZACIÓN
+CUENTA CLARA V8.9 - MENOS RUIDO VISUAL Y PERFIL POR SECCIONES
 
-Cambios:
-- Modo oscuro corregido en Mi Perfil.
-- El usuario conectado se muestra como nick/nombre solamente. Ej: Carloco.
-- Se oculta el botón Mi cuenta cuando hay sesión iniciada.
-- Guardado automático más inmediato en Supabase.
-- Estado visible: Guardando, Guardado en la nube o Guardado local.
-- No requiere SQL nuevo.
+Carpeta lista para reemplazar tu proyecto local:
+C:\Users\caure\Desktop\Paginas\Cuentas
 
-PASOS:
-1. Descomprime este ZIP.
-2. Entra a la carpeta "Cuentas".
-3. Copia TODO su contenido.
-4. Pégalo en:
-   C:\Users\caure\Desktop\Paginas\Cuentas
-5. Reemplaza archivos.
-6. Prueba con Live Server / Super Live Server.
-7. Recarga con Ctrl + F5.
-8. Si todo funciona, usa subir-cuenta-clara-github.cmd.
+Cambios V8.9:
+- Historial / Tus cuentas aparece arriba de Por persona / Pagos.
+- Propina queda dentro de Editar cuenta, para no ocupar una tarjeta visible permanente.
+- En Perfil, los botones Perfil, Estadísticas, Amigos y Configuración funcionan como secciones/pestañas: solo se muestra la sección seleccionada.
+- Se mantiene el indicador discreto de sincronización de V8.8.
+- No se modifican las tablas SQL ni la lógica base de Supabase.
+
+Instalación rápida:
+1. Cierra el servidor local si está abierto.
+2. Reemplaza los archivos de tu carpeta Cuentas por los de este ZIP.
+3. Abre index.html con Live Server o usa tu flujo habitual.
+4. Recarga el navegador con Ctrl + F5 para limpiar caché.
+
+Nota:
+Si ya ejecutaste los SQL de V8.7/V8.8 y todo funcionaba, esta versión no requiere ejecutar SQL nuevamente.

@@ -1,4 +1,4 @@
-# Cuenta Clara V8.5
+# Cuenta Clara V8.9
 
 App web funcional para dividir cuentas entre varias personas.
 
@@ -539,3 +539,43 @@ Antes de usar amigos entre usuarios, ejecuta `supabase-social.sql` en Supabase �
   - Guardado local
 - `Sincronizar` se renombró como `Guardar ahora`.
 - No requiere SQL nuevo.
+
+
+## Nuevo en V8.6 - Ajuste visual de estadísticas
+
+- Se corrigió la visualización de **Categorías más usadas**.
+- Se corrigió la visualización de **Personas frecuentes**.
+- Ahora los nombres y montos/frecuencias aparecen separados y ordenados.
+- Se corrigió el plural: `2 veces` en vez de `2 vezes`.
+- No requiere SQL nuevo.
+
+
+
+
+## Nuevo en V8.9 - Menos ruido visual y perfil por secciones
+
+- Historial / Tus cuentas queda arriba del resumen Por persona / Pagos en la barra lateral.
+- Propina queda dentro de Editar cuenta, por lo que se oculta junto con la configuración avanzada.
+- La página Perfil funciona por secciones: Perfil, Estadísticas, Amigos y Configuración muestran solo su contenido activo.
+- Se mantiene la lógica de Supabase, perfiles públicos, amigos, exportaciones y cálculos de V8.8.
+
+## Nuevo en V8.8 - Interfaz más limpia
+
+- Se movió el resumen **Por persona / Pagos** a la barra lateral izquierda, con comportamiento sticky en escritorio.
+- Se incorporó el total final en la barra lateral para revisar montos mientras se agregan productos.
+- La configuración de cuenta ahora queda resumida en **Editar cuenta**: tipo de cuenta, pagador principal, personas y propina.
+- Al seleccionar un pagador principal, la configuración se oculta automáticamente y se puede volver a abrir desde **Editar cuenta**.
+- El indicador de sincronización ahora es más discreto: usa texto tipo **Sincronizado 02:14**.
+
+## Nuevo en V8.7 - Sincronización de perfil público
+
+- Se corrigió la actualización de `public_profiles`.
+- Al crear usuario desde la app principal, ahora también se guarda el perfil público.
+- Al iniciar sesión, la app verifica y actualiza `public_profiles`.
+- Al guardar cambios de perfil o foto, también se actualiza la búsqueda pública.
+- Se actualizó `supabase-social.sql`:
+  - crea/actualiza `public_profiles`;
+  - crea trigger automático para nuevos usuarios;
+  - mantiene políticas RLS;
+  - mantiene solicitudes de amistad.
+- Requiere ejecutar nuevamente `supabase-social.sql` en Supabase.

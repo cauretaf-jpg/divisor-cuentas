@@ -1,9 +1,10 @@
-console.info('Cuenta Clara Perfil V8.5 cargado');
+console.info('Cuenta Clara Perfil V8.9 cargado');
 
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 let currentUser = null;
 let state = null;
 let editingFriendId = null;
+let activeProfileSection = 'perfil';
 
 const dom = {
   pageAvatar: document.querySelector('#pageAvatar'),
@@ -11,6 +12,7 @@ const dom = {
   subtitle: document.querySelector('#pageProfileSubtitle'),
   loginRequiredCard: document.querySelector('#loginRequiredCard'),
   sections: document.querySelectorAll('.profile-page-section:not(#loginRequiredCard)'),
+  pageTabs: document.querySelectorAll('[data-page-profile-tab]'),
   nick: document.querySelector('#pageNickInput'),
   name: document.querySelector('#pageNameInput'),
   phone: document.querySelector('#pagePhoneInput'),
@@ -173,7 +175,7 @@ async function loadState() {
 
   state = normalizeState(data?.state || JSON.parse(localStorage.getItem(getUserStorageKey(currentUser.id)) || 'null'));
   localStorage.setItem(getUserStorageKey(currentUser.id), JSON.stringify(state));
-  await savePublicProfile();
+  await ensurePublicProfile();
   render();
 }
 
@@ -312,7 +314,7 @@ function renderStats() {
     : 'Sin actividad registrada.';
 
   renderMiniRanking(dom.topCategories, stats.categories, formatCurrency);
-  renderMiniRanking(dom.topPeople, stats.people, (value) => `${value} vez${value === 1 ? '' : 'es'}`);
+  renderMiniRanking(dom.topPeople, stats.people, (value) => `${value} ${value === 1 ? 'vez' : 'veces'}`);
 }
 
 
@@ -334,7 +336,7 @@ function getPublicProfilePayload() {
 
 async function savePublicProfile() {
   if (!currentUser || !state) {
-    return;
+    return false;
   }
 
   try {
@@ -345,11 +347,26 @@ async function savePublicProfile() {
     if (error) {
       console.error(error);
       showToast('Perfil guardado, pero no se pudo actualizar búsqueda pública.');
+      return false;
     }
+
+    return true;
   } catch (error) {
     console.error(error);
+    showToast('No se pudo actualizar búsqueda pública.');
+    return false;
   }
 }
+
+
+async function ensurePublicProfile() {
+  if (!currentUser || !state) {
+    return;
+  }
+
+  await savePublicProfile();
+}
+
 
 function renderSocialMessage(container, message) {
   container.innerHTML = `<p class="helper-text">${message}</p>`;
@@ -623,12 +640,39 @@ function renderFriends() {
   }
 }
 
+const PROFILE_SECTIONS = ['perfil', 'estadisticas', 'amigos', 'configuracion'];
+
+function getSectionFromHash() {
+  const value = String(location.hash || '').replace('#', '');
+  return PROFILE_SECTIONS.includes(value) ? value : 'perfil';
+}
+
+function setPageProfileSection(sectionName = 'perfil', updateHash = true) {
+  activeProfileSection = PROFILE_SECTIONS.includes(sectionName) ? sectionName : 'perfil';
+
+  const isLogged = Boolean(currentUser && state);
+
+  dom.sections.forEach((section) => {
+    section.classList.toggle('hidden', !isLogged || section.id !== activeProfileSection);
+  });
+
+  dom.pageTabs.forEach((button) => {
+    const isActive = button.dataset.pageProfileTab === activeProfileSection;
+    button.classList.toggle('active', isActive);
+    button.setAttribute('aria-selected', String(isActive));
+  });
+
+  if (updateHash && location.hash !== `#${activeProfileSection}`) {
+    history.replaceState(null, '', `#${activeProfileSection}`);
+  }
+}
+
 function render() {
   const isLogged = Boolean(currentUser && state);
   dom.loginRequiredCard.classList.toggle('hidden', isLogged);
-  dom.sections.forEach((section) => section.classList.toggle('hidden', !isLogged));
 
   if (!isLogged) {
+    dom.sections.forEach((section) => section.classList.add('hidden'));
     dom.title.textContent = 'Perfil no disponible';
     dom.subtitle.textContent = 'Inicia sesión desde Cuenta Clara para administrar tu perfil.';
     dom.pageAvatar.textContent = 'CC';
@@ -639,6 +683,7 @@ function render() {
   renderStats();
   renderFriendRequests();
   renderFriends();
+  setPageProfileSection(activeProfileSection, false);
 }
 
 function saveProfileFromForm() {
@@ -751,7 +796,7 @@ function editFriend(friendId) {
   dom.friendEmail.value = friend.email || '';
   dom.friendNotes.value = friend.notes || '';
   dom.cancelFriendEdit.classList.remove('hidden');
-  location.hash = '#amigos';
+  setPageProfileSection('amigos');
 }
 
 function deleteFriend(friendId) {
@@ -787,6 +832,16 @@ function initTheme() {
     dom.themeToggle.textContent = saved === 'dark' ? 'Modo claro' : 'Modo oscuro';
   }
 }
+
+activeProfileSection = getSectionFromHash();
+
+dom.pageTabs.forEach((button) => {
+  button.addEventListener('click', () => setPageProfileSection(button.dataset.pageProfileTab));
+});
+
+window.addEventListener('hashchange', () => {
+  setPageProfileSection(getSectionFromHash(), false);
+});
 
 dom.save.addEventListener('click', saveProfileFromForm);
 dom.sync.addEventListener('click', () => saveState().then(render));
