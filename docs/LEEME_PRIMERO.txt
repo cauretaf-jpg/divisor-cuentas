@@ -1,16 +1,18 @@
-CUENTA CLARA V10.4 - ESTADÍSTICAS DE PERFIL AMPLIADAS
+CUENTA CLARA V10.5 - PARTICIPANTE “YO”
 
-Cambios principales:
-- La sección Estadísticas del Perfil ahora tiene vistas internas: Resumen, Gastos, Personas, Pagos y recurrentes, y Actividad.
-- Se agregaron métricas de total administrado, promedio, personas distintas, cuentas compartidas y cierre de pagos.
-- Se agregaron rankings de categorías, personas frecuentes, montos por persona, pendientes, cuentas más altas y gasto por mes.
-- Se agregaron indicadores de cuentas recurrentes y deuda pendiente recurrente.
+Esta versión agrega la opción de incluir al usuario registrado como participante real de una lista.
 
-Instalación:
-1. Reemplaza los archivos de tu carpeta Cuentas por esta versión.
-2. Abre la app y recarga con Ctrl + F5.
-3. No necesitas ejecutar SQL si V10.3/V9.x ya funcionaba.
+CAMBIO PRINCIPAL
+- En Personas aparece la opción “+ Yo”.
+- Esta opción agrega tu perfil a la lista usando tu usuario registrado.
+- Si ya estás agregado, no se duplica.
+- Si hay una persona con tu mismo nombre, puedes vincularla a tu perfil.
+- Esto permite que tus estadísticas personales sean más precisas.
 
-SQL:
-- Los archivos SQL están en /sql.
-- Solo ejecútalos si estás configurando Supabase desde cero.
+NO REQUIERE SQL NUEVO
+Si V10.4 ya funcionaba, solo reemplaza archivos y recarga con Ctrl + F5.
+
+ARCHIVOS SQL EXISTENTES
+- sql/01-supabase-app-state.sql
+- sql/02-supabase-social.sql
+- sql/03-supabase-shared-accounts.sql

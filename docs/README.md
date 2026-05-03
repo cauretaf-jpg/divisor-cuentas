@@ -1,6 +1,17 @@
-# Cuenta Clara V10.4
+# Cuenta Clara V10.5
 
 App web funcional para dividir cuentas entre varias personas.
+
+## Nuevo en V10.5 - Participante “Yo” vinculado al perfil
+
+- En la sección **Personas** aparece una tarjeta para agregarte rápidamente a la lista.
+- El botón **“+ Yo”** agrega el perfil activo como participante.
+- La persona queda vinculada con `userId` y correo del usuario registrado.
+- Si ya existe una persona con el mismo perfil, no se duplica.
+- Si existe una persona con el mismo nombre, la app permite vincularla al perfil.
+- Las personas vinculadas muestran la insignia **“Yo”**.
+- Esto mejora las estadísticas del Perfil porque los movimientos quedan asociados al usuario real.
+- No requiere ejecutar SQL nuevamente si V10.4 ya funcionaba.
 
 ## Nuevo en V10.4 - Estadísticas de perfil ampliadas
 

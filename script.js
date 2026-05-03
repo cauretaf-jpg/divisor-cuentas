@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V10.4 cargada');
+console.info('Cuenta Clara V10.5 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -89,6 +89,8 @@ const dom = {
   personNameInput: document.querySelector('#personNameInput'),
   personPhoneInput: document.querySelector('#personPhoneInput'),
   peopleList: document.querySelector('#peopleList'),
+  selfParticipantCard: document.querySelector('#selfParticipantCard'),
+  addMePersonButton: document.querySelector('#addMePersonButton'),
   markAllPaidButton: document.querySelector('#markAllPaidButton'),
   markAllPendingButton: document.querySelector('#markAllPendingButton'),
   openFriendsPickerButton: document.querySelector('#openFriendsPickerButton'),
@@ -4015,9 +4017,145 @@ function addSelectedFriendsToBill() {
   showToast(`${added} amigo${added === 1 ? '' : 's'} agregado${added === 1 ? '' : 's'} a la cuenta.`);
 }
 
+function getSelfParticipantInfo() {
+  if (currentSession.mode !== 'user' || !currentSession.userId) {
+    return null;
+  }
+
+  const profile = getProfile();
+  const displayName = profile.nick || profile.name || currentSession.name || currentSession.email || 'Yo';
+
+  return {
+    userId: currentSession.userId,
+    email: normalizeEmail(currentSession.email || ''),
+    name: String(displayName || 'Yo').trim() || 'Yo',
+    phone: normalizePhoneNumber(profile.phone || ''),
+  };
+}
+
+function personMatchesSelf(person, selfInfo = getSelfParticipantInfo()) {
+  if (!person || !selfInfo) return false;
+  const personUserId = String(person.userId || '').trim();
+  const personEmail = normalizeEmail(person.email || '');
+
+  return Boolean(
+    (selfInfo.userId && personUserId && personUserId === selfInfo.userId) ||
+    (selfInfo.email && personEmail && personEmail === selfInfo.email)
+  );
+}
+
+function findSelfPerson(bill = getActiveBill(), selfInfo = getSelfParticipantInfo()) {
+  if (!bill || !Array.isArray(bill.people) || !selfInfo) return null;
+  return bill.people.find((person) => personMatchesSelf(person, selfInfo)) || null;
+}
+
+function getPotentialSelfNameMatches(bill = getActiveBill(), selfInfo = getSelfParticipantInfo()) {
+  if (!bill || !Array.isArray(bill.people) || !selfInfo) return [];
+  const profile = getProfile();
+  const names = new Set([
+    selfInfo.name,
+    profile.nick,
+    profile.name,
+    currentSession.name,
+    currentSession.email,
+  ].map((value) => String(value || '').trim().toLowerCase()).filter(Boolean));
+
+  return bill.people.filter((person) => names.has(String(person.name || '').trim().toLowerCase()));
+}
+
+function updatePersonWithSelfProfile(person, selfInfo = getSelfParticipantInfo()) {
+  if (!person || !selfInfo) return;
+  person.userId = selfInfo.userId;
+  person.email = selfInfo.email;
+  person.phone = selfInfo.phone || normalizePhoneNumber(person.phone || '');
+  person.name = selfInfo.name || person.name || 'Yo';
+}
+
+function addCurrentUserAsPerson() {
+  const selfInfo = getSelfParticipantInfo();
+
+  if (!selfInfo) {
+    showNotice('Inicia sesión para usar “Yo”', 'Esta opción vincula la persona con tu perfil registrado. Puedes seguir agregando personas manualmente en modo invitado.');
+    return;
+  }
+
+  const bill = getActiveBill();
+  const existing = findSelfPerson(bill, selfInfo);
+
+  if (existing) {
+    updatePersonWithSelfProfile(existing, selfInfo);
+    persistAndRender();
+    showToast('Tu perfil ya está en esta lista.');
+    return;
+  }
+
+  const nameMatches = getPotentialSelfNameMatches(bill, selfInfo);
+
+  if (nameMatches.length === 1) {
+    const confirmed = confirm(`Ya existe “${nameMatches[0].name}” en esta lista. ¿Quieres vincular esa persona con tu perfil?`);
+    if (!confirmed) return;
+
+    updatePersonWithSelfProfile(nameMatches[0], selfInfo);
+    persistAndRender();
+    showToast('Persona vinculada a tu perfil.');
+    return;
+  }
+
+  if (nameMatches.length > 1) {
+    showNotice('Nombre repetido', 'Hay más de una persona que podría ser tu perfil. Edita o elimina duplicados antes de usar “Yo”.');
+    return;
+  }
+
+  bill.people.push({
+    id: createId('person'),
+    name: selfInfo.name,
+    phone: selfInfo.phone,
+    email: selfInfo.email,
+    userId: selfInfo.userId,
+    previousDebt: 0,
+    paid: false,
+  });
+
+  persistAndRender();
+  showToast('Te agregué a la lista.');
+}
+
+function renderSelfParticipantCard() {
+  if (!dom.selfParticipantCard || !dom.addMePersonButton) return;
+
+  const selfInfo = getSelfParticipantInfo();
+  const bill = getActiveBill();
+  const existing = findSelfPerson(bill, selfInfo);
+  const infoText = dom.selfParticipantCard.querySelector('span');
+  const title = dom.selfParticipantCard.querySelector('strong');
+
+  dom.selfParticipantCard.classList.toggle('is-disabled', !selfInfo);
+  dom.selfParticipantCard.classList.toggle('is-linked', Boolean(existing));
+  dom.addMePersonButton.disabled = Boolean(existing);
+
+  if (!selfInfo) {
+    if (title) title.textContent = 'Agregar mi perfil';
+    if (infoText) infoText.textContent = 'Inicia sesión para agregarte como “Yo” y vincular movimientos a tus estadísticas.';
+    dom.addMePersonButton.textContent = '+ Yo';
+    return;
+  }
+
+  if (existing) {
+    if (title) title.textContent = `${selfInfo.name} está en esta lista`;
+    if (infoText) infoText.textContent = 'Esta persona está vinculada a tu perfil y sus movimientos impactan tus estadísticas.';
+    dom.addMePersonButton.textContent = 'Ya agregado';
+    return;
+  }
+
+  if (title) title.textContent = 'Agregarme a esta lista';
+  if (infoText) infoText.textContent = `Agrega “${selfInfo.name}” como participante vinculado a tu perfil.`;
+  dom.addMePersonButton.textContent = '+ Yo';
+}
+
 
 function renderPeople() {
   const bill = getActiveBill();
+  renderSelfParticipantCard();
   dom.peopleList.innerHTML = '';
 
   if (bill.people.length === 0) {
@@ -4031,7 +4169,7 @@ function renderPeople() {
     row.className = 'person-row';
     row.innerHTML = `
       <div class="person-info">
-        <strong title="${escapeHtml(person.name)}">${escapeHtml(person.name)}</strong>
+        <strong title="${escapeHtml(person.name)}">${escapeHtml(person.name)}${personMatchesSelf(person) ? ' <span class="self-person-badge">Yo</span>' : ''}</strong>
         <small>${hasPhone ? escapeHtml(formatPhoneForDisplay(person.phone)) : 'Sin teléfono'}${Number(person.previousDebt || 0) > 0 ? ` · Arrastre ${formatCurrency(person.previousDebt)}` : ''}</small>
       </div>
       <button class="icon-button whatsapp ${hasPhone ? '' : 'muted'}" type="button" aria-label="Enviar WhatsApp a ${escapeHtml(person.name)}">WA</button>
@@ -6545,6 +6683,10 @@ dom.personForm.addEventListener('submit', (event) => {
   event.preventDefault();
   addPerson(dom.personNameInput.value, dom.personPhoneInput.value);
 });
+
+if (dom.addMePersonButton) {
+  dom.addMePersonButton.addEventListener('click', addCurrentUserAsPerson);
+}
 
 dom.markAllPaidButton.addEventListener('click', () => markAllPaid(true));
 dom.markAllPendingButton.addEventListener('click', () => markAllPaid(false));

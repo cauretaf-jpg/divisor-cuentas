@@ -4360,3 +4360,64 @@ details[open] .sidebar-details-summary > span {
     white-space: normal;
   }
 }
+
+/* V10.5 - Participante Yo vinculado al perfil */
+.self-participant-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  margin: 12px 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--surface-soft), var(--surface));
+}
+
+.self-participant-card strong {
+  display: block;
+  color: var(--text);
+  font-size: 0.96rem;
+}
+
+.self-participant-card span {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.self-participant-card.is-linked {
+  border-color: color-mix(in srgb, var(--success) 42%, var(--border));
+  background: color-mix(in srgb, var(--success) 8%, var(--surface));
+}
+
+.self-participant-card.is-disabled {
+  opacity: 0.82;
+}
+
+.self-person-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--primary);
+  font-size: 0.68rem;
+  font-weight: 900;
+  vertical-align: middle;
+}
+
+@media (max-width: 680px) {
+  .self-participant-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .self-participant-card .btn {
+    width: 100%;
+  }
+}
