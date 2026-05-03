@@ -1,5 +1,6 @@
--- Cuenta Clara V7.0 - Estado completo por usuario
+-- Cuenta Clara V10.9 - Estado completo por usuario
 -- Ejecutar en Supabase → SQL Editor → New query → Run
+-- Puedes volver a ejecutarlo aunque la tabla ya exista.
 
 create table if not exists public.app_states (
   user_id uuid primary key references auth.users(id) on delete cascade,
@@ -7,7 +8,13 @@ create table if not exists public.app_states (
   updated_at timestamptz default now()
 );
 
+alter table public.app_states add column if not exists state jsonb not null default '{}'::jsonb;
+alter table public.app_states add column if not exists updated_at timestamptz default now();
+
 alter table public.app_states enable row level security;
+
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on public.app_states to authenticated;
 
 drop policy if exists "app_states_select_own" on public.app_states;
 drop policy if exists "app_states_insert_own" on public.app_states;

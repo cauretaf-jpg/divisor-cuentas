@@ -1,0 +1,28 @@
+REVISION TECNICA - CUENTA CLARA V10.9
+
+Objetivo:
+Reforzar la sincronización del estado completo de la app con Supabase para que no se guarden solo perfiles.
+
+Cambios aplicados:
+1. script.js
+- saveCloudStateNow ahora devuelve true/false y permite guardado forzado.
+- loadCloudState crea respaldo inicial en app_states cuando el usuario todavía no tiene fila en Supabase.
+- Se usa localStorage como respaldo, pero la sesión de usuario intenta subir automáticamente el estado completo.
+- El botón Guardar ahora informa si Supabase guardó correctamente o si quedó solo copia local.
+- Los errores de app_states/RLS muestran instrucciones claras para ejecutar el SQL correspondiente.
+
+2. profile.js
+- normalizeState preserva campos existentes del estado completo.
+- Se conserva recurringGroups al guardar desde Mi Perfil.
+- Los errores de app_states/RLS muestran mensajes más útiles.
+
+3. sql/01-supabase-app-state.sql
+- Archivo actualizado para V10.9.
+- Reaplicable sin borrar datos.
+- Incluye grants para authenticated y políticas RLS propias por usuario.
+
+4. service-worker.js
+- Caché actualizado a v10.9.0.
+
+Resultado esperado:
+Al iniciar sesión, crear o editar cuentas, Supabase debe guardar una fila por usuario en app_states con el estado completo de Cuenta Clara.

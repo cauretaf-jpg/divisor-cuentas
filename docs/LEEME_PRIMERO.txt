@@ -1,18 +1,34 @@
-CUENTA CLARA V10.8 - PULIDO VISUAL FINAL
+CUENTA CLARA V10.9 - SINCRONIZACIÓN COMPLETA CON SUPABASE
 
-Esta versión corrige la visualización en celulares sin cambiar la lógica de cálculos, Supabase ni SQL.
+Esta versión refuerza el guardado de cuentas completas en Supabase.
 
 INSTRUCCIONES:
 1. Reemplaza los archivos de tu carpeta Cuentas por esta versión.
-2. No es necesario ejecutar SQL nuevamente si la V10.6 ya funcionaba.
-3. Recarga con Ctrl + F5.
-4. En celular, borra caché o reinstala la PWA si todavía ves la versión anterior.
+2. En Supabase, abre SQL Editor → New query.
+3. Ejecuta el archivo: sql/01-supabase-app-state.sql
+4. Recarga la app con Ctrl + F5.
+5. Inicia sesión, crea o edita una cuenta y presiona “Guardar ahora” si quieres forzar la primera sincronización.
 
-SQL:
-- No se modificó.
-- Se mantienen los archivos en la carpeta sql/.
+QUÉ DEBERÍAS VER EN SUPABASE:
+- public_profiles: perfiles públicos de usuarios.
+- app_states: estado completo de la app por usuario.
 
-NUEVO EN V10.8
-- Pulido estético general sin modificar SQL.
-- Tarjetas, botones, insignias, estados vacíos y modo oscuro más consistentes.
-- Mantiene la responsividad móvil de V10.7.
+DENTRO DE app_states/state SE GUARDA:
+- cuentas creadas
+- personas
+- gastos/productos
+- pagador principal
+- propina
+- pagos pendientes/pagados
+- productos rápidos
+- perfil local
+- amigos locales
+- grupos recurrentes del hogar
+
+NUEVO EN V10.9
+- Se corrigió el flujo inicial cuando app_states todavía no tiene una fila para el usuario.
+- Se fuerza la creación del respaldo en Supabase al primer inicio con sesión.
+- El botón “Guardar ahora” confirma si realmente pudo guardar en Supabase.
+- Si falta la tabla app_states o falla RLS, la app muestra una instrucción más clara.
+- La página Mi Perfil ya no elimina datos auxiliares como grupos recurrentes al guardar el perfil.
+- Se mantiene localStorage como respaldo si Supabase falla.

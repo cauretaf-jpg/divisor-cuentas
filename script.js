@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V10.8 cargada');
+console.info('Cuenta Clara V10.9 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -9,6 +9,7 @@ let cloudSaveTimer = null;
 let isCloudLoading = false;
 let lastCloudSyncAt = null;
 let cloudSyncStatus = 'local';
+let cloudSyncErrorNotified = false;
 let accountSettingsPinnedOpenBillId = '';
 let suppressAccountSettingsToggle = false;
 let sharedSaveTimer = null;
@@ -340,6 +341,38 @@ function hasSupabaseClient() {
   return typeof supabaseClient !== 'undefined' && Boolean(supabaseClient?.auth);
 }
 
+function getCloudSyncErrorMessage(error) {
+  const code = String(error?.code || '').trim();
+  const rawMessage = String(error?.message || error?.details || error?.hint || error || '').trim();
+  const message = rawMessage.toLowerCase();
+
+  if (code === '42P01' || message.includes('app_states') || message.includes('does not exist') || message.includes('relation')) {
+    return 'La tabla app_states no está disponible. Ejecuta sql/01-supabase-app-state.sql en Supabase → SQL Editor y vuelve a probar.';
+  }
+
+  if (code === '42501' || message.includes('row-level security') || message.includes('permission denied') || message.includes('policy')) {
+    return 'Supabase está bloqueando el guardado por permisos/RLS. Vuelve a ejecutar sql/01-supabase-app-state.sql para recrear las políticas de app_states.';
+  }
+
+  if (message.includes('jwt') || message.includes('not authenticated') || message.includes('auth')) {
+    return 'La sesión de Supabase no está activa. Cierra sesión, vuelve a ingresar y presiona Guardar ahora.';
+  }
+
+  return rawMessage
+    ? `Los cambios siguen guardados localmente. Detalle: ${rawMessage}`
+    : 'Los cambios siguen guardados localmente. Revisa conexión, sesión de usuario y la tabla app_states en Supabase.';
+}
+
+function notifyCloudSyncError(title, error) {
+  console.error(error);
+  setSyncStatus('error', 'Guardado local');
+
+  if (!cloudSyncErrorNotified) {
+    showNotice(title, getCloudSyncErrorMessage(error));
+    cloudSyncErrorNotified = true;
+  }
+}
+
 
 
 function getUserStorageKey(identifier) {
@@ -395,13 +428,27 @@ async function loadAuthSession() {
   await initializeAuthSession();
 }
 
-async function saveCloudStateNow() {
-  if (!hasSupabaseClient() || currentSession.mode !== 'user' || !currentSession.userId || isCloudLoading) {
-    return;
+async function saveCloudStateNow(options = {}) {
+  const force = Boolean(options.force);
+
+  if (!hasSupabaseClient() || currentSession.mode !== 'user' || !currentSession.userId) {
+    return false;
+  }
+
+  if (isCloudLoading && !force) {
+    return false;
   }
 
   try {
-    setSyncStatus('saving', 'Guardando...');
+    state = normalizeState(state);
+
+    try {
+      localStorage.setItem(activeStorageKey, JSON.stringify(state));
+    } catch (storageError) {
+      console.warn('No se pudo actualizar la copia local antes de sincronizar:', storageError);
+    }
+
+    setSyncStatus('saving', options.message || 'Guardando...');
 
     const { error } = await supabaseClient
       .from('app_states')
@@ -412,20 +459,19 @@ async function saveCloudStateNow() {
       }, { onConflict: 'user_id' });
 
     if (error) {
-      console.error(error);
-      setSyncStatus('error', 'Guardado local');
-      showNotice('No se pudo guardar en la nube', error.message || 'Los cambios siguen guardados localmente.');
-      return;
+      notifyCloudSyncError('No se pudo guardar en la nube', error);
+      return false;
     }
 
+    cloudSyncErrorNotified = false;
     await savePublicProfileFromMain();
     lastCloudSyncAt = nowIso();
     setSyncStatus('saved', getCloudSavedText());
     renderAuthUI();
+    return true;
   } catch (error) {
-    console.error(error);
-    setSyncStatus('error', 'Guardado local');
-    showNotice('Error de sincronización', 'No se pudo guardar en Supabase. Los cambios siguen en este navegador.');
+    notifyCloudSyncError('Error de sincronización', error);
+    return false;
   }
 }
 
@@ -437,7 +483,9 @@ function scheduleCloudSave() {
   setSyncStatus('saving', 'Guardando...');
   clearTimeout(cloudSaveTimer);
   cloudSaveTimer = setTimeout(() => {
-    saveCloudStateNow();
+    saveCloudStateNow({ silent: true }).catch((error) => {
+      notifyCloudSyncError('Error de sincronización', error);
+    });
   }, 180);
 }
 
@@ -449,6 +497,8 @@ async function loadCloudState() {
   isCloudLoading = true;
 
   try {
+    setSyncStatus('saving', 'Cargando nube...');
+
     const { data, error } = await supabaseClient
       .from('app_states')
       .select('state, updated_at')
@@ -456,8 +506,7 @@ async function loadCloudState() {
       .maybeSingle();
 
     if (error) {
-      console.error(error);
-      showNotice('No se pudo cargar la nube', error.message || 'Se usará la copia local de este navegador.');
+      notifyCloudSyncError('No se pudo cargar la nube', error);
       return false;
     }
 
@@ -465,16 +514,22 @@ async function loadCloudState() {
       state = normalizeState(data.state);
       localStorage.setItem(activeStorageKey, JSON.stringify(state));
       lastCloudSyncAt = data.updated_at || nowIso();
+      cloudSyncErrorNotified = false;
+      setSyncStatus('saved', getCloudSavedText());
       return true;
     }
 
     const localSaved = localStorage.getItem(activeStorageKey);
-    state = normalizeState(localSaved ? JSON.parse(localSaved) : null);
-    await saveCloudStateNow();
+    const guestSaved = localStorage.getItem(GUEST_STORAGE_KEY);
+    const fallbackState = localSaved || guestSaved;
+    state = normalizeState(fallbackState ? JSON.parse(fallbackState) : state);
+    localStorage.setItem(activeStorageKey, JSON.stringify(state));
+
+    isCloudLoading = false;
+    await saveCloudStateNow({ force: true, message: 'Creando respaldo...' });
     return true;
   } catch (error) {
-    console.error(error);
-    showNotice('Error de sincronización', 'No se pudo cargar tu información desde Supabase.');
+    notifyCloudSyncError('Error de sincronización', error);
     return false;
   } finally {
     isCloudLoading = false;
@@ -6621,8 +6676,8 @@ dom.profileTabs?.forEach((button) => {
 dom.saveProfileButton && dom.saveProfileButton.addEventListener('click', saveProfileFromModal);
 dom.savePreferencesButton && dom.savePreferencesButton.addEventListener('click', saveProfilePreferences);
 dom.syncNowButton && dom.syncNowButton.addEventListener('click', async () => {
-  await saveCloudStateNow();
-  showToast('Guardado solicitado.');
+  const saved = await saveCloudStateNow({ force: true, message: 'Guardando...' });
+  showToast(saved ? 'Guardado en Supabase.' : 'No se pudo guardar en Supabase. Quedó guardado localmente.');
 });
 
 dom.installAppButton.addEventListener('click', installApp);

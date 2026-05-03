@@ -1,4 +1,4 @@
-# Cuenta Clara V10.8
+# Cuenta Clara V10.9
 
 
 - Diseño visual más consistente en tarjetas, botones e insignias.
@@ -8,6 +8,16 @@
 - Mejoras visuales en Perfil, estadísticas, pagos y modo oscuro.
 - Sin cambios en SQL ni en la lógica de cálculos.
 App web funcional para dividir cuentas entre varias personas.
+
+
+## Nuevo en V10.9 - Sincronización completa con Supabase
+
+- Se reforzó el guardado completo en `app_states`: cuentas, personas, gastos, propinas, pagos, productos rápidos, perfil, amigos y grupos recurrentes.
+- Si el usuario inicia sesión y todavía no existe una fila en `app_states`, la app crea el respaldo inicial automáticamente usando la copia local disponible.
+- El botón **Guardar ahora** indica si Supabase guardó correctamente o si solo quedó copia local.
+- Los errores de Supabase ahora explican si falta ejecutar `sql/01-supabase-app-state.sql` o si hay un problema de políticas RLS.
+- La página **Mi Perfil** conserva datos auxiliares del estado completo al guardar perfil, evitando pérdida de grupos recurrentes u otros campos.
+- Para activar esta versión correctamente, ejecuta `sql/01-supabase-app-state.sql` en Supabase.
 
 
 ## Nuevo en V10.8 - Pulido visual final

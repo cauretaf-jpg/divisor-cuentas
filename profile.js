@@ -1,6 +1,7 @@
-console.info('Cuenta Clara Perfil V10.8 cargado');
+console.info('Cuenta Clara Perfil V10.9 cargado');
 
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
+let cloudSyncErrorNotified = false;
 let currentUser = null;
 let state = null;
 let editingFriendId = null;
@@ -167,12 +168,39 @@ function normalizeFriends(input = []) {
 function normalizeState(input) {
   const safe = input && typeof input === 'object' ? input : {};
   return {
+    ...safe,
     bills: Array.isArray(safe.bills) ? safe.bills : [],
     activeBillId: safe.activeBillId || '',
     quickProducts: Array.isArray(safe.quickProducts) ? safe.quickProducts : [],
     profile: makeDefaultProfile(safe.profile || {}),
     friends: normalizeFriends(safe.friends || []),
+    recurringGroups: Array.isArray(safe.recurringGroups) ? safe.recurringGroups : [],
   };
+}
+
+function getCloudSyncErrorMessage(error) {
+  const code = String(error?.code || '').trim();
+  const rawMessage = String(error?.message || error?.details || error?.hint || error || '').trim();
+  const message = rawMessage.toLowerCase();
+
+  if (code === '42P01' || message.includes('app_states') || message.includes('does not exist') || message.includes('relation')) {
+    return 'No existe la tabla app_states. Ejecuta sql/01-supabase-app-state.sql en Supabase → SQL Editor.';
+  }
+
+  if (code === '42501' || message.includes('row-level security') || message.includes('permission denied') || message.includes('policy')) {
+    return 'Supabase bloqueó el guardado por permisos/RLS. Vuelve a ejecutar sql/01-supabase-app-state.sql para recrear las políticas.';
+  }
+
+  return rawMessage || 'No se pudo sincronizar con Supabase. Se conserva la copia local.';
+}
+
+function notifyCloudSyncError(error) {
+  console.error(error);
+
+  if (!cloudSyncErrorNotified) {
+    showToast(getCloudSyncErrorMessage(error));
+    cloudSyncErrorNotified = true;
+  }
 }
 
 function getDisplayName() {
@@ -197,10 +225,9 @@ async function loadState() {
     .maybeSingle();
 
   if (error) {
-    console.error(error);
+    notifyCloudSyncError(error);
     const local = localStorage.getItem(getUserStorageKey(currentUser.id));
     state = normalizeState(local ? JSON.parse(local) : null);
-    showToast('No se pudo cargar Supabase. Usando copia local.');
     render();
     return;
   }
@@ -212,10 +239,9 @@ async function loadState() {
 }
 
 async function saveState() {
-  if (!currentUser || !state) return;
+  if (!currentUser || !state) return false;
 
-  state.profile = makeDefaultProfile(state.profile || {});
-  state.friends = normalizeFriends(state.friends || []);
+  state = normalizeState(state);
   localStorage.setItem(getUserStorageKey(currentUser.id), JSON.stringify(state));
 
   const { error } = await supabaseClient
@@ -227,12 +253,13 @@ async function saveState() {
     }, { onConflict: 'user_id' });
 
   if (error) {
-    console.error(error);
-    showToast('No se pudo sincronizar con Supabase.');
-    return;
+    notifyCloudSyncError(error);
+    return false;
   }
 
+  cloudSyncErrorNotified = false;
   showToast('Guardado en la nube.');
+  return true;
 }
 
 function renderAvatar() {
