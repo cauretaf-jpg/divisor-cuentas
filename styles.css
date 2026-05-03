@@ -2787,3 +2787,51 @@ body.simple-mode .hero-actions {
     padding: 8px 12px;
   }
 }
+
+
+/* V8.5: pulido perfil y sincronización automática */
+.sync-status-badge {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.sync-status-badge.is-saving {
+  color: var(--accent);
+  background: var(--warning-soft);
+}
+
+.sync-status-badge.is-saved {
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+.sync-status-badge.is-error {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.header-actions .auth-badge.is-user {
+  cursor: pointer;
+}
+
+body .hidden {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  .sync-status-badge {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+}

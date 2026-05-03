@@ -1,4 +1,4 @@
-console.info('Cuenta Clara Perfil V8.4 cargado');
+console.info('Cuenta Clara Perfil V8.5 cargado');
 
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 let currentUser = null;
@@ -198,7 +198,7 @@ async function saveState() {
     return;
   }
 
-  showToast('Sincronizado.');
+  showToast('Guardado en la nube.');
 }
 
 function renderAvatar() {
@@ -765,13 +765,27 @@ function deleteFriend(friendId) {
 }
 
 function toggleTheme() {
-  document.body.classList.toggle('dark');
-  localStorage.setItem('cuenta-clara-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+  const current = document.documentElement.dataset.theme || localStorage.getItem('cuenta-clara-theme') || 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+
+  document.documentElement.dataset.theme = next;
+  document.body.classList.toggle('dark', next === 'dark');
+  localStorage.setItem('cuenta-clara-theme', next);
+
+  if (dom.themeToggle) {
+    dom.themeToggle.textContent = next === 'dark' ? 'Modo claro' : 'Modo oscuro';
+  }
 }
 
 function initTheme() {
-  const saved = localStorage.getItem('cuenta-clara-theme');
+  const saved = localStorage.getItem('cuenta-clara-theme') || 'light';
+
+  document.documentElement.dataset.theme = saved;
   document.body.classList.toggle('dark', saved === 'dark');
+
+  if (dom.themeToggle) {
+    dom.themeToggle.textContent = saved === 'dark' ? 'Modo claro' : 'Modo oscuro';
+  }
 }
 
 dom.save.addEventListener('click', saveProfileFromForm);

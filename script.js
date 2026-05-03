@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V8.4 cargada');
+console.info('Cuenta Clara V8.5 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -7,6 +7,7 @@ let currentSession = { mode: 'guest', email: '', name: '', userId: '' };
 let cloudSaveTimer = null;
 let isCloudLoading = false;
 let lastCloudSyncAt = null;
+let cloudSyncStatus = 'local';
 const THEME_KEY = 'cuenta-clara-theme';
 
 const CATEGORIES = [
@@ -44,6 +45,7 @@ const dom = {
   installAppButton: document.querySelector('#installAppButton'),
   authButton: document.querySelector('#authButton'),
   authStatusBadge: document.querySelector('#authStatusBadge'),
+  syncStatusBadge: document.querySelector('#syncStatusBadge'),
   newBillButton: document.querySelector('#newBillButton'),
   duplicateBillButton: document.querySelector('#duplicateBillButton'),
   archiveBillButton: document.querySelector('#archiveBillButton'),
@@ -351,6 +353,8 @@ async function saveCloudStateNow() {
   }
 
   try {
+    setSyncStatus('saving', 'Guardando...');
+
     const { error } = await supabaseClient
       .from('app_states')
       .upsert({
@@ -361,14 +365,17 @@ async function saveCloudStateNow() {
 
     if (error) {
       console.error(error);
+      setSyncStatus('error', 'Guardado local');
       showNotice('No se pudo guardar en la nube', error.message || 'Los cambios siguen guardados localmente.');
       return;
     }
 
     lastCloudSyncAt = nowIso();
+    setSyncStatus('saved', getCloudSavedText());
     renderAuthUI();
   } catch (error) {
     console.error(error);
+    setSyncStatus('error', 'Guardado local');
     showNotice('Error de sincronización', 'No se pudo guardar en Supabase. Los cambios siguen en este navegador.');
   }
 }
@@ -378,10 +385,11 @@ function scheduleCloudSave() {
     return;
   }
 
+  setSyncStatus('saving', 'Guardando...');
   clearTimeout(cloudSaveTimer);
   cloudSaveTimer = setTimeout(() => {
     saveCloudStateNow();
-  }, 700);
+  }, 180);
 }
 
 async function loadCloudState() {
@@ -632,6 +640,54 @@ async function saveProfilePreferences() {
 }
 
 
+
+function setSyncStatus(status, message = '') {
+  cloudSyncStatus = status;
+
+  if (!dom.syncStatusBadge) {
+    return;
+  }
+
+  const isUser = currentSession.mode === 'user';
+  dom.syncStatusBadge.classList.toggle('hidden', !isUser);
+
+  if (!isUser) {
+    dom.syncStatusBadge.textContent = 'Local';
+    dom.syncStatusBadge.className = 'sync-status-badge hidden';
+    return;
+  }
+
+  dom.syncStatusBadge.classList.remove('is-saving', 'is-saved', 'is-error', 'is-local');
+  dom.syncStatusBadge.classList.add(`is-${status}`);
+
+  if (message) {
+    dom.syncStatusBadge.textContent = message;
+    return;
+  }
+
+  if (status === 'saving') {
+    dom.syncStatusBadge.textContent = 'Guardando...';
+  } else if (status === 'saved') {
+    dom.syncStatusBadge.textContent = 'Guardado en la nube';
+  } else if (status === 'error') {
+    dom.syncStatusBadge.textContent = 'Guardado local';
+  } else {
+    dom.syncStatusBadge.textContent = 'Local';
+  }
+}
+
+function getCloudSavedText() {
+  if (!lastCloudSyncAt) {
+    return 'Guardado en la nube';
+  }
+
+  return `Guardado ${new Date(lastCloudSyncAt).toLocaleTimeString('es-CL', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })}`;
+}
+
+
 function renderAuthUI() {
   if (!dom.authButton || !dom.authStatusBadge) {
     return;
@@ -640,10 +696,12 @@ function renderAuthUI() {
   const isUser = currentSession.mode === 'user';
 
   const displayName = isUser ? getProfileDisplayName() : '';
-  dom.authStatusBadge.textContent = isUser ? `Nube: ${displayName}` : 'Invitado';
+  dom.authStatusBadge.textContent = isUser ? displayName : 'Invitado';
   dom.authStatusBadge.classList.toggle('is-user', isUser);
   dom.authStatusBadge.title = isUser ? 'Abrir perfil' : 'Iniciar sesión';
-  dom.authButton.textContent = isUser ? 'Mi cuenta' : 'Ingresar';
+  dom.authButton.textContent = 'Ingresar';
+  dom.authButton.classList.toggle('hidden', isUser);
+  setSyncStatus(isUser ? (lastCloudSyncAt ? 'saved' : cloudSyncStatus) : 'local', isUser && lastCloudSyncAt ? getCloudSavedText() : '');
 
   if (dom.authSessionPanel && dom.authFormsPanel) {
     dom.authSessionPanel.classList.toggle('hidden', !isUser);
@@ -4901,7 +4959,7 @@ dom.saveProfileButton && dom.saveProfileButton.addEventListener('click', savePro
 dom.savePreferencesButton && dom.savePreferencesButton.addEventListener('click', saveProfilePreferences);
 dom.syncNowButton && dom.syncNowButton.addEventListener('click', async () => {
   await saveCloudStateNow();
-  showToast('Sincronización solicitada.');
+  showToast('Guardado solicitado.');
 });
 
 dom.installAppButton.addEventListener('click', installApp);

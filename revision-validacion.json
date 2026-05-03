@@ -1,0 +1,11 @@
+{
+  "script.js_node_check": "OK",
+  "profile.js_node_check": "OK",
+  "index_selectors_missing": [],
+  "profile_selectors_missing": [],
+  "sin_prefijo_nube": true,
+  "authbutton_oculto_usuario": true,
+  "sync_badge_existe": true,
+  "perfil_dark_datatheme": true,
+  "version_console": true
+}

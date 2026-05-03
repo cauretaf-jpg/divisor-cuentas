@@ -1,4 +1,4 @@
-# Cuenta Clara V8.4
+# Cuenta Clara V8.5
 
 App web funcional para dividir cuentas entre varias personas.
 
@@ -523,4 +523,19 @@ Antes de usar amigos entre usuarios, ejecuta `supabase-social.sql` en Supabase �
 - La experiencia guiada ahora espera a que exista una cuenta activa antes de calcular pasos.
 - `getActiveBill()` ahora es más tolerante si el estado viene vacío o incompleto.
 - Se agregó protección para que la experiencia guiada no bloquee la app si falla.
+- No requiere SQL nuevo.
+
+
+## Nuevo en V8.5 - Pulido de perfil y sincronización automática
+
+- Se corrigió el modo oscuro en `perfil.html`.
+- El acceso de sesión ahora muestra solo el nick/nombre, por ejemplo `Carloco`, sin el prefijo `Nube:`.
+- El botón `Mi cuenta` ya no aparece cuando el usuario está conectado.
+- El nombre/nick de sesión sigue funcionando como acceso directo al perfil.
+- La sincronización con Supabase queda casi inmediata después de cada cambio.
+- Se agregó estado discreto de guardado:
+  - Guardando...
+  - Guardado en la nube
+  - Guardado local
+- `Sincronizar` se renombró como `Guardar ahora`.
 - No requiere SQL nuevo.

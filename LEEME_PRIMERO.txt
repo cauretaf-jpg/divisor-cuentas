@@ -1,7 +1,12 @@
-CUENTA CLARA V8.4 - CORRECCIÓN EXPERIENCIA GUIADA
+CUENTA CLARA V8.5 - PULIDO PERFIL Y SINCRONIZACIÓN
 
-Corrige el error:
-Cannot read properties of undefined (reading 'people')
+Cambios:
+- Modo oscuro corregido en Mi Perfil.
+- El usuario conectado se muestra como nick/nombre solamente. Ej: Carloco.
+- Se oculta el botón Mi cuenta cuando hay sesión iniciada.
+- Guardado automático más inmediato en Supabase.
+- Estado visible: Guardando, Guardado en la nube o Guardado local.
+- No requiere SQL nuevo.
 
 PASOS:
 1. Descomprime este ZIP.
@@ -12,4 +17,4 @@ PASOS:
 5. Reemplaza archivos.
 6. Prueba con Live Server / Super Live Server.
 7. Recarga con Ctrl + F5.
-8. No necesitas ejecutar SQL nuevo.
+8. Si todo funciona, usa subir-cuenta-clara-github.cmd.
