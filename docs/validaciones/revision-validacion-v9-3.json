@@ -1,0 +1,24 @@
+{
+  "index.html": {
+    "duplicate_ids": [],
+    "id_count": 210
+  },
+  "perfil.html": {
+    "duplicate_ids": [],
+    "id_count": 48
+  },
+  "privacidad.html": {
+    "duplicate_ids": [],
+    "id_count": 0
+  },
+  "script.js": {
+    "getElementById_refs": 0,
+    "missing_in_index.html": [],
+    "missing_count": 0
+  },
+  "profile.js": {
+    "getElementById_refs": 0,
+    "missing_in_perfil.html": [],
+    "missing_count": 0
+  }
+}

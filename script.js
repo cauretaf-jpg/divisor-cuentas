@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V9.0 cargada');
+console.info('Cuenta Clara V9.2 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -758,7 +758,7 @@ async function savePublicProfileFromMain() {
     if (error) {
       console.warn('No se pudo actualizar public_profiles:', error);
       if (String(error.message || '').toLowerCase().includes('public_profiles')) {
-        showNotice('Perfil público no disponible', 'Ejecuta supabase-social.sql en Supabase para activar búsqueda y amigos entre usuarios.');
+        showNotice('Perfil público no disponible', 'Ejecuta sql/02-supabase-social.sql en Supabase para activar búsqueda y amigos entre usuarios.');
       }
     }
   } catch (error) {
@@ -2915,6 +2915,18 @@ function renderSharedPanel() {
   }
 }
 
+function isMissingSharedSqlError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  const details = String(error?.details || '').toLowerCase();
+  const code = String(error?.code || '').toLowerCase();
+
+  return code === '42p01'
+    || message.includes('does not exist')
+    || message.includes('could not find the table')
+    || details.includes('does not exist')
+    || details.includes('could not find the table');
+}
+
 async function fetchSharedAccounts() {
   if (!canUseSharedAccounts() || sharedUiBusy) {
     renderSharedPanel();
@@ -2934,24 +2946,45 @@ async function fetchSharedAccounts() {
 
     const { data: memberships, error: membershipError } = await supabaseClient
       .from('shared_account_members')
-      .select('account_id, role, status, shared_accounts(id, owner_id, title, account_state, updated_at)')
+      .select('account_id, role, status, created_at')
       .eq('user_id', currentSession.userId)
       .order('created_at', { ascending: false });
 
     if (membershipError) throw membershipError;
 
+    const memberAccountIds = [...new Set((memberships || [])
+      .map((item) => item.account_id)
+      .filter(Boolean))];
+
+    let memberAccounts = [];
+
+    if (memberAccountIds.length) {
+      const { data, error } = await supabaseClient
+        .from('shared_accounts')
+        .select('id, owner_id, title, account_state, updated_at')
+        .in('id', memberAccountIds);
+
+      if (error) throw error;
+      memberAccounts = data || [];
+    }
+
+    const accountById = new Map(memberAccounts.map((account) => [account.id, account]));
+
     const accepted = (memberships || [])
-      .filter((item) => item.status === 'accepted' && item.shared_accounts)
-      .map((item) => ({ ...item.shared_accounts, role: item.role }));
+      .filter((item) => item.status === 'accepted' && accountById.has(item.account_id))
+      .map((item) => ({ ...accountById.get(item.account_id), role: item.role }));
 
     sharedInvitesCache = (memberships || [])
       .filter((item) => item.status === 'pending')
-      .map((item) => ({
-        accountId: item.account_id,
-        role: item.role,
-        status: item.status,
-        title: item.shared_accounts?.title || item.shared_accounts?.account_state?.name || 'Cuenta compartida',
-      }));
+      .map((item) => {
+        const account = accountById.get(item.account_id) || {};
+        return {
+          accountId: item.account_id,
+          role: item.role,
+          status: item.status,
+          title: account.title || account.account_state?.name || 'Cuenta compartida',
+        };
+      });
 
     const merged = [...(owned || []), ...accepted];
     const seen = new Set();
@@ -2962,10 +2995,10 @@ async function fetchSharedAccounts() {
     });
   } catch (error) {
     console.error(error);
-    if (String(error.message || '').toLowerCase().includes('shared_accounts')) {
-      showNotice('Cuentas compartidas no disponibles', 'Ejecuta supabase-shared-accounts.sql en Supabase para activar invitaciones y edición compartida.');
+    if (isMissingSharedSqlError(error)) {
+      showNotice('Cuentas compartidas no disponibles', 'Ejecuta sql/03-supabase-shared-accounts.sql en Supabase para activar invitaciones y edición compartida.');
     } else {
-      showNotice('No se pudieron cargar compartidas', error.message || 'Revisa la conexión con Supabase.');
+      showNotice('No se pudieron cargar compartidas', error.message || 'Revisa las políticas RLS de Supabase y vuelve a intentar.');
     }
   } finally {
     sharedUiBusy = false;
@@ -2994,19 +3027,19 @@ async function publishActiveBillAsShared() {
     };
 
     if (bill.sharedAccountId) {
-      const { error } = await supabaseClient
-        .from('shared_accounts')
-        .update(payload)
-        .eq('id', bill.sharedAccountId);
+      const { error } = await supabaseClient.rpc('update_shared_account_safe', {
+        p_account_id: bill.sharedAccountId,
+        p_title: payload.title,
+        p_account_state: payload.account_state,
+      });
       if (error) throw error;
     } else {
-      const { data, error } = await supabaseClient
-        .from('shared_accounts')
-        .insert(payload)
-        .select('id')
-        .single();
+      const { data, error } = await supabaseClient.rpc('create_shared_account_safe', {
+        p_title: payload.title,
+        p_account_state: payload.account_state,
+      });
       if (error) throw error;
-      bill.sharedAccountId = data.id;
+      bill.sharedAccountId = data;
       bill.sharedRole = 'owner';
       bill.sharedOwnerId = currentSession.userId;
       saveState();
@@ -3016,7 +3049,7 @@ async function publishActiveBillAsShared() {
     showToast('Cuenta compartida actualizada.');
   } catch (error) {
     console.error(error);
-    showNotice('No se pudo compartir', error.message || 'Ejecuta supabase-shared-accounts.sql y vuelve a intentar.');
+    showNotice('No se pudo compartir', error.message || 'Ejecuta sql/03-supabase-shared-accounts.sql y vuelve a intentar.');
   }
 }
 
@@ -3152,14 +3185,11 @@ async function saveSharedActiveBillNow() {
   if (!bill.sharedAccountId || !canUseSharedAccounts()) return;
 
   try {
-    const { error } = await supabaseClient
-      .from('shared_accounts')
-      .update({
-        title: bill.name || 'Cuenta compartida',
-        account_state: bill,
-        updated_at: nowIso(),
-      })
-      .eq('id', bill.sharedAccountId);
+    const { error } = await supabaseClient.rpc('update_shared_account_safe', {
+      p_account_id: bill.sharedAccountId,
+      p_title: bill.name || 'Cuenta compartida',
+      p_account_state: bill,
+    });
 
     if (error) throw error;
   } catch (error) {

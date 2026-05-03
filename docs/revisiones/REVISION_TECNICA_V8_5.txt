@@ -1,0 +1,16 @@
+REVISIÓN TÉCNICA - CUENTA CLARA V8.5
+
+Validaciones realizadas:
+- script.js: validado con Node --check.
+- profile.js: validado con Node --check.
+- Revisión de selectores document.querySelector('#...') contra index.html.
+- Revisión de selectores de perfil contra perfil.html.
+- Recursos versionados a v=8.5 para reducir problemas de caché.
+- Service worker actualizado a cuenta-clara-v8.5.0.
+- No se requiere SQL nuevo.
+
+Cambios revisados:
+- Modo oscuro aplicado en perfil.html mediante documentElement.dataset.theme.
+- Texto de usuario sin prefijo "Nube:".
+- Botón "Mi cuenta" oculto cuando hay usuario conectado.
+- Guardado automático más inmediato con estado visual.

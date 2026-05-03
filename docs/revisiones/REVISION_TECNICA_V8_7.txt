@@ -1,0 +1,13 @@
+REVISIÓN TÉCNICA V8.7
+
+- script.js_node_check: OK
+- profile.js_node_check: OK
+- index_selectors_missing: []
+- profile_selectors_missing: []
+- main_public_profile_helper: True
+- main_registration_public_profile: True
+- profile_public_profile_helper: True
+- social_sql_trigger: True
+- version_main: True
+
+Requiere ejecutar supabase-social.sql nuevamente en Supabase.

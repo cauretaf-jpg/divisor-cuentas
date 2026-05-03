@@ -1,9 +1,16 @@
-CUENTA CLARA V9.0 - CUENTAS RECURRENTES Y COMPARTIDAS
+CUENTA CLARA V9.3 - CARPETA ORDENADA
+
+Archivos activos de la app quedan en la raíz de /Cuentas.
+SQL: carpeta /sql.
+Documentación: carpeta /docs.
+Script de subida a GitHub: carpeta /tools.
+
+CUENTA CLARA V9.2 - CUENTAS RECURRENTES Y COMPARTIDAS
 
 Carpeta lista para reemplazar tu proyecto local:
 C:\Users\caure\Desktop\Paginas\Cuentas
 
-Cambios V9.0:
+Cambios V9.2:
 - Nueva sección Hogar / Recurrentes en la barra lateral.
 - Permite crear una carpeta recurrente desde la cuenta actual, por ejemplo Streaming.
 - Permite crear el siguiente mes conectado con el anterior.
@@ -17,12 +24,12 @@ Cambios V9.0:
 
 IMPORTANTE SUPABASE:
 Para usar cuentas compartidas debes ejecutar este archivo nuevo en Supabase:
-1. supabase-shared-accounts.sql
+1. sql/03-supabase-shared-accounts.sql
 
 Si aún no lo hiciste antes, también ejecuta:
-1. supabase-app-state.sql
-2. supabase-social.sql
-3. supabase-shared-accounts.sql
+1. sql/01-supabase-app-state.sql
+2. sql/02-supabase-social.sql
+3. sql/03-supabase-shared-accounts.sql
 
 Instalación rápida:
 1. Cierra el servidor local si está abierto.
@@ -31,4 +38,7 @@ Instalación rápida:
 4. Recarga el navegador con Ctrl + F5 para limpiar caché.
 
 Nota:
-Las cuentas recurrentes funcionan en local/nube personal con app_states. Las cuentas compartidas requieren iniciar sesión y ejecutar supabase-shared-accounts.sql.
+Las cuentas recurrentes funcionan en local/nube personal con app_states. Las cuentas compartidas requieren iniciar sesión y ejecutar sql/03-supabase-shared-accounts.sql.
+
+
+V9.2: si aparece "new row violates row-level security policy for table shared_accounts", ejecutar nuevamente sql/03-supabase-shared-accounts.sql. Esta versión usa funciones seguras create_shared_account_safe/update_shared_account_safe para crear y actualizar cuentas compartidas con auth.uid().

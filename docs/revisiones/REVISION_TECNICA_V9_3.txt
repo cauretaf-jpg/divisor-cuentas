@@ -1,0 +1,14 @@
+Cuenta Clara V9.3 - Carpeta ordenada
+
+Cambios:
+- Se ordena la estructura del proyecto sin cambiar la lógica funcional.
+- SQL movidos a /sql con prefijos de orden de ejecución.
+- README y LEEME movidos a /docs.
+- Revisiones técnicas movidas a /docs/revisiones.
+- Validaciones JSON movidas a /docs/validaciones.
+- Script de subida a GitHub movido a /tools.
+- Caché/service worker actualizado a v9.3.0.
+
+Validación esperada:
+- La raíz conserva solo archivos activos de la app y carpetas auxiliares.
+- La app mantiene index.html, perfil.html, privacidad.html, styles.css, script.js, profile.js, supabase-config.js, manifest.json, service-worker.js y ads.txt en raíz.

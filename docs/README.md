@@ -1,8 +1,8 @@
-# Cuenta Clara V9.0
+# Cuenta Clara V9.2
 
 App web funcional para dividir cuentas entre varias personas.
 
-## Nuevo en V9.0 - Cuentas recurrentes y compartidas
+## Nuevo en V9.2 - Cuentas recurrentes y compartidas - fix Supabase
 
 - Nueva sección **Hogar / Recurrentes** en la barra lateral.
 - Permite crear una carpeta recurrente mensual desde la cuenta actual, por ejemplo **Streaming**.
@@ -11,7 +11,7 @@ App web funcional para dividir cuentas entre varias personas.
 - Nueva sección **Compartidas**.
 - Permite publicar una cuenta e invitar usuarios registrados por correo o nick.
 - Los invitados aceptados pueden abrir y editar la cuenta compartida.
-- Agrega el archivo **supabase-shared-accounts.sql** para crear las tablas `shared_accounts` y `shared_account_members`.
+- Agrega el archivo **sql/03-supabase-shared-accounts.sql** para crear las tablas `shared_accounts` y `shared_account_members`.
 
 
 ## Incluye
@@ -387,7 +387,7 @@ Importante: la lectura automática puede tener errores. Revisa siempre antes de 
 - El modo invitado sigue funcionando con localStorage.
 - El modo usuario usa Supabase para iniciar sesión y sincronizar el estado completo de Cuenta Clara.
 - Se agregó `supabase-config.js`.
-- Se agregó `supabase-app-state.sql`.
+- Se agregó `sql/01-supabase-app-state.sql`.
 - Se usa una tabla nueva `app_states` para guardar el estado completo por usuario.
 - Al crear cuenta puedes migrar tus cuentas de invitado a Supabase.
 - Al iniciar sesión, la app carga el estado guardado en Supabase.
@@ -395,11 +395,11 @@ Importante: la lectura automática puede tener errores. Revisa siempre antes de 
 
 ## Paso obligatorio antes de probar V7.0
 
-Ejecuta el archivo `supabase-app-state.sql` en Supabase:
+Ejecuta el archivo `sql/01-supabase-app-state.sql` en Supabase:
 
 1. Supabase → SQL Editor.
 2. New query.
-3. Pega el contenido de `supabase-app-state.sql`.
+3. Pega el contenido de `sql/01-supabase-app-state.sql`.
 4. Run.
 
 Luego sube la app a Vercel o pruébala con Live Server.
@@ -491,11 +491,11 @@ Luego sube la app a Vercel o pruébala con Live Server.
 - En la app principal, **Agregar desde amigos** ahora muestra:
   - amigos manuales,
   - amigos registrados aceptados.
-- Se agregó `supabase-social.sql`.
+- Se agregó `sql/02-supabase-social.sql`.
 
 ## Paso obligatorio para V8.1
 
-Antes de usar amigos entre usuarios, ejecuta `supabase-social.sql` en Supabase → SQL Editor.
+Antes de usar amigos entre usuarios, ejecuta `sql/02-supabase-social.sql` en Supabase → SQL Editor.
 
 
 ## Nuevo en V8.2 - Ajuste móvil
@@ -585,9 +585,9 @@ Antes de usar amigos entre usuarios, ejecuta `supabase-social.sql` en Supabase �
 - Al crear usuario desde la app principal, ahora también se guarda el perfil público.
 - Al iniciar sesión, la app verifica y actualiza `public_profiles`.
 - Al guardar cambios de perfil o foto, también se actualiza la búsqueda pública.
-- Se actualizó `supabase-social.sql`:
+- Se actualizó `sql/02-supabase-social.sql`:
   - crea/actualiza `public_profiles`;
   - crea trigger automático para nuevos usuarios;
   - mantiene políticas RLS;
   - mantiene solicitudes de amistad.
-- Requiere ejecutar nuevamente `supabase-social.sql` en Supabase.
+- Requiere ejecutar nuevamente `sql/02-supabase-social.sql` en Supabase.

@@ -540,7 +540,7 @@ async function renderFriendRequests() {
 
     if (error) {
       console.error(error);
-      const message = 'Ejecuta el archivo supabase-social.sql para activar amigos entre usuarios.';
+      const message = 'Ejecuta el archivo sql/02-supabase-social.sql para activar amigos entre usuarios.';
       renderSocialMessage(dom.incomingRequestsList, message);
       renderSocialMessage(dom.outgoingRequestsList, message);
       renderSocialMessage(dom.registeredFriendsList, message);
