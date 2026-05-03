@@ -1,17 +1,52 @@
-# Cuenta Clara V9.6
+# Cuenta Clara V10.3
 
 App web funcional para dividir cuentas entre varias personas.
 
-## Nuevo en V9.6 - Estabilidad y pulido general
+## Nuevo en V10.3 - Nombre de lista y secciones mejor ubicadas
 
-- Se agregaron resguardos para evitar crear meses recurrentes duplicados.
-- Al crear el siguiente mes, la confirmación indica si copiará solo gastos recurrentes o todos los gastos del último mes.
-- Se evita compartir cuentas vacías sin confirmación y se exige al menos un participante para compartir.
-- Se evita reenviar invitaciones duplicadas a usuarios que ya tienen invitación pendiente o ya aceptaron.
-- Se mejoraron mensajes vacíos del historial, errores de compartidas y avisos de guardado local.
-- Se agregó aviso de respaldo si el navegador no permite guardar en localStorage.
-- Se mejoró el ajuste móvil de tarjetas largas en Recurrentes y Compartidas.
-- No requiere ejecutar SQL nuevamente si V9.5/V9.4 ya funcionaba.
+- Al elegir una opción en **¿Qué quieres hacer hoy?**, la app pide nombre para la nueva lista antes de crearla.
+- Se agregó un indicador visible de **Editando lista** para saber siempre qué cuenta/lista se está modificando.
+- **Pagador principal** ahora está dentro de la sección **Personas**.
+- **Propina** ahora está dentro de la sección **Gastos**.
+- **Configuración** queda enfocada en tipo de cuenta, total rápido y mes del hogar.
+- No requiere ejecutar SQL nuevamente si V10.2/V9.x ya funcionaba.
+
+## Nuevo en V10.2 - Flujo de cuenta nueva y barra descriptiva
+
+- La barra lateral vuelve a mostrar descripciones pequeñas por pestaña.
+- La barra lateral no tiene scroll interno en escritorio; si necesita espacio, baja con la página.
+- En Inicio, las opciones principales crean una cuenta nueva.
+- “Ver mis cuentas anteriores” abre Historial sin crear una cuenta nueva.
+- Las cuentas nuevas abren Configuración para definir pagador principal y propina.
+
+
+## Nuevo en V10.1 - Historial y navegación más limpia
+
+- Barra lateral compacta para evitar scroll en escritorio.
+- Inicio rápido incluye acceso a Ver mis cuentas anteriores.
+- Historial incluye botones Editar y Eliminar por cuenta.
+
+## Nuevo en V10.0 - Navegación por secciones
+
+- La pantalla principal ahora se organiza con una barra lateral de navegación, inspirada en la metodología usada en Consulta AIEP.
+- Se agregaron secciones independientes: **Inicio**, **Personas**, **Gastos**, **Resumen**, **Pagos**, **Historial**, **Hogar**, **Compartidas** y **Configuración**.
+- Al seleccionar una sección, se muestra solo ese contenido para reducir ruido visual.
+- **Inicio** mantiene la guía “¿Qué quieres hacer?” y el siguiente paso recomendado.
+- El botón inteligente ahora abre automáticamente la sección correspondiente: personas, gastos, configuración o pagos.
+- En móvil, la navegación lateral se transforma en una barra horizontal superior.
+- No requiere ejecutar SQL nuevamente si V9.7/V9.6 ya funcionaba.
+
+## Nuevo en V9.7 - Pulido visual de gastos y personas
+
+- Se limpió visualmente la sección **Agregar gasto**.
+- Las opciones **Escribir**, **Escanear boleta** y **Productos rápidos** ahora se muestran como accesos compactos.
+- **Productos rápidos** ocupa menos espacio y mantiene el botón para editar accesos.
+- El formulario de gasto quedó más equilibrado, con mejor ancho para **Cómo se divide este gasto**.
+- **Gasto recurrente** se muestra como opción compacta, sin caja grande vacía.
+- La sección **Personas** ahora usa todo el ancho disponible.
+- Las tarjetas de participantes son más compactas, legibles y ordenadas.
+- Se acortó el campo de teléfono a **WhatsApp opcional** y el botón a **Agregar persona**.
+- No requiere ejecutar SQL nuevamente si V9.6/V9.5 ya funcionaba.
 
 ## Nuevo en V9.5 - Recurrentes más claros
 

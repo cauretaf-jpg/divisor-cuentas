@@ -1,0 +1,15 @@
+CUENTA CLARA V10.1 - REVISIÓN TÉCNICA
+
+Cambios aplicados:
+- Barra lateral principal compacta para evitar scroll en escritorio.
+- Inicio rápido incluye el acceso “Ver mis cuentas anteriores”, conectado a Historial.
+- Historial ahora muestra acciones por cuenta: Editar y Eliminar.
+- Editar abre la cuenta seleccionada en Configuración.
+- Eliminar pide confirmación y evita dejar la app sin cuentas.
+- Cache PWA actualizado a cuenta-clara-v10.1.0.
+
+Validaciones esperadas:
+- script.js sin errores de sintaxis.
+- profile.js sin errores de sintaxis.
+- HTML sin IDs duplicados.
+- Botones de navegación conectados a secciones existentes.

@@ -1,7 +1,8 @@
-console.info('Cuenta Clara V9.6 cargada');
+console.info('Cuenta Clara V10.3 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
+const APP_SECTION_KEY = 'cuenta-clara-active-section';
 let activeStorageKey = GUEST_STORAGE_KEY;
 let currentSession = { mode: 'guest', email: '', name: '', userId: '' };
 let cloudSaveTimer = null;
@@ -59,11 +60,15 @@ const dom = {
   billList: document.querySelector('#billList'),
   billNameInput: document.querySelector('#billNameInput'),
   billMeta: document.querySelector('#billMeta'),
+  currentListName: document.querySelector('#currentListName'),
+  currentListMeta: document.querySelector('#currentListMeta'),
   accountSettingsPanel: document.querySelector('#accountSettingsPanel'),
   accountSettingsSummaryText: document.querySelector('#accountSettingsSummaryText'),
 
   guidedStartCard: document.querySelector('#guidedStartCard'),
   guidedChoiceButtons: document.querySelectorAll('[data-guided-mode]'),
+  sectionNavButtons: document.querySelectorAll('[data-app-section]'),
+  appSectionPanels: document.querySelectorAll('[data-app-section-panel]'),
   guidedNextTitle: document.querySelector('#guidedNextTitle'),
   guidedNextHelp: document.querySelector('#guidedNextHelp'),
   smartActionButton: document.querySelector('#smartActionButton'),
@@ -2389,14 +2394,78 @@ function initExperienceMode() {
   setExperienceMode(getExperienceMode());
 }
 
+
+function normalizeAppSection(section) {
+  const allowed = new Set(['home', 'people', 'expenses', 'summary', 'payments', 'history', 'recurring', 'shared', 'settings']);
+  const aliases = {
+    products: 'expenses',
+    gastos: 'expenses',
+    review: 'summary',
+    share: 'payments',
+    hogar: 'recurring',
+    cuenta: 'settings',
+  };
+  const value = aliases[section] || section || 'home';
+  return allowed.has(value) ? value : 'home';
+}
+
+function getStoredAppSection() {
+  try {
+    return normalizeAppSection(localStorage.getItem(APP_SECTION_KEY));
+  } catch {
+    return 'home';
+  }
+}
+
+function setAppSection(section, options = {}) {
+  const nextSection = normalizeAppSection(section);
+
+  if (!dom.appSectionPanels || dom.appSectionPanels.length === 0) {
+    return;
+  }
+
+  dom.appSectionPanels.forEach((panel) => {
+    panel.classList.toggle('is-active', panel.dataset.appSectionPanel === nextSection);
+  });
+
+  dom.sectionNavButtons?.forEach((button) => {
+    button.classList.toggle('is-active', button.dataset.appSection === nextSection);
+  });
+
+  try {
+    localStorage.setItem(APP_SECTION_KEY, nextSection);
+  } catch {
+    // Si el navegador bloquea localStorage, la navegación sigue funcionando en memoria visual.
+  }
+
+  if (options.scroll !== false) {
+    const panel = document.querySelector(`[data-app-section-panel="${nextSection}"]`);
+    panel?.scrollIntoView({ behavior: options.instant ? 'auto' : 'smooth', block: 'start' });
+  }
+}
+
+function revealSectionForElement(element) {
+  const panel = element?.closest?.('[data-app-section-panel]');
+  if (!panel) return;
+  setAppSection(panel.dataset.appSectionPanel, { scroll: false });
+}
+
+function initAppSections() {
+  setAppSection(getStoredAppSection(), { scroll: false, instant: true });
+}
+
 function scrollToGuideTarget(element) {
   if (!element) return;
 
-  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  revealSectionForElement(element);
 
-  if (typeof element.focus === 'function') {
-    setTimeout(() => element.focus(), 260);
-  }
+  setTimeout(() => {
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    if (typeof element.focus === 'function') {
+      element.focus();
+    }
+  }, 80);
 }
 
 function getGuidedState() {
@@ -2424,6 +2493,15 @@ function getSmartActionCopy() {
       title: 'Agrega personas',
       help: 'Empieza agregando quienes participarán en esta cuenta. También puedes usar tus amigos frecuentes.',
       button: 'Agregar personas',
+      step: 'people',
+    };
+  }
+
+  if (!bill.payerId) {
+    return {
+      title: 'Elige pagador principal',
+      help: 'En Personas selecciona quién pagó o quién recibirá las transferencias.',
+      button: 'Elegir pagador',
       step: 'people',
     };
   }
@@ -2498,31 +2576,84 @@ function renderGuidedExperience() {
   dom.advancedModeButton?.classList.toggle('is-active', mode === 'advanced');
 }
 
-function applyGuidedMode(mode) {
-  const bill = getActiveBill();
-  bill.mode = mode;
+function getGuidedBillName(mode) {
+  const nextNumber = state?.bills?.length ? state.bills.length + 1 : 1;
 
-  if (mode === 'home') {
-    bill.name = bill.name && !/^Cuenta\s+\d+|Nueva cuenta$/i.test(bill.name) ? bill.name : 'Cuentas del hogar';
+  if (mode === 'home') return `Cuentas del hogar ${getCurrentMonthValue()}`;
+  if (mode === 'quick') return `Cuenta rápida ${nextNumber}`;
+  return `Salida ${nextNumber}`;
+}
+
+function applyBillModePreset(bill, mode, customName = '') {
+  const safeMode = ['detailed', 'home', 'quick'].includes(mode) ? mode : 'detailed';
+  bill.mode = safeMode;
+  const cleanName = String(customName || '').trim();
+  bill.name = cleanName || getGuidedBillName(safeMode);
+
+  if (safeMode === 'home') {
     bill.tipPercent = 0;
     bill.homeMonth = bill.homeMonth || getCurrentMonthValue();
   }
 
-  if (mode === 'quick') {
-    bill.name = bill.name && !/^Cuenta\s+\d+|Nueva cuenta$/i.test(bill.name) ? bill.name : 'Cuenta rápida';
+  if (safeMode !== 'home' && !Number.isFinite(Number(bill.tipPercent))) {
+    bill.tipPercent = 10;
+  }
+}
+
+function openInitialAccountSetup(message = 'Lista creada. Agrega personas y define el pagador principal.') {
+  accountSettingsPinnedOpenBillId = '';
+  setAppSection('people', { scroll: false });
+
+  requestAnimationFrame(() => {
+    const bill = getActiveBill();
+    const target = bill.people.length > 0 ? dom.payerSelect : dom.personNameInput;
+    target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    if (typeof target?.focus === 'function') {
+      target.focus();
+    }
+  });
+
+  showToast(message);
+}
+
+function askGuidedBillName(mode) {
+  const defaultName = getGuidedBillName(mode);
+  const response = prompt('¿Qué nombre quieres darle a esta lista?', defaultName);
+
+  if (response === null) {
+    return null;
   }
 
-  if (mode === 'detailed') {
-    bill.name = bill.name && !/^Cuenta\s+\d+|Nueva cuenta$/i.test(bill.name) ? bill.name : 'Salida';
+  const cleanName = response.trim();
+  return cleanName || defaultName;
+}
+
+function createGuidedBill(mode) {
+  const listName = askGuidedBillName(mode);
+
+  if (!listName) {
+    return;
   }
 
-  persistAndRender();
+  const bill = makeDefaultBill();
+  applyBillModePreset(bill, mode, listName);
 
-  if (mode === 'quick') {
-    scrollToGuideTarget(dom.quickTotalInput);
-  } else {
-    scrollToGuideTarget(dom.personNameInput);
-  }
+  state.bills.unshift(bill);
+  state.activeBillId = bill.id;
+  editingProductId = null;
+  accountSettingsPinnedOpenBillId = '';
+  saveState();
+  render();
+  openInitialAccountSetup(
+    bill.mode === 'home'
+      ? 'Lista creada. Agrega personas y elige pagador principal en Personas.'
+      : 'Lista creada. Agrega personas, elige pagador principal y luego revisa propina en Gastos.'
+  );
+}
+
+function applyGuidedMode(mode) {
+  createGuidedBill(mode);
 }
 
 function handleSmartAction() {
@@ -2530,6 +2661,11 @@ function handleSmartAction() {
 
   if (!hasPeople) {
     scrollToGuideTarget(dom.personNameInput);
+    return;
+  }
+
+  if (!bill.payerId) {
+    scrollToGuideTarget(dom.payerSelect);
     return;
   }
 
@@ -2543,6 +2679,7 @@ function handleSmartAction() {
     return;
   }
 
+  setAppSection('payments', { scroll: false });
   openShareModal();
 }
 
@@ -2561,6 +2698,7 @@ function showQuickProductsArea() {
     return;
   }
 
+  revealSectionForElement(dom.quickProductsList);
   dom.quickProductsList?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
@@ -3605,30 +3743,43 @@ function renderBillList() {
     const calculation = calculateBill(bill);
     const status = getBillStatus(bill);
     const statusLabel = status === 'paid' ? 'Pagada' : status === 'archived' ? 'Archivada' : 'Pendiente';
-    const button = document.createElement('button');
-    button.className = `bill-item ${bill.id === state.activeBillId ? 'active' : ''} ${bill.archived ? 'archived' : ''}`;
-    button.type = 'button';
-    button.innerHTML = `
-      <div>
-        <strong>${escapeHtml(bill.name)}</strong>
-        <span>${formatCurrency(calculation.grandTotal)} · ${bill.people.length} personas · ${statusLabel}</span>
-        <span>${formatDate(bill.updatedAt)}</span>
+    const row = document.createElement('article');
+    row.className = `history-bill-card ${bill.id === state.activeBillId ? 'active' : ''} ${bill.archived ? 'archived' : ''}`;
+    row.innerHTML = `
+      <button class="bill-item history-bill-open" type="button" aria-label="Abrir ${escapeHtml(bill.name)}">
+        <div>
+          <strong>${escapeHtml(bill.name)}</strong>
+          <span>${formatCurrency(calculation.grandTotal)} · ${bill.people.length} personas · ${statusLabel}</span>
+          <span>${formatDate(bill.updatedAt)}</span>
+        </div>
+        <span class="bill-count">${bill.mode === 'quick' ? 'R' : bill.products.length}</span>
+      </button>
+      <div class="history-bill-actions" aria-label="Acciones de ${escapeHtml(bill.name)}">
+        <button class="btn btn-light btn-small" data-action="edit" type="button">Editar</button>
+        <button class="btn btn-danger-light btn-small" data-action="delete" type="button">Eliminar</button>
       </div>
-      <span class="bill-count">${bill.mode === 'quick' ? 'R' : bill.products.length}</span>
     `;
 
-    button.addEventListener('click', () => {
+    row.querySelector('.history-bill-open').addEventListener('click', () => {
       state.activeBillId = bill.id;
       accountSettingsPinnedOpenBillId = '';
       editingProductId = null;
       saveState();
       render();
+      showToast('Cuenta seleccionada.');
     });
 
-    dom.billList.appendChild(button);
+    row.querySelector('[data-action="edit"]').addEventListener('click', () => {
+      editBillFromHistory(bill.id);
+    });
+
+    row.querySelector('[data-action="delete"]').addEventListener('click', () => {
+      deleteBillFromHistory(bill.id);
+    });
+
+    dom.billList.appendChild(row);
   }
 }
-
 
 function getBillModeLabel(mode) {
   if (mode === 'quick') return 'Rápida';
@@ -3639,15 +3790,16 @@ function getBillModeLabel(mode) {
 function renderAccountSettingsSummary(bill) {
   if (!dom.accountSettingsSummaryText) return;
 
-  const payer = bill.people.find((person) => person.id === bill.payerId);
-  const payerLabel = payer ? `Pagador: ${payer.name}` : 'Sin pagador principal';
-  const tipLabel = bill.mode === 'home' ? 'sin propina' : `propina ${Number(bill.tipPercent || 0)}%`;
-  dom.accountSettingsSummaryText.textContent = `${getBillModeLabel(bill.mode)} · ${payerLabel} · ${bill.people.length} personas · ${tipLabel}`;
+  const modeDetail = bill.mode === 'quick'
+    ? `Total rápido ${formatCurrency(Number(bill.quickTotal || 0))}`
+    : bill.mode === 'home'
+      ? `Mes ${bill.homeMonth || getCurrentMonthValue()}`
+      : 'Cuenta detallada';
+  dom.accountSettingsSummaryText.textContent = `${getBillModeLabel(bill.mode)} · ${modeDetail}`;
 
   if (!dom.accountSettingsPanel) return;
 
-  const hasValidPayer = Boolean(payer);
-  const shouldStayOpen = !hasValidPayer || accountSettingsPinnedOpenBillId === bill.id;
+  const shouldStayOpen = accountSettingsPinnedOpenBillId === bill.id;
 
   if (dom.accountSettingsPanel.open !== shouldStayOpen) {
     suppressAccountSettingsToggle = true;
@@ -3664,6 +3816,18 @@ function renderBillHeader() {
   const isHome = bill.mode === 'home';
 
   renderAccountSettingsSummary(bill);
+
+  if (dom.currentListName) {
+    dom.currentListName.textContent = bill.name || 'Nueva lista';
+  }
+  if (dom.currentListMeta) {
+    const modeLabel = getBillModeLabel(bill.mode);
+    const peopleCount = bill.people.length;
+    const productCount = bill.mode === 'quick' ? (Number(bill.quickTotal || 0) > 0 ? 1 : 0) : bill.products.length;
+    const sharedText = bill.sharedAccountId ? ' · Compartida' : '';
+    const recurringText = bill.recurringGroupId ? ' · Recurrente' : '';
+    dom.currentListMeta.textContent = `${modeLabel} · ${peopleCount} persona${peopleCount === 1 ? '' : 's'} · ${productCount} gasto${productCount === 1 ? '' : 's'}${sharedText}${recurringText}`;
+  }
 
   dom.billNameInput.value = bill.name;
   const recurringLabel = bill.recurringGroupId ? ` · Recurrente` : '';
@@ -3870,7 +4034,7 @@ function renderPeople() {
         <strong title="${escapeHtml(person.name)}">${escapeHtml(person.name)}</strong>
         <small>${hasPhone ? escapeHtml(formatPhoneForDisplay(person.phone)) : 'Sin teléfono'}${Number(person.previousDebt || 0) > 0 ? ` · Arrastre ${formatCurrency(person.previousDebt)}` : ''}</small>
       </div>
-      <button class="icon-button whatsapp ${hasPhone ? '' : 'muted'}" type="button" aria-label="Enviar WhatsApp a ${escapeHtml(person.name)}">☏</button>
+      <button class="icon-button whatsapp ${hasPhone ? '' : 'muted'}" type="button" aria-label="Enviar WhatsApp a ${escapeHtml(person.name)}">WA</button>
       <button class="icon-button edit" type="button" aria-label="Editar ${escapeHtml(person.name)}">✎</button>
       <button class="icon-button danger" type="button" aria-label="Eliminar ${escapeHtml(person.name)}">×</button>
       <button class="paid-toggle ${person.paid ? 'is-paid' : ''}" type="button">
@@ -4407,6 +4571,50 @@ function deleteActiveBill() {
   saveState();
   render();
   showToast('Cuenta eliminada.');
+}
+
+function editBillFromHistory(billId) {
+  const bill = state.bills.find((item) => item.id === billId);
+  if (!bill) {
+    showToast('No encontré esa cuenta en el historial.');
+    return;
+  }
+
+  state.activeBillId = bill.id;
+  accountSettingsPinnedOpenBillId = bill.id;
+  editingProductId = null;
+  saveState();
+  render();
+  setAppSection('settings', { scroll: false });
+  dom.accountSettingsPanel?.setAttribute('open', '');
+  showToast('Cuenta lista para editar.');
+}
+
+function deleteBillFromHistory(billId) {
+  if (state.bills.length <= 1) {
+    showToast('Debe existir al menos una cuenta.');
+    return;
+  }
+
+  const bill = state.bills.find((item) => item.id === billId);
+  if (!bill) {
+    showToast('No encontré esa cuenta en el historial.');
+    return;
+  }
+
+  const confirmed = confirm(`¿Eliminar "${bill.name}" del historial? Esta acción no se puede deshacer.`);
+  if (!confirmed) return;
+
+  state.bills = state.bills.filter((item) => item.id !== bill.id);
+
+  if (state.activeBillId === bill.id) {
+    state.activeBillId = state.bills[0]?.id || makeDefaultBill().id;
+  }
+
+  editingProductId = null;
+  saveState();
+  render();
+  showToast('Cuenta eliminada del historial.');
 }
 
 function toggleArchiveBill() {
@@ -6223,6 +6431,10 @@ dom.syncNowButton && dom.syncNowButton.addEventListener('click', async () => {
 dom.installAppButton.addEventListener('click', installApp);
 dom.themeToggle.addEventListener('click', toggleTheme);
 
+dom.sectionNavButtons?.forEach((button) => {
+  button.addEventListener('click', () => setAppSection(button.dataset.appSection));
+});
+
 dom.guidedChoiceButtons?.forEach((button) => {
   button.addEventListener('click', () => applyGuidedMode(button.dataset.guidedMode));
 });
@@ -6431,11 +6643,9 @@ dom.mobileAddProductButton.addEventListener('click', () => {
   const bill = getActiveBill();
 
   if (bill.mode === 'quick') {
-    dom.quickTotalInput.focus();
-    dom.quickTotalInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    scrollToGuideTarget(dom.quickTotalInput);
   } else {
-    dom.productNameInput.focus();
-    dom.productEditorCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollToGuideTarget(dom.productNameInput);
   }
 });
 
@@ -6501,6 +6711,7 @@ async function initApp() {
   importBillFromUrl();
   saveState();
   render();
+  initAppSections();
   initServiceWorker();
 
   if (hasSupabaseClient()) {

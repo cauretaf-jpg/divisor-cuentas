@@ -1,936 +1,818 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Cuenta Clara permite dividir cuentas, productos compartidos, propinas y transferencias de forma simple." />
-  <meta name="theme-color" content="#0f766e" />
-  <meta name="google-adsense-account" content="ca-pub-4358472434423818" />
-  <!-- Google AdSense Auto Ads -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818" crossorigin="anonymous"></script>
-  <title>Cuenta Clara | Divide cuentas sin enredos</title>
-
-  <link rel="stylesheet" href="styles.css?v=9.6" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="Cuenta Clara permite dividir cuentas, productos compartidos, propinas y transferencias de forma simple." name="description"/>
+<meta content="#0f766e" name="theme-color"/>
+<meta content="ca-pub-4358472434423818" name="google-adsense-account"/>
+<!-- Google AdSense Auto Ads -->
+<script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
+<title>Cuenta Clara | Divide cuentas sin enredos</title>
+<link href="styles.css?v=10.3" rel="stylesheet"/>
+<link href="manifest.json" rel="manifest"/>
+<link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
-
 <body>
-  <header class="app-header">
-    <div class="container header-grid">
-      <a href="#" class="brand" aria-label="Cuenta Clara">
-        <img src="assets/logo.svg" alt="" class="brand-icon" />
-        <div>
-          <strong>Cuenta Clara</strong>
-          <span>Divide gastos, propinas y transferencias</span>
-        </div>
-      </a>
-
-      <div class="header-actions">
-        <a class="btn btn-light" href="privacidad.html">Privacidad</a>
-        <button class="btn btn-light" id="installAppButton" type="button">Instalar App</button>
-        <button class="btn btn-light" id="themeToggle" type="button">Modo oscuro</button>
-        <button class="auth-badge" id="authStatusBadge" type="button">Invitado</button>
-        <span class="sync-status-badge hidden" id="syncStatusBadge">Local</span>
-        <button class="btn btn-light" id="authButton" type="button">Ingresar</button>
-        <button class="btn btn-primary" id="newBillButton" type="button">Nueva cuenta</button>
-      </div>
-    </div>
-  </header>
-
-  <main class="container app-layout">
-    <aside class="sidebar">
-      <details class="card sidebar-recurring-card" id="recurringSidebarPanel" open>
-        <summary class="sidebar-details-summary">
-          <div>
-            <p class="eyebrow">Hogar</p>
-            <h2>Recurrentes</h2>
-          </div>
-          <span>▾</span>
-        </summary>
-
-        <p class="helper-text compact-text">Crea carpetas mensuales como Streaming, Luz o Internet y arrastra deudas impagas al mes siguiente.</p>
-        <div class="sidebar-action-stack">
-          <button class="btn btn-primary btn-small" id="createRecurringGroupButton" type="button">Crear carpeta actual</button>
-          <button class="btn btn-light btn-small" id="createNextRecurringMonthButton" type="button">Crear siguiente mes</button>
-        </div>
-        <div class="recurring-groups-list" id="recurringGroupsList"></div>
-      </details>
-
-      <details class="card sidebar-shared-card" id="sharedSidebarPanel">
-        <summary class="sidebar-details-summary">
-          <div>
-            <p class="eyebrow">Colaboración</p>
-            <h2>Compartidas</h2>
-          </div>
-          <span>▾</span>
-        </summary>
-
-        <p class="helper-text compact-text">Publica la cuenta actual, invita usuarios registrados y revisa invitaciones pendientes en un solo lugar.</p>
-        <div class="sidebar-action-stack">
-          <button class="btn btn-primary btn-small" id="publishSharedAccountButton" type="button">Compartir cuenta actual</button>
-          <div class="shared-invite-row">
-            <input id="sharedInviteSearchInput" type="search" placeholder="Correo o nick registrado" />
-            <button class="btn btn-light btn-small" id="inviteSharedUserButton" type="button">Invitar</button>
-          </div>
-          <button class="btn btn-light btn-small" id="refreshSharedAccountsButton" type="button">Actualizar</button>
-        </div>
-        <div class="shared-status" id="sharedAccountStatus"></div>
-        <div class="shared-list" id="sharedInvitesList"></div>
-        <div class="shared-list" id="sharedAccountsList"></div>
-      </details>
-
-      <section class="card sidebar-history-card">
-        <div class="section-title compact">
-          <div>
-            <p class="eyebrow">Historial</p>
-            <h2>Tus cuentas</h2>
-          </div>
-        </div>
-
-        <div class="history-tools">
-          <input id="historySearchInput" type="search" placeholder="Buscar cuenta..." />
-          <select id="historyFilterSelect" aria-label="Filtrar historial">
-            <option value="all">Todas</option>
-            <option value="pending">Pendientes</option>
-            <option value="paid">Pagadas</option>
-            <option value="archived">Archivadas</option>
-          </select>
-        </div>
-
-        <div class="bill-list" id="billList"></div>
-        <div class="backup-actions">
-          <button class="btn btn-light btn-small" id="exportBackupButton" type="button">Exportar respaldo</button>
-          <button class="btn btn-light btn-small" id="importBackupButton" type="button">Importar respaldo</button>
-          <input class="hidden" id="backupFileInput" type="file" accept="application/json,.json" />
-        </div>
-      </section>
-
-      <section class="card sidebar-payments-panel" id="sidebarPaymentsCard">
-        <div class="section-title compact">
-          <div>
-            <p class="eyebrow">Por persona</p>
-            <h2>Pagos</h2>
-          </div>
-        </div>
-
-        <div class="sidebar-total-pill">
-          <span>Total final</span>
-          <strong id="sidebarGrandTotalOutput">$0</strong>
-        </div>
-
-        <div class="person-results" id="personResults"></div>
-
-        <div class="sidebar-transfer-block" id="transferCard">
-          <div class="sidebar-subtitle">
-            <span>Cobros</span>
-            <strong>Quién debe transferir</strong>
-          </div>
-          <div id="transferList" class="transfer-list"></div>
-        </div>
-
-        <div class="summary-actions sidebar-summary-actions">
-          <button class="btn btn-primary" id="shareButton" type="button">Compartir</button>
-          <button class="btn btn-light" id="shareLinkButton" type="button">Copiar enlace</button>
-          <button class="btn btn-light" id="exportExcelButton" type="button">Exportar Excel</button>
-          <button class="btn btn-light" id="copySummaryButton" type="button">Copiar rápido</button>
-          <button class="btn btn-light" id="whatsappButton" type="button">WhatsApp rápido</button>
-        </div>
-      </section>
-    </aside>
-
-    <section class="workspace">
-
-      <section class="guided-start-card card" id="guidedStartCard">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Inicio rápido</p>
-            <h2>¿Qué quieres hacer hoy?</h2>
-          </div>
-        </div>
-
-        <div class="guided-choice-grid">
-          <button class="guided-choice" type="button" data-guided-mode="detailed">
-            <strong>Dividir una salida</strong>
-            <span>Restaurant, bar, propina y productos compartidos.</span>
-          </button>
-          <button class="guided-choice" type="button" data-guided-mode="home">
-            <strong>Cuentas del hogar</strong>
-            <span>Luz, agua, internet, supermercado, streaming y gastos mensuales.</span>
-          </button>
-          <button class="guided-choice" type="button" data-guided-mode="quick">
-            <strong>Cuenta rápida</strong>
-            <span>Solo total, personas y reparto simple.</span>
-          </button>
-        </div>
-      </section>
-
-      <section class="guided-steps-card card" id="guidedStepsCard">
-        <div class="guided-next">
-          <div>
-            <p class="eyebrow">Siguiente paso</p>
-            <h2 id="guidedNextTitle">Agrega personas</h2>
-            <p id="guidedNextHelp">Primero agrega quienes participan en esta cuenta.</p>
-          </div>
-          <button class="btn btn-primary" id="smartActionButton" type="button">Continuar</button>
-        </div>
-
-        <div class="step-track" aria-label="Progreso de la cuenta">
-          <div class="step-pill" id="stepPeople"><span>1</span> Personas</div>
-          <div class="step-pill" id="stepProducts"><span>2</span> Productos</div>
-          <div class="step-pill" id="stepReview"><span>3</span> Revisar</div>
-          <div class="step-pill" id="stepShare"><span>4</span> Compartir</div>
-        </div>
-
-        <div class="experience-row">
-          <span>Vista de uso</span>
-          <div class="experience-toggle" role="group" aria-label="Modo de experiencia">
-            <button class="chip" id="simpleModeButton" type="button">Simple</button>
-            <button class="chip" id="advancedModeButton" type="button">Avanzado</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="hero-card card">
-        <div>
-          <p class="eyebrow">Cuenta actual</p>
-          <input class="bill-name-input" id="billNameInput" type="text" aria-label="Nombre de la cuenta" />
-          <p class="bill-meta" id="billMeta"></p>
-        </div>
-
-        <div class="hero-actions">
-          <button class="btn btn-light" id="duplicateBillButton" type="button">Duplicar</button>
-          <button class="btn btn-light" id="archiveBillButton" type="button">Archivar</button>
-          <button class="btn btn-danger-light" id="deleteBillButton" type="button">Eliminar</button>
-        </div>
-      </section>
-
-      <details class="card account-settings-card" id="accountSettingsPanel" open>
-        <summary class="account-settings-summary">
-          <div>
-            <p class="eyebrow">Configuración</p>
-            <h2>Editar cuenta</h2>
-            <p id="accountSettingsSummaryText">Tipo, pagador y opciones principales.</p>
-          </div>
-          <span>Mostrar / ocultar</span>
-        </summary>
-
-        <div class="account-settings-content grid-two">
-          <section class="settings-inner-card">
-            <div class="section-title compact">
-              <div>
-                <p class="eyebrow">Modo de uso</p>
-                <h2>Tipo de cuenta</h2>
-              </div>
-            </div>
-
-            <div class="mode-switch">
-              <label class="radio-pill">
-                <input type="radio" name="billMode" value="detailed" checked />
-                <span>Detallada</span>
-              </label>
-              <label class="radio-pill">
-                <input type="radio" name="billMode" value="quick" />
-                <span>Rápida</span>
-              </label>
-              <label class="radio-pill">
-                <input type="radio" name="billMode" value="home" />
-                <span>Hogar</span>
-              </label>
-            </div>
-
-            <div class="quick-total-panel hidden" id="quickTotalPanel">
-              <label for="quickTotalInput">Monto total de la cuenta</label>
-              <input id="quickTotalInput" type="number" min="0" step="1" placeholder="Ej: 60000" />
-              <p>En modo rápido, el total se divide en partes iguales entre todas las personas.</p>
-            </div>
-
-            <div class="home-panel hidden" id="homePanel">
-              <label for="homeMonthInput">Mes de las cuentas del hogar</label>
-              <input id="homeMonthInput" type="month" />
-              <p>Registra gastos domésticos, vencimientos y gastos recurrentes.</p>
-              <button class="btn btn-light btn-small" id="duplicateHomeMonthButton" type="button">Duplicar mes anterior</button>
-            </div>
-          </section>
-
-          <section class="settings-inner-card" id="payerSettingsCard">
-            <div class="section-title compact">
-              <div>
-                <p class="eyebrow">Transferencias</p>
-                <h2>Pagador principal</h2>
-              </div>
-            </div>
-
-            <label for="payerSelect">Quién pagó o recibirá las transferencias</label>
-            <select id="payerSelect">
-              <option value="">Sin pagador principal</option>
-            </select>
-            <p class="helper-text">Al seleccionar una persona, esta sección se resume y queda disponible dentro de “Editar cuenta”.</p>
-          </section>
-
-          <section class="settings-inner-card" id="tipCard">
-          <div class="section-title">
-            <div>
-              <p class="eyebrow">Configuración</p>
-              <h2>Propina</h2>
-            </div>
-          </div>
-
-          <div class="tip-control">
-            <label for="tipPercentInput">Porcentaje de propina</label>
-            <div class="tip-input-row">
-              <input id="tipPercentInput" type="number" min="0" max="100" step="1" />
-              <span>%</span>
-            </div>
-          </div>
-
-          <div class="quick-tip-buttons" aria-label="Opciones rápidas de propina">
-            <button class="chip" data-tip="0" type="button">0%</button>
-            <button class="chip" data-tip="10" type="button">10%</button>
-            <button class="chip" data-tip="15" type="button">15%</button>
-          </div>
-
-          <div class="account-actions">
-            <button class="btn btn-light btn-small" id="clearProductsButton" type="button">Limpiar productos</button>
-            <button class="btn btn-danger-light btn-small" id="resetBillButton" type="button">Reiniciar cuenta</button>
-          </div>
-          </section>
-        </div>
-      </details>
-
-      <section class="grid-two">
-        <section class="card">
-          <div class="section-title">
-            <div>
-              <p class="eyebrow">Participantes</p>
-              <h2>Personas</h2>
-            </div>
-          </div>
-
-          <form class="person-form" id="personForm">
-            <input id="personNameInput" type="text" placeholder="Ej: Nombre" autocomplete="off" />
-            <input id="personPhoneInput" type="tel" placeholder="Teléfono WhatsApp opcional" autocomplete="tel" />
-            <button class="btn btn-primary" type="submit">Agregar</button>
-          </form>
-
-          <div class="bulk-actions">
-            <button class="btn btn-light btn-small" id="markAllPaidButton" type="button">Todos pagados</button>
-            <button class="btn btn-light btn-small" id="markAllPendingButton" type="button">Todos pendientes</button>
-            <button class="btn btn-light btn-small" id="openFriendsPickerButton" type="button">Agregar desde amigos</button>
-          </div>
-
-          <div class="people-list" id="peopleList"></div>
-        </section>
-
-
-      </section>
-
-      <section class="card detailed-only" id="productEditorCard">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Consumos</p>
-            <h2 id="productFormTitle">Agregar producto</h2>
-          </div>
-          <div class="section-actions">
-            <button class="btn btn-light" id="receiptButton" type="button">Agregar desde boleta</button>
-            <button class="btn btn-light hidden" id="cancelEditProductButton" type="button">Cancelar edición</button>
-          </div>
-        </div>
-
-        
-        <div class="add-methods" id="addMethods">
-          <button class="method-card" id="manualProductMethodButton" type="button">
-            <strong>Escribir</strong>
-            <span>Agrega producto o gasto manualmente.</span>
-          </button>
-          <button class="method-card" id="receiptMethodButton" type="button">
-            <strong>Escanear boleta</strong>
-            <span>Sube una foto y revisa lo detectado.</span>
-          </button>
-          <button class="method-card" id="quickProductMethodButton" type="button">
-            <strong>Productos rápidos</strong>
-            <span>Usa accesos frecuentes.</span>
-          </button>
-        </div>
-
-        <div class="quick-products-header">
-          <span>Productos rápidos:</span>
-          <button class="btn btn-light btn-small" id="toggleQuickProductsEditorButton" type="button">Editar rápidos</button>
-        </div>
-
-        <div class="quick-products" id="quickProductsList"></div>
-
-        <div class="quick-products-editor hidden" id="quickProductsEditor">
-          <form class="quick-product-form" id="quickProductForm">
-            <input id="quickProductNameInput" type="text" placeholder="Ej: Completo" autocomplete="off" />
-            <select id="quickProductCategoryInput">
-              <option>Comida</option>
-              <option>Bebestibles</option>
-              <option>Tragos</option>
-              <option>Postres</option>
-              <option>Transporte</option>
-              <option>Arriendo</option>
-              <option>Luz</option>
-              <option>Agua</option>
-              <option>Gas</option>
-              <option>Internet</option>
-              <option>Gastos comunes</option>
-              <option>Supermercado</option>
-              <option>Streaming</option>
-              <option>Otros</option>
-            </select>
-            <button class="btn btn-primary btn-small" type="submit">Agregar rápido</button>
-          </form>
-
-          <div class="quick-products-manager" id="quickProductsManager"></div>
-        </div>
-
-        <form class="product-form" id="productForm">
-          <div class="field">
-            <label for="productNameInput" id="productNameLabel">Producto</label>
-            <input id="productNameInput" type="text" placeholder="Ej: Papas fritas" autocomplete="off" />
-          </div>
-
-          <div class="field">
-            <label for="productPriceInput">Precio unitario</label>
-            <input id="productPriceInput" type="number" min="0" step="1" placeholder="Ej: 8000" />
-          </div>
-
-          <div class="field">
-            <label for="productQuantityInput">Cantidad</label>
-            <input id="productQuantityInput" type="number" min="1" step="1" value="1" />
-          </div>
-
-          <div class="field">
-            <label for="productCategoryInput">Categoría</label>
-            <select id="productCategoryInput">
-              <option>Comida</option>
-              <option>Bebestibles</option>
-              <option>Tragos</option>
-              <option>Postres</option>
-              <option>Transporte</option>
-              <option>Arriendo</option>
-              <option>Luz</option>
-              <option>Agua</option>
-              <option>Gas</option>
-              <option>Internet</option>
-              <option>Gastos comunes</option>
-              <option>Supermercado</option>
-              <option>Streaming</option>
-              <option>Otros</option>
-            </select>
-          </div>
-
-          <div class="field home-only hidden">
-            <label for="productDueDateInput">Vencimiento</label>
-            <input id="productDueDateInput" type="date" />
-          </div>
-
-          <label class="recurring-check home-only hidden">
-            <input id="productRecurringInput" type="checkbox" />
-            <span>Gasto recurrente</span>
-          </label>
-
-          <div class="field">
-            <label for="productSplitModeInput">¿Cómo se divide este gasto?</label>
-            <select id="productSplitModeInput">
-              <option value="participants">Personas seleccionadas</option>
-              <option value="responsibles">Responsables de pago</option>
-            </select>
-            <p class="helper-text split-mode-help" id="splitModeHelp"></p>
-          </div>
-
-          <div class="consumer-panel">
-            <div class="consumer-panel-header">
-              <div>
-                <h3 id="consumerPanelTitle">¿Quiénes consumieron?</h3>
-                <p id="consumerPanelHelp">Marca las personas y ajusta las partes si alguien consumió más.</p>
-              </div>
-              <button class="btn btn-light btn-small" id="selectAllConsumersButton" type="button">Seleccionar todos</button>
-            </div>
-
-            <div class="consumer-list" id="consumerList"></div>
-          </div>
-
-          <button class="btn btn-primary product-submit" id="productSubmitButton" type="submit">Agregar producto</button>
-        </form>
-      </section>
-
-      <section class="card detailed-only" id="productListCard">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Detalle</p>
-            <h2 id="productListTitle">Productos agregados</h2>
-          </div>
-        </div>
-
-        <div class="product-tools">
-          <input id="productSearchInput" type="search" placeholder="Buscar producto..." />
-          <select id="productFilterSelect" aria-label="Filtrar productos">
-            <option value="all">Todos</option>
-            <option value="shared">Compartidos</option>
-            <option value="Comida">Comida</option>
-            <option value="Bebestibles">Bebestibles</option>
-            <option value="Tragos">Tragos</option>
-            <option value="Postres">Postres</option>
-            <option value="Transporte">Transporte</option>
-            <option value="Arriendo">Arriendo</option>
-            <option value="Luz">Luz</option>
-            <option value="Agua">Agua</option>
-            <option value="Gas">Gas</option>
-            <option value="Internet">Internet</option>
-            <option value="Gastos comunes">Gastos comunes</option>
-            <option value="Supermercado">Supermercado</option>
-            <option value="Streaming">Streaming</option>
-            <option value="Otros">Otros</option>
-          </select>
-        </div>
-
-        <div class="category-totals" id="categoryTotals"></div>
-        <div class="product-list" id="productList"></div>
-      </section>
-
-      <section class="card home-dashboard hidden" id="homeDashboardCard">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Hogar</p>
-            <h2>Resumen doméstico</h2>
-          </div>
-        </div>
-
-        <div class="home-summary-grid">
-          <div>
-            <span>Gastos recurrentes</span>
-            <strong id="homeRecurringOutput">0</strong>
-          </div>
-          <div>
-            <span>Próximos vencimientos</span>
-            <strong id="homeUpcomingOutput">0</strong>
-          </div>
-          <div>
-            <span>Gastos vencidos</span>
-            <strong id="homeOverdueOutput">0</strong>
-          </div>
-        </div>
-
-        <div class="home-due-list" id="homeDueList"></div>
-      </section>
-
-      <section class="card recurring-dashboard hidden" id="recurringDashboardCard">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Cuenta recurrente</p>
-            <h2 id="recurringDashboardTitle">Repositorio mensual</h2>
-          </div>
-          <button class="btn btn-primary btn-small" id="createNextRecurringMonthButtonInline" type="button">Crear siguiente mes</button>
-        </div>
-        <p class="helper-text" id="recurringDashboardHelp">Conecta meses de una misma cuenta y acumula pendientes cuando alguien no paga.</p>
-        <div class="recurring-summary-grid">
-          <div><span>Mes actual</span><strong id="recurringCurrentMonthOutput">-</strong></div>
-          <div><span>Meses conectados</span><strong id="recurringMonthsOutput">0</strong></div>
-          <div><span>Deuda arrastrada</span><strong id="recurringCarryoverOutput">$0</strong></div>
-          <div><span>Pendiente vigente</span><strong id="recurringPendingOutput">$0</strong></div>
-        </div>
-
-        <div class="recurring-panel-grid">
-          <section class="recurring-panel">
-            <div class="recurring-panel-title">
-              <div>
-                <span>Mes actual</span>
-                <strong id="recurringActiveMonthTitle">-</strong>
-              </div>
-              <small id="recurringActiveMonthStatus">Sin estado</small>
-            </div>
-            <div class="recurring-debt-list" id="recurringCurrentPeopleList"></div>
-          </section>
-
-          <section class="recurring-panel">
-            <div class="recurring-panel-title">
-              <div>
-                <span>Deuda acumulada</span>
-                <strong>Por persona</strong>
-              </div>
-              <small>Desde el último mes conectado</small>
-            </div>
-            <div class="recurring-debt-list" id="recurringDebtList"></div>
-          </section>
-        </div>
-
-        <section class="recurring-panel recurring-history-panel">
-          <div class="recurring-panel-title">
-            <div>
-              <span>Historial mensual</span>
-              <strong>Meses conectados</strong>
-            </div>
-            <small>Abre cualquier mes para revisar o editar</small>
-          </div>
-          <div class="recurring-month-history" id="recurringMonthHistoryList"></div>
-        </section>
-      </section>
-
-      <section class="results-grid results-grid-single">
-        <section class="card results-card">
-          <div class="section-title">
-            <div>
-              <p class="eyebrow">Resumen</p>
-              <h2>Totales</h2>
-            </div>
-          </div>
-
-          <div class="account-status" id="accountStatus"></div>
-
-          <div class="totals-box">
-            <div>
-              <span>Subtotal</span>
-              <strong id="subtotalOutput">$0</strong>
-            </div>
-            <div>
-              <span>Propina</span>
-              <strong id="tipOutput">$0</strong>
-            </div>
-            <div class="grand-total">
-              <span>Total final</span>
-              <strong id="grandTotalOutput">$0</strong>
-            </div>
-            <div>
-              <span>Total pagado</span>
-              <strong id="paidTotalOutput">$0</strong>
-            </div>
-            <div>
-              <span>Total pendiente</span>
-              <strong id="pendingTotalOutput">$0</strong>
-            </div>
-          </div>
-        </section>
-      </section>
-    </section>
-  </main>
-
-  <div class="mobile-action-bar">
-    <div>
-      <span>Total</span>
-      <strong id="mobileTotalOutput">$0</strong>
-    </div>
-    <button class="btn btn-light btn-small" id="mobileAddProductButton" type="button">Agregar</button>
-    <button class="btn btn-primary btn-small" id="mobileShareButton" type="button">Compartir</button>
-  </div>
-
-
-
-
-  <div class="modal-backdrop hidden" id="friendsPickerModal" role="dialog" aria-modal="true" aria-labelledby="friendsPickerTitle">
-    <section class="modal-card friends-picker-card">
-      <div class="modal-header">
-        <div>
-          <p class="eyebrow">Amigos frecuentes</p>
-          <h2 id="friendsPickerTitle">Agregar personas desde amigos</h2>
-        </div>
-        <button class="icon-button" id="closeFriendsPickerButton" type="button" aria-label="Cerrar">×</button>
-      </div>
-
-      <p class="helper-text">
+<header class="app-header">
+<div class="container header-grid">
+<a aria-label="Cuenta Clara" class="brand" href="#">
+<img alt="" class="brand-icon" src="assets/logo.svg"/>
+<div>
+<strong>Cuenta Clara</strong>
+<span>Divide gastos, propinas y transferencias</span>
+</div>
+</a>
+<div class="header-actions">
+<a class="btn btn-light" href="privacidad.html">Privacidad</a>
+<button class="btn btn-light" id="installAppButton" type="button">Instalar App</button>
+<button class="btn btn-light" id="themeToggle" type="button">Modo oscuro</button>
+<button class="auth-badge" id="authStatusBadge" type="button">Invitado</button>
+<span class="sync-status-badge hidden" id="syncStatusBadge">Local</span>
+<button class="btn btn-light" id="authButton" type="button">Ingresar</button>
+<button class="btn btn-primary" id="newBillButton" type="button">Nueva cuenta</button>
+</div>
+</div>
+</header>
+<main class="container app-layout sectioned-layout"><aside aria-label="Navegación principal de Cuenta Clara" class="section-nav"><section class="card section-nav-card"><div class="section-nav-title"><p class="eyebrow">Menú</p><h2>¿Qué quieres hacer?</h2><p>Trabaja por secciones para ver solo lo necesario.</p></div><nav aria-label="Secciones de la app" class="section-nav-list"><button class="section-nav-button is-active" data-app-section="home" type="button"><strong>Inicio</strong><span>Elegir tipo de cuenta</span></button><button class="section-nav-button" data-app-section="people" type="button"><strong>Personas</strong><span>Agregar participantes</span></button><button class="section-nav-button" data-app-section="expenses" type="button"><strong>Gastos</strong><span>Agregar productos o boleta</span></button><button class="section-nav-button" data-app-section="summary" type="button"><strong>Resumen</strong><span>Ver totales</span></button><button class="section-nav-button" data-app-section="payments" type="button"><strong>Pagos</strong><span>Transferencias y compartir</span></button><button class="section-nav-button" data-app-section="history" type="button"><strong>Historial</strong><span>Tus cuentas guardadas</span></button><button class="section-nav-button" data-app-section="recurring" type="button"><strong>Hogar</strong><span>Cuentas recurrentes</span></button><button class="section-nav-button" data-app-section="shared" type="button"><strong>Compartidas</strong><span>Invitaciones y colaboración</span></button><button class="section-nav-button" data-app-section="settings" type="button"><strong>Configuración</strong><span>Modo y opciones generales</span></button></nav><div class="section-nav-footer"><small>Consejo: usa Inicio como guía y vuelve al resumen cuando necesites revisar montos.</small></div></section></aside><section class="workspace section-workspace"><section class="current-list-indicator card" id="currentListIndicator">
+<div>
+<p class="eyebrow">Editando lista</p>
+<h2 id="currentListName">Lista actual</h2>
+<p id="currentListMeta">Revisa aquí qué cuenta estás modificando.</p>
+</div>
+<button class="btn btn-light btn-small" data-app-section="history" type="button">Cambiar lista</button>
+</section><section class="app-section is-active" data-app-section-panel="home" id="appSection-home"><section class="section-page-heading card"><div><p class="eyebrow">Inicio rápido</p><h2>Inicio</h2><p class="section-helper">Elige qué quieres hacer. Las opciones principales crearán una lista nueva y primero te pedirán un nombre.</p></div></section><section class="guided-start-card card" id="guidedStartCard">
+<div class="section-title">
+<div>
+<p class="eyebrow">Inicio rápido</p>
+<h2>¿Qué quieres hacer hoy?</h2>
+</div>
+</div>
+<div class="guided-choice-grid">
+<button class="guided-choice" data-guided-mode="detailed" type="button">
+<strong>Dividir una salida</strong>
+<span>Crea una cuenta nueva para restaurant, bar, propina y productos compartidos.</span>
+</button>
+<button class="guided-choice" data-guided-mode="home" type="button">
+<strong>Cuentas del hogar</strong>
+<span>Crea una cuenta nueva para luz, agua, internet, supermercado o streaming.</span>
+</button>
+<button class="guided-choice" data-guided-mode="quick" type="button">
+<strong>Cuenta rápida</strong>
+<span>Crea una cuenta nueva con total único, personas y reparto simple.</span>
+</button>
+<button class="guided-choice" data-app-section="history" type="button">
+<strong>Ver mis cuentas anteriores</strong>
+<span>Abre el historial para editar, eliminar o recuperar cuentas guardadas.</span>
+</button>
+</div>
+</section><section class="guided-steps-card card" id="guidedStepsCard">
+<div class="guided-next">
+<div>
+<p class="eyebrow">Siguiente paso</p>
+<h2 id="guidedNextTitle">Agrega personas</h2>
+<p id="guidedNextHelp">Primero agrega quienes participan en esta cuenta.</p>
+</div>
+<button class="btn btn-primary" id="smartActionButton" type="button">Continuar</button>
+</div>
+<div aria-label="Progreso de la cuenta" class="step-track">
+<div class="step-pill" id="stepPeople"><span>1</span> Personas</div>
+<div class="step-pill" id="stepProducts"><span>2</span> Productos</div>
+<div class="step-pill" id="stepReview"><span>3</span> Revisar</div>
+<div class="step-pill" id="stepShare"><span>4</span> Compartir</div>
+</div>
+<div class="experience-row">
+<span>Vista de uso</span>
+<div aria-label="Modo de experiencia" class="experience-toggle" role="group">
+<button class="chip" id="simpleModeButton" type="button">Simple</button>
+<button class="chip" id="advancedModeButton" type="button">Avanzado</button>
+</div>
+</div>
+</section><section class="hero-card card">
+<div>
+<p class="eyebrow">Cuenta actual</p>
+<input aria-label="Nombre de la cuenta" class="bill-name-input" id="billNameInput" type="text"/>
+<p class="bill-meta" id="billMeta"></p>
+</div>
+<div class="hero-actions">
+<button class="btn btn-light" id="duplicateBillButton" type="button">Duplicar</button>
+<button class="btn btn-light" id="archiveBillButton" type="button">Archivar</button>
+<button class="btn btn-danger-light" id="deleteBillButton" type="button">Eliminar</button>
+</div>
+</section></section><section class="app-section" data-app-section-panel="people" id="appSection-people"><section class="section-page-heading card"><div><p class="eyebrow">Participantes</p><h2>Personas</h2><p class="section-helper">Agrega personas, teléfonos opcionales y estados de pago sin ver el resto de la app.</p></div></section><section class="grid-two">
+<section class="card">
+<div class="section-title">
+<div>
+<p class="eyebrow">Participantes</p>
+<h2>Personas</h2>
+<p class="section-helper">Agrega participantes y marca quién ya pagó.</p>
+</div>
+</div>
+<form class="person-form" id="personForm">
+<input autocomplete="off" id="personNameInput" placeholder="Ej: Nombre" type="text"/>
+<input autocomplete="tel" id="personPhoneInput" placeholder="WhatsApp opcional" type="tel"/>
+<button class="btn btn-primary" type="submit">Agregar persona</button>
+</form>
+<div class="bulk-actions">
+<button class="btn btn-light btn-small" id="markAllPaidButton" type="button">Todos pagados</button>
+<button class="btn btn-light btn-small" id="markAllPendingButton" type="button">Todos pendientes</button>
+<button class="btn btn-light btn-small" id="openFriendsPickerButton" type="button">Agregar desde amigos</button>
+</div>
+<section class="settings-inner-card payer-section-card" id="payerSettingsCard">
+<div class="section-title compact">
+<div>
+<p class="eyebrow">Transferencias</p>
+<h2>Pagador principal</h2>
+</div>
+</div>
+<label for="payerSelect">Quién pagó o recibirá las transferencias</label>
+<select id="payerSelect">
+<option value="">Sin pagador principal</option>
+</select>
+<p class="helper-text">Elige quién pagó o recibirá las transferencias de esta lista.</p>
+</section>
+<div class="people-list" id="peopleList"></div>
+</section>
+</section></section><section class="app-section" data-app-section-panel="expenses" id="appSection-expenses"><section class="section-page-heading card"><div><p class="eyebrow">Consumos</p><h2>Gastos</h2><p class="section-helper">Agrega productos, gastos del hogar, boletas y productos rápidos en una vista enfocada.</p></div></section><section class="settings-inner-card tip-section-card" id="tipCard">
+<div class="section-title">
+<div>
+<p class="eyebrow">Propina</p>
+<h2>Propina de la cuenta</h2>
+</div>
+</div>
+<div class="tip-control">
+<label for="tipPercentInput">Porcentaje de propina</label>
+<div class="tip-input-row">
+<input id="tipPercentInput" max="100" min="0" step="1" type="number"/>
+<span>%</span>
+</div>
+</div>
+<div aria-label="Opciones rápidas de propina" class="quick-tip-buttons">
+<button class="chip" data-tip="0" type="button">0%</button>
+<button class="chip" data-tip="10" type="button">10%</button>
+<button class="chip" data-tip="15" type="button">15%</button>
+</div>
+<div class="account-actions">
+<button class="btn btn-light btn-small" id="clearProductsButton" type="button">Limpiar productos</button>
+<button class="btn btn-danger-light btn-small" id="resetBillButton" type="button">Reiniciar cuenta</button>
+</div>
+</section><section class="card detailed-only" id="productEditorCard">
+<div class="section-title">
+<div>
+<p class="eyebrow">Consumos</p>
+<h2 id="productFormTitle">Agregar producto</h2>
+<p class="section-helper">Registra un producto, servicio o gasto y define cómo se divide.</p>
+</div>
+<div class="section-actions">
+<button class="btn btn-light" id="receiptButton" type="button">Agregar desde boleta</button>
+<button class="btn btn-light hidden" id="cancelEditProductButton" type="button">Cancelar edición</button>
+</div>
+</div>
+<div class="add-methods" id="addMethods">
+<button class="method-card" id="manualProductMethodButton" type="button">
+<strong>Escribir</strong>
+<span>Agrega producto o gasto manualmente.</span>
+</button>
+<button class="method-card" id="receiptMethodButton" type="button">
+<strong>Escanear boleta</strong>
+<span>Sube una foto y revisa lo detectado.</span>
+</button>
+<button class="method-card" id="quickProductMethodButton" type="button">
+<strong>Productos rápidos</strong>
+<span>Usa accesos frecuentes.</span>
+</button>
+</div>
+<div class="quick-products-header">
+<span>Accesos rápidos</span>
+<button class="btn btn-light btn-small" id="toggleQuickProductsEditorButton" type="button">Editar rápidos</button>
+</div>
+<div class="quick-products" id="quickProductsList"></div>
+<div class="quick-products-editor hidden" id="quickProductsEditor">
+<form class="quick-product-form" id="quickProductForm">
+<input autocomplete="off" id="quickProductNameInput" placeholder="Ej: Completo" type="text"/>
+<select id="quickProductCategoryInput">
+<option>Comida</option>
+<option>Bebestibles</option>
+<option>Tragos</option>
+<option>Postres</option>
+<option>Transporte</option>
+<option>Arriendo</option>
+<option>Luz</option>
+<option>Agua</option>
+<option>Gas</option>
+<option>Internet</option>
+<option>Gastos comunes</option>
+<option>Supermercado</option>
+<option>Streaming</option>
+<option>Otros</option>
+</select>
+<button class="btn btn-primary btn-small" type="submit">Agregar rápido</button>
+</form>
+<div class="quick-products-manager" id="quickProductsManager"></div>
+</div>
+<form class="product-form" id="productForm">
+<div class="field">
+<label for="productNameInput" id="productNameLabel">Producto</label>
+<input autocomplete="off" id="productNameInput" placeholder="Ej: Papas fritas" type="text"/>
+</div>
+<div class="field">
+<label for="productPriceInput">Precio unitario</label>
+<input id="productPriceInput" min="0" placeholder="Ej: 8000" step="1" type="number"/>
+</div>
+<div class="field">
+<label for="productQuantityInput">Cantidad</label>
+<input id="productQuantityInput" min="1" step="1" type="number" value="1"/>
+</div>
+<div class="field">
+<label for="productCategoryInput">Categoría</label>
+<select id="productCategoryInput">
+<option>Comida</option>
+<option>Bebestibles</option>
+<option>Tragos</option>
+<option>Postres</option>
+<option>Transporte</option>
+<option>Arriendo</option>
+<option>Luz</option>
+<option>Agua</option>
+<option>Gas</option>
+<option>Internet</option>
+<option>Gastos comunes</option>
+<option>Supermercado</option>
+<option>Streaming</option>
+<option>Otros</option>
+</select>
+</div>
+<div class="field home-only hidden">
+<label for="productDueDateInput">Vencimiento</label>
+<input id="productDueDateInput" type="date"/>
+</div>
+<label class="recurring-check home-only hidden">
+<input id="productRecurringInput" type="checkbox"/>
+<span>Recurrente</span>
+</label>
+<div class="field">
+<label for="productSplitModeInput">¿Cómo se divide este gasto?</label>
+<select id="productSplitModeInput">
+<option value="participants">Personas seleccionadas</option>
+<option value="responsibles">Responsables de pago</option>
+</select>
+<p class="helper-text split-mode-help" id="splitModeHelp"></p>
+</div>
+<div class="consumer-panel">
+<div class="consumer-panel-header">
+<div>
+<h3 id="consumerPanelTitle">¿Quiénes consumieron?</h3>
+<p id="consumerPanelHelp">Marca las personas y ajusta las partes si alguien consumió más.</p>
+</div>
+<button class="btn btn-light btn-small" id="selectAllConsumersButton" type="button">Seleccionar todos</button>
+</div>
+<div class="consumer-list" id="consumerList"></div>
+</div>
+<button class="btn btn-primary product-submit" id="productSubmitButton" type="submit">Agregar producto</button>
+</form>
+</section><section class="card detailed-only" id="productListCard">
+<div class="section-title">
+<div>
+<p class="eyebrow">Detalle</p>
+<h2 id="productListTitle">Productos agregados</h2>
+</div>
+</div>
+<div class="product-tools">
+<input id="productSearchInput" placeholder="Buscar producto..." type="search"/>
+<select aria-label="Filtrar productos" id="productFilterSelect">
+<option value="all">Todos</option>
+<option value="shared">Compartidos</option>
+<option value="Comida">Comida</option>
+<option value="Bebestibles">Bebestibles</option>
+<option value="Tragos">Tragos</option>
+<option value="Postres">Postres</option>
+<option value="Transporte">Transporte</option>
+<option value="Arriendo">Arriendo</option>
+<option value="Luz">Luz</option>
+<option value="Agua">Agua</option>
+<option value="Gas">Gas</option>
+<option value="Internet">Internet</option>
+<option value="Gastos comunes">Gastos comunes</option>
+<option value="Supermercado">Supermercado</option>
+<option value="Streaming">Streaming</option>
+<option value="Otros">Otros</option>
+</select>
+</div>
+<div class="category-totals" id="categoryTotals"></div>
+<div class="product-list" id="productList"></div>
+</section></section><section class="app-section" data-app-section-panel="summary" id="appSection-summary"><section class="section-page-heading card"><div><p class="eyebrow">Totales</p><h2>Resumen</h2><p class="section-helper">Revisa subtotal, propina, total final y estado general de la cuenta.</p></div></section><section class="results-grid results-grid-single">
+<section class="card results-card">
+<div class="section-title">
+<div>
+<p class="eyebrow">Resumen</p>
+<h2>Totales</h2>
+</div>
+</div>
+<div class="account-status" id="accountStatus"></div>
+<div class="totals-box">
+<div>
+<span>Subtotal</span>
+<strong id="subtotalOutput">$0</strong>
+</div>
+<div>
+<span>Propina</span>
+<strong id="tipOutput">$0</strong>
+</div>
+<div class="grand-total">
+<span>Total final</span>
+<strong id="grandTotalOutput">$0</strong>
+</div>
+<div>
+<span>Total pagado</span>
+<strong id="paidTotalOutput">$0</strong>
+</div>
+<div>
+<span>Total pendiente</span>
+<strong id="pendingTotalOutput">$0</strong>
+</div>
+</div>
+</section>
+</section></section><section class="app-section" data-app-section-panel="payments" id="appSection-payments"><section class="section-page-heading card"><div><p class="eyebrow">Transferencias</p><h2>Pagos</h2><p class="section-helper">Consulta cuánto paga cada persona, quién debe transferir y comparte la cuenta.</p></div></section><section class="card sidebar-payments-panel" id="sidebarPaymentsCard">
+<div class="section-title compact">
+<div>
+<p class="eyebrow">Por persona</p>
+<h2>Pagos</h2>
+</div>
+</div>
+<div class="sidebar-total-pill">
+<span>Total final</span>
+<strong id="sidebarGrandTotalOutput">$0</strong>
+</div>
+<div class="person-results" id="personResults"></div>
+<div class="sidebar-transfer-block" id="transferCard">
+<div class="sidebar-subtitle">
+<span>Cobros</span>
+<strong>Quién debe transferir</strong>
+</div>
+<div class="transfer-list" id="transferList"></div>
+</div>
+<div class="summary-actions sidebar-summary-actions">
+<button class="btn btn-primary" id="shareButton" type="button">Compartir</button>
+<button class="btn btn-light" id="shareLinkButton" type="button">Copiar enlace</button>
+<button class="btn btn-light" id="exportExcelButton" type="button">Exportar Excel</button>
+<button class="btn btn-light" id="copySummaryButton" type="button">Copiar rápido</button>
+<button class="btn btn-light" id="whatsappButton" type="button">WhatsApp rápido</button>
+</div>
+</section></section><section class="app-section" data-app-section-panel="history" id="appSection-history"><section class="section-page-heading card"><div><p class="eyebrow">Tus cuentas</p><h2>Historial</h2><p class="section-helper">Busca, filtra, abre cuentas guardadas y administra respaldos.</p></div></section><section class="card sidebar-history-card">
+<div class="section-title compact">
+<div>
+<p class="eyebrow">Historial</p>
+<h2>Tus cuentas</h2>
+</div>
+</div>
+<div class="history-tools">
+<input id="historySearchInput" placeholder="Buscar cuenta..." type="search"/>
+<select aria-label="Filtrar historial" id="historyFilterSelect">
+<option value="all">Todas</option>
+<option value="pending">Pendientes</option>
+<option value="paid">Pagadas</option>
+<option value="archived">Archivadas</option>
+</select>
+</div>
+<div class="bill-list" id="billList"></div>
+<div class="backup-actions">
+<button class="btn btn-light btn-small" id="exportBackupButton" type="button">Exportar respaldo</button>
+<button class="btn btn-light btn-small" id="importBackupButton" type="button">Importar respaldo</button>
+<input accept="application/json,.json" class="hidden" id="backupFileInput" type="file"/>
+</div>
+</section></section><section class="app-section" data-app-section-panel="recurring" id="appSection-recurring"><section class="section-page-heading card"><div><p class="eyebrow">Recurrentes</p><h2>Hogar</h2><p class="section-helper">Administra carpetas mensuales, deuda acumulada e historial de cuentas del hogar.</p></div></section><details class="card sidebar-recurring-card" id="recurringSidebarPanel" open="">
+<summary class="sidebar-details-summary">
+<div>
+<p class="eyebrow">Hogar</p>
+<h2>Recurrentes</h2>
+</div>
+<span>▾</span>
+</summary>
+<p class="helper-text compact-text">Crea carpetas mensuales como Streaming, Luz o Internet y arrastra deudas impagas al mes siguiente.</p>
+<div class="sidebar-action-stack">
+<button class="btn btn-primary btn-small" id="createRecurringGroupButton" type="button">Crear carpeta actual</button>
+<button class="btn btn-light btn-small" id="createNextRecurringMonthButton" type="button">Crear siguiente mes</button>
+</div>
+<div class="recurring-groups-list" id="recurringGroupsList"></div>
+</details><section class="card home-dashboard hidden" id="homeDashboardCard">
+<div class="section-title">
+<div>
+<p class="eyebrow">Hogar</p>
+<h2>Resumen doméstico</h2>
+</div>
+</div>
+<div class="home-summary-grid">
+<div>
+<span>Gastos recurrentes</span>
+<strong id="homeRecurringOutput">0</strong>
+</div>
+<div>
+<span>Próximos vencimientos</span>
+<strong id="homeUpcomingOutput">0</strong>
+</div>
+<div>
+<span>Gastos vencidos</span>
+<strong id="homeOverdueOutput">0</strong>
+</div>
+</div>
+<div class="home-due-list" id="homeDueList"></div>
+</section><section class="card recurring-dashboard hidden" id="recurringDashboardCard">
+<div class="section-title">
+<div>
+<p class="eyebrow">Cuenta recurrente</p>
+<h2 id="recurringDashboardTitle">Repositorio mensual</h2>
+</div>
+<button class="btn btn-primary btn-small" id="createNextRecurringMonthButtonInline" type="button">Crear siguiente mes</button>
+</div>
+<p class="helper-text" id="recurringDashboardHelp">Conecta meses de una misma cuenta y acumula pendientes cuando alguien no paga.</p>
+<div class="recurring-summary-grid">
+<div><span>Mes actual</span><strong id="recurringCurrentMonthOutput">-</strong></div>
+<div><span>Meses conectados</span><strong id="recurringMonthsOutput">0</strong></div>
+<div><span>Deuda arrastrada</span><strong id="recurringCarryoverOutput">$0</strong></div>
+<div><span>Pendiente vigente</span><strong id="recurringPendingOutput">$0</strong></div>
+</div>
+<div class="recurring-panel-grid">
+<section class="recurring-panel">
+<div class="recurring-panel-title">
+<div>
+<span>Mes actual</span>
+<strong id="recurringActiveMonthTitle">-</strong>
+</div>
+<small id="recurringActiveMonthStatus">Sin estado</small>
+</div>
+<div class="recurring-debt-list" id="recurringCurrentPeopleList"></div>
+</section>
+<section class="recurring-panel">
+<div class="recurring-panel-title">
+<div>
+<span>Deuda acumulada</span>
+<strong>Por persona</strong>
+</div>
+<small>Desde el último mes conectado</small>
+</div>
+<div class="recurring-debt-list" id="recurringDebtList"></div>
+</section>
+</div>
+<section class="recurring-panel recurring-history-panel">
+<div class="recurring-panel-title">
+<div>
+<span>Historial mensual</span>
+<strong>Meses conectados</strong>
+</div>
+<small>Abre cualquier mes para revisar o editar</small>
+</div>
+<div class="recurring-month-history" id="recurringMonthHistoryList"></div>
+</section>
+</section></section><section class="app-section" data-app-section-panel="shared" id="appSection-shared"><section class="section-page-heading card"><div><p class="eyebrow">Colaboración</p><h2>Compartidas</h2><p class="section-helper">Publica cuentas, invita usuarios registrados y revisa invitaciones pendientes.</p></div></section><details class="card sidebar-shared-card" id="sharedSidebarPanel" open="">
+<summary class="sidebar-details-summary">
+<div>
+<p class="eyebrow">Colaboración</p>
+<h2>Compartidas</h2>
+</div>
+<span>▾</span>
+</summary>
+<p class="helper-text compact-text">Publica la cuenta actual, invita usuarios registrados y revisa invitaciones pendientes en un solo lugar.</p>
+<div class="sidebar-action-stack">
+<button class="btn btn-primary btn-small" id="publishSharedAccountButton" type="button">Compartir cuenta actual</button>
+<div class="shared-invite-row">
+<input id="sharedInviteSearchInput" placeholder="Correo o nick registrado" type="search"/>
+<button class="btn btn-light btn-small" id="inviteSharedUserButton" type="button">Invitar</button>
+</div>
+<button class="btn btn-light btn-small" id="refreshSharedAccountsButton" type="button">Actualizar</button>
+</div>
+<div class="shared-status" id="sharedAccountStatus"></div>
+<div class="shared-list" id="sharedInvitesList"></div>
+<div class="shared-list" id="sharedAccountsList"></div>
+</details></section><section class="app-section" data-app-section-panel="settings" id="appSection-settings"><section class="section-page-heading card"><div><p class="eyebrow">Editar cuenta</p><h2>Configuración</h2><p class="section-helper">Ajusta el tipo de cuenta, el total rápido o el mes del hogar. El pagador está en Personas y la propina en Gastos.</p></div></section><details class="card account-settings-card" id="accountSettingsPanel" open="">
+<summary class="account-settings-summary">
+<div>
+<p class="eyebrow">Configuración</p>
+<h2>Editar cuenta</h2>
+<p id="accountSettingsSummaryText">Tipo de cuenta y opciones generales.</p>
+</div>
+<span>Mostrar / ocultar</span>
+</summary>
+<div class="account-settings-content grid-two">
+<section class="settings-inner-card">
+<div class="section-title compact">
+<div>
+<p class="eyebrow">Modo de uso</p>
+<h2>Tipo de cuenta</h2>
+</div>
+</div>
+<div class="mode-switch">
+<label class="radio-pill">
+<input checked="" name="billMode" type="radio" value="detailed"/>
+<span>Detallada</span>
+</label>
+<label class="radio-pill">
+<input name="billMode" type="radio" value="quick"/>
+<span>Rápida</span>
+</label>
+<label class="radio-pill">
+<input name="billMode" type="radio" value="home"/>
+<span>Hogar</span>
+</label>
+</div>
+<div class="quick-total-panel hidden" id="quickTotalPanel">
+<label for="quickTotalInput">Monto total de la cuenta</label>
+<input id="quickTotalInput" min="0" placeholder="Ej: 60000" step="1" type="number"/>
+<p>En modo rápido, el total se divide en partes iguales entre todas las personas.</p>
+</div>
+<div class="home-panel hidden" id="homePanel">
+<label for="homeMonthInput">Mes de las cuentas del hogar</label>
+<input id="homeMonthInput" type="month"/>
+<p>Registra gastos domésticos, vencimientos y gastos recurrentes.</p>
+<button class="btn btn-light btn-small" id="duplicateHomeMonthButton" type="button">Duplicar mes anterior</button>
+</div>
+</section>
+
+
+</div>
+</details></section></section></main>
+<div class="mobile-action-bar">
+<div>
+<span>Total</span>
+<strong id="mobileTotalOutput">$0</strong>
+</div>
+<button class="btn btn-light btn-small" id="mobileAddProductButton" type="button">Agregar</button>
+<button class="btn btn-primary btn-small" id="mobileShareButton" type="button">Compartir</button>
+</div>
+<div aria-labelledby="friendsPickerTitle" aria-modal="true" class="modal-backdrop hidden" id="friendsPickerModal" role="dialog">
+<section class="modal-card friends-picker-card">
+<div class="modal-header">
+<div>
+<p class="eyebrow">Amigos frecuentes</p>
+<h2 id="friendsPickerTitle">Agregar personas desde amigos</h2>
+</div>
+<button aria-label="Cerrar" class="icon-button" id="closeFriendsPickerButton" type="button">×</button>
+</div>
+<p class="helper-text">
         Selecciona amigos de tu perfil para agregarlos como participantes de esta cuenta.
       </p>
-
-      <div class="friends-picker-list" id="friendsPickerList"></div>
-
-      <div class="auth-actions-row">
-        <a class="btn btn-light" href="perfil.html">Administrar amigos</a>
-        <button class="btn btn-primary" id="addSelectedFriendsButton" type="button">Agregar seleccionados</button>
-      </div>
-    </section>
-  </div>
-
-
-  <div class="modal-backdrop hidden" id="receiptModal" role="dialog" aria-modal="true" aria-labelledby="receiptModalTitle">
-    <section class="modal-card receipt-card">
-      <div class="modal-header">
-        <div>
-          <p class="eyebrow">Agregar desde boleta</p>
-          <h2 id="receiptModalTitle">Leer productos desde una foto</h2>
-        </div>
-        <button class="icon-button" id="closeReceiptModalButton" type="button" aria-label="Cerrar">×</button>
-      </div>
-      <div class="receipt-layout">
-        <div class="receipt-upload-panel">
-          <label for="receiptFileInput">Foto o imagen de la boleta</label>
-          <input id="receiptFileInput" type="file" accept="image/*" capture="environment" />
-          <div class="receipt-preview hidden" id="receiptPreviewWrap"><img id="receiptPreviewImage" alt="Vista previa de la boleta" /></div>
-          <p class="helper-text">La lectura automática puede tener errores. Revisa los productos antes de agregarlos.</p>
-          <button class="btn btn-primary" id="processReceiptButton" type="button">Leer boleta</button>
-          <button class="btn btn-light" id="clearReceiptButton" type="button">Limpiar lectura</button>
-          <div class="receipt-status" id="receiptStatus">Sube una foto clara para comenzar.</div>
-          <details class="receipt-tips">
-            <summary>Consejos para mejorar la lectura</summary>
-            <ul>
-              <li>Toma la foto de frente.</li>
-              <li>Haz que la boleta ocupe casi toda la imagen.</li>
-              <li>Evita sombras y reflejos.</li>
-              <li>Procura que los precios se vean nítidos.</li>
-              <li>Si faltan productos, revisa el texto leído y presiona “Volver a detectar”.</li>
-            </ul>
-          </details>
-        </div>
-        <div class="receipt-results-panel">
-          <div class="receipt-raw-panel">
-            <div class="receipt-results-header">
-              <strong>Texto leído</strong>
-              <button class="btn btn-light btn-small" id="reparseReceiptTextButton" type="button">Volver a detectar</button>
-            </div>
-            <textarea id="receiptRawTextInput" placeholder="Aquí aparecerá el texto leído de la boleta. Puedes editarlo y volver a detectar productos."></textarea>
-          </div>
-
-          <div class="receipt-results-header"><strong>Productos detectados</strong><span id="receiptDetectedCount">0 encontrados</span></div>
-          <div class="receipt-table-wrap">
-            <table class="receipt-table">
-              <thead><tr><th>Usar</th><th>Producto</th><th>Monto</th><th>Categoría</th></tr></thead>
-              <tbody id="receiptDetectedBody"></tbody>
-            </table>
-          </div>
-          <div class="receipt-actions">
-            <button class="btn btn-light" id="selectAllReceiptItemsButton" type="button">Seleccionar todo</button>
-            <button class="btn btn-light" id="unselectAllReceiptItemsButton" type="button">Deseleccionar</button>
-            <button class="btn btn-primary" id="addReceiptItemsButton" type="button">Agregar seleccionados</button>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
-
-
-  <div class="modal-backdrop hidden" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
-    <section class="modal-card auth-card">
-      <div class="modal-header">
-        <div>
-          <p class="eyebrow">Cuenta de usuario</p>
-          <h2 id="authModalTitle">Iniciar sesión o crear cuenta</h2>
-        </div>
-        <button class="icon-button" id="closeAuthModalButton" type="button" aria-label="Cerrar">×</button>
-      </div>
-
-      <div class="auth-session-panel hidden" id="authSessionPanel">
-        <div class="profile-hero">
-          <div>
-            <p class="eyebrow">Mi perfil</p>
-            <h2 id="authSessionTitle">Sesión iniciada</h2>
-            <p id="authSessionDescription"></p>
-          </div>
-          <div class="profile-avatar" id="profileAvatar">CC</div>
-        </div>
-
-        <div class="profile-tabs" role="tablist">
-          <button class="profile-tab active" data-profile-tab="profile" type="button">Perfil</button>
-          <button class="profile-tab" data-profile-tab="stats" type="button">Estadísticas</button>
-          <button class="profile-tab" data-profile-tab="settings" type="button">Configuración</button>
-        </div>
-
-        <div class="profile-panel" id="profilePanel">
-          <div class="profile-form-grid">
-            <label>
+<div class="friends-picker-list" id="friendsPickerList"></div>
+<div class="auth-actions-row">
+<a class="btn btn-light" href="perfil.html">Administrar amigos</a>
+<button class="btn btn-primary" id="addSelectedFriendsButton" type="button">Agregar seleccionados</button>
+</div>
+</section>
+</div>
+<div aria-labelledby="receiptModalTitle" aria-modal="true" class="modal-backdrop hidden" id="receiptModal" role="dialog">
+<section class="modal-card receipt-card">
+<div class="modal-header">
+<div>
+<p class="eyebrow">Agregar desde boleta</p>
+<h2 id="receiptModalTitle">Leer productos desde una foto</h2>
+</div>
+<button aria-label="Cerrar" class="icon-button" id="closeReceiptModalButton" type="button">×</button>
+</div>
+<div class="receipt-layout">
+<div class="receipt-upload-panel">
+<label for="receiptFileInput">Foto o imagen de la boleta</label>
+<input accept="image/*" capture="environment" id="receiptFileInput" type="file"/>
+<div class="receipt-preview hidden" id="receiptPreviewWrap"><img alt="Vista previa de la boleta" id="receiptPreviewImage"/></div>
+<p class="helper-text">La lectura automática puede tener errores. Revisa los productos antes de agregarlos.</p>
+<button class="btn btn-primary" id="processReceiptButton" type="button">Leer boleta</button>
+<button class="btn btn-light" id="clearReceiptButton" type="button">Limpiar lectura</button>
+<div class="receipt-status" id="receiptStatus">Sube una foto clara para comenzar.</div>
+<details class="receipt-tips">
+<summary>Consejos para mejorar la lectura</summary>
+<ul>
+<li>Toma la foto de frente.</li>
+<li>Haz que la boleta ocupe casi toda la imagen.</li>
+<li>Evita sombras y reflejos.</li>
+<li>Procura que los precios se vean nítidos.</li>
+<li>Si faltan productos, revisa el texto leído y presiona “Volver a detectar”.</li>
+</ul>
+</details>
+</div>
+<div class="receipt-results-panel">
+<div class="receipt-raw-panel">
+<div class="receipt-results-header">
+<strong>Texto leído</strong>
+<button class="btn btn-light btn-small" id="reparseReceiptTextButton" type="button">Volver a detectar</button>
+</div>
+<textarea id="receiptRawTextInput" placeholder="Aquí aparecerá el texto leído de la boleta. Puedes editarlo y volver a detectar productos."></textarea>
+</div>
+<div class="receipt-results-header"><strong>Productos detectados</strong><span id="receiptDetectedCount">0 encontrados</span></div>
+<div class="receipt-table-wrap">
+<table class="receipt-table">
+<thead><tr><th>Usar</th><th>Producto</th><th>Monto</th><th>Categoría</th></tr></thead>
+<tbody id="receiptDetectedBody"></tbody>
+</table>
+</div>
+<div class="receipt-actions">
+<button class="btn btn-light" id="selectAllReceiptItemsButton" type="button">Seleccionar todo</button>
+<button class="btn btn-light" id="unselectAllReceiptItemsButton" type="button">Deseleccionar</button>
+<button class="btn btn-primary" id="addReceiptItemsButton" type="button">Agregar seleccionados</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+<div aria-labelledby="authModalTitle" aria-modal="true" class="modal-backdrop hidden" id="authModal" role="dialog">
+<section class="modal-card auth-card">
+<div class="modal-header">
+<div>
+<p class="eyebrow">Cuenta de usuario</p>
+<h2 id="authModalTitle">Iniciar sesión o crear cuenta</h2>
+</div>
+<button aria-label="Cerrar" class="icon-button" id="closeAuthModalButton" type="button">×</button>
+</div>
+<div class="auth-session-panel hidden" id="authSessionPanel">
+<div class="profile-hero">
+<div>
+<p class="eyebrow">Mi perfil</p>
+<h2 id="authSessionTitle">Sesión iniciada</h2>
+<p id="authSessionDescription"></p>
+</div>
+<div class="profile-avatar" id="profileAvatar">CC</div>
+</div>
+<div class="profile-tabs" role="tablist">
+<button class="profile-tab active" data-profile-tab="profile" type="button">Perfil</button>
+<button class="profile-tab" data-profile-tab="stats" type="button">Estadísticas</button>
+<button class="profile-tab" data-profile-tab="settings" type="button">Configuración</button>
+</div>
+<div class="profile-panel" id="profilePanel">
+<div class="profile-form-grid">
+<label>
               Nick visible
-              <input id="profileNickInput" type="text" placeholder="Ej: Carloco" />
-            </label>
-            <label>
+              <input id="profileNickInput" placeholder="Ej: Carloco" type="text"/>
+</label>
+<label>
               Nombre
-              <input id="profileNameInput" type="text" placeholder="Tu nombre" />
-            </label>
-            <label>
+              <input id="profileNameInput" placeholder="Tu nombre" type="text"/>
+</label>
+<label>
               Teléfono opcional
-              <input id="profilePhoneInput" type="tel" placeholder="Ej: 56912345678" />
-            </label>
-            <label>
+              <input id="profilePhoneInput" placeholder="Ej: 56912345678" type="tel"/>
+</label>
+<label>
               Correo
-              <input id="profileEmailInput" type="email" readonly />
-            </label>
-          </div>
-
-          <div class="auth-actions-row">
-            <button class="btn btn-primary" id="saveProfileButton" type="button">Guardar perfil</button>
-            <button class="btn btn-light" id="syncNowButton" type="button">Guardar ahora</button>
-          </div>
-        </div>
-
-        <div class="profile-panel hidden" id="profileStatsPanel">
-          <div class="stats-grid">
-            <div class="stat-card"><span>Cuentas creadas</span><strong id="statTotalBills">0</strong></div>
-            <div class="stat-card"><span>Cuentas activas</span><strong id="statActiveBills">0</strong></div>
-            <div class="stat-card"><span>Total histórico</span><strong id="statHistoricalTotal">$0</strong></div>
-            <div class="stat-card"><span>Promedio por cuenta</span><strong id="statAverageBill">$0</strong></div>
-            <div class="stat-card"><span>Personas agregadas</span><strong id="statPeopleCount">0</strong></div>
-            <div class="stat-card"><span>Productos / gastos</span><strong id="statProductCount">0</strong></div>
-            <div class="stat-card"><span>Cuentas del hogar</span><strong id="statHomeBills">0</strong></div>
-            <div class="stat-card"><span>Salidas / rápidas</span><strong id="statOutingBills">0</strong></div>
-          </div>
-
-          <div class="stats-detail-grid">
-            <div class="stats-box">
-              <strong>Categorías más usadas</strong>
-              <div id="statTopCategories" class="mini-ranking"></div>
-            </div>
-            <div class="stats-box">
-              <strong>Personas frecuentes</strong>
-              <div id="statTopPeople" class="mini-ranking"></div>
-            </div>
-            <div class="stats-box">
-              <strong>Actividad</strong>
-              <p id="statLastActivity" class="helper-text">Sin actividad registrada.</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="profile-panel hidden" id="profileSettingsPanel">
-          <div class="profile-form-grid">
-            <label>
+              <input id="profileEmailInput" readonly="" type="email"/>
+</label>
+</div>
+<div class="auth-actions-row">
+<button class="btn btn-primary" id="saveProfileButton" type="button">Guardar perfil</button>
+<button class="btn btn-light" id="syncNowButton" type="button">Guardar ahora</button>
+</div>
+</div>
+<div class="profile-panel hidden" id="profileStatsPanel">
+<div class="stats-grid">
+<div class="stat-card"><span>Cuentas creadas</span><strong id="statTotalBills">0</strong></div>
+<div class="stat-card"><span>Cuentas activas</span><strong id="statActiveBills">0</strong></div>
+<div class="stat-card"><span>Total histórico</span><strong id="statHistoricalTotal">$0</strong></div>
+<div class="stat-card"><span>Promedio por cuenta</span><strong id="statAverageBill">$0</strong></div>
+<div class="stat-card"><span>Personas agregadas</span><strong id="statPeopleCount">0</strong></div>
+<div class="stat-card"><span>Productos / gastos</span><strong id="statProductCount">0</strong></div>
+<div class="stat-card"><span>Cuentas del hogar</span><strong id="statHomeBills">0</strong></div>
+<div class="stat-card"><span>Salidas / rápidas</span><strong id="statOutingBills">0</strong></div>
+</div>
+<div class="stats-detail-grid">
+<div class="stats-box">
+<strong>Categorías más usadas</strong>
+<div class="mini-ranking" id="statTopCategories"></div>
+</div>
+<div class="stats-box">
+<strong>Personas frecuentes</strong>
+<div class="mini-ranking" id="statTopPeople"></div>
+</div>
+<div class="stats-box">
+<strong>Actividad</strong>
+<p class="helper-text" id="statLastActivity">Sin actividad registrada.</p>
+</div>
+</div>
+</div>
+<div class="profile-panel hidden" id="profileSettingsPanel">
+<div class="profile-form-grid">
+<label>
               Moneda
               <select id="profileCurrencyInput">
-                <option value="CLP">Peso chileno (CLP)</option>
-              </select>
-            </label>
-            <label>
+<option value="CLP">Peso chileno (CLP)</option>
+</select>
+</label>
+<label>
               Preferencia visual
               <select id="profileThemePreferenceInput">
-                <option value="system">Usar preferencia actual</option>
-                <option value="light">Modo claro</option>
-                <option value="dark">Modo oscuro</option>
-              </select>
-            </label>
-          </div>
-
-          <div class="auth-actions-row">
-            <button class="btn btn-primary" id="savePreferencesButton" type="button">Guardar preferencias</button>
-            <button class="btn btn-light" id="switchToGuestButton" type="button">Usar como invitado</button>
-            <button class="btn btn-danger-light" id="logoutButton" type="button">Cerrar sesión</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="auth-forms-panel" id="authFormsPanel">
-        <div class="auth-tabs" role="tablist">
-          <button class="auth-tab active" id="showLoginButton" type="button">Iniciar sesión</button>
-          <button class="auth-tab" id="showRegisterButton" type="button">Crear cuenta</button>
-        </div>
-
-        <form class="auth-form" id="loginForm">
-          <label for="loginEmailInput">Correo electrónico</label>
-          <input id="loginEmailInput" type="email" autocomplete="email" placeholder="correo@ejemplo.com" />
-
-          <label for="loginPasswordInput">Contraseña</label>
-          <input id="loginPasswordInput" type="password" autocomplete="current-password" placeholder="Tu contraseña" />
-
-          <button class="btn btn-primary" type="submit">Iniciar sesión</button>
-        </form>
-
-        <form class="auth-form hidden" id="registerForm">
-          <label for="registerNameInput">Nombre</label>
-          <input id="registerNameInput" type="text" autocomplete="name" placeholder="Tu nombre" />
-
-          <label for="registerEmailInput">Correo electrónico</label>
-          <input id="registerEmailInput" type="email" autocomplete="email" placeholder="correo@ejemplo.com" />
-
-          <label for="registerPasswordInput">Contraseña</label>
-          <input id="registerPasswordInput" type="password" autocomplete="new-password" placeholder="Mínimo 4 caracteres" />
-
-          <label class="auth-check">
-            <input id="importGuestDataCheckbox" type="checkbox" checked />
-            <span>Guardar mis cuentas actuales de invitado en mi cuenta Supabase</span>
-          </label>
-
-          <button class="btn btn-primary" type="submit">Crear cuenta</button>
-        </form>
-
-        <div class="guest-box">
-          <strong>Modo invitado</strong>
-          <p>Puedes seguir usando Cuenta Clara sin registrarte. Tus datos quedan guardados solo en este navegador.</p>
-          <button class="btn btn-light" id="continueGuestButton" type="button">Continuar como invitado</button>
-        </div>
-
-        <p class="auth-note">
+<option value="system">Usar preferencia actual</option>
+<option value="light">Modo claro</option>
+<option value="dark">Modo oscuro</option>
+</select>
+</label>
+</div>
+<div class="auth-actions-row">
+<button class="btn btn-primary" id="savePreferencesButton" type="button">Guardar preferencias</button>
+<button class="btn btn-light" id="switchToGuestButton" type="button">Usar como invitado</button>
+<button class="btn btn-danger-light" id="logoutButton" type="button">Cerrar sesión</button>
+</div>
+</div>
+</div>
+<div class="auth-forms-panel" id="authFormsPanel">
+<div class="auth-tabs" role="tablist">
+<button class="auth-tab active" id="showLoginButton" type="button">Iniciar sesión</button>
+<button class="auth-tab" id="showRegisterButton" type="button">Crear cuenta</button>
+</div>
+<form class="auth-form" id="loginForm">
+<label for="loginEmailInput">Correo electrónico</label>
+<input autocomplete="email" id="loginEmailInput" placeholder="correo@ejemplo.com" type="email"/>
+<label for="loginPasswordInput">Contraseña</label>
+<input autocomplete="current-password" id="loginPasswordInput" placeholder="Tu contraseña" type="password"/>
+<button class="btn btn-primary" type="submit">Iniciar sesión</button>
+</form>
+<form class="auth-form hidden" id="registerForm">
+<label for="registerNameInput">Nombre</label>
+<input autocomplete="name" id="registerNameInput" placeholder="Tu nombre" type="text"/>
+<label for="registerEmailInput">Correo electrónico</label>
+<input autocomplete="email" id="registerEmailInput" placeholder="correo@ejemplo.com" type="email"/>
+<label for="registerPasswordInput">Contraseña</label>
+<input autocomplete="new-password" id="registerPasswordInput" placeholder="Mínimo 4 caracteres" type="password"/>
+<label class="auth-check">
+<input checked="" id="importGuestDataCheckbox" type="checkbox"/>
+<span>Guardar mis cuentas actuales de invitado en mi cuenta Supabase</span>
+</label>
+<button class="btn btn-primary" type="submit">Crear cuenta</button>
+</form>
+<div class="guest-box">
+<strong>Modo invitado</strong>
+<p>Puedes seguir usando Cuenta Clara sin registrarte. Tus datos quedan guardados solo en este navegador.</p>
+<button class="btn btn-light" id="continueGuestButton" type="button">Continuar como invitado</button>
+</div>
+<p class="auth-note">
           En esta versión, las cuentas de usuario usan Supabase. El modo invitado sigue guardando datos solo en este navegador.
         </p>
-      </div>
-    </section>
-  </div>
-
-
-  <div class="modal-backdrop hidden" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
-    <section class="modal-card">
-      <div class="modal-header">
-        <div>
-          <p class="eyebrow">Compartir cuenta</p>
-          <h2 id="shareModalTitle">Texto o imagen</h2>
-        </div>
-        <button class="icon-button" id="closeShareModalButton" type="button" aria-label="Cerrar">×</button>
-      </div>
-
-      <div class="share-options-grid">
-        <fieldset class="option-card">
-          <legend>Formato</legend>
-          <label class="radio-row">
-            <input type="radio" name="shareFormat" value="text" checked />
-            <span>Texto</span>
-          </label>
-          <label class="radio-row">
-            <input type="radio" name="shareFormat" value="image" />
-            <span>Imagen</span>
-          </label>
-        </fieldset>
-
-        <fieldset class="option-card">
-          <legend>Contenido</legend>
-          <label class="radio-row">
-            <input type="radio" name="shareContent" value="simple" checked />
-            <span>Solo monto total</span>
-          </label>
-          <label class="radio-row">
-            <input type="radio" name="shareContent" value="detail" />
-            <span>Monto con detalle</span>
-          </label>
-        </fieldset>
-      </div>
-
-      <div class="share-preview">
-        <div class="share-preview-header">
-          <strong>Vista previa</strong>
-          <span id="sharePreviewType">Texto · Solo monto total</span>
-        </div>
-
-        <pre id="textPreview" class="text-preview"></pre>
-
-        <div class="image-preview hidden" id="imagePreviewWrap">
-          <canvas id="shareCanvas" width="900" height="1200"></canvas>
-        </div>
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn btn-light" id="copySelectedShareButton" type="button">Copiar texto</button>
-        <button class="btn btn-primary" id="whatsappSelectedShareButton" type="button">Enviar WhatsApp</button>
-        <button class="btn btn-light" id="downloadImageButton" type="button">Descargar imagen</button>
-        <button class="btn btn-light" id="nativeShareImageButton" type="button">Compartir imagen</button>
-      </div>
-    </section>
-  </div>
-
-  <div class="notice-tab hidden" id="noticeTab" role="alert" aria-live="assertive">
-    <div>
-      <strong id="noticeTitle">Aviso</strong>
-      <p id="noticeMessage"></p>
-    </div>
-    <button class="icon-button" id="closeNoticeTabButton" type="button" aria-label="Cerrar aviso">×</button>
-  </div>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-  <template id="emptyStateTemplate">
-    <div class="empty-state">
-      <strong>No hay datos todavía.</strong>
-      <p>Agrega personas y productos para comenzar a calcular.</p>
-    </div>
-  </template>
-
-  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=9.6"></script>
-  <script src="script.js?v=9.6"></script>
+</div>
+</section>
+</div>
+<div aria-labelledby="shareModalTitle" aria-modal="true" class="modal-backdrop hidden" id="shareModal" role="dialog">
+<section class="modal-card">
+<div class="modal-header">
+<div>
+<p class="eyebrow">Compartir cuenta</p>
+<h2 id="shareModalTitle">Texto o imagen</h2>
+</div>
+<button aria-label="Cerrar" class="icon-button" id="closeShareModalButton" type="button">×</button>
+</div>
+<div class="share-options-grid">
+<fieldset class="option-card">
+<legend>Formato</legend>
+<label class="radio-row">
+<input checked="" name="shareFormat" type="radio" value="text"/>
+<span>Texto</span>
+</label>
+<label class="radio-row">
+<input name="shareFormat" type="radio" value="image"/>
+<span>Imagen</span>
+</label>
+</fieldset>
+<fieldset class="option-card">
+<legend>Contenido</legend>
+<label class="radio-row">
+<input checked="" name="shareContent" type="radio" value="simple"/>
+<span>Solo monto total</span>
+</label>
+<label class="radio-row">
+<input name="shareContent" type="radio" value="detail"/>
+<span>Monto con detalle</span>
+</label>
+</fieldset>
+</div>
+<div class="share-preview">
+<div class="share-preview-header">
+<strong>Vista previa</strong>
+<span id="sharePreviewType">Texto · Solo monto total</span>
+</div>
+<pre class="text-preview" id="textPreview"></pre>
+<div class="image-preview hidden" id="imagePreviewWrap">
+<canvas height="1200" id="shareCanvas" width="900"></canvas>
+</div>
+</div>
+<div class="modal-actions">
+<button class="btn btn-light" id="copySelectedShareButton" type="button">Copiar texto</button>
+<button class="btn btn-primary" id="whatsappSelectedShareButton" type="button">Enviar WhatsApp</button>
+<button class="btn btn-light" id="downloadImageButton" type="button">Descargar imagen</button>
+<button class="btn btn-light" id="nativeShareImageButton" type="button">Compartir imagen</button>
+</div>
+</section>
+</div>
+<div aria-live="assertive" class="notice-tab hidden" id="noticeTab" role="alert">
+<div>
+<strong id="noticeTitle">Aviso</strong>
+<p id="noticeMessage"></p>
+</div>
+<button aria-label="Cerrar aviso" class="icon-button" id="closeNoticeTabButton" type="button">×</button>
+</div>
+<div aria-live="polite" class="toast" id="toast" role="status"></div>
+<template id="emptyStateTemplate">
+<div class="empty-state">
+<strong>No hay datos todavía.</strong>
+<p>Agrega personas y productos para comenzar a calcular.</p>
+</div>
+</template>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js?v=10.3"></script>
+<script src="script.js?v=10.3"></script>
 </body>
 </html>

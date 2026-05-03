@@ -1,0 +1,15 @@
+{
+  "version": "10.0",
+  "name": "Cuenta Clara V10.0 - Navegación por secciones",
+  "sql_required": false,
+  "service_worker_cache": "cuenta-clara-v10.0.0",
+  "checks": [
+    "script.js sin errores de sintaxis",
+    "profile.js sin errores de sintaxis",
+    "index.html sin IDs duplicados",
+    "perfil.html sin IDs duplicados",
+    "privacidad.html sin IDs duplicados",
+    "navegación por secciones agregada",
+    "selectores principales revisados"
+  ]
+}

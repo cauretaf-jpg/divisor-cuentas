@@ -1,73 +1,17 @@
-CUENTA CLARA V9.6 - ESTABILIDAD Y PULIDO GENERAL
+CUENTA CLARA V10.3 - NOMBRE DE LISTA Y SECCIONES MEJOR UBICADAS
 
 Cambios principales:
-- Evita crear meses recurrentes duplicados.
-- Mejora confirmaciones de cuentas recurrentes.
-- Evita invitaciones duplicadas en cuentas compartidas.
-- Exige participantes antes de compartir una cuenta.
-- Mejora mensajes vacíos y errores comunes.
-- Mejora visual móvil de Recurrentes y Compartidas.
-- No requiere ejecutar SQL nuevamente si la V9.5/V9.4 ya funcionaba.
+- Al elegir qué quieres hacer hoy, la app pide el nombre de la lista antes de crearla.
+- Se muestra un indicador visible de qué lista estás editando.
+- Pagador principal queda en Personas.
+- Propina queda en Gastos.
+- Configuración queda para tipo de cuenta, total rápido y mes del hogar.
 
-CUENTA CLARA V9.5 - RECURRENTES MÁS CLAROS
+Instalación:
+1. Reemplaza los archivos de tu carpeta Cuentas por esta versión.
+2. Abre la app y recarga con Ctrl + F5.
+3. No necesitas ejecutar SQL si V10.2/V9.x ya funcionaba.
 
-Cambios principales:
-- El panel de Cuenta recurrente ahora separa Mes actual, Deuda acumulada e Historial mensual.
-- Puedes marcar participantes como pagados o pendientes directamente desde el panel recurrente.
-- El historial mensual permite abrir meses anteriores de la misma carpeta.
-- Se muestra Pendiente vigente según el último mes conectado.
-- Crear el siguiente mes ahora confirma si se arrastrará deuda pendiente.
-- No requiere ejecutar SQL nuevamente si la V9.4 ya funcionaba.
-
-CUENTA CLARA V9.4 - COMPARTIDAS MÁS CLARAS
-
-Cambios principales:
-- La sección Compartidas separa Invitaciones pendientes, Creadas por mí y Compartidas conmigo.
-- Las invitaciones ahora permiten Aceptar o Rechazar.
-- Se muestra un resumen compacto de estado: cuenta actual, invitaciones pendientes y cuentas aceptadas.
-- No requiere ejecutar SQL nuevamente si la V9.3/V9.2 ya funcionaba.
-
-CUENTA CLARA V9.3 - CARPETA ORDENADA
-
-Archivos activos de la app quedan en la raíz de /Cuentas.
-SQL: carpeta /sql.
-Documentación: carpeta /docs.
-Script de subida a GitHub: carpeta /tools.
-
-CUENTA CLARA V9.2 - CUENTAS RECURRENTES Y COMPARTIDAS
-
-Carpeta lista para reemplazar tu proyecto local:
-C:\Users\caure\Desktop\Paginas\Cuentas
-
-Cambios V9.2:
-- Nueva sección Hogar / Recurrentes en la barra lateral.
-- Permite crear una carpeta recurrente desde la cuenta actual, por ejemplo Streaming.
-- Permite crear el siguiente mes conectado con el anterior.
-- Si una persona queda pendiente, la deuda se arrastra al mes siguiente como “Deuda anterior”.
-- Nueva sección Compartidas en la barra lateral.
-- Permite publicar la cuenta actual como compartida.
-- Permite invitar usuarios registrados por correo o nick.
-- Los invitados aceptados pueden abrir y editar la cuenta compartida.
-- La cuenta compartida se sincroniza en Supabase desde shared_accounts.
-- Se mantiene el diseño V8.9: Historial arriba, Pagos sticky y perfil por secciones.
-
-IMPORTANTE SUPABASE:
-Para usar cuentas compartidas debes ejecutar este archivo nuevo en Supabase:
-1. sql/03-supabase-shared-accounts.sql
-
-Si aún no lo hiciste antes, también ejecuta:
-1. sql/01-supabase-app-state.sql
-2. sql/02-supabase-social.sql
-3. sql/03-supabase-shared-accounts.sql
-
-Instalación rápida:
-1. Cierra el servidor local si está abierto.
-2. Reemplaza los archivos de tu carpeta Cuentas por los de este ZIP.
-3. Abre index.html con Live Server o usa tu flujo habitual.
-4. Recarga el navegador con Ctrl + F5 para limpiar caché.
-
-Nota:
-Las cuentas recurrentes funcionan en local/nube personal con app_states. Las cuentas compartidas requieren iniciar sesión y ejecutar sql/03-supabase-shared-accounts.sql.
-
-
-V9.2: si aparece "new row violates row-level security policy for table shared_accounts", ejecutar nuevamente sql/03-supabase-shared-accounts.sql. Esta versión usa funciones seguras create_shared_account_safe/update_shared_account_safe para crear y actualizar cuentas compartidas con auth.uid().
+SQL:
+- Los archivos SQL están en /sql.
+- Solo ejecútalos si estás configurando Supabase desde cero.
