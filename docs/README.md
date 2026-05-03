@@ -1,17 +1,16 @@
-# Cuenta Clara V10.5
+# Cuenta Clara V10.6
 
 App web funcional para dividir cuentas entre varias personas.
 
-## Nuevo en V10.5 - Participante “Yo” vinculado al perfil
+## Nuevo en V10.6 - Cobros del perfil cuando “Yo” paga
 
-- En la sección **Personas** aparece una tarjeta para agregarte rápidamente a la lista.
-- El botón **“+ Yo”** agrega el perfil activo como participante.
-- La persona queda vinculada con `userId` y correo del usuario registrado.
-- Si ya existe una persona con el mismo perfil, no se duplica.
-- Si existe una persona con el mismo nombre, la app permite vincularla al perfil.
-- Las personas vinculadas muestran la insignia **“Yo”**.
-- Esto mejora las estadísticas del Perfil porque los movimientos quedan asociados al usuario real.
-- No requiere ejecutar SQL nuevamente si V10.4 ya funcionaba.
+- En **Pagos** aparece un bloque especial cuando el perfil activo es el pagador principal.
+- Muestra cuánto pagaste por todos, cuánto te corresponde a ti y cuánto tienes pendiente por recibir.
+- El bloque indica quiénes te deben dinero según las personas marcadas como pendientes.
+- En **Perfil → Estadísticas → Pagos y recurrentes** se agregan indicadores acumulados de tus pagos como pagador principal.
+- También se muestra un ranking de quién te debe cuando tú pagas.
+- Mantiene la mejora de V10.5: participante **“Yo”** vinculado al perfil.
+- No requiere ejecutar SQL nuevamente si V10.5 ya funcionaba.
 
 ## Nuevo en V10.4 - Estadísticas de perfil ampliadas
 

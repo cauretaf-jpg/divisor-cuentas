@@ -1,16 +1,17 @@
-CUENTA CLARA V10.5 - PARTICIPANTE “YO”
+CUENTA CLARA V10.6 - COBROS DEL PERFIL CUANDO “YO” PAGA
 
-Esta versión agrega la opción de incluir al usuario registrado como participante real de una lista.
+Esta versión agrega indicadores para entender mejor qué pasa cuando la persona vinculada al perfil es el pagador principal de una cuenta.
 
 CAMBIO PRINCIPAL
-- En Personas aparece la opción “+ Yo”.
-- Esta opción agrega tu perfil a la lista usando tu usuario registrado.
-- Si ya estás agregado, no se duplica.
-- Si hay una persona con tu mismo nombre, puedes vincularla a tu perfil.
-- Esto permite que tus estadísticas personales sean más precisas.
+- En Pagos aparece un bloque especial si “Yo” es el pagador principal.
+- Muestra cuánto pagaste por todos.
+- Muestra cuánto dinero te corresponde a ti.
+- Muestra cuánto queda pendiente por recibir.
+- Lista quiénes te deben dinero según el estado Pendiente/Pagado.
+- En Perfil > Estadísticas > Pagos y recurrentes se agregan métricas acumuladas de esos cobros.
 
 NO REQUIERE SQL NUEVO
-Si V10.4 ya funcionaba, solo reemplaza archivos y recarga con Ctrl + F5.
+Si V10.5 ya funcionaba, solo reemplaza archivos y recarga con Ctrl + F5.
 
 ARCHIVOS SQL EXISTENTES
 - sql/01-supabase-app-state.sql

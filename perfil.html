@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0f766e" />
   <meta name="google-adsense-account" content="ca-pub-4358472434423818" />
   <title>Mi perfil | Cuenta Clara</title>
-  <link rel="stylesheet" href="styles.css?v=10.5" />
+  <link rel="stylesheet" href="styles.css?v=10.6" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
 </head>
@@ -190,6 +190,9 @@
           <div class="stat-card"><span>Cuentas pendientes</span><strong id="pageStatPendingBills">0</strong></div>
           <div class="stat-card"><span>Total pagado</span><strong id="pageStatPaidTotal">$0</strong></div>
           <div class="stat-card"><span>Total pendiente</span><strong id="pageStatPendingTotal">$0</strong></div>
+          <div class="stat-card"><span>Pagaste como principal</span><strong id="pageStatMyPaidAsPayerTotal">$0</strong></div>
+          <div class="stat-card"><span>Tu parte cuando pagas</span><strong id="pageStatMyOwnShareAsPayer">$0</strong></div>
+          <div class="stat-card"><span>Te deben por tus pagos</span><strong id="pageStatMyReceivableTotal">$0</strong></div>
           <div class="stat-card"><span>Carpetas recurrentes</span><strong id="pageStatRecurringGroups">0</strong></div>
           <div class="stat-card"><span>Meses recurrentes</span><strong id="pageStatRecurringMonths">0</strong></div>
           <div class="stat-card"><span>Pendiente recurrente</span><strong id="pageStatRecurringPending">$0</strong></div>
@@ -204,6 +207,10 @@
           <div class="stats-box">
             <strong>Estado de pagos</strong>
             <div id="pagePaymentSummary" class="profile-insight-list"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Quién te debe cuando tú pagas</strong>
+            <div id="pageMyReceivablePeople" class="mini-ranking"></div>
           </div>
         </div>
       </div>
@@ -311,7 +318,7 @@
   <div class="toast hidden" id="profileToast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=10.5"></script>
-  <script src="profile.js?v=10.5"></script>
+  <script src="supabase-config.js?v=10.6"></script>
+  <script src="profile.js?v=10.6"></script>
 </body>
 </html>

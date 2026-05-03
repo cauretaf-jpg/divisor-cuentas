@@ -1,4 +1,4 @@
-console.info('Cuenta Clara Perfil V10.5 cargado');
+console.info('Cuenta Clara Perfil V10.6 cargado');
 
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 let currentUser = null;
@@ -63,6 +63,9 @@ const dom = {
   statPendingBills: document.querySelector('#pageStatPendingBills'),
   statPaidTotal: document.querySelector('#pageStatPaidTotal'),
   statPendingTotal: document.querySelector('#pageStatPendingTotal'),
+  statMyPaidAsPayerTotal: document.querySelector('#pageStatMyPaidAsPayerTotal'),
+  statMyOwnShareAsPayer: document.querySelector('#pageStatMyOwnShareAsPayer'),
+  statMyReceivableTotal: document.querySelector('#pageStatMyReceivableTotal'),
   statRecurringGroups: document.querySelector('#pageStatRecurringGroups'),
   statRecurringMonths: document.querySelector('#pageStatRecurringMonths'),
   statRecurringPending: document.querySelector('#pageStatRecurringPending'),
@@ -71,6 +74,7 @@ const dom = {
   topPeople: document.querySelector('#pageTopPeople'),
   topPeopleAmounts: document.querySelector('#pageTopPeopleAmounts'),
   pendingPeople: document.querySelector('#pagePendingPeople'),
+  myReceivablePeople: document.querySelector('#pageMyReceivablePeople'),
   topBills: document.querySelector('#pageTopBills'),
   monthlyTotals: document.querySelector('#pageMonthlyTotals'),
   recurringSummary: document.querySelector('#pageRecurringSummary'),
@@ -425,11 +429,15 @@ function calculateStats() {
   let lastActivity = '';
   let myAssignedTotal = 0;
   let myPendingTotal = 0;
+  let myPaidAsPayerTotal = 0;
+  let myOwnShareAsPayer = 0;
+  let myReceivableTotal = 0;
 
   const categories = new Map();
   const peopleFrequency = new Map();
   const peopleAmounts = new Map();
   const peoplePending = new Map();
+  const myReceivablePeople = new Map();
   const uniquePeople = new Map();
   const monthlyTotals = new Map();
   const billSnapshots = [];
@@ -482,6 +490,23 @@ function calculateStats() {
       if (personMatchesProfile(person, matchKeys)) {
         myAssignedTotal += personAmount;
         if (!person.paid) myPendingTotal += personAmount;
+      }
+    }
+
+    const payer = (bill.people || []).find((person) => person.id === bill.payerId);
+
+    if (payer && personMatchesProfile(payer, matchKeys)) {
+      const myShare = Number(snapshot.finalTotals[payer.id] || 0);
+      myPaidAsPayerTotal += snapshot.grandTotal;
+      myOwnShareAsPayer += myShare;
+
+      for (const person of bill.people || []) {
+        if (person.id === payer.id) continue;
+        const amount = Number(snapshot.finalTotals[person.id] || 0);
+        if (amount > 0 && !person.paid) {
+          myReceivableTotal += amount;
+          addToMap(myReceivablePeople, String(person.name || 'Persona').trim() || 'Persona', amount);
+        }
       }
     }
 
@@ -540,6 +565,9 @@ function calculateStats() {
     carryoverTotal,
     myAssignedTotal,
     myPendingTotal,
+    myPaidAsPayerTotal,
+    myOwnShareAsPayer,
+    myReceivableTotal,
     topMonth,
     biggestBill,
     mostPeopleBill,
@@ -548,6 +576,7 @@ function calculateStats() {
     people: [...peopleFrequency.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5),
     peopleAmounts: [...peopleAmounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5),
     peoplePending: [...peoplePending.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5),
+    myReceivablePeople: [...myReceivablePeople.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5),
     monthlyTotals: [...monthlyTotals.entries()].filter(([label]) => label !== 'Sin mes').sort((a, b) => b[1] - a[1]).slice(0, 6),
     topBills: [...billSnapshots].sort((a, b) => b.total - a.total).slice(0, 5).map((item) => [item.bill.name || 'Cuenta sin nombre', item.total]),
     recurringSummaries: latestRecurringSummaries.map((item) => [item.name, `${item.months} mes${item.months === 1 ? '' : 'es'} · ${item.pending > 0 ? formatCurrency(item.pending) : 'Sin pendiente'}`]),
@@ -645,6 +674,9 @@ function renderStats() {
   setText(dom.statPendingBills, stats.pendingBills);
   setText(dom.statPaidTotal, formatCurrency(stats.paidTotal));
   setText(dom.statPendingTotal, formatCurrency(stats.pendingTotal));
+  setText(dom.statMyPaidAsPayerTotal, formatCurrency(stats.myPaidAsPayerTotal));
+  setText(dom.statMyOwnShareAsPayer, formatCurrency(stats.myOwnShareAsPayer));
+  setText(dom.statMyReceivableTotal, formatCurrency(stats.myReceivableTotal));
   setText(dom.statRecurringGroups, stats.recurringGroupsCount);
   setText(dom.statRecurringMonths, stats.recurringMonths);
   setText(dom.statRecurringPending, formatCurrency(stats.recurringPending));
@@ -660,6 +692,7 @@ function renderStats() {
   renderMiniRanking(dom.topPeople, stats.people, (value) => `${value} ${value === 1 ? 'cuenta' : 'cuentas'}`);
   renderMiniRanking(dom.topPeopleAmounts, stats.peopleAmounts, formatCurrency);
   renderMiniRanking(dom.pendingPeople, stats.peoplePending, formatCurrency);
+  renderMiniRanking(dom.myReceivablePeople, stats.myReceivablePeople, formatCurrency);
   renderMiniRanking(dom.topBills, stats.topBills, formatCurrency);
   renderMiniRanking(dom.monthlyTotals, stats.monthlyTotals, formatCurrency);
   renderMiniRanking(dom.recurringSummary, stats.recurringSummaries, (value) => value);
@@ -673,6 +706,7 @@ function renderStats() {
   renderInsightList(dom.paymentSummary, [
     { label: 'Total pagado', value: formatCurrency(stats.paidTotal), help: `${stats.paidBills} cuenta${stats.paidBills === 1 ? '' : 's'} cerrada${stats.paidBills === 1 ? '' : 's'}.` },
     { label: 'Total pendiente', value: formatCurrency(stats.pendingTotal), help: `${stats.pendingBills} cuenta${stats.pendingBills === 1 ? '' : 's'} con saldo pendiente.` },
+    { label: 'Cuando tú pagas', value: formatCurrency(stats.myPaidAsPayerTotal), help: `Tu parte en esas cuentas: ${formatCurrency(stats.myOwnShareAsPayer)}. Pendiente por recibir: ${formatCurrency(stats.myReceivableTotal)}.` },
     { label: 'Cierre de pagos', value: `${stats.paidRate}%`, help: 'Porcentaje de cuentas con todas las personas marcadas como pagadas.' },
   ]);
 

@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V10.5 cargada');
+console.info('Cuenta Clara V10.6 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -201,6 +201,13 @@ const dom = {
   paidTotalOutput: document.querySelector('#paidTotalOutput'),
   pendingTotalOutput: document.querySelector('#pendingTotalOutput'),
   personResults: document.querySelector('#personResults'),
+  profilePayerSummary: document.querySelector('#profilePayerSummary'),
+  profilePayerTitle: document.querySelector('#profilePayerTitle'),
+  profilePayerHelp: document.querySelector('#profilePayerHelp'),
+  profilePayerPaidOutput: document.querySelector('#profilePayerPaidOutput'),
+  profilePayerOwnOutput: document.querySelector('#profilePayerOwnOutput'),
+  profilePayerReceivableOutput: document.querySelector('#profilePayerReceivableOutput'),
+  profilePayerDebtorsList: document.querySelector('#profilePayerDebtorsList'),
   transferList: document.querySelector('#transferList'),
   transferCard: document.querySelector('#transferCard'),
 
@@ -4505,6 +4512,57 @@ function renderTotals() {
   }
 }
 
+
+function renderProfilePayerSummary() {
+  if (!dom.profilePayerSummary || !dom.profilePayerDebtorsList) return;
+
+  const bill = getActiveBill();
+  const selfInfo = getSelfParticipantInfo();
+  const selfPerson = findSelfPerson(bill, selfInfo);
+  const payer = bill.people.find((person) => person.id === bill.payerId);
+  const calculation = calculateBill(bill);
+
+  const shouldShow = Boolean(selfInfo && selfPerson && payer && payer.id === selfPerson.id);
+  dom.profilePayerSummary.classList.toggle('hidden', !shouldShow);
+
+  if (!shouldShow) {
+    dom.profilePayerDebtorsList.innerHTML = '';
+    return;
+  }
+
+  const myAmount = calculation.finalTotals[selfPerson.id] || 0;
+  const pendingDebtors = bill.people
+    .filter((person) => person.id !== selfPerson.id)
+    .map((person) => ({ person, amount: calculation.finalTotals[person.id] || 0 }))
+    .filter((item) => item.amount > 0 && !item.person.paid);
+  const totalReceivable = pendingDebtors.reduce((sum, item) => sum + item.amount, 0);
+  const totalToReceive = bill.people
+    .filter((person) => person.id !== selfPerson.id)
+    .reduce((sum, person) => sum + (calculation.finalTotals[person.id] || 0), 0);
+
+  dom.profilePayerTitle.textContent = `${selfPerson.name} pagó esta cuenta`;
+  dom.profilePayerHelp.textContent = `Tu parte es ${formatCurrency(myAmount)}. En total deberían transferirte ${formatCurrency(totalToReceive)}.`;
+  dom.profilePayerPaidOutput.textContent = formatCurrency(calculation.grandTotal);
+  dom.profilePayerOwnOutput.textContent = formatCurrency(myAmount);
+  dom.profilePayerReceivableOutput.textContent = formatCurrency(totalReceivable);
+  dom.profilePayerDebtorsList.innerHTML = '';
+
+  if (pendingDebtors.length === 0) {
+    dom.profilePayerDebtorsList.appendChild(emptyMessage('No tienes cobros pendientes en esta cuenta.'));
+    return;
+  }
+
+  for (const { person, amount } of pendingDebtors) {
+    const row = document.createElement('div');
+    row.className = 'profile-payer-debtor-row';
+    row.innerHTML = `
+      <span>${escapeHtml(person.name)}</span>
+      <strong>${formatCurrency(amount)}</strong>
+    `;
+    dom.profilePayerDebtorsList.appendChild(row);
+  }
+}
+
 function renderTransfers() {
   const bill = getActiveBill();
   const calculation = calculateBill(bill);
@@ -4558,6 +4616,7 @@ function render() {
   renderHomeDashboard();
   renderRecurringDashboard();
   renderTotals();
+  renderProfilePayerSummary();
   renderTransfers();
   try {
     renderGuidedExperience();
