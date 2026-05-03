@@ -1,6 +1,33 @@
-# Cuenta Clara V9.2
+# Cuenta Clara V9.6
 
 App web funcional para dividir cuentas entre varias personas.
+
+## Nuevo en V9.6 - Estabilidad y pulido general
+
+- Se agregaron resguardos para evitar crear meses recurrentes duplicados.
+- Al crear el siguiente mes, la confirmación indica si copiará solo gastos recurrentes o todos los gastos del último mes.
+- Se evita compartir cuentas vacías sin confirmación y se exige al menos un participante para compartir.
+- Se evita reenviar invitaciones duplicadas a usuarios que ya tienen invitación pendiente o ya aceptaron.
+- Se mejoraron mensajes vacíos del historial, errores de compartidas y avisos de guardado local.
+- Se agregó aviso de respaldo si el navegador no permite guardar en localStorage.
+- Se mejoró el ajuste móvil de tarjetas largas en Recurrentes y Compartidas.
+- No requiere ejecutar SQL nuevamente si V9.5/V9.4 ya funcionaba.
+
+## Nuevo en V9.5 - Recurrentes más claros
+
+- La sección **Cuenta recurrente** ahora separa **Mes actual**, **Deuda acumulada** e **Historial mensual**.
+- El panel recurrente permite marcar pagos como **Pagado** o **Pendiente** desde la misma vista.
+- El historial mensual permite abrir meses anteriores conectados a la carpeta recurrente.
+- Se muestra **Pendiente vigente** basado en el último mes conectado.
+- Crear el siguiente mes ahora muestra una confirmación indicando si se arrastrará deuda pendiente.
+- No requiere ejecutar SQL nuevamente si V9.4 ya funcionaba.
+
+## Nuevo en V9.4 - Compartidas más claras
+
+- La sección **Compartidas** ahora separa visualmente **Invitaciones pendientes**, **Creadas por mí** y **Compartidas conmigo**.
+- Las invitaciones pendientes tienen botones **Aceptar** y **Rechazar**.
+- Se muestra un resumen compacto del estado de la cuenta compartida actual y conteos de invitaciones.
+- No requiere ejecutar SQL nuevamente si V9.3/V9.2 ya funcionaba.
 
 ## Nuevo en V9.2 - Cuentas recurrentes y compartidas - fix Supabase
 

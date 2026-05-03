@@ -10,7 +10,7 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818" crossorigin="anonymous"></script>
   <title>Cuenta Clara | Divide cuentas sin enredos</title>
 
-  <link rel="stylesheet" href="styles.css?v=9.3" />
+  <link rel="stylesheet" href="styles.css?v=9.6" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
 </head>
@@ -66,14 +66,14 @@
           <span>▾</span>
         </summary>
 
-        <p class="helper-text compact-text">Publica la cuenta actual e invita usuarios registrados para que puedan verla y editarla.</p>
+        <p class="helper-text compact-text">Publica la cuenta actual, invita usuarios registrados y revisa invitaciones pendientes en un solo lugar.</p>
         <div class="sidebar-action-stack">
           <button class="btn btn-primary btn-small" id="publishSharedAccountButton" type="button">Compartir cuenta actual</button>
           <div class="shared-invite-row">
             <input id="sharedInviteSearchInput" type="search" placeholder="Correo o nick registrado" />
             <button class="btn btn-light btn-small" id="inviteSharedUserButton" type="button">Invitar</button>
           </div>
-          <button class="btn btn-light btn-small" id="refreshSharedAccountsButton" type="button">Actualizar compartidas</button>
+          <button class="btn btn-light btn-small" id="refreshSharedAccountsButton" type="button">Actualizar</button>
         </div>
         <div class="shared-status" id="sharedAccountStatus"></div>
         <div class="shared-list" id="sharedInvitesList"></div>
@@ -529,8 +529,43 @@
           <div><span>Mes actual</span><strong id="recurringCurrentMonthOutput">-</strong></div>
           <div><span>Meses conectados</span><strong id="recurringMonthsOutput">0</strong></div>
           <div><span>Deuda arrastrada</span><strong id="recurringCarryoverOutput">$0</strong></div>
+          <div><span>Pendiente vigente</span><strong id="recurringPendingOutput">$0</strong></div>
         </div>
-        <div class="recurring-debt-list" id="recurringDebtList"></div>
+
+        <div class="recurring-panel-grid">
+          <section class="recurring-panel">
+            <div class="recurring-panel-title">
+              <div>
+                <span>Mes actual</span>
+                <strong id="recurringActiveMonthTitle">-</strong>
+              </div>
+              <small id="recurringActiveMonthStatus">Sin estado</small>
+            </div>
+            <div class="recurring-debt-list" id="recurringCurrentPeopleList"></div>
+          </section>
+
+          <section class="recurring-panel">
+            <div class="recurring-panel-title">
+              <div>
+                <span>Deuda acumulada</span>
+                <strong>Por persona</strong>
+              </div>
+              <small>Desde el último mes conectado</small>
+            </div>
+            <div class="recurring-debt-list" id="recurringDebtList"></div>
+          </section>
+        </div>
+
+        <section class="recurring-panel recurring-history-panel">
+          <div class="recurring-panel-title">
+            <div>
+              <span>Historial mensual</span>
+              <strong>Meses conectados</strong>
+            </div>
+            <small>Abre cualquier mes para revisar o editar</small>
+          </div>
+          <div class="recurring-month-history" id="recurringMonthHistoryList"></div>
+        </section>
       </section>
 
       <section class="results-grid results-grid-single">
@@ -895,7 +930,7 @@
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=9.3"></script>
-  <script src="script.js?v=9.3"></script>
+  <script src="supabase-config.js?v=9.6"></script>
+  <script src="script.js?v=9.6"></script>
 </body>
 </html>

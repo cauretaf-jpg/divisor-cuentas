@@ -1,0 +1,15 @@
+CUENTA CLARA V9.5 - REVISION TECNICA
+
+Objetivo:
+- Mejorar la comprensión y operación de cuentas recurrentes mensuales.
+
+Cambios aplicados:
+- Panel recurrente ampliado con Mes actual, Deuda acumulada e Historial mensual.
+- Nuevo cálculo visual de Pendiente vigente desde el último mes de la carpeta.
+- Acciones directas para marcar pagos por persona dentro del panel recurrente.
+- Historial de meses conectado a la carpeta recurrente, con apertura rápida de cada mes.
+- Confirmación antes de crear el siguiente mes, mostrando si habrá deuda arrastrada.
+- Actualización de cache PWA a v9.5.0.
+
+SQL:
+- Sin cambios. No requiere ejecutar scripts SQL si V9.4 ya funcionaba.

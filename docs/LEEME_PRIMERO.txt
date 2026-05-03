@@ -1,3 +1,32 @@
+CUENTA CLARA V9.6 - ESTABILIDAD Y PULIDO GENERAL
+
+Cambios principales:
+- Evita crear meses recurrentes duplicados.
+- Mejora confirmaciones de cuentas recurrentes.
+- Evita invitaciones duplicadas en cuentas compartidas.
+- Exige participantes antes de compartir una cuenta.
+- Mejora mensajes vacíos y errores comunes.
+- Mejora visual móvil de Recurrentes y Compartidas.
+- No requiere ejecutar SQL nuevamente si la V9.5/V9.4 ya funcionaba.
+
+CUENTA CLARA V9.5 - RECURRENTES MÁS CLAROS
+
+Cambios principales:
+- El panel de Cuenta recurrente ahora separa Mes actual, Deuda acumulada e Historial mensual.
+- Puedes marcar participantes como pagados o pendientes directamente desde el panel recurrente.
+- El historial mensual permite abrir meses anteriores de la misma carpeta.
+- Se muestra Pendiente vigente según el último mes conectado.
+- Crear el siguiente mes ahora confirma si se arrastrará deuda pendiente.
+- No requiere ejecutar SQL nuevamente si la V9.4 ya funcionaba.
+
+CUENTA CLARA V9.4 - COMPARTIDAS MÁS CLARAS
+
+Cambios principales:
+- La sección Compartidas separa Invitaciones pendientes, Creadas por mí y Compartidas conmigo.
+- Las invitaciones ahora permiten Aceptar o Rechazar.
+- Se muestra un resumen compacto de estado: cuenta actual, invitaciones pendientes y cuentas aceptadas.
+- No requiere ejecutar SQL nuevamente si la V9.3/V9.2 ya funcionaba.
+
 CUENTA CLARA V9.3 - CARPETA ORDENADA
 
 Archivos activos de la app quedan en la raíz de /Cuentas.

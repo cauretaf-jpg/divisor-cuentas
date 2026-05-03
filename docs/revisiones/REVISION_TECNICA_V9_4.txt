@@ -1,0 +1,16 @@
+Cuenta Clara V9.4 - Compartidas más claras
+
+Objetivo:
+- Mejorar la experiencia de cuentas compartidas sin modificar la lógica base de recurrentes ni la estructura ordenada de V9.3.
+
+Cambios aplicados:
+- Se separan visualmente las invitaciones pendientes, las cuentas creadas por el usuario y las cuentas compartidas aceptadas.
+- Las invitaciones pendientes ahora tienen botones Aceptar y Rechazar.
+- Se muestra un resumen compacto del estado de compartidas: cuenta actual, invitaciones pendientes, cuentas creadas y cuentas aceptadas.
+- Las cuentas creadas por el usuario muestran conteos de invitados pendientes, aceptados y rechazados cuando existan.
+- Se mejoró la visualización móvil de los botones de invitación.
+- Caché/service worker actualizado a v9.4.0.
+
+Notas:
+- No se requiere ejecutar SQL nuevamente si V9.3/V9.2 ya funcionaba.
+- La tabla shared_account_members ya soportaba status rejected, por eso el rechazo no requiere cambios de base de datos.

@@ -1,0 +1,44 @@
+REVISION TECNICA - CUENTA CLARA V9.6
+
+Objetivo:
+- Estabilizar la base V9.5 sin agregar módulos grandes.
+- Reducir errores de uso en Recurrentes y Compartidas.
+- Mejorar mensajes visibles y ajuste móvil.
+
+Cambios aplicados:
+1. Recurrentes
+- Se evita crear un mes recurrente si el siguiente mes ya existe.
+- Si el mes ya existe, se abre ese mes y se muestra aviso claro.
+- La confirmación de siguiente mes indica si copiará gastos marcados como recurrentes o todos los gastos.
+- Se exige tener participantes antes de crear el siguiente mes.
+- Al crear carpeta recurrente desde una cuenta vacía, se solicita confirmación.
+- Se evita crear otra carpeta recurrente con el mismo nombre.
+
+2. Compartidas
+- Se exige al menos un participante antes de compartir una cuenta.
+- Si la cuenta no tiene gastos ni montos, se pide confirmación antes de compartir.
+- Antes de invitar, se revisa si el usuario ya fue invitado o ya participa.
+- Se agrega confirmación antes de rechazar una invitación.
+- Se mejoran mensajes cuando falla carga, invitación, aceptación o rechazo.
+- Al abrir una cuenta compartida, se muestra confirmación breve.
+
+3. Guardado y estabilidad
+- saveState ahora captura errores de localStorage.
+- Si localStorage falla, se avisa al usuario y se intenta continuar con sincronización nube/compartida si corresponde.
+- Se mejoraron mensajes vacíos del historial según búsqueda/filtro.
+
+4. Visual móvil
+- Se ajustaron tarjetas largas de Recurrentes y Compartidas para evitar cortes visuales.
+- Se mantiene orden móvil: Historial, Pagos, Recurrentes y Compartidas.
+
+Validaciones:
+- script.js sin errores de sintaxis con node --check.
+- profile.js sin errores de sintaxis con node --check.
+- index.html sin IDs duplicados.
+- perfil.html sin IDs duplicados.
+- privacidad.html sin IDs duplicados.
+- Selectores principales encontrados correctamente.
+
+SQL:
+- No se modificó SQL.
+- No requiere ejecutar SQL nuevamente si V9.5/V9.4 ya funcionaba.

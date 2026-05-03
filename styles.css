@@ -3297,6 +3297,41 @@ details[open] .sidebar-details-summary > span {
   margin-bottom: 10px;
 }
 
+.shared-current-box {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  padding: 10px 12px;
+}
+
+.shared-current-box strong,
+.shared-current-box small {
+  display: block;
+}
+
+.shared-current-box small {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+  margin-top: 3px;
+}
+
+.shared-invite-card {
+  align-items: flex-start;
+}
+
+.shared-row-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.shared-row-actions .btn {
+  width: auto;
+  min-height: 32px;
+}
+
 .sidebar-recurring-card {
   border-color: color-mix(in srgb, var(--primary) 22%, var(--border));
 }
@@ -3357,5 +3392,211 @@ details[open] .sidebar-details-summary > span {
   .shared-invite-row,
   .recurring-summary-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .shared-invite-card {
+    display: grid;
+  }
+
+  .shared-row-actions {
+    justify-content: stretch;
+  }
+
+  .shared-row-actions .btn {
+    flex: 1;
+  }
+}
+
+/* V9.5 - Recurrentes más claros */
+.recurring-panel-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.recurring-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+  padding: 14px;
+}
+
+.recurring-history-panel {
+  margin-top: 14px;
+}
+
+.recurring-panel-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.recurring-panel-title span,
+.recurring-panel-title small {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.recurring-panel-title strong {
+  display: block;
+  color: var(--text);
+  font-size: 1rem;
+  margin-top: 2px;
+}
+
+.recurring-payment-row,
+.recurring-month-row {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.recurring-payment-row strong,
+.recurring-month-row strong {
+  display: block;
+  color: var(--text);
+}
+
+.recurring-payment-row span,
+.recurring-month-row span,
+.recurring-month-row small,
+.recurring-debt-row small {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+
+.recurring-payment-row.is-paid {
+  border-color: color-mix(in srgb, var(--success, #16a34a) 32%, var(--border));
+}
+
+.recurring-payment-row.is-pending {
+  border-color: color-mix(in srgb, var(--warning, #f59e0b) 28%, var(--border));
+}
+
+.recurring-month-history {
+  display: grid;
+  gap: 8px;
+}
+
+.recurring-month-row {
+  cursor: pointer;
+  text-align: left;
+}
+
+.recurring-month-row.active {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.recurring-month-row > div:last-child {
+  text-align: right;
+  min-width: 128px;
+}
+
+@media (max-width: 860px) {
+  .recurring-panel-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .recurring-payment-row,
+  .recurring-month-row {
+    align-items: stretch;
+    display: grid;
+  }
+
+  .recurring-month-row > div:last-child {
+    text-align: left;
+    min-width: 0;
+  }
+}
+
+/* V9.6 - estabilidad visual y mejor uso móvil */
+.shared-row-button,
+.recurring-group-item,
+.recurring-month-row,
+.recurring-payment-row {
+  min-width: 0;
+}
+
+.shared-row-button > div,
+.recurring-group-item > div,
+.recurring-month-row > div,
+.recurring-payment-row > div,
+.recurring-debt-row > div {
+  min-width: 0;
+}
+
+.shared-row-button strong,
+.recurring-group-item strong,
+.recurring-month-row strong,
+.recurring-payment-row strong,
+.recurring-debt-row span {
+  overflow-wrap: anywhere;
+}
+
+.sidebar .empty-state {
+  padding: 12px;
+}
+
+.sidebar .empty-state strong {
+  font-size: 0.9rem;
+}
+
+.sidebar .empty-state p {
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 1040px) {
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-history-card {
+    order: 1;
+  }
+
+  .sidebar-payments-panel {
+    order: 2;
+  }
+
+  .sidebar-recurring-card {
+    order: 3;
+  }
+
+  .sidebar-shared-card {
+    order: 4;
+  }
+}
+
+@media (max-width: 520px) {
+  .shared-row,
+  .shared-row-button,
+  .recurring-group-item,
+  .recurring-payment-row,
+  .recurring-month-row,
+  .recurring-debt-row {
+    padding: 10px;
+  }
+
+  .recurring-summary-grid > div {
+    padding: 12px;
+  }
+
+  .recurring-summary-grid strong {
+    font-size: 1.05rem;
   }
 }
