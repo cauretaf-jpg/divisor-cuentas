@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V10.3 cargada');
+console.info('Cuenta Clara V10.4 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';

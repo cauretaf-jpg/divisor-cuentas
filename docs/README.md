@@ -1,15 +1,15 @@
-# Cuenta Clara V10.3
+# Cuenta Clara V10.4
 
 App web funcional para dividir cuentas entre varias personas.
 
-## Nuevo en V10.3 - Nombre de lista y secciones mejor ubicadas
+## Nuevo en V10.4 - Estadísticas de perfil ampliadas
 
-- Al elegir una opción en **¿Qué quieres hacer hoy?**, la app pide nombre para la nueva lista antes de crearla.
-- Se agregó un indicador visible de **Editando lista** para saber siempre qué cuenta/lista se está modificando.
-- **Pagador principal** ahora está dentro de la sección **Personas**.
-- **Propina** ahora está dentro de la sección **Gastos**.
-- **Configuración** queda enfocada en tipo de cuenta, total rápido y mes del hogar.
-- No requiere ejecutar SQL nuevamente si V10.2/V9.x ya funcionaba.
+- La sección **Estadísticas** del perfil ahora tiene pestañas internas: **Resumen**, **Gastos**, **Personas**, **Pagos y recurrentes** y **Actividad**.
+- Se agregaron indicadores de total administrado, promedio por cuenta, personas distintas, cuentas compartidas y cierre de pagos.
+- Se incorporó análisis de categorías, cuentas más altas, gasto por mes y actividad reciente.
+- La vista de personas ahora muestra personas frecuentes, montos asociados y pendientes por persona.
+- La vista de pagos muestra cuentas pagadas, pendientes, total pagado, total pendiente y datos de recurrentes.
+- No requiere ejecutar SQL nuevamente si V10.3/V9.x ya funcionaba.
 
 ## Nuevo en V10.2 - Flujo de cuenta nueva y barra descriptiva
 

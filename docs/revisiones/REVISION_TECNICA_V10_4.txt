@@ -1,0 +1,24 @@
+REVISION TECNICA - CUENTA CLARA V10.4
+
+Objetivo:
+- Ampliar la sección Estadísticas del Perfil sin modificar SQL ni la lógica principal de cuentas.
+
+Cambios aplicados:
+- Estadísticas del Perfil separadas en vistas internas: Resumen, Gastos, Personas, Pagos y recurrentes, y Actividad.
+- Nuevos indicadores: total administrado, personas distintas, cuentas compartidas, cierre de pagos, cuenta más alta, mes con más movimiento, participación detectada, pendientes, recurrentes y deuda anterior.
+- Nuevos rankings: categorías más usadas, cuentas más altas, gasto por mes, personas frecuentes, montos por persona y pendientes por persona.
+- Nueva actividad reciente e hitos de uso.
+- Service worker actualizado a v10.4.0.
+- Referencias de estilos/scripts actualizadas a v=10.4.
+
+Validación:
+- script.js sin errores de sintaxis.
+- profile.js sin errores de sintaxis.
+- index.html sin IDs duplicados.
+- perfil.html sin IDs duplicados.
+- privacidad.html sin IDs duplicados.
+- Selectores principales de profile.js encontrados en perfil.html.
+
+SQL:
+- No se modificó SQL.
+- No requiere ejecutar SQL nuevamente si V10.3/V9.x ya funcionaba.

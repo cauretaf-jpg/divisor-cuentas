@@ -1,16 +1,15 @@
-CUENTA CLARA V10.3 - NOMBRE DE LISTA Y SECCIONES MEJOR UBICADAS
+CUENTA CLARA V10.4 - ESTADÍSTICAS DE PERFIL AMPLIADAS
 
 Cambios principales:
-- Al elegir qué quieres hacer hoy, la app pide el nombre de la lista antes de crearla.
-- Se muestra un indicador visible de qué lista estás editando.
-- Pagador principal queda en Personas.
-- Propina queda en Gastos.
-- Configuración queda para tipo de cuenta, total rápido y mes del hogar.
+- La sección Estadísticas del Perfil ahora tiene vistas internas: Resumen, Gastos, Personas, Pagos y recurrentes, y Actividad.
+- Se agregaron métricas de total administrado, promedio, personas distintas, cuentas compartidas y cierre de pagos.
+- Se agregaron rankings de categorías, personas frecuentes, montos por persona, pendientes, cuentas más altas y gasto por mes.
+- Se agregaron indicadores de cuentas recurrentes y deuda pendiente recurrente.
 
 Instalación:
 1. Reemplaza los archivos de tu carpeta Cuentas por esta versión.
 2. Abre la app y recarga con Ctrl + F5.
-3. No necesitas ejecutar SQL si V10.2/V9.x ya funcionaba.
+3. No necesitas ejecutar SQL si V10.3/V9.x ya funcionaba.
 
 SQL:
 - Los archivos SQL están en /sql.

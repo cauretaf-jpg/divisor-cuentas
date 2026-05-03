@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0f766e" />
   <meta name="google-adsense-account" content="ca-pub-4358472434423818" />
   <title>Mi perfil | Cuenta Clara</title>
-  <link rel="stylesheet" href="styles.css?v=10.3" />
+  <link rel="stylesheet" href="styles.css?v=10.4" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
 </head>
@@ -98,34 +98,126 @@
     <section class="card profile-page-section hidden" id="estadisticas">
       <div class="section-title">
         <div>
-          <p class="eyebrow">Uso</p>
+          <p class="eyebrow">Uso y comportamiento</p>
           <h2>Estadísticas</h2>
+          <p class="helper-text">Revisa tus cuentas, gastos, personas frecuentes, pagos y actividad reciente.</p>
         </div>
       </div>
 
-      <div class="stats-grid">
-        <div class="stat-card"><span>Cuentas creadas</span><strong id="pageStatTotalBills">0</strong></div>
-        <div class="stat-card"><span>Cuentas activas</span><strong id="pageStatActiveBills">0</strong></div>
-        <div class="stat-card"><span>Total histórico</span><strong id="pageStatHistoricalTotal">$0</strong></div>
-        <div class="stat-card"><span>Promedio por cuenta</span><strong id="pageStatAverageBill">$0</strong></div>
-        <div class="stat-card"><span>Personas agregadas</span><strong id="pageStatPeopleCount">0</strong></div>
-        <div class="stat-card"><span>Productos / gastos</span><strong id="pageStatProductCount">0</strong></div>
-        <div class="stat-card"><span>Cuentas del hogar</span><strong id="pageStatHomeBills">0</strong></div>
-        <div class="stat-card"><span>Salidas / rápidas</span><strong id="pageStatOutingBills">0</strong></div>
+      <div class="profile-stats-tabs" role="tablist" aria-label="Vistas de estadísticas">
+        <button class="profile-stats-tab active" data-profile-stats-tab="resumen" type="button">Resumen</button>
+        <button class="profile-stats-tab" data-profile-stats-tab="gastos" type="button">Gastos</button>
+        <button class="profile-stats-tab" data-profile-stats-tab="personas" type="button">Personas</button>
+        <button class="profile-stats-tab" data-profile-stats-tab="pagos" type="button">Pagos y recurrentes</button>
+        <button class="profile-stats-tab" data-profile-stats-tab="actividad" type="button">Actividad</button>
       </div>
 
-      <div class="stats-detail-grid">
-        <div class="stats-box">
-          <strong>Categorías más usadas</strong>
-          <div id="pageTopCategories" class="mini-ranking"></div>
+      <div class="profile-stats-panel active" data-profile-stats-panel="resumen">
+        <div class="stats-grid">
+          <div class="stat-card"><span>Cuentas creadas</span><strong id="pageStatTotalBills">0</strong></div>
+          <div class="stat-card"><span>Cuentas activas</span><strong id="pageStatActiveBills">0</strong></div>
+          <div class="stat-card"><span>Total administrado</span><strong id="pageStatHistoricalTotal">$0</strong></div>
+          <div class="stat-card"><span>Promedio por cuenta</span><strong id="pageStatAverageBill">$0</strong></div>
+          <div class="stat-card"><span>Personas distintas</span><strong id="pageStatUniquePeopleCount">0</strong></div>
+          <div class="stat-card"><span>Productos / gastos</span><strong id="pageStatProductCount">0</strong></div>
+          <div class="stat-card"><span>Cuentas compartidas</span><strong id="pageStatSharedBills">0</strong></div>
+          <div class="stat-card"><span>Cierre de pagos</span><strong id="pageStatPaidRate">0%</strong></div>
         </div>
-        <div class="stats-box">
-          <strong>Personas frecuentes</strong>
-          <div id="pageTopPeople" class="mini-ranking"></div>
+
+        <div class="stats-detail-grid two-columns">
+          <div class="stats-box">
+            <strong>Indicadores rápidos</strong>
+            <div id="pageQuickInsights" class="profile-insight-list"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Última actividad</strong>
+            <p id="pageLastActivity" class="helper-text">Sin actividad registrada.</p>
+          </div>
         </div>
-        <div class="stats-box">
-          <strong>Última actividad</strong>
-          <p id="pageLastActivity" class="helper-text">Sin actividad registrada.</p>
+      </div>
+
+      <div class="profile-stats-panel" data-profile-stats-panel="gastos">
+        <div class="stats-grid">
+          <div class="stat-card"><span>Cuentas del hogar</span><strong id="pageStatHomeBills">0</strong></div>
+          <div class="stat-card"><span>Salidas / rápidas</span><strong id="pageStatOutingBills">0</strong></div>
+          <div class="stat-card"><span>Cuenta más alta</span><strong id="pageStatBiggestBill">$0</strong></div>
+          <div class="stat-card"><span>Mes con más movimiento</span><strong id="pageStatTopMonth">-</strong></div>
+        </div>
+
+        <div class="stats-detail-grid">
+          <div class="stats-box">
+            <strong>Categorías más usadas</strong>
+            <div id="pageTopCategories" class="mini-ranking"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Cuentas más altas</strong>
+            <div id="pageTopBills" class="mini-ranking"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Gasto por mes</strong>
+            <div id="pageMonthlyTotals" class="mini-ranking"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-stats-panel" data-profile-stats-panel="personas">
+        <div class="stats-grid">
+          <div class="stat-card"><span>Personas agregadas</span><strong id="pageStatPeopleCount">0</strong></div>
+          <div class="stat-card"><span>Personas distintas</span><strong id="pageStatUniquePeopleMirror">0</strong></div>
+          <div class="stat-card"><span>Participación detectada</span><strong id="pageStatMyAssignedTotal">$0</strong></div>
+          <div class="stat-card"><span>Pendiente asociado a ti</span><strong id="pageStatMyPendingTotal">$0</strong></div>
+        </div>
+
+        <div class="stats-detail-grid">
+          <div class="stats-box">
+            <strong>Personas frecuentes</strong>
+            <div id="pageTopPeople" class="mini-ranking"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Montos por persona</strong>
+            <div id="pageTopPeopleAmounts" class="mini-ranking"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Pendientes por persona</strong>
+            <div id="pagePendingPeople" class="mini-ranking"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-stats-panel" data-profile-stats-panel="pagos">
+        <div class="stats-grid">
+          <div class="stat-card"><span>Cuentas pagadas</span><strong id="pageStatPaidBills">0</strong></div>
+          <div class="stat-card"><span>Cuentas pendientes</span><strong id="pageStatPendingBills">0</strong></div>
+          <div class="stat-card"><span>Total pagado</span><strong id="pageStatPaidTotal">$0</strong></div>
+          <div class="stat-card"><span>Total pendiente</span><strong id="pageStatPendingTotal">$0</strong></div>
+          <div class="stat-card"><span>Carpetas recurrentes</span><strong id="pageStatRecurringGroups">0</strong></div>
+          <div class="stat-card"><span>Meses recurrentes</span><strong id="pageStatRecurringMonths">0</strong></div>
+          <div class="stat-card"><span>Pendiente recurrente</span><strong id="pageStatRecurringPending">$0</strong></div>
+          <div class="stat-card"><span>Deuda anterior registrada</span><strong id="pageStatCarryoverTotal">$0</strong></div>
+        </div>
+
+        <div class="stats-detail-grid two-columns">
+          <div class="stats-box">
+            <strong>Recurrentes activas</strong>
+            <div id="pageRecurringSummary" class="mini-ranking"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Estado de pagos</strong>
+            <div id="pagePaymentSummary" class="profile-insight-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-stats-panel" data-profile-stats-panel="actividad">
+        <div class="stats-detail-grid two-columns">
+          <div class="stats-box">
+            <strong>Actividad reciente</strong>
+            <div id="pageRecentActivity" class="profile-activity-list"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Hitos de uso</strong>
+            <div id="pageMilestones" class="profile-insight-list"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -219,7 +311,7 @@
   <div class="toast hidden" id="profileToast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=10.3"></script>
-  <script src="profile.js?v=10.3"></script>
+  <script src="supabase-config.js?v=10.4"></script>
+  <script src="profile.js?v=10.4"></script>
 </body>
 </html>
