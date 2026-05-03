@@ -1,6 +1,15 @@
-# Cuenta Clara V10.6
+# Cuenta Clara V10.7
 
 App web funcional para dividir cuentas entre varias personas.
+
+
+## Nuevo en V10.7 - Corrección responsiva móvil
+
+- Se reforzó la vista móvil de la app principal.
+- La navegación por secciones ahora se adapta mejor en celular y mantiene descripciones visibles.
+- Se corrigieron anchos de formularios, tarjetas, botones, resumen de pagos y cobros del perfil.
+- Se mejoró la responsividad del Perfil, pestañas de estadísticas y acciones principales.
+- No cambia SQL ni lógica de Supabase.
 
 ## Nuevo en V10.6 - Cobros del perfil cuando “Yo” paga
 

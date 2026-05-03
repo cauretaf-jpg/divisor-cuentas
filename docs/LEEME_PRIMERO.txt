@@ -1,19 +1,13 @@
-CUENTA CLARA V10.6 - COBROS DEL PERFIL CUANDO “YO” PAGA
+CUENTA CLARA V10.7 - RESPONSIVIDAD MÓVIL
 
-Esta versión agrega indicadores para entender mejor qué pasa cuando la persona vinculada al perfil es el pagador principal de una cuenta.
+Esta versión corrige la visualización en celulares sin cambiar la lógica de cálculos, Supabase ni SQL.
 
-CAMBIO PRINCIPAL
-- En Pagos aparece un bloque especial si “Yo” es el pagador principal.
-- Muestra cuánto pagaste por todos.
-- Muestra cuánto dinero te corresponde a ti.
-- Muestra cuánto queda pendiente por recibir.
-- Lista quiénes te deben dinero según el estado Pendiente/Pagado.
-- En Perfil > Estadísticas > Pagos y recurrentes se agregan métricas acumuladas de esos cobros.
+INSTRUCCIONES:
+1. Reemplaza los archivos de tu carpeta Cuentas por esta versión.
+2. No es necesario ejecutar SQL nuevamente si la V10.6 ya funcionaba.
+3. Recarga con Ctrl + F5.
+4. En celular, borra caché o reinstala la PWA si todavía ves la versión anterior.
 
-NO REQUIERE SQL NUEVO
-Si V10.5 ya funcionaba, solo reemplaza archivos y recarga con Ctrl + F5.
-
-ARCHIVOS SQL EXISTENTES
-- sql/01-supabase-app-state.sql
-- sql/02-supabase-social.sql
-- sql/03-supabase-shared-accounts.sql
+SQL:
+- No se modificó.
+- Se mantienen los archivos en la carpeta sql/.

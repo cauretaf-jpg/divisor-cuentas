@@ -4516,3 +4516,492 @@ details[open] .sidebar-details-summary > span {
     grid-template-columns: 1fr;
   }
 }
+
+/* V10.7 - Responsividad móvil reforzada */
+:root {
+  --app-bg: var(--bg);
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+input:not([type="radio"]):not([type="checkbox"]),
+select,
+textarea {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+button,
+.btn,
+.auth-badge,
+.chip,
+.method-card,
+.guided-choice,
+.section-nav-button {
+  min-width: 0;
+}
+
+@media (max-width: 1040px) {
+  .app-header {
+    position: static;
+  }
+
+  .sectioned-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .section-nav {
+    position: static;
+    top: auto;
+    z-index: auto;
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .section-nav-card {
+    padding: 16px;
+  }
+
+  .section-nav-title {
+    display: block;
+  }
+
+  .section-nav-title h2 {
+    min-width: 0;
+  }
+
+  .section-nav-footer {
+    display: none;
+  }
+
+  .section-nav-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .section-nav-button {
+    min-width: 0;
+    white-space: normal;
+  }
+
+  .section-nav-button span {
+    display: block;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 760px) {
+  body {
+    padding-bottom: 100px;
+  }
+
+  .container,
+  .app-layout,
+  .profile-page-layout {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .app-layout {
+    padding-top: 14px;
+    padding-bottom: 112px;
+  }
+
+  .header-grid {
+    min-height: auto;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .brand {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .brand div {
+    min-width: 0;
+  }
+
+  .brand strong,
+  .brand span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .header-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 8px;
+  }
+
+  .header-actions .btn,
+  .header-actions .auth-badge,
+  .sync-status-badge {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+  }
+
+  h1,
+  h2,
+  h3 {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .card,
+  .modal-card,
+  .section-page-heading,
+  .current-list-indicator,
+  .guided-start-card,
+  .guided-steps-card {
+    border-radius: 20px;
+    padding: 16px;
+  }
+
+  .section-title,
+  .guided-next,
+  .hero-card,
+  .current-list-indicator,
+  .profile-page-hero,
+  .avatar-upload-box,
+  .friend-card {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .current-list-indicator .btn,
+  .guided-next .btn,
+  .hero-actions .btn,
+  .section-actions .btn,
+  .profile-page-actions .btn,
+  .avatar-upload-box .btn,
+  .friend-card-actions .btn {
+    width: 100%;
+  }
+
+  .section-nav-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .section-nav-button {
+    border-radius: 18px;
+    padding: 11px 12px;
+  }
+
+  .section-nav-button strong {
+    font-size: 0.94rem;
+  }
+
+  .section-nav-button span {
+    font-size: 0.78rem;
+    line-height: 1.28;
+  }
+
+  .guided-choice-grid,
+  .add-methods,
+  .step-track,
+  .stats-grid,
+  .stats-detail-grid,
+  .stats-detail-grid.two-columns,
+  .profile-form-grid,
+  .friend-form,
+  .home-summary-grid,
+  .shared-overview-grid,
+  .recurring-dashboard-grid,
+  .profile-payer-kpis,
+  .tip-section-card,
+  #personForm.person-form,
+  #appSection-expenses .product-form,
+  .product-form,
+  .product-tools,
+  .history-tools,
+  .mode-switch {
+    grid-template-columns: 1fr;
+  }
+
+  #personForm .btn,
+  .product-submit,
+  .method-card,
+  .quick-product-form .btn,
+  .sidebar-action-stack .btn,
+  .backup-actions .btn,
+  .account-actions .btn,
+  .bulk-actions .btn,
+  .summary-actions .btn,
+  .sidebar-summary-actions .btn {
+    width: 100%;
+  }
+
+  .bulk-actions,
+  .account-actions,
+  .summary-actions,
+  .sidebar-summary-actions,
+  .backup-actions,
+  .quick-tip-buttons,
+  .receipt-actions,
+  .history-bill-actions,
+  .product-actions,
+  .friend-card-actions,
+  .profile-page-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .quick-tip-buttons {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .quick-products,
+  .category-totals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .quick-products .chip,
+  .quick-products button {
+    flex: 1 1 auto;
+  }
+
+  .people-list,
+  #appSection-people .people-list,
+  .consumer-list {
+    grid-template-columns: 1fr;
+  }
+
+  .person-row {
+    grid-template-columns: minmax(0, 1fr) 34px 34px 34px;
+    gap: 8px;
+  }
+
+  .person-info,
+  .person-info strong,
+  .person-info small,
+  .consumer-row span,
+  .product-row strong,
+  .product-meta,
+  .friend-card-body,
+  .mini-ranking-row span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .consumer-panel {
+    padding: 12px;
+  }
+
+  .consumer-panel-header {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .consumer-row {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "check name"
+      "parts parts";
+  }
+
+  .consumer-row input[type="number"] {
+    width: 100%;
+  }
+
+  .product-row,
+  .result-row,
+  .transfer-row,
+  .profile-payer-debtor-row,
+  .mini-ranking-row,
+  .profile-insight-row,
+  .profile-activity-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .profile-payer-debtor-row span,
+  .profile-payer-debtor-row strong,
+  .profile-insight-row strong,
+  .profile-activity-row strong,
+  .mini-ranking-row strong {
+    white-space: normal;
+    text-align: left;
+  }
+
+  .totals-box > div,
+  .sidebar-total-pill,
+  .home-summary-grid > div {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 4px;
+  }
+
+  .profile-nav,
+  .profile-stats-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    position: static;
+  }
+
+  .profile-page-tab,
+  .profile-stats-tab {
+    width: 100%;
+    text-align: center;
+    border-radius: 16px;
+  }
+
+  .profile-page-avatar {
+    width: 78px;
+    height: 78px;
+    border-radius: 22px;
+  }
+
+  .modal-backdrop {
+    padding: 10px;
+    align-items: end;
+  }
+
+  .modal-card {
+    width: 100%;
+    max-width: calc(100vw - 20px);
+    max-height: 92vh;
+    overflow: auto;
+  }
+
+  .mobile-action-bar {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    width: auto;
+    max-width: calc(100vw - 20px);
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .mobile-action-bar > div {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .mobile-action-bar .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .container,
+  .app-layout,
+  .profile-page-layout {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .section-nav-list,
+  .profile-nav,
+  .profile-stats-tabs,
+  .quick-tip-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .section-nav-card {
+    padding: 14px;
+  }
+
+  .section-nav-button {
+    padding: 12px;
+  }
+
+  .section-nav-button span {
+    display: block;
+  }
+
+  .header-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .current-list-indicator h2,
+  .section-page-heading h2,
+  .guided-start-card h2,
+  .guided-steps-card h2 {
+    font-size: 1.32rem;
+  }
+
+  .bill-name-input {
+    font-size: 1.62rem;
+    letter-spacing: -0.04em;
+  }
+
+  .person-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-areas:
+      "name name name"
+      "whatsapp edit delete"
+      "status status status";
+  }
+
+  .person-row .icon-button {
+    width: 100%;
+    border-radius: 14px;
+  }
+
+  .profile-payer-summary {
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  .profile-payer-kpis div,
+  .profile-payer-debtor-row {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  .card,
+  .modal-card,
+  .section-page-heading,
+  .current-list-indicator,
+  .guided-start-card,
+  .guided-steps-card {
+    padding: 14px;
+  }
+
+  .btn,
+  .auth-badge,
+  .chip {
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 0.88rem;
+  }
+
+  .mobile-action-bar {
+    grid-template-columns: 1fr;
+  }
+}
