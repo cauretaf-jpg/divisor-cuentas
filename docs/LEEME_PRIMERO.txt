@@ -1,4 +1,4 @@
-CUENTA CLARA V10.9 - SINCRONIZACIÓN COMPLETA CON SUPABASE
+CUENTA CLARA V11.0 - AJUSTES MÓVILES Y SINCRONIZACIÓN COMPLETA
 
 Esta versión refuerza el guardado de cuentas completas en Supabase.
 
@@ -24,6 +24,12 @@ DENTRO DE app_states/state SE GUARDA:
 - perfil local
 - amigos locales
 - grupos recurrentes del hogar
+
+NUEVO EN V11.0
+- El botón “Nueva cuenta” ahora pide nombre antes de crear la cuenta, también en celular.
+- Si cancelas el nombre, no se crea una cuenta vacía.
+- En el lector de boletas, el celular ya permite tomar foto o subir una imagen desde galería/archivos.
+- Se actualizó la versión de cache para evitar que el celular mantenga archivos antiguos.
 
 NUEVO EN V10.9
 - Se corrigió el flujo inicial cuando app_states todavía no tiene una fila para el usuario.

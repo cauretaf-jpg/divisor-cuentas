@@ -1,4 +1,4 @@
--- Cuenta Clara V10.9 - Estado completo por usuario
+-- Cuenta Clara V11.0 - Estado completo por usuario
 -- Ejecutar en Supabase → SQL Editor → New query → Run
 -- Puedes volver a ejecutarlo aunque la tabla ya exista.
 

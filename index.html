@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=10.9" rel="stylesheet"/>
+<link href="styles.css?v=11.0" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -597,23 +597,23 @@
 <div class="modal-header">
 <div>
 <p class="eyebrow">Agregar desde boleta</p>
-<h2 id="receiptModalTitle">Leer productos desde una foto</h2>
+<h2 id="receiptModalTitle">Leer productos desde foto o imagen</h2>
 </div>
 <button aria-label="Cerrar" class="icon-button" id="closeReceiptModalButton" type="button">×</button>
 </div>
 <div class="receipt-layout">
 <div class="receipt-upload-panel">
 <label for="receiptFileInput">Foto o imagen de la boleta</label>
-<input accept="image/*" capture="environment" id="receiptFileInput" type="file"/>
+<input accept="image/*" id="receiptFileInput" type="file"/>
 <div class="receipt-preview hidden" id="receiptPreviewWrap"><img alt="Vista previa de la boleta" id="receiptPreviewImage"/></div>
-<p class="helper-text">La lectura automática puede tener errores. Revisa los productos antes de agregarlos.</p>
+<p class="helper-text">Puedes tomar una foto con la cámara o subir una imagen guardada desde tu celular. La lectura automática puede tener errores; revisa los productos antes de agregarlos.</p>
 <button class="btn btn-primary" id="processReceiptButton" type="button">Leer boleta</button>
 <button class="btn btn-light" id="clearReceiptButton" type="button">Limpiar lectura</button>
-<div class="receipt-status" id="receiptStatus">Sube una foto clara para comenzar.</div>
+<div class="receipt-status" id="receiptStatus">Toma una foto o sube una imagen clara para comenzar.</div>
 <details class="receipt-tips">
 <summary>Consejos para mejorar la lectura</summary>
 <ul>
-<li>Toma la foto de frente.</li>
+<li>Toma la foto de frente o sube una imagen nítida desde tu galería.</li>
 <li>Haz que la boleta ocupe casi toda la imagen.</li>
 <li>Evita sombras y reflejos.</li>
 <li>Procura que los precios se vean nítidos.</li>
@@ -846,7 +846,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=10.9"></script>
-<script src="script.js?v=10.9"></script>
+<script src="supabase-config.js?v=11.0"></script>
+<script src="script.js?v=11.0"></script>
 </body>
 </html>

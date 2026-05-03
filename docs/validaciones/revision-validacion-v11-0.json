@@ -1,0 +1,18 @@
+{
+  "version": "11.0",
+  "objetivo": "Correcciones móviles para creación de cuenta y carga de imágenes de boleta",
+  "archivos_revisados": [
+    "index.html",
+    "script.js",
+    "service-worker.js",
+    "docs/LEEME_PRIMERO.txt",
+    "docs/README.md"
+  ],
+  "validaciones": {
+    "nueva_cuenta_movil": "El botón Nueva cuenta solicita nombre antes de crear la cuenta",
+    "cancelacion_nombre": "Si se cancela el nombre, no se agrega una cuenta vacía",
+    "boleta_movil": "El input de boleta permite cámara, galería o archivos al quitar capture=environment",
+    "cache": "Referencias actualizadas a v=11.0 y service worker v11.0.0",
+    "sintaxis": "node --check script.js ejecutado sin errores"
+  }
+}

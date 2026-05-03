@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V10.9 cargada');
+console.info('Cuenta Clara V11.0 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -878,7 +878,7 @@ function openReceiptModal() {
 
   dom.receiptModal.classList.remove('hidden');
   document.body.classList.add('modal-open');
-  updateReceiptStatus('Sube una foto clara para comenzar.');
+  updateReceiptStatus('Toma una foto o sube una imagen clara para comenzar.');
 }
 
 function closeReceiptModal() {
@@ -902,7 +902,7 @@ function clearReceiptReader() {
   }
 
   renderReceiptDetectedItems();
-  updateReceiptStatus('Sube una foto clara para comenzar.');
+  updateReceiptStatus('Toma una foto o sube una imagen clara para comenzar.');
 }
 
 function handleReceiptFileChange() {
@@ -4749,14 +4749,21 @@ function duplicateHomeMonth() {
 }
 
 function addBill() {
+  const listName = askGuidedBillName('detailed');
+
+  if (!listName) {
+    return;
+  }
+
   const bill = makeDefaultBill();
-  bill.name = `Cuenta ${state.bills.length + 1}`;
+  applyBillModePreset(bill, 'detailed', listName);
   state.bills.unshift(bill);
   state.activeBillId = bill.id;
   editingProductId = null;
+  accountSettingsPinnedOpenBillId = '';
   saveState();
   render();
-  showToast('Cuenta creada.');
+  openInitialAccountSetup('Cuenta creada. Agrega personas, elige pagador principal y luego revisa propina en Gastos.');
 }
 
 function duplicateBill() {

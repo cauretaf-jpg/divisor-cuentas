@@ -1,4 +1,4 @@
-# Cuenta Clara V10.9
+# Cuenta Clara V11.0
 
 
 - Diseño visual más consistente en tarjetas, botones e insignias.
@@ -9,6 +9,14 @@
 - Sin cambios en SQL ni en la lógica de cálculos.
 App web funcional para dividir cuentas entre varias personas.
 
+
+## Nuevo en V11.0 - Ajustes móviles
+
+- El botón **Nueva cuenta** ahora solicita nombre antes de crear la cuenta.
+- Si se cancela la solicitud de nombre, no se crea una cuenta vacía.
+- Al crear desde el botón principal, la app abre **Personas** para continuar con participantes y pagador principal.
+- El lector de boletas permite tomar una foto o subir una imagen desde galería/archivos en celular.
+- Se actualizó el cache de la PWA para que el móvil cargue los cambios nuevos.
 
 ## Nuevo en V10.9 - Sincronización completa con Supabase
 
