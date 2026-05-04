@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=11.0" rel="stylesheet"/>
+<link href="styles.css?v=11.1" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -35,7 +35,7 @@
 </div>
 </div>
 </header>
-<main class="container app-layout sectioned-layout"><aside aria-label="Navegación principal de Cuenta Clara" class="section-nav"><section class="card section-nav-card"><div class="section-nav-title"><p class="eyebrow">Menú</p><h2>¿Qué quieres hacer?</h2><p>Trabaja por secciones para ver solo lo necesario.</p></div><nav aria-label="Secciones de la app" class="section-nav-list"><button class="section-nav-button is-active" data-app-section="home" type="button"><strong>Inicio</strong><span>Elegir tipo de cuenta</span></button><button class="section-nav-button" data-app-section="people" type="button"><strong>Personas</strong><span>Agregar participantes</span></button><button class="section-nav-button" data-app-section="expenses" type="button"><strong>Gastos</strong><span>Agregar productos o boleta</span></button><button class="section-nav-button" data-app-section="summary" type="button"><strong>Resumen</strong><span>Ver totales</span></button><button class="section-nav-button" data-app-section="payments" type="button"><strong>Pagos</strong><span>Transferencias y compartir</span></button><button class="section-nav-button" data-app-section="history" type="button"><strong>Historial</strong><span>Tus cuentas guardadas</span></button><button class="section-nav-button" data-app-section="recurring" type="button"><strong>Hogar</strong><span>Cuentas recurrentes</span></button><button class="section-nav-button" data-app-section="shared" type="button"><strong>Compartidas</strong><span>Invitaciones y colaboración</span></button><button class="section-nav-button" data-app-section="settings" type="button"><strong>Configuración</strong><span>Modo y opciones generales</span></button></nav><div class="section-nav-footer"><small>Consejo: usa Inicio como guía y vuelve al resumen cuando necesites revisar montos.</small></div></section></aside><section class="workspace section-workspace"><section class="current-list-indicator card" id="currentListIndicator">
+<main class="container app-layout sectioned-layout"><aside aria-label="Navegación principal de Cuenta Clara" class="section-nav"><section class="card section-nav-card"><div class="section-nav-title"><p class="eyebrow">Menú</p><h2>¿Qué quieres hacer?</h2><p>Trabaja por secciones para ver solo lo necesario.</p></div><nav aria-label="Secciones de la app" class="section-nav-list"><button class="section-nav-button is-active" data-app-section="home" type="button"><strong>Inicio</strong><span>Elegir tipo de cuenta</span></button><button class="section-nav-button" data-app-section="people" type="button"><strong>Personas</strong><span>Agregar participantes</span></button><button class="section-nav-button" data-app-section="expenses" type="button"><strong>Gastos</strong><span>Agregar productos o boleta</span></button><button class="section-nav-button" data-app-section="summary" type="button"><strong>Resumen</strong><span>Ver totales</span></button><button class="section-nav-button" data-app-section="payments" type="button"><strong>Pagos</strong><span>Transferencias y compartir</span></button><button class="section-nav-button" data-app-section="history" type="button"><strong>Historial</strong><span>Tus cuentas guardadas</span></button><button class="section-nav-button" data-app-section="recurring" type="button"><strong>Hogar</strong><span>Cuentas recurrentes</span></button><button class="section-nav-button" data-app-section="shared" type="button"><strong>Compartidas</strong><span>Invitaciones y colaboración</span></button></nav><div class="section-nav-footer"><small>Consejo: usa Inicio como guía y vuelve al resumen cuando necesites revisar montos.</small></div></section></aside><section class="workspace section-workspace"><section class="current-list-indicator card" id="currentListIndicator">
 <div>
 <p class="eyebrow">Editando lista</p>
 <h2 id="currentListName">Lista actual</h2>
@@ -164,7 +164,11 @@
 <button class="btn btn-light btn-small" id="clearProductsButton" type="button">Limpiar productos</button>
 <button class="btn btn-danger-light btn-small" id="resetBillButton" type="button">Reiniciar cuenta</button>
 </div>
-</section><section class="card detailed-only" id="productEditorCard">
+</section><div class="quick-total-panel hidden" id="quickTotalPanel"><div class="section-title compact"><div><p class="eyebrow">Cuenta rápida</p><h2>Monto total</h2></div></div>
+<label for="quickTotalInput">Monto total de la cuenta</label>
+<input id="quickTotalInput" min="0" placeholder="Ej: 60000" step="1" type="number"/>
+<p>En modo rápido, el total se divide en partes iguales entre todas las personas.</p>
+</div><section class="card detailed-only" id="productEditorCard">
 <div class="section-title">
 <div>
 <p class="eyebrow">Consumos</p>
@@ -429,7 +433,12 @@
 <button class="btn btn-light btn-small" id="createNextRecurringMonthButton" type="button">Crear siguiente mes</button>
 </div>
 <div class="recurring-groups-list" id="recurringGroupsList"></div>
-</details><section class="card home-dashboard hidden" id="homeDashboardCard">
+</details><div class="home-panel hidden" id="homePanel"><div class="section-title compact"><div><p class="eyebrow">Cuenta hogar</p><h2>Mes de la cuenta</h2></div></div>
+<label for="homeMonthInput">Mes de las cuentas del hogar</label>
+<input id="homeMonthInput" type="month"/>
+<p>Registra gastos domésticos, vencimientos y gastos recurrentes.</p>
+<button class="btn btn-light btn-small" id="duplicateHomeMonthButton" type="button">Duplicar mes anterior</button>
+</div><section class="card home-dashboard hidden" id="homeDashboardCard">
 <div class="section-title">
 <div>
 <p class="eyebrow">Hogar</p>
@@ -518,52 +527,6 @@
 <div class="shared-status" id="sharedAccountStatus"></div>
 <div class="shared-list" id="sharedInvitesList"></div>
 <div class="shared-list" id="sharedAccountsList"></div>
-</details></section><section class="app-section" data-app-section-panel="settings" id="appSection-settings"><section class="section-page-heading card"><div><p class="eyebrow">Editar cuenta</p><h2>Configuración</h2><p class="section-helper">Ajusta el tipo de cuenta, el total rápido o el mes del hogar. El pagador está en Personas y la propina en Gastos.</p></div></section><details class="card account-settings-card" id="accountSettingsPanel" open="">
-<summary class="account-settings-summary">
-<div>
-<p class="eyebrow">Configuración</p>
-<h2>Editar cuenta</h2>
-<p id="accountSettingsSummaryText">Tipo de cuenta y opciones generales.</p>
-</div>
-<span>Mostrar / ocultar</span>
-</summary>
-<div class="account-settings-content grid-two">
-<section class="settings-inner-card">
-<div class="section-title compact">
-<div>
-<p class="eyebrow">Modo de uso</p>
-<h2>Tipo de cuenta</h2>
-</div>
-</div>
-<div class="mode-switch">
-<label class="radio-pill">
-<input checked="" name="billMode" type="radio" value="detailed"/>
-<span>Detallada</span>
-</label>
-<label class="radio-pill">
-<input name="billMode" type="radio" value="quick"/>
-<span>Rápida</span>
-</label>
-<label class="radio-pill">
-<input name="billMode" type="radio" value="home"/>
-<span>Hogar</span>
-</label>
-</div>
-<div class="quick-total-panel hidden" id="quickTotalPanel">
-<label for="quickTotalInput">Monto total de la cuenta</label>
-<input id="quickTotalInput" min="0" placeholder="Ej: 60000" step="1" type="number"/>
-<p>En modo rápido, el total se divide en partes iguales entre todas las personas.</p>
-</div>
-<div class="home-panel hidden" id="homePanel">
-<label for="homeMonthInput">Mes de las cuentas del hogar</label>
-<input id="homeMonthInput" type="month"/>
-<p>Registra gastos domésticos, vencimientos y gastos recurrentes.</p>
-<button class="btn btn-light btn-small" id="duplicateHomeMonthButton" type="button">Duplicar mes anterior</button>
-</div>
-</section>
-
-
-</div>
 </details></section></section></main>
 <div class="mobile-action-bar">
 <div>
@@ -846,7 +809,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=11.0"></script>
-<script src="script.js?v=11.0"></script>
+<script src="supabase-config.js?v=11.1"></script>
+<script src="script.js?v=11.1"></script>
 </body>
 </html>

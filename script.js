@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V11.0 cargada');
+console.info('Cuenta Clara V11.1 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -2460,14 +2460,15 @@ function initExperienceMode() {
 
 
 function normalizeAppSection(section) {
-  const allowed = new Set(['home', 'people', 'expenses', 'summary', 'payments', 'history', 'recurring', 'shared', 'settings']);
+  const allowed = new Set(['home', 'people', 'expenses', 'summary', 'payments', 'history', 'recurring', 'shared']);
   const aliases = {
     products: 'expenses',
     gastos: 'expenses',
     review: 'summary',
     share: 'payments',
     hogar: 'recurring',
-    cuenta: 'settings',
+    cuenta: 'expenses',
+    settings: 'expenses',
   };
   const value = aliases[section] || section || 'home';
   return allowed.has(value) ? value : 'home';
@@ -4840,13 +4841,12 @@ function editBillFromHistory(billId) {
   }
 
   state.activeBillId = bill.id;
-  accountSettingsPinnedOpenBillId = bill.id;
+  accountSettingsPinnedOpenBillId = '';
   editingProductId = null;
   saveState();
   render();
-  setAppSection('settings', { scroll: false });
-  dom.accountSettingsPanel?.setAttribute('open', '');
-  showToast('Cuenta lista para editar.');
+  setAppSection('expenses', { scroll: false });
+  showToast('Cuenta lista para editar en Gastos.');
 }
 
 function deleteBillFromHistory(billId) {

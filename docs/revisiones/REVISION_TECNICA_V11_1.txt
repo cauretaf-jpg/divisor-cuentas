@@ -1,0 +1,12 @@
+Cuenta Clara V11.1 - Ajustes de navegación
+
+Cambios:
+- Se retiró Configuración del menú principal y del flujo de secciones de la app.
+- El botón Editar del Historial selecciona la cuenta y abre Gastos directamente.
+- El panel de monto total para Cuenta rápida se movió a Gastos.
+- El panel de mes de Cuenta hogar se movió a Hogar.
+- Se actualizó cache/service worker a v11.1 para evitar archivos antiguos en móvil.
+
+Validación:
+- Sintaxis de script.js validada con node --check.
+- index.html contiene los inputs necesarios para quickTotalInput, homeMonthInput y duplicateHomeMonthButton.

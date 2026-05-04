@@ -1,4 +1,4 @@
-# Cuenta Clara V11.0
+# Cuenta Clara V11.1
 
 
 - Diseño visual más consistente en tarjetas, botones e insignias.
@@ -10,7 +10,12 @@
 App web funcional para dividir cuentas entre varias personas.
 
 
-## Nuevo en V11.0 - Ajustes móviles
+- Se elimina la sección Configuración del menú principal.
+- El botón Editar del Historial ahora abre directamente la sección Gastos.
+- El monto de Cuenta rápida queda disponible en Gastos.
+- El mes de Cuenta hogar queda disponible en Hogar.
+
+## Nuevo en V11.1 - Limpieza de configuración e historial
 
 - El botón **Nueva cuenta** ahora solicita nombre antes de crear la cuenta.
 - Si se cancela la solicitud de nombre, no se crea una cuenta vacía.

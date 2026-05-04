@@ -1,4 +1,4 @@
-CUENTA CLARA V11.0 - AJUSTES MÓVILES Y SINCRONIZACIÓN COMPLETA
+CUENTA CLARA V11.1 - AJUSTES DE NAVEGACIÓN E HISTORIAL
 
 Esta versión refuerza el guardado de cuentas completas en Supabase.
 
@@ -25,7 +25,7 @@ DENTRO DE app_states/state SE GUARDA:
 - amigos locales
 - grupos recurrentes del hogar
 
-NUEVO EN V11.0
+NUEVO EN V11.1
 - El botón “Nueva cuenta” ahora pide nombre antes de crear la cuenta, también en celular.
 - Si cancelas el nombre, no se crea una cuenta vacía.
 - En el lector de boletas, el celular ya permite tomar foto o subir una imagen desde galería/archivos.
@@ -38,3 +38,10 @@ NUEVO EN V10.9
 - Si falta la tabla app_states o falla RLS, la app muestra una instrucción más clara.
 - La página Mi Perfil ya no elimina datos auxiliares como grupos recurrentes al guardar el perfil.
 - Se mantiene localStorage como respaldo si Supabase falla.
+
+
+NUEVO EN V11.1
+- Se retira Configuración del menú principal.
+- Editar desde Historial abre Gastos directamente.
+- Cuenta rápida mantiene su monto total dentro de Gastos.
+- Cuenta hogar mantiene el mes dentro de Hogar.
