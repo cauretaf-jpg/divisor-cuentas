@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=11.5" rel="stylesheet"/>
+<link href="styles.css?v=11.6" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -47,7 +47,34 @@
 <p id="currentListMeta">Revisa aquí qué cuenta estás modificando.</p>
 </div>
 <button class="btn btn-light btn-small" data-app-section="history" type="button">Cambiar lista</button>
-</section><section class="app-section is-active" data-app-section-panel="home" id="appSection-home"><section class="section-page-heading card"><div><p class="eyebrow">Inicio rápido</p><h2>Inicio</h2><p class="section-helper">Elige qué quieres hacer. Las opciones principales crearán una lista nueva y primero te pedirán un nombre.</p></div></section><section class="mobile-onboarding-card card" id="mobileOnboardingCard">
+</section><section class="app-section is-active" data-app-section-panel="home" id="appSection-home"><section class="section-page-heading card"><div><p class="eyebrow">Inicio rápido</p><h2>Inicio</h2><p class="section-helper">Parte desde una acción clara. En celular la app funciona por pantallas: Personas, Gastos, Resumen y Pagos.</p></div></section><section class="mobile-home-dashboard card" id="homeDashboardPanel">
+<div class="home-dashboard-top">
+<div>
+<p class="eyebrow">Panel principal</p>
+<h2 id="homeGreetingOutput">Hola</h2>
+<p id="homeSummaryMetaOutput">Revisa tu cuenta activa y continúa desde la acción que necesites.</p>
+</div>
+<span class="home-sync-pill" id="homeDashboardSyncOutput">Local</span>
+</div>
+<div class="home-active-card">
+<div>
+<span>Cuenta activa</span>
+<strong id="homeActiveBillOutput">Lista actual</strong>
+<small id="homeActiveBillMetaOutput">Sin datos todavía</small>
+</div>
+<button class="btn btn-primary btn-small" id="continueActiveBillButton" type="button">Continuar</button>
+</div>
+<div class="home-kpi-grid" aria-label="Resumen rápido de la cuenta activa">
+<div><span>Total</span><strong id="homeDashboardTotalOutput">$0</strong></div>
+<div><span>Mi parte</span><strong id="homeDashboardMineOutput">-</strong></div>
+<div><span>Por cobrar</span><strong id="homeDashboardReceivableOutput">$0</strong></div>
+<div><span>Pendientes</span><strong id="homeDashboardPendingPeopleOutput">0</strong></div>
+</div>
+<div class="home-primary-actions">
+<button class="btn btn-primary" id="homeNewBillButton" type="button">Nueva cuenta guiada</button>
+<button class="btn btn-light" data-app-section="history" type="button">Ver historial</button>
+</div>
+</section><section class="mobile-onboarding-card card" id="mobileOnboardingCard">
 <div>
 <p class="eyebrow">Guía rápida</p>
 <h2>Divide una cuenta en 4 pasos</h2>
@@ -67,7 +94,7 @@
 <div class="section-title">
 <div>
 <p class="eyebrow">Inicio rápido</p>
-<h2>¿Qué quieres hacer hoy?</h2>
+<h2>Nueva cuenta guiada</h2>
 </div>
 </div>
 <div class="guided-choice-grid">
@@ -202,16 +229,16 @@
 </div>
 <div class="add-methods" id="addMethods">
 <button class="method-card" id="manualProductMethodButton" type="button">
-<strong>Escribir</strong>
-<span>Agrega producto o gasto manualmente.</span>
+<strong>Agregar manual</strong>
+<span>Escribe producto, monto y quién lo consumió.</span>
 </button>
 <button class="method-card" id="receiptMethodButton" type="button">
 <strong>Escanear boleta</strong>
-<span>Sube una foto y revisa lo detectado.</span>
+<span>Cámara, galería o archivo. Luego eliges qué agregar.</span>
 </button>
 <button class="method-card" id="quickProductMethodButton" type="button">
 <strong>Productos rápidos</strong>
-<span>Usa accesos frecuentes.</span>
+<span>Completa gastos frecuentes con menos pasos.</span>
 </button>
 </div>
 <div class="quick-products-header">
@@ -296,8 +323,12 @@
 <h3 id="consumerPanelTitle">¿Quiénes consumieron?</h3>
 <p id="consumerPanelHelp">Marca las personas y ajusta las partes si alguien consumió más.</p>
 </div>
-<button class="btn btn-light btn-small" id="selectAllConsumersButton" type="button">Seleccionar todos</button>
+<div class="consumer-panel-actions">
+<button class="btn btn-light btn-small" id="selectAllConsumersButton" type="button">Todos</button>
+<button class="btn btn-light btn-small" id="clearConsumersButton" type="button">Limpiar</button>
 </div>
+</div>
+<div class="consumer-selection-summary" id="consumerSelectionSummary">Selecciona personas para dividir este gasto.</div>
 <div class="consumer-list" id="consumerList"></div>
 </div>
 <button class="btn btn-primary product-submit" id="productSubmitButton" type="submit">Agregar producto</button>
@@ -835,7 +866,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=11.5"></script>
-<script src="script.js?v=11.5"></script>
+<script src="supabase-config.js?v=11.6"></script>
+<script src="script.js?v=11.6"></script>
 </body>
 </html>

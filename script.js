@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V11.5 cargada');
+console.info('Cuenta Clara V11.6 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -90,6 +90,17 @@ const dom = {
   stepProducts: document.querySelector('#stepProducts'),
   stepReview: document.querySelector('#stepReview'),
   stepShare: document.querySelector('#stepShare'),
+  homeGreetingOutput: document.querySelector('#homeGreetingOutput'),
+  homeSummaryMetaOutput: document.querySelector('#homeSummaryMetaOutput'),
+  homeDashboardSyncOutput: document.querySelector('#homeDashboardSyncOutput'),
+  homeActiveBillOutput: document.querySelector('#homeActiveBillOutput'),
+  homeActiveBillMetaOutput: document.querySelector('#homeActiveBillMetaOutput'),
+  homeDashboardTotalOutput: document.querySelector('#homeDashboardTotalOutput'),
+  homeDashboardMineOutput: document.querySelector('#homeDashboardMineOutput'),
+  homeDashboardReceivableOutput: document.querySelector('#homeDashboardReceivableOutput'),
+  homeDashboardPendingPeopleOutput: document.querySelector('#homeDashboardPendingPeopleOutput'),
+  continueActiveBillButton: document.querySelector('#continueActiveBillButton'),
+  homeNewBillButton: document.querySelector('#homeNewBillButton'),
 
   historySearchInput: document.querySelector('#historySearchInput'),
   historyFilterSelect: document.querySelector('#historyFilterSelect'),
@@ -167,8 +178,10 @@ const dom = {
   productRecurringInput: document.querySelector('#productRecurringInput'),
   consumerPanelTitle: document.querySelector('#consumerPanelTitle'),
   consumerPanelHelp: document.querySelector('#consumerPanelHelp'),
+  consumerSelectionSummary: document.querySelector('#consumerSelectionSummary'),
   consumerList: document.querySelector('#consumerList'),
   selectAllConsumersButton: document.querySelector('#selectAllConsumersButton'),
+  clearConsumersButton: document.querySelector('#clearConsumersButton'),
   cancelEditProductButton: document.querySelector('#cancelEditProductButton'),
   productSubmitButton: document.querySelector('#productSubmitButton'),
   receiptButton: document.querySelector('#receiptButton'),
@@ -2690,6 +2703,76 @@ function renderGuidedExperience() {
   updateMobileActionBar();
 }
 
+function getHomeSyncLabel() {
+  if (currentSession.mode !== 'user') {
+    return 'Guardado local';
+  }
+
+  if (cloudSyncStatus === 'saving') return 'Guardando...';
+  if (cloudSyncStatus === 'error') return 'Sin conexión';
+  return lastCloudSyncAt ? getCloudSavedText() : 'Sincronizado';
+}
+
+function getSmartActionSection() {
+  const copy = getSmartActionCopy();
+  if (copy.step === 'people') return 'people';
+  if (copy.step === 'products') return 'expenses';
+  if (copy.step === 'share') return 'payments';
+  return 'summary';
+}
+
+function renderMobileHomeDashboard() {
+  if (!dom.homeGreetingOutput || !state?.bills?.length) {
+    return;
+  }
+
+  const bill = getActiveBill();
+  const calculation = calculateBill(bill);
+  const displayName = currentSession.mode === 'user' ? getProfileDisplayName() : 'Invitado';
+  const productCount = bill.mode === 'quick' ? (Number(bill.quickTotal || 0) > 0 ? 1 : 0) : bill.products.length;
+  const pendingPeople = bill.people.filter((person) => !person.paid && (calculation.finalTotals[person.id] || 0) > 0).length;
+  const selfInfo = getSelfParticipantInfo();
+  const selfPerson = findSelfPerson(bill, selfInfo);
+  const payer = bill.people.find((person) => person.id === bill.payerId);
+  const totalReceivable = payer
+    ? bill.people
+        .filter((person) => person.id !== payer.id && !person.paid)
+        .reduce((sum, person) => sum + (calculation.finalTotals[person.id] || 0), 0)
+    : calculation.pendingTotal;
+  const myAmount = selfPerson ? calculation.finalTotals[selfPerson.id] || 0 : null;
+
+  dom.homeGreetingOutput.textContent = currentSession.mode === 'user' ? `Hola, ${displayName}` : 'Hola, invitado';
+  dom.homeSummaryMetaOutput.textContent = currentSession.mode === 'user'
+    ? 'Tus cuentas se sincronizan con Supabase cuando haces cambios.'
+    : 'Estás usando el modo invitado. Tus datos quedan en este dispositivo.';
+  dom.homeDashboardSyncOutput.textContent = getHomeSyncLabel();
+  dom.homeDashboardSyncOutput.classList.toggle('is-error', cloudSyncStatus === 'error');
+  dom.homeDashboardSyncOutput.classList.toggle('is-saving', cloudSyncStatus === 'saving');
+  dom.homeActiveBillOutput.textContent = bill.name || 'Lista actual';
+  dom.homeActiveBillMetaOutput.textContent = `${getBillModeLabel(bill.mode)} · ${bill.people.length} persona${bill.people.length === 1 ? '' : 's'} · ${productCount} gasto${productCount === 1 ? '' : 's'}`;
+  dom.homeDashboardTotalOutput.textContent = formatCurrency(calculation.grandTotal);
+  dom.homeDashboardMineOutput.textContent = myAmount === null ? '-' : formatCurrency(myAmount);
+  dom.homeDashboardReceivableOutput.textContent = formatCurrency(totalReceivable);
+  dom.homeDashboardPendingPeopleOutput.textContent = String(pendingPeople);
+
+  if (dom.continueActiveBillButton) {
+    dom.continueActiveBillButton.textContent = getSmartActionCopy().button;
+  }
+}
+
+function continueActiveBillFromHome() {
+  setAppSection(getSmartActionSection(), { scroll: false });
+}
+
+function focusGuidedNewBillChoices() {
+  setAppSection('home', { scroll: false });
+  const target = dom.guidedStartCard || document.querySelector('#guidedStartCard');
+  requestAnimationFrame(() => {
+    target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  showToast('Elige el tipo de cuenta para crearla paso a paso.');
+}
+
 function getGuidedBillName(mode) {
   const nextNumber = state?.bills?.length ? state.bills.length + 1 : 1;
 
@@ -4440,6 +4523,44 @@ function updateDivisionCopy() {
   }
 }
 
+function updateConsumerSelectionSummary() {
+  if (!dom.consumerSelectionSummary || !dom.consumerList) return;
+
+  const rows = [...dom.consumerList.querySelectorAll('.consumer-row')];
+  const selectedRows = rows.filter((row) => row.querySelector('input[type="checkbox"]')?.checked);
+  const totalShares = selectedRows.reduce((sum, row) => {
+    const value = Number(row.querySelector('input[type="number"]')?.value || 1);
+    return sum + Math.max(1, value);
+  }, 0);
+
+  if (rows.length === 0) {
+    dom.consumerSelectionSummary.textContent = 'Agrega personas para poder dividir este gasto.';
+    dom.consumerSelectionSummary.classList.remove('is-ready');
+    return;
+  }
+
+  if (selectedRows.length === 0) {
+    dom.consumerSelectionSummary.textContent = 'Ninguna persona seleccionada. Elige al menos una para guardar el gasto.';
+    dom.consumerSelectionSummary.classList.remove('is-ready');
+    return;
+  }
+
+  dom.consumerSelectionSummary.textContent = `${selectedRows.length} persona${selectedRows.length === 1 ? '' : 's'} seleccionada${selectedRows.length === 1 ? '' : 's'} · ${totalShares} parte${totalShares === 1 ? '' : 's'} en total`;
+  dom.consumerSelectionSummary.classList.add('is-ready');
+}
+
+function setAllConsumersChecked(checked) {
+  [...dom.consumerList.querySelectorAll('.consumer-row')].forEach((row) => {
+    const checkbox = row.querySelector('input[type="checkbox"]');
+    const shareInput = row.querySelector('input[type="number"]');
+    if (!checkbox || !shareInput) return;
+    checkbox.checked = checked;
+    shareInput.disabled = !checked;
+    row.classList.toggle('is-selected', checked);
+  });
+  updateConsumerSelectionSummary();
+}
+
 function renderConsumers() {
   const bill = getActiveBill();
   const currentProduct = editingProductId
@@ -4452,6 +4573,7 @@ function renderConsumers() {
 
   if (bill.people.length === 0) {
     dom.consumerList.appendChild(cloneEmptyState());
+    updateConsumerSelectionSummary();
     return;
   }
 
@@ -4461,24 +4583,38 @@ function renderConsumers() {
     const share = existing?.share || 1;
 
     const row = document.createElement('label');
-    row.className = 'consumer-row';
+    row.className = `consumer-row ${checked ? 'is-selected' : ''}`;
     row.innerHTML = `
       <input type="checkbox" value="${person.id}" ${checked ? 'checked' : ''} />
-      <span>${escapeHtml(person.name)}</span>
-      <input type="number" min="1" step="1" value="${share}" aria-label="Partes de ${escapeHtml(person.name)}" />
+      <span class="consumer-name-wrap">
+        <strong>${escapeHtml(person.name)}</strong>
+        <small>${checked ? 'Incluido en este gasto' : 'No incluido'}</small>
+      </span>
+      <span class="consumer-share-control">
+        <small>Partes</small>
+        <input type="number" min="1" step="1" value="${share}" aria-label="Partes de ${escapeHtml(person.name)}" />
+      </span>
     `;
 
     const checkbox = row.querySelector('input[type="checkbox"]');
     const shareInput = row.querySelector('input[type="number"]');
+    const helpText = row.querySelector('.consumer-name-wrap small');
 
     shareInput.disabled = !checkbox.checked;
 
     checkbox.addEventListener('change', () => {
       shareInput.disabled = !checkbox.checked;
+      row.classList.toggle('is-selected', checkbox.checked);
+      helpText.textContent = checkbox.checked ? 'Incluido en este gasto' : 'No incluido';
+      updateConsumerSelectionSummary();
     });
+
+    shareInput.addEventListener('input', updateConsumerSelectionSummary);
 
     dom.consumerList.appendChild(row);
   }
+
+  updateConsumerSelectionSummary();
 }
 
 function renderCategoryTotals() {
@@ -4837,6 +4973,7 @@ function render() {
   renderTransfers();
   try {
     renderGuidedExperience();
+    renderMobileHomeDashboard();
   } catch (error) {
     console.warn('No se pudo renderizar la experiencia guiada:', error);
   }
@@ -6907,6 +7044,8 @@ dom.accountSettingsPanel?.addEventListener('toggle', () => {
 });
 
 dom.smartActionButton?.addEventListener('click', handleSmartAction);
+dom.continueActiveBillButton?.addEventListener('click', continueActiveBillFromHome);
+dom.homeNewBillButton?.addEventListener('click', focusGuidedNewBillChoices);
 dom.simpleModeButton?.addEventListener('click', () => setExperienceMode('simple'));
 dom.advancedModeButton?.addEventListener('click', () => setExperienceMode('advanced'));
 dom.manualProductMethodButton?.addEventListener('click', focusManualProductForm);
@@ -6914,7 +7053,7 @@ dom.receiptMethodButton?.addEventListener('click', openReceiptModal);
 dom.quickProductMethodButton?.addEventListener('click', showQuickProductsArea);
 
 
-dom.newBillButton.addEventListener('click', addBill);
+dom.newBillButton.addEventListener('click', focusGuidedNewBillChoices);
 dom.duplicateBillButton.addEventListener('click', duplicateBill);
 dom.archiveBillButton.addEventListener('click', toggleArchiveBill);
 dom.deleteBillButton.addEventListener('click', deleteActiveBill);
@@ -7059,16 +7198,8 @@ dom.quickTipButtons.forEach((button) => {
 dom.clearProductsButton.addEventListener('click', clearProducts);
 dom.resetBillButton.addEventListener('click', resetBill);
 
-dom.selectAllConsumersButton.addEventListener('click', () => {
-  const checkboxes = [...dom.consumerList.querySelectorAll('input[type="checkbox"]')];
-  const shouldSelect = checkboxes.some((checkbox) => !checkbox.checked);
-
-  for (const checkbox of checkboxes) {
-    checkbox.checked = shouldSelect;
-    const shareInput = checkbox.closest('.consumer-row').querySelector('input[type="number"]');
-    shareInput.disabled = !shouldSelect;
-  }
-});
+dom.selectAllConsumersButton.addEventListener('click', () => setAllConsumersChecked(true));
+dom.clearConsumersButton?.addEventListener('click', () => setAllConsumersChecked(false));
 
 dom.toggleQuickProductsEditorButton.addEventListener('click', () => {
   const isHidden = dom.quickProductsEditor.classList.toggle('hidden');
