@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=11.3" rel="stylesheet"/>
+<link href="styles.css?v=11.4" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -40,7 +40,7 @@
 </div>
 </div>
 </header>
-<main class="container app-layout sectioned-layout"><aside aria-label="Navegación principal de Cuenta Clara" class="section-nav"><section class="card section-nav-card"><div class="section-nav-title"><p class="eyebrow">Menú</p><h2>¿Qué quieres hacer?</h2><p>Trabaja por secciones para ver solo lo necesario.</p></div><nav aria-label="Secciones de la app" class="section-nav-list"><button class="section-nav-button is-active" data-app-section="home" type="button"><strong>Inicio</strong><span>Elegir tipo de cuenta</span></button><button class="section-nav-button" data-app-section="people" type="button"><strong>Personas</strong><span>Agregar participantes</span></button><button class="section-nav-button" data-app-section="expenses" type="button"><strong>Gastos</strong><span>Agregar productos o boleta</span></button><button class="section-nav-button" data-app-section="summary" type="button"><strong>Resumen</strong><span>Ver totales</span></button><button class="section-nav-button" data-app-section="payments" type="button"><strong>Pagos</strong><span>Transferencias y compartir</span></button><button class="section-nav-button" data-app-section="history" type="button"><strong>Historial</strong><span>Tus cuentas guardadas</span></button><button class="section-nav-button" data-app-section="recurring" type="button"><strong>Hogar</strong><span>Cuentas recurrentes</span></button><button class="section-nav-button" data-app-section="shared" type="button"><strong>Compartidas</strong><span>Invitaciones y colaboración</span></button></nav><div class="section-nav-footer"><small>Consejo: usa Inicio como guía y vuelve al resumen cuando necesites revisar montos.</small></div></section></aside><section class="workspace section-workspace"><section class="current-list-indicator card" id="currentListIndicator">
+<main class="container app-layout sectioned-layout"><aside aria-label="Navegación principal de Cuenta Clara" class="section-nav"><section class="card section-nav-card"><div class="section-nav-title"><p class="eyebrow">Menú</p><h2>¿Qué quieres hacer?</h2><p>Trabaja por secciones para ver solo lo necesario.</p></div><nav aria-label="Secciones de la app" class="section-nav-list"><button class="section-nav-button is-active" data-app-section="home" type="button"><strong>Inicio</strong><span>Elegir tipo de cuenta</span></button><button class="section-nav-button" data-app-section="people" type="button"><strong>Personas</strong><span>Agregar participantes</span></button><button class="section-nav-button" data-app-section="expenses" type="button"><strong>Gastos</strong><span>Agregar productos o boleta</span></button><button class="section-nav-button" data-app-section="summary" type="button"><strong>Resumen</strong><span>Ver totales</span></button><button class="section-nav-button" data-app-section="payments" type="button"><strong>Pagos</strong><span>Transferencias y compartir</span></button><button class="section-nav-button" data-app-section="history" type="button"><strong>Historial</strong><span>Tus cuentas guardadas</span></button><button class="section-nav-button" data-app-section="recurring" type="button"><strong>Hogar</strong><span>Cuentas recurrentes</span></button><button class="section-nav-button" data-app-section="shared" type="button"><strong>Compartidas</strong><span>Invitaciones y colaboración</span></button></nav><div class="section-nav-footer"><small>Consejo: usa Inicio como guía y vuelve al resumen cuando necesites revisar montos.</small></div></section></aside><section class="workspace section-workspace"><div class="mobile-screen-header" id="mobileScreenHeader" aria-live="polite"><div><p class="eyebrow" id="mobileScreenEyebrow">Cuenta Clara</p><strong id="mobileScreenTitle">Inicio</strong></div><button class="btn btn-light btn-small" id="mobileBackButton" type="button">Atrás</button></div><section class="current-list-indicator card" id="currentListIndicator">
 <div>
 <p class="eyebrow">Editando lista</p>
 <h2 id="currentListName">Lista actual</h2>
@@ -549,7 +549,7 @@
 <div class="shared-list" id="sharedInvitesList"></div>
 <div class="shared-list" id="sharedAccountsList"></div>
 </details></section></section></main>
-<div class="mobile-action-bar">
+<div class="mobile-action-bar" aria-hidden="true">
 <div>
 <span>Total</span>
 <strong id="mobileTotalOutput">$0</strong>
@@ -557,6 +557,12 @@
 <button class="btn btn-light btn-small" id="mobileAddProductButton" type="button">Agregar</button>
 <button class="btn btn-primary btn-small" id="mobileShareButton" type="button">Compartir</button>
 </div>
+<nav class="mobile-bottom-nav" aria-label="Acciones principales">
+<button class="mobile-bottom-nav-button" data-app-section="people" type="button"><span class="mobile-bottom-icon">👥</span><strong>Personas</strong></button>
+<button class="mobile-bottom-nav-button" data-app-section="expenses" type="button"><span class="mobile-bottom-icon">＋</span><strong>Gastos</strong></button>
+<button class="mobile-bottom-nav-button" data-app-section="summary" type="button"><span class="mobile-bottom-icon">Σ</span><strong>Resumen</strong></button>
+<button class="mobile-bottom-nav-button" data-app-section="payments" type="button"><span class="mobile-bottom-icon">$</span><strong>Pagos</strong></button>
+</nav>
 <div aria-labelledby="friendsPickerTitle" aria-modal="true" class="modal-backdrop hidden" id="friendsPickerModal" role="dialog">
 <section class="modal-card friends-picker-card">
 <div class="modal-header">
@@ -830,7 +836,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=11.3"></script>
-<script src="script.js?v=11.3"></script>
+<script src="supabase-config.js?v=11.4"></script>
+<script src="script.js?v=11.4"></script>
 </body>
 </html>

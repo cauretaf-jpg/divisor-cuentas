@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V11.3 cargada');
+console.info('Cuenta Clara V11.4 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -12,6 +12,8 @@ let cloudSyncStatus = 'local';
 let cloudSyncErrorNotified = false;
 let accountSettingsPinnedOpenBillId = '';
 let suppressAccountSettingsToggle = false;
+let currentAppSection = 'home';
+let previousAppSection = 'home';
 let sharedSaveTimer = null;
 let sharedAccountsCache = [];
 let sharedInvitesCache = [];
@@ -75,6 +77,10 @@ const dom = {
   guideShareButtons: document.querySelectorAll('[data-open-share]'),
   sectionNavButtons: document.querySelectorAll('[data-app-section]'),
   appSectionPanels: document.querySelectorAll('[data-app-section-panel]'),
+  mobileScreenHeader: document.querySelector('#mobileScreenHeader'),
+  mobileScreenTitle: document.querySelector('#mobileScreenTitle'),
+  mobileScreenEyebrow: document.querySelector('#mobileScreenEyebrow'),
+  mobileBackButton: document.querySelector('#mobileBackButton'),
   guidedNextTitle: document.querySelector('#guidedNextTitle'),
   guidedNextHelp: document.querySelector('#guidedNextHelp'),
   smartActionButton: document.querySelector('#smartActionButton'),
@@ -2488,11 +2494,45 @@ function getStoredAppSection() {
   }
 }
 
+const APP_SECTION_TITLES = {
+  home: { title: 'Inicio', eyebrow: 'Cuenta Clara' },
+  people: { title: 'Personas', eyebrow: 'Participantes' },
+  expenses: { title: 'Gastos', eyebrow: 'Consumos' },
+  summary: { title: 'Resumen', eyebrow: 'Totales' },
+  payments: { title: 'Pagos', eyebrow: 'Transferencias' },
+  history: { title: 'Historial', eyebrow: 'Tus cuentas' },
+  recurring: { title: 'Hogar', eyebrow: 'Recurrentes' },
+  shared: { title: 'Compartidas', eyebrow: 'Colaboración' },
+};
+
+function updateMobileSectionChrome(section) {
+  const meta = APP_SECTION_TITLES[section] || APP_SECTION_TITLES.home;
+
+  if (dom.mobileScreenTitle) {
+    dom.mobileScreenTitle.textContent = meta.title;
+  }
+
+  if (dom.mobileScreenEyebrow) {
+    dom.mobileScreenEyebrow.textContent = meta.eyebrow;
+  }
+
+  if (dom.mobileScreenHeader) {
+    dom.mobileScreenHeader.classList.toggle('is-visible', section !== 'home');
+  }
+
+  document.body.dataset.activeSection = section;
+}
+
 function setAppSection(section, options = {}) {
   const nextSection = normalizeAppSection(section);
 
   if (!dom.appSectionPanels || dom.appSectionPanels.length === 0) {
     return;
+  }
+
+  if (nextSection !== currentAppSection) {
+    previousAppSection = options.fromBack ? 'home' : currentAppSection;
+    currentAppSection = nextSection;
   }
 
   dom.appSectionPanels.forEach((panel) => {
@@ -2502,6 +2542,8 @@ function setAppSection(section, options = {}) {
   dom.sectionNavButtons?.forEach((button) => {
     button.classList.toggle('is-active', button.dataset.appSection === nextSection);
   });
+
+  updateMobileSectionChrome(nextSection);
 
   try {
     localStorage.setItem(APP_SECTION_KEY, nextSection);
@@ -6802,6 +6844,11 @@ dom.headerMorePanel?.addEventListener('click', (event) => {
 
 dom.sectionNavButtons?.forEach((button) => {
   button.addEventListener('click', () => setAppSection(button.dataset.appSection));
+});
+
+dom.mobileBackButton?.addEventListener('click', () => {
+  const targetSection = previousAppSection && previousAppSection !== currentAppSection ? previousAppSection : 'home';
+  setAppSection(targetSection, { fromBack: true });
 });
 
 dom.guidedChoiceButtons?.forEach((button) => {

@@ -1,59 +1,19 @@
-CUENTA CLARA V11.3 - MENÚ DESPLEGABLE SUPERIOR
+CUENTA CLARA V11.4 - NAVEGACIÓN MÓVIL TIPO APP
 
-NUEVO EN V11.3
-- Guía rápida de 4 pasos en Inicio.
-- Botón “Probar con ejemplo” para cargar una cuenta demostrativa.
-- Ayudas contextuales visibles en Personas, Gastos, Resumen, Pagos e Historial.
-- Botón inferior móvil con acción inteligente según lo que falte completar.
-- Modo simple móvil con menos opciones avanzadas visibles.
+NUEVO EN V11.4
+- En celular, la app ahora usa una barra inferior fija con Personas, Gastos, Resumen y Pagos.
+- Al entrar a cada sección móvil, se muestra como pantalla independiente.
+- Se agregó encabezado móvil con botón Atrás.
+- El menú de secciones lateral/superior se oculta en celular para que la pantalla quede más limpia.
+- La barra móvil antigua de Total / Agregar / Compartir se ocultó para no competir con la nueva navegación.
+- En escritorio se mantiene la navegación anterior.
+
+CÓMO PROBAR
+1. Sube esta versión a GitHub/Vercel.
+2. Abre la app desde el celular.
+3. Crea o abre una cuenta.
+4. Usa la barra inferior: Personas -> Gastos -> Resumen -> Pagos.
+5. En cada pantalla puedes volver con Atrás.
 
 RECUERDA
-- Después de subir a Vercel/GitHub, recarga fuerte en celular o reinstala la PWA si ves una versión antigua.
-
-CUENTA CLARA V11.3 - MENÚ DESPLEGABLE SUPERIOR
-
-Esta versión refuerza el guardado de cuentas completas en Supabase.
-
-INSTRUCCIONES:
-1. Reemplaza los archivos de tu carpeta Cuentas por esta versión.
-2. En Supabase, abre SQL Editor → New query.
-3. Ejecuta el archivo: sql/01-supabase-app-state.sql
-4. Recarga la app con Ctrl + F5.
-5. Inicia sesión, crea o edita una cuenta y presiona “Guardar ahora” si quieres forzar la primera sincronización.
-
-QUÉ DEBERÍAS VER EN SUPABASE:
-- public_profiles: perfiles públicos de usuarios.
-- app_states: estado completo de la app por usuario.
-
-DENTRO DE app_states/state SE GUARDA:
-- cuentas creadas
-- personas
-- gastos/productos
-- pagador principal
-- propina
-- pagos pendientes/pagados
-- productos rápidos
-- perfil local
-- amigos locales
-- grupos recurrentes del hogar
-
-NUEVO EN V11.3
-- El botón “Nueva cuenta” ahora pide nombre antes de crear la cuenta, también en celular.
-- Si cancelas el nombre, no se crea una cuenta vacía.
-- En el lector de boletas, el celular ya permite tomar foto o subir una imagen desde galería/archivos.
-- Se actualizó la versión de cache para evitar que el celular mantenga archivos antiguos.
-
-NUEVO EN V10.9
-- Se corrigió el flujo inicial cuando app_states todavía no tiene una fila para el usuario.
-- Se fuerza la creación del respaldo en Supabase al primer inicio con sesión.
-- El botón “Guardar ahora” confirma si realmente pudo guardar en Supabase.
-- Si falta la tabla app_states o falla RLS, la app muestra una instrucción más clara.
-- La página Mi Perfil ya no elimina datos auxiliares como grupos recurrentes al guardar el perfil.
-- Se mantiene localStorage como respaldo si Supabase falla.
-
-
-NUEVO EN V11.3
-- Se retira Configuración del menú principal.
-- Editar desde Historial abre Gastos directamente.
-- Cuenta rápida mantiene su monto total dentro de Gastos.
-- Cuenta hogar mantiene el mes dentro de Hogar.
+Si el celular conserva la versión anterior, recarga con Ctrl+F5 en escritorio o borra datos del sitio/reinstala la PWA en el celular.

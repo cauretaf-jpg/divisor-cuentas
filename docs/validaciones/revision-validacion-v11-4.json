@@ -1,0 +1,9 @@
+{
+  "version": "11.4",
+  "validaciones": [
+    "script.js validado con node --check",
+    "profile.js validado con node --check",
+    "index.html actualizado a assets v11.4",
+    "service-worker actualizado a cache v11.4"
+  ]
+}
