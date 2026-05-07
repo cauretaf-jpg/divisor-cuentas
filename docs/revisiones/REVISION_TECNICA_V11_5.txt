@@ -1,0 +1,13 @@
+Cuenta Clara V11.5 - Perfil visible y pagos más intuitivos
+
+Cambios realizados:
+- authStatusBadge salió del menú desplegable y quedó visible en la cabecera.
+- Menú Más opciones mantiene Privacidad, Instalar App y Modo oscuro.
+- Se eliminó el botón visible duplicado #receiptButton en el editor de gastos.
+- El listener de receiptButton quedó protegido con optional chaining para evitar errores si el botón no existe.
+- renderPeople ahora usa un toggle de pago con estado y acción más clara.
+- Se agregó setPersonPaidStatus para centralizar el cambio pagado/pendiente.
+- renderTotals muestra tarjetas por persona con botón Marcar pagado / Marcar pendiente en la pantalla Pagos.
+- renderTransfers ahora muestra solo cobros pendientes y avisa cuando todos están pagados.
+- CSS agregado para estados de pago, tarjetas móviles y cabecera con Perfil visible.
+- Cache/service worker actualizado a v11.5.

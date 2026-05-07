@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V11.4 cargada');
+console.info('Cuenta Clara V11.5 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -860,7 +860,7 @@ function renderAuthUI() {
   const isUser = currentSession.mode === 'user';
 
   const displayName = isUser ? getProfileDisplayName() : '';
-  dom.authStatusBadge.textContent = isUser ? 'Perfil' : 'Invitado';
+  dom.authStatusBadge.textContent = isUser ? `Perfil · ${displayName}` : 'Invitado';
   dom.authStatusBadge.setAttribute('aria-label', isUser ? `Abrir perfil de ${displayName}` : 'Iniciar sesión');
   dom.authStatusBadge.classList.toggle('is-user', isUser);
   dom.authStatusBadge.title = isUser ? `Abrir perfil: ${displayName}` : 'Iniciar sesión';
@@ -4345,6 +4345,20 @@ function renderSelfParticipantCard() {
   dom.addMePersonButton.textContent = '+ Yo';
 }
 
+function setPersonPaidStatus(personId, paid) {
+  const bill = getActiveBill();
+  const person = bill.people.find((item) => item.id === personId);
+
+  if (!person) {
+    return;
+  }
+
+  const nextPaid = Boolean(paid);
+  person.paid = nextPaid;
+  persistAndRender();
+  showToast(nextPaid ? `${person.name}: pago registrado.` : `${person.name}: vuelve a pendiente.`);
+}
+
 
 function renderPeople() {
   const bill = getActiveBill();
@@ -4368,14 +4382,14 @@ function renderPeople() {
       <button class="icon-button whatsapp ${hasPhone ? '' : 'muted'}" type="button" aria-label="Enviar WhatsApp a ${escapeHtml(person.name)}">WA</button>
       <button class="icon-button edit" type="button" aria-label="Editar ${escapeHtml(person.name)}">✎</button>
       <button class="icon-button danger" type="button" aria-label="Eliminar ${escapeHtml(person.name)}">×</button>
-      <button class="paid-toggle ${person.paid ? 'is-paid' : ''}" type="button">
-        ${person.paid ? 'Pagado' : 'Pendiente'}
+      <button class="paid-toggle ${person.paid ? 'is-paid' : 'is-pending'}" type="button" aria-label="${person.paid ? `Marcar a ${escapeHtml(person.name)} como pendiente` : `Marcar pago de ${escapeHtml(person.name)}`}">
+        <span class="paid-toggle-status">${person.paid ? 'Pagado ✓' : 'Pendiente'}</span>
+        <small>${person.paid ? 'Tocar para desmarcar' : 'Marcar como pagado'}</small>
       </button>
     `;
 
     row.querySelector('.paid-toggle').addEventListener('click', () => {
-      person.paid = !person.paid;
-      persistAndRender();
+      setPersonPaidStatus(person.id, !person.paid);
     });
 
     row.querySelector('.icon-button.whatsapp').addEventListener('click', () => {
@@ -4682,15 +4696,26 @@ function renderTotals() {
     row.className = 'result-row';
     const amount = calculation.finalTotals[person.id] || 0;
     const hasPhone = Boolean(normalizePhoneNumber(person.phone));
+    row.className = `result-row payment-person-row ${person.paid ? 'is-paid' : 'is-pending'}`;
     row.innerHTML = `
-      <span>${escapeHtml(person.name)} · ${person.paid ? 'Pagado' : 'Pendiente'}</span>
-      <div class="result-actions">
+      <div class="payment-person-main">
+        <span class="payment-person-name">${escapeHtml(person.name)}</span>
+        <small class="payment-person-status">${person.paid ? 'Pago registrado' : 'Pendiente de pago'}</small>
+      </div>
+      <div class="result-actions payment-actions">
         <strong>${formatCurrency(amount)}</strong>
+        <button class="btn ${person.paid ? 'btn-light' : 'btn-primary'} btn-small payment-toggle-button" type="button">${person.paid ? 'Marcar pendiente' : 'Marcar pagado'}</button>
         <button class="btn btn-light btn-small" type="button" ${hasPhone ? '' : 'disabled'}>WhatsApp</button>
       </div>
     `;
 
-    row.querySelector('button').addEventListener('click', () => {
+    const [paidButton, whatsappButton] = row.querySelectorAll('button');
+
+    paidButton.addEventListener('click', () => {
+      setPersonPaidStatus(person.id, !person.paid);
+    });
+
+    whatsappButton.addEventListener('click', () => {
       openPersonWhatsapp(person.id, amount);
     });
 
@@ -4762,18 +4787,24 @@ function renderTransfers() {
   }
 
   const debtors = bill.people.filter((person) => person.id !== payer.id && (calculation.finalTotals[person.id] || 0) > 0);
+  const pendingDebtors = debtors.filter((person) => !person.paid);
 
   if (debtors.length === 0) {
-    dom.transferList.appendChild(emptyMessage('No hay transferencias pendientes para mostrar.'));
+    dom.transferList.appendChild(emptyMessage('No hay transferencias para mostrar.'));
     return;
   }
 
-  for (const person of debtors) {
+  if (pendingDebtors.length === 0) {
+    dom.transferList.appendChild(emptyMessage('Todos los cobros están marcados como pagados.'));
+    return;
+  }
+
+  for (const person of pendingDebtors) {
     const amount = calculation.finalTotals[person.id] || 0;
     const row = document.createElement('div');
-    row.className = 'transfer-row';
+    row.className = 'transfer-row transfer-row-pending';
     row.innerHTML = `
-      <span>${escapeHtml(person.name)} debe transferir a ${escapeHtml(payer.name)}</span>
+      <span><strong>${escapeHtml(person.name)}</strong><small>Debe transferir a ${escapeHtml(payer.name)}</small></span>
       <strong>${formatCurrency(amount)}</strong>
     `;
     dom.transferList.appendChild(row);
@@ -6770,7 +6801,7 @@ function initServiceWorker() {
 dom.closeNoticeTabButton.addEventListener('click', () => dom.noticeTab.classList.add('hidden'));
 
 
-dom.receiptButton.addEventListener('click', openReceiptModal);
+dom.receiptButton?.addEventListener('click', openReceiptModal);
 dom.closeReceiptModalButton.addEventListener('click', closeReceiptModal);
 dom.receiptModal.addEventListener('click', (event) => { if (event.target === dom.receiptModal) closeReceiptModal(); });
 dom.receiptFileInput.addEventListener('change', handleReceiptFileChange);

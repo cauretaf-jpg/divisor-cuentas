@@ -1,19 +1,13 @@
-CUENTA CLARA V11.4 - NAVEGACIÓN MÓVIL TIPO APP
+CUENTA CLARA V11.5 - PERFIL VISIBLE Y PAGOS MÁS CLAROS
 
-NUEVO EN V11.4
-- En celular, la app ahora usa una barra inferior fija con Personas, Gastos, Resumen y Pagos.
-- Al entrar a cada sección móvil, se muestra como pantalla independiente.
-- Se agregó encabezado móvil con botón Atrás.
-- El menú de secciones lateral/superior se oculta en celular para que la pantalla quede más limpia.
-- La barra móvil antigua de Total / Agregar / Compartir se ocultó para no competir con la nueva navegación.
-- En escritorio se mantiene la navegación anterior.
+NUEVO EN V11.5
+- Perfil vuelve a quedar visible en la cabecera para saber si estás conectado o como invitado.
+- Más opciones conserva Privacidad, Instalar App y Modo oscuro.
+- Se eliminó el botón duplicado de boleta: queda solo Escanear boleta.
+- En Pagos ahora cada persona tiene una tarjeta con estado y botón directo para Marcar pagado o Marcar pendiente.
+- La lista de cobros muestra solo transferencias pendientes.
+- Cache/service worker actualizado a v11.5.
 
-CÓMO PROBAR
-1. Sube esta versión a GitHub/Vercel.
-2. Abre la app desde el celular.
-3. Crea o abre una cuenta.
-4. Usa la barra inferior: Personas -> Gastos -> Resumen -> Pagos.
-5. En cada pantalla puedes volver con Atrás.
-
-RECUERDA
-Si el celular conserva la versión anterior, recarga con Ctrl+F5 en escritorio o borra datos del sitio/reinstala la PWA en el celular.
+DESPUÉS DE SUBIR A VERCEL
+- Recarga fuerte en el celular.
+- Si usas la PWA instalada, puede ser necesario cerrarla completamente o reinstalarla para tomar la cache nueva.

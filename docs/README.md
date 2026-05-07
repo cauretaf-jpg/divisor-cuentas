@@ -1,42 +1,22 @@
-# Cuenta Clara V11.4
+# Cuenta Clara V11.5
 
-Versión enfocada en mejorar la experiencia desde celular con navegación tipo app.
+Versión enfocada en claridad móvil y seguimiento de pagos.
 
-## Nuevo en V11.4
+## Nuevo en V11.5
 
-- Barra inferior fija en celular con accesos principales:
-  - Personas
-  - Gastos
-  - Resumen
-  - Pagos
-- Pantallas móviles más independientes.
-- Encabezado móvil por sección con botón Atrás.
-- Menú de secciones oculto en celular para reducir ruido visual.
-- Se mantiene la navegación de escritorio.
-- Cache/service worker actualizado a `v11.4`.
+- Perfil visible fuera de “Más opciones”.
+- Menú “Más opciones” más limpio: Privacidad, Instalar App y Modo oscuro.
+- Un solo acceso para boletas: “Escanear boleta”.
+- Botones de pago más claros en Personas y Pagos.
+- En Pagos cada persona muestra monto, estado y acción directa para marcar pagado/pendiente.
+- Los cobros pendientes se filtran según estado de pago.
+- Cache actualizada a `v11.5`.
 
-## Flujo recomendado en celular
+## Recomendación de prueba
 
-1. Crear o elegir una cuenta.
-2. Entrar a Personas para agregar participantes y pagador.
-3. Entrar a Gastos para registrar productos, boleta o monto rápido.
-4. Entrar a Resumen para revisar cálculos.
-5. Entrar a Pagos para compartir y marcar transferencias.
-
-## Archivos principales modificados
-
-- `index.html`
-- `styles.css`
-- `script.js`
-- `service-worker.js`
-- `perfil.html`
-- `profile.js`
-
-## Validación
-
-Se validó sintaxis JavaScript con:
-
-```bash
-node --check script.js
-node --check profile.js
-```
+1. Inicia sesión o entra como invitado.
+2. Crea una cuenta.
+3. Agrega personas y un pagador principal.
+4. Agrega un gasto.
+5. Entra a Pagos y marca a una persona como pagada.
+6. Verifica que desaparezca de los cobros pendientes.

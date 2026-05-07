@@ -6067,3 +6067,150 @@ body.simple-mode .section-nav-button[data-app-section="shared"] {
     font-size: 0.69rem;
   }
 }
+
+/* V11.5 - Perfil visible, boleta única y pagos más intuitivos */
+.header-profile-badge {
+  cursor: pointer;
+}
+
+.header-actions > .auth-badge {
+  min-height: 44px;
+  max-width: 220px;
+}
+
+.paid-toggle {
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  line-height: 1.1;
+  padding: 8px 10px;
+}
+
+.paid-toggle-status {
+  font-size: 0.86rem;
+}
+
+.paid-toggle small {
+  color: inherit;
+  font-size: 0.68rem;
+  font-weight: 800;
+  opacity: 0.82;
+}
+
+.paid-toggle.is-pending {
+  background: color-mix(in srgb, var(--warning) 18%, var(--surface));
+  color: color-mix(in srgb, var(--warning) 72%, var(--text));
+}
+
+.payment-person-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.payment-person-main {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.payment-person-name {
+  color: var(--text) !important;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.payment-person-status {
+  color: var(--text-muted);
+  font-weight: 800;
+}
+
+.payment-person-row.is-paid {
+  border-color: color-mix(in srgb, var(--success) 24%, var(--border));
+  background: color-mix(in srgb, var(--success) 9%, var(--surface));
+}
+
+.payment-person-row.is-pending {
+  border-color: color-mix(in srgb, var(--warning) 24%, var(--border));
+}
+
+.payment-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.payment-toggle-button {
+  min-width: 132px;
+}
+
+.transfer-row-pending span {
+  display: grid;
+  gap: 2px;
+}
+
+.transfer-row-pending span strong {
+  color: var(--text);
+  font-size: 0.98rem;
+}
+
+.transfer-row-pending span small {
+  color: var(--text-muted);
+  font-weight: 800;
+}
+
+@media (max-width: 720px) {
+  .header-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(94px, 1fr));
+    gap: 8px;
+  }
+
+  .header-actions > .btn,
+  .header-actions > .auth-badge,
+  .header-actions > .header-more-menu > .header-more-trigger {
+    width: 100%;
+    max-width: 100%;
+    min-height: 48px;
+    padding-left: 8px;
+    padding-right: 8px;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .payment-person-row {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .payment-actions .btn,
+  .payment-actions strong {
+    width: 100%;
+    text-align: center;
+  }
+
+  .payment-toggle-button {
+    min-width: 0;
+    min-height: 46px;
+  }
+}
+
+@media (max-width: 430px) {
+  .header-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .header-actions > .auth-badge {
+    font-size: 0.78rem;
+  }
+}
