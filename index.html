@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=11.1" rel="stylesheet"/>
+<link href="styles.css?v=11.2" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -42,7 +42,23 @@
 <p id="currentListMeta">Revisa aquí qué cuenta estás modificando.</p>
 </div>
 <button class="btn btn-light btn-small" data-app-section="history" type="button">Cambiar lista</button>
-</section><section class="app-section is-active" data-app-section-panel="home" id="appSection-home"><section class="section-page-heading card"><div><p class="eyebrow">Inicio rápido</p><h2>Inicio</h2><p class="section-helper">Elige qué quieres hacer. Las opciones principales crearán una lista nueva y primero te pedirán un nombre.</p></div></section><section class="guided-start-card card" id="guidedStartCard">
+</section><section class="app-section is-active" data-app-section-panel="home" id="appSection-home"><section class="section-page-heading card"><div><p class="eyebrow">Inicio rápido</p><h2>Inicio</h2><p class="section-helper">Elige qué quieres hacer. Las opciones principales crearán una lista nueva y primero te pedirán un nombre.</p></div></section><section class="mobile-onboarding-card card" id="mobileOnboardingCard">
+<div>
+<p class="eyebrow">Guía rápida</p>
+<h2>Divide una cuenta en 4 pasos</h2>
+<p class="section-helper">Ideal para celular: crea una cuenta, agrega personas, registra gastos y comparte cuánto debe pagar cada uno.</p>
+</div>
+<div class="onboarding-steps-grid" aria-label="Pasos para usar Cuenta Clara">
+<div class="onboarding-step"><span>1</span><strong>Crear cuenta</strong><small>Elige salida, hogar o cuenta rápida.</small></div>
+<div class="onboarding-step"><span>2</span><strong>Personas</strong><small>Agrega participantes y pagador.</small></div>
+<div class="onboarding-step"><span>3</span><strong>Gastos</strong><small>Escribe productos o sube boleta.</small></div>
+<div class="onboarding-step"><span>4</span><strong>Compartir</strong><small>Revisa y envía por WhatsApp.</small></div>
+</div>
+<div class="onboarding-actions">
+<button class="btn btn-primary" id="createExampleBillButton" type="button">Probar con ejemplo</button>
+<button class="btn btn-light" data-app-section="people" type="button">Seguir mi cuenta actual</button>
+</div>
+</section><section class="guided-start-card card" id="guidedStartCard">
 <div class="section-title">
 <div>
 <p class="eyebrow">Inicio rápido</p>
@@ -100,7 +116,7 @@
 <button class="btn btn-light" id="archiveBillButton" type="button">Archivar</button>
 <button class="btn btn-danger-light" id="deleteBillButton" type="button">Eliminar</button>
 </div>
-</section></section><section class="app-section" data-app-section-panel="people" id="appSection-people"><section class="section-page-heading card"><div><p class="eyebrow">Participantes</p><h2>Personas</h2><p class="section-helper">Agrega personas, teléfonos opcionales y estados de pago sin ver el resto de la app.</p></div></section><section class="grid-two">
+</section></section><section class="app-section" data-app-section-panel="people" id="appSection-people"><section class="section-page-heading card"><div><p class="eyebrow">Participantes</p><h2>Personas</h2><p class="section-helper">Agrega personas, teléfonos opcionales y estados de pago sin ver el resto de la app.</p></div></section><section class="guide-card card" data-guide-card="people"><div><span class="guide-number">1</span></div><div><strong>Primero agrega a quienes participaron</strong><p>Después selecciona el pagador principal. Sin personas no se puede dividir ningún gasto.</p></div><button class="btn btn-primary btn-small" type="button" data-focus-target="personNameInput">Agregar persona</button></section><section class="grid-two">
 <section class="card">
 <div class="section-title">
 <div>
@@ -141,7 +157,7 @@
 </section>
 <div class="people-list" id="peopleList"></div>
 </section>
-</section></section><section class="app-section" data-app-section-panel="expenses" id="appSection-expenses"><section class="section-page-heading card"><div><p class="eyebrow">Consumos</p><h2>Gastos</h2><p class="section-helper">Agrega productos, gastos del hogar, boletas y productos rápidos en una vista enfocada.</p></div></section><section class="settings-inner-card tip-section-card" id="tipCard">
+</section></section><section class="app-section" data-app-section-panel="expenses" id="appSection-expenses"><section class="section-page-heading card"><div><p class="eyebrow">Consumos</p><h2>Gastos</h2><p class="section-helper">Agrega productos, gastos del hogar, boletas y productos rápidos en una vista enfocada.</p></div></section><section class="guide-card card" data-guide-card="expenses"><div><span class="guide-number">2</span></div><div><strong>Luego agrega los consumos</strong><p>Usa “Escribir” para ingresar manualmente o “Escanear boleta” para subir una imagen desde cámara, galería o archivos.</p></div><button class="btn btn-primary btn-small" type="button" data-focus-target="productNameInput">Agregar gasto</button></section><section class="settings-inner-card tip-section-card" id="tipCard">
 <div class="section-title">
 <div>
 <p class="eyebrow">Propina</p>
@@ -312,7 +328,7 @@
 </div>
 <div class="category-totals" id="categoryTotals"></div>
 <div class="product-list" id="productList"></div>
-</section></section><section class="app-section" data-app-section-panel="summary" id="appSection-summary"><section class="section-page-heading card"><div><p class="eyebrow">Totales</p><h2>Resumen</h2><p class="section-helper">Revisa subtotal, propina, total final y estado general de la cuenta.</p></div></section><section class="results-grid results-grid-single">
+</section></section><section class="app-section" data-app-section-panel="summary" id="appSection-summary"><section class="section-page-heading card"><div><p class="eyebrow">Totales</p><h2>Resumen</h2><p class="section-helper">Revisa subtotal, propina, total final y estado general de la cuenta.</p></div></section><section class="guide-card card" data-guide-card="summary"><div><span class="guide-number">3</span></div><div><strong>Revisa si el cálculo está correcto</strong><p>Aquí ves subtotal, propina, total final y cuánto queda pendiente por cobrar.</p></div><button class="btn btn-primary btn-small" type="button" data-app-section="payments">Ver pagos</button></section><section class="results-grid results-grid-single">
 <section class="card results-card">
 <div class="section-title">
 <div>
@@ -344,7 +360,7 @@
 </div>
 </div>
 </section>
-</section></section><section class="app-section" data-app-section-panel="payments" id="appSection-payments"><section class="section-page-heading card"><div><p class="eyebrow">Transferencias</p><h2>Pagos</h2><p class="section-helper">Consulta cuánto paga cada persona, quién debe transferir y comparte la cuenta.</p></div></section><section class="card sidebar-payments-panel" id="sidebarPaymentsCard">
+</section></section><section class="app-section" data-app-section-panel="payments" id="appSection-payments"><section class="section-page-heading card"><div><p class="eyebrow">Transferencias</p><h2>Pagos</h2><p class="section-helper">Consulta cuánto paga cada persona, quién debe transferir y comparte la cuenta.</p></div></section><section class="guide-card card" data-guide-card="payments"><div><span class="guide-number">4</span></div><div><strong>Comparte el resultado</strong><p>Cuando todo esté correcto, envía el resumen por WhatsApp o copia el enlace de la cuenta.</p></div><button class="btn btn-primary btn-small" type="button" data-open-share="true">Compartir</button></section><section class="card sidebar-payments-panel" id="sidebarPaymentsCard">
 <div class="section-title compact">
 <div>
 <p class="eyebrow">Por persona</p>
@@ -397,7 +413,7 @@
 <button class="btn btn-light" id="copySummaryButton" type="button">Copiar rápido</button>
 <button class="btn btn-light" id="whatsappButton" type="button">WhatsApp rápido</button>
 </div>
-</section></section><section class="app-section" data-app-section-panel="history" id="appSection-history"><section class="section-page-heading card"><div><p class="eyebrow">Tus cuentas</p><h2>Historial</h2><p class="section-helper">Busca, filtra, abre cuentas guardadas y administra respaldos.</p></div></section><section class="card sidebar-history-card">
+</section></section><section class="app-section" data-app-section-panel="history" id="appSection-history"><section class="section-page-heading card"><div><p class="eyebrow">Tus cuentas</p><h2>Historial</h2><p class="section-helper">Busca, filtra, abre cuentas guardadas y administra respaldos.</p></div></section><section class="guide-card card" data-guide-card="history"><div><span class="guide-number">↺</span></div><div><strong>El historial es para volver a una cuenta</strong><p>Presiona “Editar” y la app abrirá directamente Gastos para seguir modificando esa cuenta.</p></div><button class="btn btn-primary btn-small" type="button" data-app-section="home">Crear otra cuenta</button></section><section class="card sidebar-history-card">
 <div class="section-title compact">
 <div>
 <p class="eyebrow">Historial</p>
@@ -809,7 +825,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=11.1"></script>
-<script src="script.js?v=11.1"></script>
+<script src="supabase-config.js?v=11.2"></script>
+<script src="script.js?v=11.2"></script>
 </body>
 </html>

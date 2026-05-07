@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V11.1 cargada');
+console.info('Cuenta Clara V11.2 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -68,6 +68,9 @@ const dom = {
 
   guidedStartCard: document.querySelector('#guidedStartCard'),
   guidedChoiceButtons: document.querySelectorAll('[data-guided-mode]'),
+  createExampleBillButton: document.querySelector('#createExampleBillButton'),
+  guideFocusButtons: document.querySelectorAll('[data-focus-target]'),
+  guideShareButtons: document.querySelectorAll('[data-open-share]'),
   sectionNavButtons: document.querySelectorAll('[data-app-section]'),
   appSectionPanels: document.querySelectorAll('[data-app-section-panel]'),
   guidedNextTitle: document.querySelector('#guidedNextTitle'),
@@ -2639,6 +2642,7 @@ function renderGuidedExperience() {
   const mode = getExperienceMode();
   dom.simpleModeButton?.classList.toggle('is-active', mode === 'simple');
   dom.advancedModeButton?.classList.toggle('is-active', mode === 'advanced');
+  updateMobileActionBar();
 }
 
 function getGuidedBillName(mode) {
@@ -2715,6 +2719,87 @@ function createGuidedBill(mode) {
       ? 'Lista creada. Agrega personas y elige pagador principal en Personas.'
       : 'Lista creada. Agrega personas, elige pagador principal y luego revisa propina en Gastos.'
   );
+}
+
+function createExampleBill() {
+  const confirmed = confirm('Esto creará una cuenta de ejemplo para practicar. Puedes eliminarla después desde Historial.');
+
+  if (!confirmed) {
+    return;
+  }
+
+  const bill = makeDefaultBill();
+  bill.name = 'Ejemplo: Cena entre amigos';
+  bill.mode = 'detailed';
+  bill.tipPercent = 10;
+
+  const people = ['Ana', 'Benja', 'Camila', 'Diego'].map((name) => ({
+    id: createId('person'),
+    name,
+    phone: '',
+    email: '',
+    userId: '',
+    previousDebt: 0,
+    paid: false,
+  }));
+
+  bill.people = people;
+  bill.payerId = people[0].id;
+  bill.products = [
+    {
+      id: createId('product'),
+      name: 'Pizza familiar',
+      unitPrice: 24000,
+      quantity: 1,
+      category: 'Comida',
+      splitMode: 'participants',
+      dueDate: '',
+      recurring: false,
+      consumers: people.map((person) => ({ personId: person.id, share: 1 })),
+    },
+    {
+      id: createId('product'),
+      name: 'Bebidas',
+      unitPrice: 6000,
+      quantity: 1,
+      category: 'Bebestibles',
+      splitMode: 'participants',
+      dueDate: '',
+      recurring: false,
+      consumers: people.slice(0, 3).map((person) => ({ personId: person.id, share: 1 })),
+    },
+    {
+      id: createId('product'),
+      name: 'Postre compartido',
+      unitPrice: 8000,
+      quantity: 1,
+      category: 'Postres',
+      splitMode: 'participants',
+      dueDate: '',
+      recurring: false,
+      consumers: [people[1], people[2]].map((person) => ({ personId: person.id, share: 1 })),
+    },
+  ];
+
+  state.bills.unshift(bill);
+  state.activeBillId = bill.id;
+  editingProductId = null;
+  accountSettingsPinnedOpenBillId = '';
+  saveState();
+  render();
+  setAppSection('summary', { scroll: false });
+  showToast('Cuenta de ejemplo creada. Revisa el resumen y luego edítala en Gastos.');
+}
+
+function updateMobileActionBar() {
+  if (!dom.mobileAddProductButton || !dom.mobileShareButton) return;
+
+  const copy = getSmartActionCopy();
+  const { hasAmounts } = getGuidedState();
+
+  dom.mobileAddProductButton.textContent = copy.button;
+  dom.mobileShareButton.textContent = hasAmounts ? 'Compartir' : 'Ver resumen';
+  dom.mobileShareButton.disabled = !hasAmounts;
 }
 
 function applyGuidedMode(mode) {
@@ -6698,6 +6783,19 @@ dom.guidedChoiceButtons?.forEach((button) => {
   button.addEventListener('click', () => applyGuidedMode(button.dataset.guidedMode));
 });
 
+dom.createExampleBillButton?.addEventListener('click', createExampleBill);
+
+dom.guideFocusButtons?.forEach((button) => {
+  button.addEventListener('click', () => {
+    const target = dom[button.dataset.focusTarget] || document.querySelector(`#${button.dataset.focusTarget}`);
+    scrollToGuideTarget(target);
+  });
+});
+
+dom.guideShareButtons?.forEach((button) => {
+  button.addEventListener('click', openShareModal);
+});
+
 
 dom.accountSettingsPanel?.addEventListener('toggle', () => {
   if (suppressAccountSettingsToggle) return;
@@ -6901,16 +6999,17 @@ dom.shareLinkButton.addEventListener('click', copyShareLink);
 if (dom.exportExcelButton) {
   dom.exportExcelButton.addEventListener('click', exportExcel);
 }
-dom.mobileShareButton.addEventListener('click', openShareModal);
-dom.mobileAddProductButton.addEventListener('click', () => {
-  const bill = getActiveBill();
+dom.mobileShareButton.addEventListener('click', () => {
+  const { hasAmounts } = getGuidedState();
 
-  if (bill.mode === 'quick') {
-    scrollToGuideTarget(dom.quickTotalInput);
-  } else {
-    scrollToGuideTarget(dom.productNameInput);
+  if (!hasAmounts) {
+    setAppSection('summary', { scroll: false });
+    return;
   }
+
+  openShareModal();
 });
+dom.mobileAddProductButton.addEventListener('click', handleSmartAction);
 
 dom.exportBackupButton.addEventListener('click', exportBackup);
 dom.importBackupButton.addEventListener('click', () => dom.backupFileInput.click());

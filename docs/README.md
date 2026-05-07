@@ -1,4 +1,4 @@
-# Cuenta Clara V11.1
+# Cuenta Clara V11.2
 
 
 - Diseño visual más consistente en tarjetas, botones e insignias.
@@ -15,13 +15,13 @@ App web funcional para dividir cuentas entre varias personas.
 - El monto de Cuenta rápida queda disponible en Gastos.
 - El mes de Cuenta hogar queda disponible en Hogar.
 
-## Nuevo en V11.1 - Limpieza de configuración e historial
+## Nuevo en V11.2 - Modo guiado móvil
 
-- El botón **Nueva cuenta** ahora solicita nombre antes de crear la cuenta.
-- Si se cancela la solicitud de nombre, no se crea una cuenta vacía.
-- Al crear desde el botón principal, la app abre **Personas** para continuar con participantes y pagador principal.
-- El lector de boletas permite tomar una foto o subir una imagen desde galería/archivos en celular.
-- Se actualizó el cache de la PWA para que el móvil cargue los cambios nuevos.
+- Se agregó una guía visible de 4 pasos para explicar el uso desde celular.
+- Se agregó una cuenta de ejemplo para que una persona nueva pueda probar la app sin configurar todo desde cero.
+- El botón inferior móvil ahora funciona como acción inteligente: personas, pagador, gasto, resumen o compartir según el estado de la cuenta.
+- Se agregaron tarjetas de ayuda en Personas, Gastos, Resumen, Pagos e Historial.
+- En modo simple móvil se reducen opciones avanzadas para que el flujo principal sea más claro.
 
 ## Nuevo en V10.9 - Sincronización completa con Supabase
 

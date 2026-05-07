@@ -5604,3 +5604,170 @@ textarea:focus-visible {
     font-size: 1rem;
   }
 }
+
+/* V11.2 - Guía móvil e inicio más intuitivo */
+.mobile-onboarding-card,
+.guide-card {
+  border-color: color-mix(in srgb, var(--primary) 20%, var(--border));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--surface) 88%, var(--primary-soft)), var(--surface));
+}
+
+.mobile-onboarding-card {
+  display: grid;
+  gap: 18px;
+}
+
+.onboarding-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.onboarding-step {
+  min-height: 126px;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 15px;
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border));
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--surface) 84%, var(--surface-soft));
+}
+
+.onboarding-step span,
+.guide-number {
+  width: 34px;
+  height: 34px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--primary);
+  color: white;
+  font-weight: 1000;
+}
+
+.onboarding-step strong {
+  letter-spacing: -0.03em;
+}
+
+.onboarding-step small,
+.guide-card p {
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.onboarding-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.guide-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+}
+
+.guide-card strong {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 1.02rem;
+  letter-spacing: -0.03em;
+}
+
+.guide-card p {
+  margin: 0;
+}
+
+body.simple-mode .section-nav-button[data-app-section="shared"] {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .onboarding-steps-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .guide-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .guide-card .btn {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .mobile-onboarding-card {
+    order: -2;
+  }
+
+  .guided-start-card {
+    order: -1;
+  }
+
+  .onboarding-steps-grid {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .onboarding-step {
+    min-height: 0;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 10px;
+    padding: 12px;
+  }
+
+  .onboarding-step small {
+    grid-column: 2;
+  }
+
+  .onboarding-actions,
+  .onboarding-actions .btn {
+    width: 100%;
+  }
+
+  .section-nav-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  body.simple-mode .section-nav-button[data-app-section="recurring"] {
+    display: none;
+  }
+
+  .section-nav-button {
+    min-height: 58px;
+  }
+
+  .guide-card {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .mobile-action-bar {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .mobile-action-bar .btn:disabled {
+    display: none;
+  }
+}
+
+@media (max-width: 430px) {
+  .section-nav-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mobile-action-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-action-bar > div,
+  .mobile-action-bar .btn {
+    width: 100%;
+  }
+}

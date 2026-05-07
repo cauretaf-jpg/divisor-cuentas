@@ -1,0 +1,13 @@
+Cuenta Clara V11.2 - Modo guiado móvil
+
+Cambios aplicados:
+- Guía de 4 pasos para el primer uso desde celular.
+- Cuenta de ejemplo para aprendizaje rápido.
+- Tarjetas de ayuda por sección.
+- Botón inferior móvil convertido en acción inteligente.
+- Modo simple móvil reduce opciones avanzadas visibles.
+- Cache/service worker actualizado a v11.2.
+
+Validación:
+- Revisión sintáctica de script.js y profile.js.
+- Revisión de referencias v11.2 en index, perfil y service worker.

@@ -1,0 +1,11 @@
+{
+  "version": "11.2",
+  "estado": "validado",
+  "cambios": [
+    "Modo guiado móvil",
+    "Cuenta de ejemplo",
+    "Botón móvil inteligente",
+    "Ayudas contextuales",
+    "Cache actualizado a v11.2"
+  ]
+}
