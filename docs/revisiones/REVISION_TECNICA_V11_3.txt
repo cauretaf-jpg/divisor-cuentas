@@ -1,0 +1,8 @@
+Cuenta Clara V11.3 - Menú desplegable superior
+
+Cambios aplicados:
+- Privacidad, Instalar App, Modo oscuro y Perfil quedaron dentro de un menú superior desplegable "Más opciones".
+- En la cabecera quedan visibles solo las acciones principales: Ingresar y Nueva cuenta.
+- El menú se cierra al hacer clic fuera, al presionar Escape o al elegir una opción.
+- Se actualizó cache/service worker a v11.3.
+- Se validó sintaxis de script.js y profile.js con node --check.

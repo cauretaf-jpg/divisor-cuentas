@@ -1,6 +1,6 @@
-CUENTA CLARA V11.2 - MODO GUIADO MÓVIL
+CUENTA CLARA V11.3 - MENÚ DESPLEGABLE SUPERIOR
 
-NUEVO EN V11.2
+NUEVO EN V11.3
 - Guía rápida de 4 pasos en Inicio.
 - Botón “Probar con ejemplo” para cargar una cuenta demostrativa.
 - Ayudas contextuales visibles en Personas, Gastos, Resumen, Pagos e Historial.
@@ -10,7 +10,7 @@ NUEVO EN V11.2
 RECUERDA
 - Después de subir a Vercel/GitHub, recarga fuerte en celular o reinstala la PWA si ves una versión antigua.
 
-CUENTA CLARA V11.2 - MODO GUIADO MÓVIL
+CUENTA CLARA V11.3 - MENÚ DESPLEGABLE SUPERIOR
 
 Esta versión refuerza el guardado de cuentas completas en Supabase.
 
@@ -37,7 +37,7 @@ DENTRO DE app_states/state SE GUARDA:
 - amigos locales
 - grupos recurrentes del hogar
 
-NUEVO EN V11.2
+NUEVO EN V11.3
 - El botón “Nueva cuenta” ahora pide nombre antes de crear la cuenta, también en celular.
 - Si cancelas el nombre, no se crea una cuenta vacía.
 - En el lector de boletas, el celular ya permite tomar foto o subir una imagen desde galería/archivos.
@@ -52,7 +52,7 @@ NUEVO EN V10.9
 - Se mantiene localStorage como respaldo si Supabase falla.
 
 
-NUEVO EN V11.2
+NUEVO EN V11.3
 - Se retira Configuración del menú principal.
 - Editar desde Historial abre Gastos directamente.
 - Cuenta rápida mantiene su monto total dentro de Gastos.

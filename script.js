@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V11.2 cargada');
+console.info('Cuenta Clara V11.3 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -49,6 +49,8 @@ const DEFAULT_QUICK_PRODUCTS = [
 ];
 
 const dom = {
+  headerMoreMenu: document.querySelector('#headerMoreMenu'),
+  headerMorePanel: document.querySelector('#headerMorePanel'),
   themeToggle: document.querySelector('#themeToggle'),
   installAppButton: document.querySelector('#installAppButton'),
   authButton: document.querySelector('#authButton'),
@@ -852,9 +854,10 @@ function renderAuthUI() {
   const isUser = currentSession.mode === 'user';
 
   const displayName = isUser ? getProfileDisplayName() : '';
-  dom.authStatusBadge.textContent = isUser ? displayName : 'Invitado';
+  dom.authStatusBadge.textContent = isUser ? 'Perfil' : 'Invitado';
+  dom.authStatusBadge.setAttribute('aria-label', isUser ? `Abrir perfil de ${displayName}` : 'Iniciar sesión');
   dom.authStatusBadge.classList.toggle('is-user', isUser);
-  dom.authStatusBadge.title = isUser ? 'Abrir perfil' : 'Iniciar sesión';
+  dom.authStatusBadge.title = isUser ? `Abrir perfil: ${displayName}` : 'Iniciar sesión';
   dom.authButton.textContent = 'Ingresar';
   dom.authButton.classList.toggle('hidden', isUser);
   setSyncStatus(isUser ? (lastCloudSyncAt ? 'saved' : cloudSyncStatus) : 'local', isUser && lastCloudSyncAt ? getCloudSavedText() : '');
@@ -6772,8 +6775,30 @@ dom.syncNowButton && dom.syncNowButton.addEventListener('click', async () => {
   showToast(saved ? 'Guardado en Supabase.' : 'No se pudo guardar en Supabase. Quedó guardado localmente.');
 });
 
-dom.installAppButton.addEventListener('click', installApp);
-dom.themeToggle.addEventListener('click', toggleTheme);
+dom.installAppButton && dom.installAppButton.addEventListener('click', installApp);
+dom.themeToggle && dom.themeToggle.addEventListener('click', toggleTheme);
+
+if (dom.headerMoreMenu) {
+  document.addEventListener('click', (event) => {
+    if (!dom.headerMoreMenu.contains(event.target)) {
+      dom.headerMoreMenu.open = false;
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      dom.headerMoreMenu.open = false;
+    }
+  });
+}
+
+dom.headerMorePanel?.addEventListener('click', (event) => {
+  if (event.target.closest('button, a')) {
+    setTimeout(() => {
+      if (dom.headerMoreMenu) dom.headerMoreMenu.open = false;
+    }, 0);
+  }
+});
 
 dom.sectionNavButtons?.forEach((button) => {
   button.addEventListener('click', () => setAppSection(button.dataset.appSection));

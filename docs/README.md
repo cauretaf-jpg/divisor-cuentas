@@ -1,4 +1,4 @@
-# Cuenta Clara V11.2
+# Cuenta Clara V11.3
 
 
 - Diseño visual más consistente en tarjetas, botones e insignias.
@@ -15,7 +15,7 @@ App web funcional para dividir cuentas entre varias personas.
 - El monto de Cuenta rápida queda disponible en Gastos.
 - El mes de Cuenta hogar queda disponible en Hogar.
 
-## Nuevo en V11.2 - Modo guiado móvil
+## Nuevo en V11.3 - Menú desplegable superior
 
 - Se agregó una guía visible de 4 pasos para explicar el uso desde celular.
 - Se agregó una cuenta de ejemplo para que una persona nueva pueda probar la app sin configurar todo desde cero.

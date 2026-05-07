@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=11.2" rel="stylesheet"/>
+<link href="styles.css?v=11.3" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -25,13 +25,18 @@
 </div>
 </a>
 <div class="header-actions">
-<a class="btn btn-light" href="privacidad.html">Privacidad</a>
-<button class="btn btn-light" id="installAppButton" type="button">Instalar App</button>
-<button class="btn btn-light" id="themeToggle" type="button">Modo oscuro</button>
-<button class="auth-badge" id="authStatusBadge" type="button">Invitado</button>
-<span class="sync-status-badge hidden" id="syncStatusBadge">Local</span>
 <button class="btn btn-light" id="authButton" type="button">Ingresar</button>
 <button class="btn btn-primary" id="newBillButton" type="button">Nueva cuenta</button>
+<details class="header-more-menu" id="headerMoreMenu">
+<summary class="btn btn-light header-more-trigger">Más opciones</summary>
+<div aria-label="Opciones secundarias" class="header-more-panel" id="headerMorePanel" role="menu">
+<button class="auth-badge header-menu-item" id="authStatusBadge" type="button">Perfil</button>
+<a class="btn btn-light header-menu-item" href="privacidad.html" role="menuitem">Privacidad</a>
+<button class="btn btn-light header-menu-item" id="installAppButton" type="button">Instalar App</button>
+<button class="btn btn-light header-menu-item" id="themeToggle" type="button">Modo oscuro</button>
+<span class="sync-status-badge hidden header-sync-status" id="syncStatusBadge">Local</span>
+</div>
+</details>
 </div>
 </div>
 </header>
@@ -825,7 +830,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=11.2"></script>
-<script src="script.js?v=11.2"></script>
+<script src="supabase-config.js?v=11.3"></script>
+<script src="script.js?v=11.3"></script>
 </body>
 </html>
