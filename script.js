@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V12.1 cargada');
+console.info('Cuenta Clara V12.4 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -63,6 +63,7 @@ const dom = {
   newBillButton: document.querySelector('#newBillButton'),
   duplicateBillButton: document.querySelector('#duplicateBillButton'),
   archiveBillButton: document.querySelector('#archiveBillButton'),
+  closeBillButton: document.querySelector('#closeBillButton'),
   deleteBillButton: document.querySelector('#deleteBillButton'),
   billList: document.querySelector('#billList'),
   billNameInput: document.querySelector('#billNameInput'),
@@ -120,6 +121,8 @@ const dom = {
 
   historySearchInput: document.querySelector('#historySearchInput'),
   historyFilterSelect: document.querySelector('#historyFilterSelect'),
+  historyTypeFilterSelect: document.querySelector('#historyTypeFilterSelect'),
+  historySortSelect: document.querySelector('#historySortSelect'),
   exportBackupButton: document.querySelector('#exportBackupButton'),
   importBackupButton: document.querySelector('#importBackupButton'),
   backupFileInput: document.querySelector('#backupFileInput'),
@@ -178,6 +181,10 @@ const dom = {
   sharedAccountsList: document.querySelector('#sharedAccountsList'),
   sharedMembersList: document.querySelector('#sharedMembersList'),
   sharedReadOnlyBanner: document.querySelector('#sharedReadOnlyBanner'),
+  networkStatusBanner: document.querySelector('#networkStatusBanner'),
+  networkStatusTitle: document.querySelector('#networkStatusTitle'),
+  networkStatusText: document.querySelector('#networkStatusText'),
+  networkStatusPill: document.querySelector('#networkStatusPill'),
 
   productEditorCard: document.querySelector('#productEditorCard'),
   productListCard: document.querySelector('#productListCard'),
@@ -214,6 +221,7 @@ const dom = {
   receiptStatus: document.querySelector('#receiptStatus'),
   receiptDetectedBody: document.querySelector('#receiptDetectedBody'),
   receiptRawTextInput: document.querySelector('#receiptRawTextInput'),
+  receiptSelectionSummary: document.querySelector('#receiptSelectionSummary'),
   reparseReceiptTextButton: document.querySelector('#reparseReceiptTextButton'),
   receiptDetectedCount: document.querySelector('#receiptDetectedCount'),
   selectAllReceiptItemsButton: document.querySelector('#selectAllReceiptItemsButton'),
@@ -244,6 +252,18 @@ const dom = {
   sidebarGrandTotalOutput: document.querySelector('#sidebarGrandTotalOutput'),
   paidTotalOutput: document.querySelector('#paidTotalOutput'),
   pendingTotalOutput: document.querySelector('#pendingTotalOutput'),
+  receiptSummaryCard: document.querySelector('#receiptSummaryCard'),
+  receiptSummaryState: document.querySelector('#receiptSummaryState'),
+  receiptBillNameOutput: document.querySelector('#receiptBillNameOutput'),
+  receiptGrandTotalOutput: document.querySelector('#receiptGrandTotalOutput'),
+  receiptPayerOutput: document.querySelector('#receiptPayerOutput'),
+  receiptPeopleOutput: document.querySelector('#receiptPeopleOutput'),
+  receiptPaidPeopleOutput: document.querySelector('#receiptPaidPeopleOutput'),
+  receiptPendingOutput: document.querySelector('#receiptPendingOutput'),
+  receiptNextStepOutput: document.querySelector('#receiptNextStepOutput'),
+  copyReceiptSummaryButton: document.querySelector('#copyReceiptSummaryButton'),
+  whatsappReceiptSummaryButton: document.querySelector('#whatsappReceiptSummaryButton'),
+  openPaymentsFromReceiptButton: document.querySelector('#openPaymentsFromReceiptButton'),
   personResults: document.querySelector('#personResults'),
   profilePayerSummary: document.querySelector('#profilePayerSummary'),
   profilePayerTitle: document.querySelector('#profilePayerTitle'),
@@ -305,6 +325,9 @@ const dom = {
   statActiveBills: document.querySelector('#statActiveBills'),
   statHistoricalTotal: document.querySelector('#statHistoricalTotal'),
   statAverageBill: document.querySelector('#statAverageBill'),
+  statPendingToPay: document.querySelector('#statPendingToPay'),
+  statPendingToCollect: document.querySelector('#statPendingToCollect'),
+  statClosedArchivedBills: document.querySelector('#statClosedArchivedBills'),
   statPeopleCount: document.querySelector('#statPeopleCount'),
   statProductCount: document.querySelector('#statProductCount'),
   statHomeBills: document.querySelector('#statHomeBills'),
@@ -633,6 +656,7 @@ function getUsageStats() {
     totalBills: bills.length,
     activeBills: bills.filter((bill) => !bill.archived).length,
     archivedBills: bills.filter((bill) => bill.archived).length,
+    closedBills: bills.filter((bill) => bill.closed && !bill.archived).length,
     historicalTotal: 0,
     averageBill: 0,
     peopleCount: 0,
@@ -877,6 +901,12 @@ function renderProfilePanels() {
   dom.statActiveBills.textContent = stats.activeBills;
   dom.statHistoricalTotal.textContent = formatCurrency(stats.historicalTotal);
   dom.statAverageBill.textContent = formatCurrency(stats.averageBill);
+  const debtOverview = getProfileDebtOverview();
+  const pendingToPay = debtOverview.owe.reduce((sum, item) => sum + item.amount, 0);
+  const pendingToCollect = debtOverview.owed.reduce((sum, item) => sum + item.amount, 0);
+  if (dom.statPendingToPay) dom.statPendingToPay.textContent = formatCurrency(pendingToPay);
+  if (dom.statPendingToCollect) dom.statPendingToCollect.textContent = formatCurrency(pendingToCollect);
+  if (dom.statClosedArchivedBills) dom.statClosedArchivedBills.textContent = `${stats.closedBills} / ${stats.archivedBills}`;
   dom.statPeopleCount.textContent = stats.peopleCount;
   dom.statProductCount.textContent = stats.productCount;
   dom.statHomeBills.textContent = stats.homeBills;
@@ -888,7 +918,6 @@ function renderProfilePanels() {
   renderMiniRanking(dom.statTopCategories, stats.topCategories, 'Sin categorías todavía.');
   renderMiniRanking(dom.statTopPeople, stats.topPeople, 'Sin personas todavía.');
 
-  const debtOverview = getProfileDebtOverview();
   renderPendingPeopleStats(dom.statPendingPeople, debtOverview.pendingByPerson);
   renderProfileDebtList(dom.profileOweList, debtOverview.owe, 'No tienes pagos pendientes por hacer.');
   renderProfileDebtList(dom.profileOwedList, debtOverview.owed, 'No tienes cobros pendientes vinculados a tu perfil.');
@@ -1642,6 +1671,15 @@ function reparseReceiptRawText() {
   updateReceiptStatus(`Se detectaron ${receiptDetectedItems.length} productos desde el texto.`);
 }
 
+function updateReceiptSelectionSummary() {
+  if (!dom.receiptSelectionSummary) return;
+
+  const selectedItems = receiptDetectedItems.filter((item) => item.selected && Number(item.price || 0) > 0);
+  const selectedTotal = selectedItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
+  const countText = `${selectedItems.length} seleccionado${selectedItems.length === 1 ? '' : 's'}`;
+  dom.receiptSelectionSummary.textContent = `${countText} · ${formatCurrency(selectedTotal)}`;
+}
+
 function renderReceiptDetectedItems() {
   dom.receiptDetectedBody.innerHTML = '';
   dom.receiptDetectedCount.textContent = `${receiptDetectedItems.length} encontrados`;
@@ -1650,6 +1688,7 @@ function renderReceiptDetectedItems() {
     const row = document.createElement('tr');
     row.innerHTML = `<td colspan="4">No hay productos detectados todavía.</td>`;
     dom.receiptDetectedBody.appendChild(row);
+    updateReceiptSelectionSummary();
     return;
   }
 
@@ -1674,6 +1713,7 @@ function renderReceiptDetectedItems() {
 
     checkbox.addEventListener('change', () => {
       item.selected = checkbox.checked;
+      updateReceiptSelectionSummary();
     });
 
     nameInput.addEventListener('input', () => {
@@ -1682,6 +1722,7 @@ function renderReceiptDetectedItems() {
 
     priceInput.addEventListener('input', () => {
       item.price = Number(priceInput.value || 0);
+      updateReceiptSelectionSummary();
     });
 
     categorySelect.addEventListener('change', () => {
@@ -1690,6 +1731,8 @@ function renderReceiptDetectedItems() {
 
     dom.receiptDetectedBody.appendChild(row);
   }
+
+  updateReceiptSelectionSummary();
 }
 
 function setAllReceiptItems(selected) {
@@ -2035,6 +2078,8 @@ function makeDefaultBill() {
     payerId: '',
     tipPercent: 10,
     archived: false,
+    closed: false,
+    closedAt: '',
     recurringGroupId: '',
     recurringSequence: 1,
     previousBillId: '',
@@ -2204,6 +2249,8 @@ function normalizeState(input) {
       payerId: bill.payerId && people.some((p) => p.id === bill.payerId) ? bill.payerId : '',
       tipPercent: Number.isFinite(Number(bill.tipPercent)) ? Number(bill.tipPercent) : 10,
       archived: Boolean(bill.archived),
+      closed: Boolean(bill.closed),
+      closedAt: bill.closedAt || '',
       recurringGroupId: String(bill.recurringGroupId || ''),
       recurringSequence: Math.max(1, Number(bill.recurringSequence || 1)),
       previousBillId: String(bill.previousBillId || ''),
@@ -2498,6 +2545,7 @@ function getBillStatus(bill) {
   const calc = calculateBill(bill);
 
   if (bill.archived) return 'archived';
+  if (bill.closed) return 'closed';
   if (calc.isPaid) return 'paid';
   return 'pending';
 }
@@ -2896,12 +2944,16 @@ function renderGuidedExperience() {
 }
 
 function getHomeSyncLabel() {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return 'Sin conexión';
+  }
+
   if (currentSession.mode !== 'user') {
     return 'Guardado en este dispositivo';
   }
 
   if (cloudSyncStatus === 'saving') return 'Guardando...';
-  if (cloudSyncStatus === 'error') return 'Sin conexión';
+  if (cloudSyncStatus === 'error') return 'Guardado solo en este dispositivo';
   return lastCloudSyncAt ? getCloudSavedText() : 'Sincronizado';
 }
 
@@ -2911,6 +2963,39 @@ function getSmartActionSection() {
   if (copy.step === 'products') return 'expenses';
   if (copy.step === 'share') return 'payments';
   return 'summary';
+}
+
+function renderNetworkStatus() {
+  if (!dom.networkStatusBanner) return;
+
+  const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+  const isLocalUser = currentSession.mode !== 'user';
+  const hasCloudIssue = currentSession.mode === 'user' && cloudSyncStatus === 'error';
+  const shouldShow = isOffline || hasCloudIssue || isLocalUser;
+
+  dom.networkStatusBanner.classList.toggle('hidden', !shouldShow);
+  dom.networkStatusBanner.classList.toggle('is-offline', isOffline || hasCloudIssue);
+  dom.networkStatusBanner.classList.toggle('is-local', isLocalUser && !isOffline && !hasCloudIssue);
+
+  if (!shouldShow) return;
+
+  if (isOffline) {
+    dom.networkStatusTitle.textContent = 'Sin conexión';
+    dom.networkStatusText.textContent = 'Puedes seguir usando Cuenta Clara. Los cambios quedan en este dispositivo y se sincronizarán cuando vuelva internet.';
+    dom.networkStatusPill.textContent = 'Modo local';
+    return;
+  }
+
+  if (hasCloudIssue) {
+    dom.networkStatusTitle.textContent = 'Guardado local activo';
+    dom.networkStatusText.textContent = 'No se pudo sincronizar en este momento. Tus datos no se pierden y puedes intentar guardar nuevamente desde Perfil.';
+    dom.networkStatusPill.textContent = 'Revisar luego';
+    return;
+  }
+
+  dom.networkStatusTitle.textContent = 'Modo invitado';
+  dom.networkStatusText.textContent = 'Tus cuentas se guardan solo en este dispositivo. Inicia sesión para respaldarlas en la nube.';
+  dom.networkStatusPill.textContent = 'Local';
 }
 
 function renderMobileHomeDashboard() {
@@ -3693,6 +3778,8 @@ function createNextRecurringMonthFromActive() {
     payerId: latestBill.payerId ? personMap.get(latestBill.payerId) || '' : '',
     tipPercent: 0,
     archived: false,
+    closed: false,
+    closedAt: '',
     recurringGroupId: group.id,
     recurringSequence: Math.max(1, Number(latestBill.recurringSequence || 1)) + 1,
     previousBillId: latestBill.id,
@@ -4782,16 +4869,43 @@ async function saveSharedActiveBillNow() {
 function renderBillList() {
   const search = dom.historySearchInput.value.trim().toLowerCase();
   const filter = dom.historyFilterSelect.value;
+  const typeFilter = dom.historyTypeFilterSelect?.value || 'all';
+  const sortMode = dom.historySortSelect?.value || 'recent';
   dom.billList.innerHTML = '';
 
-  const filteredBills = state.bills.filter((bill) => {
-    const status = getBillStatus(bill);
-    const matchesSearch = bill.name.toLowerCase().includes(search);
+  const matchesTypeFilter = (bill) => {
+    if (typeFilter === 'all') return true;
+    if (typeFilter === 'shared') return Boolean(bill.sharedAccountId);
+    if (typeFilter === 'recurring') return Boolean(bill.recurringGroupId);
+    return bill.mode === typeFilter;
+  };
 
-    if (!matchesSearch) return false;
-    if (filter === 'all') return !bill.archived;
-    return status === filter;
-  });
+  const filteredBills = state.bills
+    .filter((bill) => {
+      const status = getBillStatus(bill);
+      const matchesSearch = bill.name.toLowerCase().includes(search);
+
+      if (!matchesSearch || !matchesTypeFilter(bill)) return false;
+      if (filter === 'everything') return true;
+      if (filter === 'all') return !bill.archived && !bill.closed;
+      return status === filter;
+    })
+    .sort((a, b) => {
+      if (sortMode === 'amount') {
+        return calculateBill(b).grandTotal - calculateBill(a).grandTotal;
+      }
+      if (sortMode === 'pendingFirst') {
+        const aCalc = calculateBill(a);
+        const bCalc = calculateBill(b);
+        const aPending = a.people.filter((person) => !person.paid && (aCalc.finalTotals[person.id] || 0) > 0).length;
+        const bPending = b.people.filter((person) => !person.paid && (bCalc.finalTotals[person.id] || 0) > 0).length;
+        return bPending - aPending || new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
+      }
+      if (sortMode === 'name') {
+        return String(a.name || '').localeCompare(String(b.name || ''), 'es');
+      }
+      return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
+    });
 
   if (filteredBills.length === 0) {
     const message = search
@@ -4800,9 +4914,11 @@ function renderBillList() {
         ? 'Todavía no tienes cuentas pagadas.'
         : filter === 'pending'
           ? 'No tienes cuentas pendientes visibles.'
-          : filter === 'archived'
-            ? 'No tienes cuentas archivadas.'
-            : 'Todavía no tienes cuentas guardadas.';
+          : filter === 'closed'
+            ? 'No tienes cuentas cerradas.'
+            : filter === 'archived'
+              ? 'No tienes cuentas archivadas.'
+              : 'Todavía no tienes cuentas guardadas.';
     dom.billList.appendChild(emptyMessage(message));
     return;
   }
@@ -4810,24 +4926,32 @@ function renderBillList() {
   for (const bill of filteredBills) {
     const calculation = calculateBill(bill);
     const status = getBillStatus(bill);
-    const statusLabel = status === 'paid' ? 'Pagada' : status === 'archived' ? 'Archivada' : 'Pendiente';
+    const statusLabel = status === 'paid'
+      ? 'Pagada'
+      : status === 'closed'
+        ? 'Cerrada'
+        : status === 'archived'
+          ? 'Archivada'
+          : 'Pendiente';
     const row = document.createElement('article');
-    row.className = `history-bill-card ${bill.id === state.activeBillId ? 'active' : ''} ${bill.archived ? 'archived' : ''}`;
+    row.className = `history-bill-card ${bill.id === state.activeBillId ? 'active' : ''} ${bill.archived ? 'archived' : ''} ${bill.closed ? 'closed' : ''}`;
     const pendingPeople = bill.people.filter((person) => !person.paid && (calculation.finalTotals[person.id] || 0) > 0).length;
     const productCount = bill.mode === 'quick' ? (Number(bill.quickTotal || 0) > 0 ? 1 : 0) : bill.products.length;
+    const ownershipLabel = bill.sharedAccountId ? 'Compartida' : bill.recurringGroupId ? 'Recurrente' : 'Personal';
     row.innerHTML = `
       <button class="bill-item history-bill-open" type="button" aria-label="Abrir ${escapeHtml(bill.name)}">
         <div class="history-bill-main">
-          <span class="history-status-line"><em class="history-status-badge is-${status}">${statusLabel}</em><em>${escapeHtml(getBillModeLabel(bill.mode))}</em></span>
+          <span class="history-status-line"><em class="history-status-badge is-${status}">${statusLabel}</em><em>${escapeHtml(getBillModeLabel(bill.mode))}</em><em>${ownershipLabel}</em></span>
           <strong>${escapeHtml(bill.name)}</strong>
           <span>${formatCurrency(calculation.grandTotal)} · ${bill.people.length} persona${bill.people.length === 1 ? '' : 's'} · ${productCount} gasto${productCount === 1 ? '' : 's'}</span>
-          <span>${pendingPeople > 0 ? `${pendingPeople} pendiente${pendingPeople === 1 ? '' : 's'} por pagar · ` : ''}${formatDate(bill.updatedAt)}</span>
+          <span>${pendingPeople > 0 ? `${pendingPeople} pendiente${pendingPeople === 1 ? '' : 's'} por pagar · ` : ''}${bill.closed ? `Cerrada ${formatDate(bill.closedAt || bill.updatedAt)} · ` : ''}${formatDate(bill.updatedAt)}</span>
         </div>
-        <span class="bill-count">${pendingPeople > 0 ? pendingPeople : '✓'}</span>
+        <span class="bill-count">${pendingPeople > 0 ? pendingPeople : status === 'closed' ? 'C' : '✓'}</span>
       </button>
       <div class="history-bill-actions" aria-label="Acciones de ${escapeHtml(bill.name)}">
         <button class="btn btn-primary btn-small" data-action="edit" type="button">Editar gastos</button>
         <button class="btn btn-light btn-small" data-action="payments" type="button">Pagos</button>
+        <button class="btn btn-light btn-small" data-action="close" type="button">${bill.closed ? 'Reabrir' : 'Cerrar'}</button>
         <button class="btn btn-danger-light btn-small" data-action="delete" type="button">Eliminar</button>
       </div>
     `;
@@ -4847,6 +4971,10 @@ function renderBillList() {
 
     row.querySelector('[data-action="payments"]').addEventListener('click', () => {
       openBillFromProfileStats(bill.id, 'payments');
+    });
+
+    row.querySelector('[data-action="close"]').addEventListener('click', () => {
+      toggleBillClosedFromHistory(bill.id);
     });
 
     row.querySelector('[data-action="delete"]').addEventListener('click', () => {
@@ -4913,6 +5041,10 @@ function renderBillHeader() {
   dom.billMeta.textContent = `Creada: ${formatDate(bill.createdAt)} · Última edición: ${formatDate(bill.updatedAt)}${templateLabel}${recurringLabel}${sharedLabel}`;
   dom.deleteBillButton.disabled = state.bills.length <= 1;
   dom.archiveBillButton.textContent = bill.archived ? 'Desarchivar' : 'Archivar';
+  if (dom.closeBillButton) {
+    dom.closeBillButton.textContent = bill.closed ? 'Reabrir cuenta' : 'Cerrar cuenta';
+    dom.closeBillButton.disabled = Boolean(bill.archived || isActiveSharedReadOnly());
+  }
 
   document.querySelectorAll('input[name="billMode"]').forEach((input) => {
     input.checked = input.value === bill.mode;
@@ -5666,6 +5798,121 @@ function renderTotals() {
 }
 
 
+function getReceiptSummaryText() {
+  const bill = getActiveBill();
+  const calculation = calculateBill(bill);
+  const payer = bill.people.find((person) => person.id === bill.payerId);
+  const lines = [
+    `*Comprobante Cuenta Clara*`,
+    `Cuenta: *${bill.name || 'Cuenta sin nombre'}*`,
+    bill.mode === 'home' ? `Mes: *${bill.homeMonth || getCurrentMonthValue()}*` : '',
+    '',
+    `Total: *${formatCurrency(calculation.grandTotal)}*`,
+    `Pagador principal: *${payer ? payer.name : 'Sin definir'}*`,
+    `Personas: *${bill.people.length}*`,
+    `Pagadas: *${calculation.paidPeople}/${calculation.totalPeople}*`,
+    `Pendiente: *${formatCurrency(calculation.pendingTotal)}*`,
+  ].filter(Boolean);
+
+  const transfers = getTransferLines(bill, calculation).filter((transfer) => !transfer.paid);
+
+  if (transfers.length) {
+    lines.push('', '*Pendientes:*');
+    for (const transfer of transfers) {
+      lines.push(`- ${transfer.from} debe transferir ${formatCurrency(transfer.amount)} a ${transfer.to}`);
+    }
+  } else if (bill.people.length > 0) {
+    lines.push('', 'Sin cobros pendientes.');
+  }
+
+  return lines.join('\n');
+}
+
+function renderReceiptSummary() {
+  if (!dom.receiptSummaryCard) return;
+
+  const bill = getActiveBill();
+  const calculation = calculateBill(bill);
+  const payer = bill.people.find((person) => person.id === bill.payerId);
+  const pendingPeople = bill.people.filter((person) => !person.paid && (calculation.finalTotals[person.id] || 0) > 0).length;
+  const hasMinimumData = bill.people.length > 0 && (bill.mode === 'quick' ? Number(bill.quickTotal || 0) > 0 : bill.products.length > 0);
+
+  dom.receiptBillNameOutput.textContent = bill.name || 'Cuenta actual';
+  dom.receiptGrandTotalOutput.textContent = formatCurrency(calculation.grandTotal);
+  dom.receiptPayerOutput.textContent = payer ? `Pagador principal: ${payer.name}` : 'Selecciona un pagador principal';
+  dom.receiptPeopleOutput.textContent = String(bill.people.length);
+  dom.receiptPaidPeopleOutput.textContent = `${calculation.paidPeople}/${calculation.totalPeople}`;
+  dom.receiptPendingOutput.textContent = formatCurrency(calculation.pendingTotal);
+  dom.receiptSummaryState.textContent = calculation.isPaid && hasMinimumData ? 'Pagada' : 'Pendiente';
+  dom.receiptSummaryState.classList.toggle('is-paid', calculation.isPaid && hasMinimumData);
+  dom.receiptSummaryState.classList.toggle('is-pending', !calculation.isPaid || !hasMinimumData);
+
+  if (!bill.people.length) {
+    dom.receiptNextStepOutput.textContent = 'Agrega personas para preparar el comprobante.';
+  } else if (!hasMinimumData) {
+    dom.receiptNextStepOutput.textContent = 'Agrega gastos o un monto rápido para calcular el comprobante.';
+  } else if (!payer) {
+    dom.receiptNextStepOutput.textContent = 'Selecciona un pagador principal para mostrar a quién transferir.';
+  } else if (pendingPeople > 0) {
+    dom.receiptNextStepOutput.textContent = `Faltan ${pendingPeople} persona${pendingPeople === 1 ? '' : 's'} por pagar. Puedes enviar recordatorios desde Pagos.`;
+  } else {
+    dom.receiptNextStepOutput.textContent = 'Todo aparece pagado. Puedes copiar o enviar el comprobante final.';
+  }
+}
+
+async function copyReceiptSummary() {
+  const text = getReceiptSummaryText();
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('Comprobante copiado.');
+  } catch {
+    prompt('Copia el comprobante:', text);
+  }
+}
+
+function whatsappReceiptSummary() {
+  const text = getReceiptSummaryText();
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+}
+
+function buildPaymentReminderMessage(person, payer, amount, bill) {
+  const lines = [
+    `Hola ${person.name}, te recuerdo que tienes pendiente *${formatCurrency(amount)}* de la cuenta *${bill.name || 'Cuenta Clara'}*.`,
+  ];
+
+  if (payer && payer.id !== person.id) {
+    lines.push(`Transferir a: *${payer.name}*`);
+  }
+
+  if (bill.mode === 'home' && bill.homeMonth) {
+    lines.push(`Mes: *${bill.homeMonth}*`);
+  }
+
+  lines.push('', 'Gracias.');
+  return lines.join('\n');
+}
+
+async function copyPaymentReminder(person, payer, amount, bill) {
+  const text = buildPaymentReminderMessage(person, payer, amount, bill);
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('Recordatorio copiado.');
+  } catch {
+    prompt('Copia el recordatorio:', text);
+  }
+}
+
+function sendPaymentReminderWhatsapp(person, payer, amount, bill) {
+  const phone = normalizePhoneNumber(person.phone);
+  if (!phone) {
+    showNotice('Teléfono faltante', `Agrega un WhatsApp a ${person.name} para enviarle recordatorio directo.`);
+    return;
+  }
+
+  const text = buildPaymentReminderMessage(person, payer, amount, bill);
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+}
+
 function renderProfilePayerSummary() {
   if (!dom.profilePayerSummary || !dom.profilePayerDebtorsList) return;
 
@@ -5745,10 +5992,18 @@ function renderTransfers() {
     const amount = calculation.finalTotals[person.id] || 0;
     const row = document.createElement('div');
     row.className = 'transfer-row transfer-row-pending';
+    const hasPhone = Boolean(normalizePhoneNumber(person.phone));
     row.innerHTML = `
       <span><strong>${escapeHtml(person.name)}</strong><small>Debe transferir a ${escapeHtml(payer.name)}</small></span>
-      <strong>${formatCurrency(amount)}</strong>
+      <div class="transfer-actions">
+        <strong>${formatCurrency(amount)}</strong>
+        <button class="btn btn-light btn-small" data-action="copy-reminder" type="button">Copiar recordatorio</button>
+        <button class="btn btn-primary btn-small" data-action="whatsapp-reminder" type="button" ${hasPhone ? '' : 'disabled'}>WhatsApp</button>
+      </div>
     `;
+
+    row.querySelector('[data-action="copy-reminder"]')?.addEventListener('click', () => copyPaymentReminder(person, payer, amount, bill));
+    row.querySelector('[data-action="whatsapp-reminder"]')?.addEventListener('click', () => sendPaymentReminderWhatsapp(person, payer, amount, bill));
     dom.transferList.appendChild(row);
   }
 }
@@ -5776,6 +6031,8 @@ function render() {
   renderHomeDashboard();
   renderRecurringDashboard();
   renderTotals();
+  renderReceiptSummary();
+  renderNetworkStatus();
   renderProfilePayerSummary();
   renderTransfers();
   try {
@@ -5847,6 +6104,8 @@ function duplicateHomeMonth() {
     homeMonth: nextMonth,
     payerId: bill.payerId ? personMap.get(bill.payerId) || '' : '',
     archived: false,
+    closed: false,
+    closedAt: '',
     recurringGroupId: '',
     recurringSequence: Math.max(1, Number(bill.recurringSequence || 1)) + 1,
     previousBillId: bill.id,
@@ -5912,6 +6171,8 @@ function duplicateBill() {
     name: `${bill.name} copia`,
     payerId: bill.payerId ? personMap.get(bill.payerId) || '' : '',
     archived: false,
+    closed: false,
+    closedAt: '',
     recurringGroupId: '',
     recurringSequence: 1,
     previousBillId: '',
@@ -6010,6 +6271,65 @@ function toggleArchiveBill() {
   bill.archived = !bill.archived;
   persistAndRender();
   showToast(bill.archived ? 'Cuenta archivada.' : 'Cuenta desarchivada.');
+}
+
+function setBillClosedState(bill, closed) {
+  bill.closed = Boolean(closed);
+  bill.closedAt = bill.closed ? nowIso() : '';
+  bill.updatedAt = nowIso();
+}
+
+function toggleCloseBill() {
+  const bill = getActiveBill();
+
+  if (bill.archived) {
+    showToast('Desarchiva la cuenta antes de cerrarla o reabrirla.');
+    return;
+  }
+
+  if (!bill.closed) {
+    const calculation = calculateBill(bill);
+    const hasPending = calculation.pendingTotal > 0 && !calculation.isPaid;
+    const confirmed = hasPending
+      ? confirm('Esta cuenta todavía tiene pagos pendientes. ¿Quieres cerrarla de todas formas?')
+      : true;
+
+    if (!confirmed) return;
+  }
+
+  setBillClosedState(bill, !bill.closed);
+  saveState();
+  render();
+  showToast(bill.closed ? 'Cuenta cerrada.' : 'Cuenta reabierta.');
+}
+
+function toggleBillClosedFromHistory(billId) {
+  const bill = state.bills.find((item) => item.id === billId);
+
+  if (!bill) {
+    showToast('No encontré esa cuenta en el historial.');
+    return;
+  }
+
+  if (bill.archived) {
+    showToast('Desarchiva la cuenta antes de cerrarla o reabrirla.');
+    return;
+  }
+
+  if (!bill.closed) {
+    const calculation = calculateBill(bill);
+    const hasPending = calculation.pendingTotal > 0 && !calculation.isPaid;
+    const confirmed = hasPending
+      ? confirm(`"${bill.name}" todavía tiene pagos pendientes. ¿Quieres cerrarla de todas formas?`)
+      : true;
+
+    if (!confirmed) return;
+  }
+
+  setBillClosedState(bill, !bill.closed);
+  saveState();
+  render();
+  showToast(bill.closed ? 'Cuenta cerrada.' : 'Cuenta reabierta.');
 }
 
 function addPerson(name, phone = '') {
@@ -6466,6 +6786,8 @@ function billFromCompactLink(data) {
     tipPercent: Number.isFinite(Number(data.tipPercent)) ? Number(data.tipPercent) : 10,
     payerId: Number.isInteger(data.payerIndex) && people[data.payerIndex] ? people[data.payerIndex].id : '',
     archived: false,
+    closed: false,
+    closedAt: '',
     recurringGroupId: '',
     recurringSequence: 1,
     previousBillId: '',
@@ -7896,10 +8218,13 @@ dom.quickProductMethodButton?.addEventListener('click', showQuickProductsArea);
 dom.newBillButton.addEventListener('click', focusGuidedNewBillChoices);
 dom.duplicateBillButton.addEventListener('click', duplicateBill);
 dom.archiveBillButton.addEventListener('click', toggleArchiveBill);
+dom.closeBillButton?.addEventListener('click', toggleCloseBill);
 dom.deleteBillButton.addEventListener('click', deleteActiveBill);
 
 dom.historySearchInput.addEventListener('input', renderBillList);
 dom.historyFilterSelect.addEventListener('change', renderBillList);
+dom.historyTypeFilterSelect?.addEventListener('change', renderBillList);
+dom.historySortSelect?.addEventListener('change', renderBillList);
 
 dom.billNameInput.addEventListener('input', () => {
   const bill = getActiveBill();
@@ -8066,6 +8391,9 @@ dom.cancelEditProductButton.addEventListener('click', () => {
 dom.productSearchInput.addEventListener('input', renderProducts);
 dom.productFilterSelect.addEventListener('change', renderProducts);
 
+dom.copyReceiptSummaryButton?.addEventListener('click', copyReceiptSummary);
+dom.whatsappReceiptSummaryButton?.addEventListener('click', whatsappReceiptSummary);
+dom.openPaymentsFromReceiptButton?.addEventListener('click', () => setAppSection('payments'));
 dom.copySummaryButton.addEventListener('click', () => copySummary('simple'));
 dom.whatsappButton.addEventListener('click', () => shareWhatsapp('simple'));
 dom.shareButton.addEventListener('click', openShareModal);
@@ -8129,6 +8457,20 @@ dom.copySelectedShareButton.addEventListener('click', () => {
 dom.whatsappSelectedShareButton.addEventListener('click', whatsappSelectedShare);
 dom.downloadImageButton.addEventListener('click', downloadShareImage);
 dom.nativeShareImageButton.addEventListener('click', shareImageNatively);
+
+window.addEventListener('online', () => {
+  showToast('Conexión restablecida.');
+  if (currentSession.mode === 'user') {
+    saveCloudStateNow({ force: true, message: 'Sincronizando...' }).finally(render);
+  } else {
+    render();
+  }
+});
+
+window.addEventListener('offline', () => {
+  showNotice('Sin conexión', 'Puedes seguir usando la app. Tus cambios quedarán guardados en este dispositivo.');
+  render();
+});
 
 async function initApp() {
   initTheme();

@@ -1,0 +1,18 @@
+REVISION TECNICA V12.3
+
+Objetivo:
+- Corregir/pulir la navegacion movil inferior.
+- Mejorar la revision de boletas antes de agregar productos.
+
+Cambios:
+- Cache actualizado a v12.3.
+- CSS reforzado para .mobile-bottom-nav con position fixed, z-index alto y safe-area.
+- Padding inferior reforzado en body y layout movil.
+- Barra inferior oculta en modales para evitar interferencias.
+- Nuevo resumen de seleccion en el lector de boletas.
+- La seleccion de boleta recalcula cantidad y total al marcar/desmarcar o cambiar montos.
+
+Validacion:
+- script.js validado con node --check.
+- profile.js validado con node --check.
+- IDs duplicados revisados en index.html.

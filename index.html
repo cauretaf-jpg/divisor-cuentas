@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=12.1" rel="stylesheet"/>
+<link href="styles.css?v=12.4" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -47,7 +47,13 @@
 <p id="currentListMeta">Revisa aquí qué cuenta estás modificando.</p>
 </div>
 <button class="btn btn-light btn-small" data-app-section="history" type="button">Cambiar lista</button>
-</section><section class="card shared-readonly-banner hidden" id="sharedReadOnlyBanner" aria-live="polite"></section><section class="app-section is-active" data-app-section-panel="home" id="appSection-home"><section class="section-page-heading card"><div><p class="eyebrow">Inicio rápido</p><h2>Inicio</h2><p class="section-helper">Parte desde una acción clara. En celular la app funciona por pantallas: Personas, Gastos, Resumen y Pagos.</p></div></section><section class="mobile-home-dashboard card" id="homeDashboardPanel">
+</section><section class="card shared-readonly-banner hidden" id="sharedReadOnlyBanner" aria-live="polite"></section><section class="card network-status-banner hidden" id="networkStatusBanner" aria-live="polite">
+<div>
+<strong id="networkStatusTitle">Sin conexión</strong>
+<p id="networkStatusText">Tus cambios se guardarán en este dispositivo y se sincronizarán cuando vuelva internet.</p>
+</div>
+<span id="networkStatusPill">Modo local</span>
+</section><section class="app-section is-active" data-app-section-panel="home" id="appSection-home"><section class="section-page-heading card"><div><p class="eyebrow">Inicio rápido</p><h2>Inicio</h2><p class="section-helper">Parte desde una acción clara. En celular la app funciona por pantallas: Personas, Gastos, Resumen y Pagos.</p></div></section><section class="mobile-home-dashboard card" id="homeDashboardPanel">
 <div class="home-dashboard-top">
 <div>
 <p class="eyebrow">Panel principal</p>
@@ -199,6 +205,7 @@
 <div class="hero-actions">
 <button class="btn btn-light" id="duplicateBillButton" type="button">Duplicar</button>
 <button class="btn btn-light" id="archiveBillButton" type="button">Archivar</button>
+<button class="btn btn-light" id="closeBillButton" type="button">Cerrar cuenta</button>
 <button class="btn btn-danger-light" id="deleteBillButton" type="button">Eliminar</button>
 </div>
 </section></section><section class="app-section ad-protected-zone" data-app-section-panel="people" id="appSection-people"><section class="section-page-heading card"><div><p class="eyebrow">Participantes</p><h2>Personas</h2><p class="section-helper">Agrega personas, teléfonos opcionales y estados de pago sin ver el resto de la app.</p></div></section><section class="guide-card card" data-guide-card="people"><div><span class="guide-number">1</span></div><div><strong>Primero agrega a quienes participaron</strong><p>Después selecciona el pagador principal. Sin personas no se puede dividir ningún gasto.</p></div><button class="btn btn-primary btn-small" type="button" data-focus-target="personNameInput">Agregar persona</button></section><section class="grid-two">
@@ -448,6 +455,33 @@
 </div>
 </div>
 </section>
+<section class="card receipt-summary-card" id="receiptSummaryCard">
+<div class="receipt-summary-header">
+<div>
+<p class="eyebrow">Comprobante</p>
+<h2>Resumen listo para compartir</h2>
+<p class="section-helper">Vista limpia para revisar la cuenta antes de copiar, enviar por WhatsApp o pasar a pagos.</p>
+</div>
+<span class="receipt-summary-state" id="receiptSummaryState">Pendiente</span>
+</div>
+<div class="receipt-summary-body">
+<div class="receipt-summary-main">
+<span id="receiptBillNameOutput">Cuenta actual</span>
+<strong id="receiptGrandTotalOutput">$0</strong>
+<small id="receiptPayerOutput">Sin pagador principal</small>
+</div>
+<div class="receipt-summary-grid">
+<div><span>Personas</span><strong id="receiptPeopleOutput">0</strong></div>
+<div><span>Pagadas</span><strong id="receiptPaidPeopleOutput">0</strong></div>
+<div><span>Pendiente</span><strong id="receiptPendingOutput">$0</strong></div>
+</div>
+<p class="receipt-next-step" id="receiptNextStepOutput">Agrega personas y gastos para generar un comprobante útil.</p>
+</div>
+<div class="receipt-summary-actions">
+<button class="btn btn-light btn-small" id="copyReceiptSummaryButton" type="button">Copiar comprobante</button>
+<button class="btn btn-primary btn-small" id="whatsappReceiptSummaryButton" type="button">Enviar WhatsApp</button>
+<button class="btn btn-light btn-small" id="openPaymentsFromReceiptButton" type="button">Ir a pagos</button>
+</div>
 </section></section><section class="app-section ad-protected-zone" data-app-section-panel="payments" id="appSection-payments"><section class="section-page-heading card"><div><p class="eyebrow">Transferencias</p><h2>Pagos</h2><p class="section-helper">Consulta cuánto paga cada persona, quién debe transferir y comparte la cuenta.</p></div></section><section class="guide-card card" data-guide-card="payments"><div><span class="guide-number">4</span></div><div><strong>Comparte el resultado</strong><p>Cuando alguien te transfiera, márcalo como pagado. Los cobros pendientes quedarán visibles abajo para que sea fácil hacer seguimiento.</p></div><button class="btn btn-primary btn-small" type="button" data-open-share="true">Compartir</button></section><section class="card sidebar-payments-panel" id="sidebarPaymentsCard">
 <div class="section-title compact">
 <div>
@@ -513,14 +547,42 @@
 <h2>Tus cuentas</h2>
 </div>
 </div>
-<div class="history-tools">
+<div class="history-tools history-tools-advanced">
+<label>
+<span>Buscar</span>
 <input id="historySearchInput" placeholder="Buscar cuenta..." type="search"/>
-<select aria-label="Filtrar historial" id="historyFilterSelect">
-<option value="all">Todas</option>
+</label>
+<label>
+<span>Estado</span>
+<select aria-label="Filtrar historial por estado" id="historyFilterSelect">
+<option value="all">Activas</option>
 <option value="pending">Pendientes</option>
 <option value="paid">Pagadas</option>
+<option value="closed">Cerradas</option>
 <option value="archived">Archivadas</option>
+<option value="everything">Todas</option>
 </select>
+</label>
+<label>
+<span>Tipo</span>
+<select aria-label="Filtrar historial por tipo" id="historyTypeFilterSelect">
+<option value="all">Todos los tipos</option>
+<option value="detailed">Detalladas</option>
+<option value="quick">Rápidas</option>
+<option value="home">Hogar / Streaming</option>
+<option value="shared">Compartidas</option>
+<option value="recurring">Recurrentes</option>
+</select>
+</label>
+<label>
+<span>Orden</span>
+<select aria-label="Ordenar historial" id="historySortSelect">
+<option value="recent">Más recientes</option>
+<option value="amount">Mayor monto</option>
+<option value="pendingFirst">Pendientes primero</option>
+<option value="name">Nombre A-Z</option>
+</select>
+</label>
 </div>
 <div class="bill-list" id="billList"></div>
 <div class="backup-actions">
@@ -721,9 +783,12 @@
 </table>
 </div>
 <div class="receipt-actions">
+<div class="receipt-selection-summary" id="receiptSelectionSummary" aria-live="polite">0 seleccionados · $0</div>
+<div class="receipt-action-buttons">
 <button class="btn btn-light" id="selectAllReceiptItemsButton" type="button">Seleccionar todo</button>
 <button class="btn btn-light" id="unselectAllReceiptItemsButton" type="button">Deseleccionar</button>
 <button class="btn btn-primary" id="addReceiptItemsButton" type="button">Agregar seleccionados</button>
+</div>
 </div>
 </div>
 </div>
@@ -782,6 +847,9 @@
 <div class="stat-card"><span>Cuentas activas</span><strong id="statActiveBills">0</strong></div>
 <div class="stat-card"><span>Total histórico</span><strong id="statHistoricalTotal">$0</strong></div>
 <div class="stat-card"><span>Promedio por cuenta</span><strong id="statAverageBill">$0</strong></div>
+<div class="stat-card"><span>Por pagar</span><strong id="statPendingToPay">$0</strong></div>
+<div class="stat-card"><span>Por cobrar</span><strong id="statPendingToCollect">$0</strong></div>
+<div class="stat-card"><span>Cerradas / archivadas</span><strong id="statClosedArchivedBills">0</strong></div>
 <div class="stat-card"><span>Personas agregadas</span><strong id="statPeopleCount">0</strong></div>
 <div class="stat-card"><span>Productos / gastos</span><strong id="statProductCount">0</strong></div>
 <div class="stat-card"><span>Cuentas del hogar</span><strong id="statHomeBills">0</strong></div>
@@ -942,7 +1010,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=12.1"></script>
-<script src="script.js?v=12.1"></script>
+<script src="supabase-config.js?v=12.4"></script>
+<script src="script.js?v=12.4"></script>
 </body>
 </html>
