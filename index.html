@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=11.8" rel="stylesheet"/>
+<link href="styles.css?v=11.9" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -78,6 +78,18 @@
 <div class="home-recent-title"><strong>Últimas cuentas</strong><button class="btn btn-light btn-small" data-app-section="history" type="button">Ver todas</button></div>
 <div class="home-recent-list" id="homeRecentBillsList"></div>
 </div>
+<div class="home-recurring-panel hidden" id="homeRecurringPanel">
+<div>
+<span class="home-recurring-kicker" id="homeRecurringKicker">Recurrentes</span>
+<strong id="homeRecurringTitle">Cuentas mensuales</strong>
+<small id="homeRecurringMeta">Conecta meses y arrastra pendientes automáticamente.</small>
+</div>
+<strong class="home-recurring-amount" id="homeRecurringAmount">$0</strong>
+<div class="home-recurring-actions">
+<button class="btn btn-primary btn-small" id="homeRecurringActionButton" type="button">Crear siguiente mes</button>
+<button class="btn btn-light btn-small" id="homeRecurringOpenButton" type="button">Abrir Hogar</button>
+</div>
+</div>
 </section><section class="first-use-card card hidden" id="firstUseCard">
 <div class="first-use-content">
 <p class="eyebrow">Primer uso</p>
@@ -132,7 +144,7 @@
 </button>
 <button class="guided-choice" data-template="streaming" type="button">
 <strong>Streaming</strong>
-<span>Servicios mensuales, partes distintas y pagos recurrentes más adelante.</span>
+<span>Servicios mensuales, partes distintas y pagos recurrentes.</span>
 </button>
 <button class="guided-choice" data-template="trip" type="button">
 <strong>Viaje</strong>
@@ -633,6 +645,7 @@
 <button class="btn btn-primary btn-small" id="mobileShareButton" type="button">Compartir</button>
 </div>
 <nav class="mobile-bottom-nav ad-protected-zone" aria-label="Acciones principales">
+<button class="mobile-bottom-nav-button" data-app-section="home" type="button"><span class="mobile-bottom-icon">⌂</span><strong>Inicio</strong></button>
 <button class="mobile-bottom-nav-button" data-app-section="people" type="button"><span class="mobile-bottom-icon">👥</span><strong>Personas</strong></button>
 <button class="mobile-bottom-nav-button" data-app-section="expenses" type="button"><span class="mobile-bottom-icon">＋</span><strong>Gastos</strong></button>
 <button class="mobile-bottom-nav-button" data-app-section="summary" type="button"><span class="mobile-bottom-icon">Σ</span><strong>Resumen</strong></button>
@@ -923,7 +936,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=11.8"></script>
-<script src="script.js?v=11.8"></script>
+<script src="supabase-config.js?v=11.9"></script>
+<script src="script.js?v=11.9"></script>
 </body>
 </html>

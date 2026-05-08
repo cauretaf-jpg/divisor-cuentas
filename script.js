@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V11.8 cargada');
+console.info('Cuenta Clara V11.9 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -109,6 +109,13 @@ const dom = {
   continueActiveBillButton: document.querySelector('#continueActiveBillButton'),
   homeNewBillButton: document.querySelector('#homeNewBillButton'),
   homeRecentBillsList: document.querySelector('#homeRecentBillsList'),
+  homeRecurringPanel: document.querySelector('#homeRecurringPanel'),
+  homeRecurringKicker: document.querySelector('#homeRecurringKicker'),
+  homeRecurringTitle: document.querySelector('#homeRecurringTitle'),
+  homeRecurringMeta: document.querySelector('#homeRecurringMeta'),
+  homeRecurringAmount: document.querySelector('#homeRecurringAmount'),
+  homeRecurringActionButton: document.querySelector('#homeRecurringActionButton'),
+  homeRecurringOpenButton: document.querySelector('#homeRecurringOpenButton'),
 
   historySearchInput: document.querySelector('#historySearchInput'),
   historyFilterSelect: document.querySelector('#historyFilterSelect'),
@@ -2941,6 +2948,7 @@ function renderMobileHomeDashboard() {
   }
 
   renderHomeRecentBills();
+  renderHomeRecurringPanel();
 }
 
 function renderHomeRecentBills() {
@@ -2986,6 +2994,105 @@ function renderHomeRecentBills() {
   }
 }
 
+
+function getRecurringOverview() {
+  const groups = getRecurringGroups();
+  if (!groups.length) {
+    return null;
+  }
+
+  const enriched = groups
+    .map((group) => {
+      const bills = getGroupBills(group);
+      const latestBill = getLatestGroupBill(group);
+      const pending = latestBill ? getRecurringBillStats(latestBill).pendingTotal : 0;
+      return { group, bills, latestBill, pending };
+    })
+    .filter((item) => item.latestBill)
+    .sort((a, b) => new Date(b.latestBill.updatedAt || b.latestBill.createdAt) - new Date(a.latestBill.updatedAt || a.latestBill.createdAt));
+
+  return enriched[0] || null;
+}
+
+function openRecurringSectionForBill(billId = '') {
+  const target = billId ? state.bills.find((item) => item.id === billId) : null;
+  if (target) {
+    state.activeBillId = target.id;
+    editingProductId = null;
+    accountSettingsPinnedOpenBillId = '';
+    saveState();
+  }
+  render();
+  setAppSection('recurring', { scroll: false });
+}
+
+function createNextRecurringMonthFromGroup(groupId) {
+  const group = getRecurringGroup(groupId);
+  const latest = group ? getLatestGroupBill(group) : null;
+
+  if (!group || !latest) {
+    showToast('No se encontró la carpeta recurrente.');
+    return;
+  }
+
+  state.activeBillId = latest.id;
+  saveState();
+  createNextRecurringMonthFromActive();
+}
+
+function renderHomeRecurringPanel() {
+  if (!dom.homeRecurringPanel || !state?.bills?.length) {
+    return;
+  }
+
+  const bill = getActiveBill();
+  const activeGroup = getActiveRecurringGroup();
+  const overview = getRecurringOverview();
+  const shouldShowCandidate = bill.mode === 'home' && !activeGroup;
+  const shouldShowGroup = Boolean(activeGroup || overview);
+
+  dom.homeRecurringPanel.classList.toggle('hidden', !(shouldShowCandidate || shouldShowGroup));
+
+  if (!(shouldShowCandidate || shouldShowGroup)) {
+    return;
+  }
+
+  if (activeGroup) {
+    const bills = getGroupBills(activeGroup);
+    const latestBill = getLatestGroupBill(activeGroup) || bill;
+    const latestStats = getRecurringBillStats(latestBill);
+    dom.homeRecurringKicker.textContent = 'Carpeta activa';
+    dom.homeRecurringTitle.textContent = activeGroup.name;
+    dom.homeRecurringMeta.textContent = `${bills.length} mes${bills.length === 1 ? '' : 'es'} conectado${bills.length === 1 ? '' : 's'} · último mes ${latestBill.homeMonth || '-'}`;
+    dom.homeRecurringAmount.textContent = formatCurrency(latestStats.pendingTotal);
+    dom.homeRecurringActionButton.textContent = 'Crear siguiente mes';
+    dom.homeRecurringActionButton.onclick = () => createNextRecurringMonthFromGroup(activeGroup.id);
+    dom.homeRecurringOpenButton.onclick = () => openRecurringSectionForBill(latestBill.id);
+    return;
+  }
+
+  if (shouldShowCandidate) {
+    dom.homeRecurringKicker.textContent = 'Cuenta mensual';
+    dom.homeRecurringTitle.textContent = 'Activar recurrente';
+    dom.homeRecurringMeta.textContent = 'Convierte esta cuenta en carpeta mensual para repetir personas, gastos y arrastrar pendientes.';
+    dom.homeRecurringAmount.textContent = bill.templateLabel || getBillModeLabel(bill.mode);
+    dom.homeRecurringActionButton.textContent = 'Activar recurrente';
+    dom.homeRecurringActionButton.onclick = createRecurringGroupFromActiveBill;
+    dom.homeRecurringOpenButton.onclick = () => setAppSection('recurring', { scroll: false });
+    return;
+  }
+
+  if (overview) {
+    dom.homeRecurringKicker.textContent = 'Recurrentes';
+    dom.homeRecurringTitle.textContent = overview.group.name;
+    dom.homeRecurringMeta.textContent = `${overview.bills.length} mes${overview.bills.length === 1 ? '' : 'es'} conectado${overview.bills.length === 1 ? '' : 's'} · último mes ${overview.latestBill.homeMonth || '-'}`;
+    dom.homeRecurringAmount.textContent = formatCurrency(overview.pending);
+    dom.homeRecurringActionButton.textContent = 'Crear siguiente mes';
+    dom.homeRecurringActionButton.onclick = () => createNextRecurringMonthFromGroup(overview.group.id);
+    dom.homeRecurringOpenButton.onclick = () => openRecurringSectionForBill(overview.latestBill.id);
+  }
+}
+
 function continueActiveBillFromHome() {
   setAppSection(getSmartActionSection(), { scroll: false });
 }
@@ -3020,14 +3127,14 @@ const BILL_TEMPLATES = {
     mode: 'home',
     tipPercent: 0,
     name: () => `Supermercado ${formatMonthLabel(getCurrentMonthValue())}`,
-    help: 'Plantilla supermercado creada. Agrega personas y gastos del hogar.',
+    help: 'Plantilla supermercado creada. Agrega personas y gastos; si se repite mensualmente, actívala como recurrente.'
   },
   streaming: {
     label: 'Streaming',
     mode: 'home',
     tipPercent: 0,
     name: () => `Streaming ${formatMonthLabel(getCurrentMonthValue())}`,
-    help: 'Plantilla streaming creada. Agrega servicios como Netflix, Spotify o Max.',
+    help: 'Plantilla streaming creada. Agrega personas y gastos; luego activa la carpeta recurrente desde Inicio u Hogar.'
   },
   trip: {
     label: 'Viaje',
@@ -3041,7 +3148,7 @@ const BILL_TEMPLATES = {
     mode: 'home',
     tipPercent: 0,
     name: () => `Hogar ${formatMonthLabel(getCurrentMonthValue())}`,
-    help: 'Plantilla hogar creada. Registra luz, agua, internet, arriendo o supermercado.',
+    help: 'Plantilla hogar creada. Agrega personas y gastos; luego crea el siguiente mes desde Hogar/Recurrentes.'
   },
   quick: {
     label: 'Cuenta rápida',
@@ -3441,7 +3548,7 @@ function createRecurringGroupFromActiveBill() {
     if (!continueEmpty) return;
   }
 
-  const suggestedName = bill.name && bill.name !== 'Nueva cuenta' ? bill.name : 'Streaming';
+  const suggestedName = bill.name && bill.name !== 'Nueva cuenta' ? bill.name : (bill.templateLabel || 'Streaming');
   const name = prompt('Nombre de la carpeta recurrente:', suggestedName);
 
   if (name === null) return;
@@ -3467,7 +3574,7 @@ function createRecurringGroupFromActiveBill() {
     group = {
       id: createId('recurring'),
       name: cleanName,
-      category: 'Hogar',
+      category: bill.templateLabel || 'Hogar',
       frequency: 'monthly',
       billIds: [],
       members: [],
@@ -5380,46 +5487,69 @@ function duplicateHomeMonth() {
     return;
   }
 
+  if (bill.recurringGroupId) {
+    createNextRecurringMonthFromActive();
+    return;
+  }
+
+  const calculation = calculateBill(bill);
+  const pendingTotal = Math.round(calculation.pendingTotal || 0);
+  const nextMonth = getNextMonthValue(bill.homeMonth);
+  const recurringProducts = (bill.products || []).filter((product) => product.recurring);
+  const productsToClone = recurringProducts.length ? recurringProducts : (bill.products || []);
+
+  const confirmed = confirm(
+    `Duplicar esta cuenta para ${nextMonth}?\n\n` +
+    `${pendingTotal > 0 ? `Se arrastrará deuda pendiente por ${formatCurrency(pendingTotal)}.` : 'No hay deuda pendiente para arrastrar.'}\n` +
+    `${recurringProducts.length ? `Se copiarán ${recurringProducts.length} gasto(s) marcados como recurrentes.` : 'No hay gastos marcados como recurrentes; se copiarán todos los gastos.'}`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
   const personMap = new Map();
   const newPeople = bill.people.map((person) => {
     const newId = createId('person');
     personMap.set(person.id, newId);
-    return { ...person, id: newId, paid: false };
+    return {
+      ...person,
+      id: newId,
+      paid: false,
+      previousDebt: person.paid ? 0 : Math.round(calculation.finalTotals[person.id] || 0),
+    };
   });
 
-  const nextMonth = getNextMonthValue(bill.homeMonth);
   const createdAt = nowIso();
 
   const newBill = {
     ...bill,
     id: createId('bill'),
-    name: `Hogar - ${nextMonth}`,
+    name: `${bill.templateLabel || 'Hogar'} - ${nextMonth}`,
     homeMonth: nextMonth,
     payerId: bill.payerId ? personMap.get(bill.payerId) || '' : '',
     archived: false,
     recurringGroupId: '',
-    recurringSequence: 1,
-    previousBillId: '',
+    recurringSequence: Math.max(1, Number(bill.recurringSequence || 1)) + 1,
+    previousBillId: bill.id,
     sharedAccountId: '',
     sharedRole: '',
     sharedOwnerId: '',
     createdAt,
     updatedAt: createdAt,
     people: newPeople,
-    products: bill.products
-      .filter((product) => product.recurring)
-      .map((product) => {
-        const dueDay = product.dueDate ? product.dueDate.slice(8, 10) : '';
-        const newDueDate = dueDay ? `${nextMonth}-${dueDay}` : '';
-        return {
-          ...product,
-          id: createId('product'),
-          dueDate: newDueDate,
-          consumers: product.consumers
-            .filter((consumer) => personMap.has(consumer.personId))
-            .map((consumer) => ({ personId: personMap.get(consumer.personId), share: consumer.share })),
-        };
-      }),
+    products: productsToClone.map((product) => {
+      const dueDay = product.dueDate ? product.dueDate.slice(8, 10) : '';
+      const newDueDate = dueDay ? `${nextMonth}-${dueDay}` : '';
+      return {
+        ...product,
+        id: createId('product'),
+        dueDate: newDueDate,
+        consumers: product.consumers
+          .filter((consumer) => personMap.has(consumer.personId))
+          .map((consumer) => ({ personId: personMap.get(consumer.personId), share: consumer.share })),
+      };
+    }),
   };
 
   state.bills.unshift(newBill);
@@ -5427,7 +5557,7 @@ function duplicateHomeMonth() {
   editingProductId = null;
   saveState();
   render();
-  showToast('Mes del hogar duplicado.');
+  showToast('Mes duplicado con arrastre de pendientes.');
 }
 
 function addBill() {

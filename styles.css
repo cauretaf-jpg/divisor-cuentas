@@ -6762,7 +6762,7 @@ body.simple-mode .section-nav-button[data-app-section="shared"] {
 }
 
 
-/* V11.8: modo usuario nuevo y plantillas de cuenta */
+/* V11.9: modo usuario nuevo y plantillas de cuenta */
 .first-use-card {
   display: grid;
   gap: 16px;
@@ -6852,5 +6852,82 @@ body.simple-mode .section-nav-button[data-app-section="shared"] {
 
   .first-use-actions .btn {
     width: 100%;
+  }
+}
+
+/* V11.9: cuentas recurrentes y navegación móvil refinada */
+.home-recurring-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--primary) 16%, var(--border));
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--primary) 7%, var(--surface));
+}
+
+.home-recurring-panel.hidden {
+  display: none;
+}
+
+.home-recurring-kicker,
+.home-recurring-panel small {
+  display: block;
+  color: var(--text-muted);
+}
+
+.home-recurring-kicker {
+  margin-bottom: 4px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.home-recurring-panel strong {
+  display: block;
+}
+
+.home-recurring-amount {
+  min-width: max-content;
+  font-size: 1.05rem;
+}
+
+.home-recurring-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.home-recurring-actions .btn {
+  flex: 1 1 160px;
+}
+
+@media (max-width: 760px) {
+  .mobile-bottom-nav {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .home-recurring-panel {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .home-recurring-amount {
+    font-size: 1.18rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .mobile-bottom-nav-button strong {
+    font-size: 0.64rem;
+  }
+
+  .mobile-bottom-icon {
+    width: 24px;
+    height: 24px;
   }
 }
