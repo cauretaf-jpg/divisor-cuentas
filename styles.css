@@ -7436,7 +7436,7 @@ body.shared-readonly-mode [data-app-section-panel="payments"] button:not([data-a
   }
 }
 
-/* V12.4 - estabilidad móvil, historial avanzado y estados de cuenta */
+/* V12.4.1 - corrección de secciones móviles anidadas + estabilidad móvil */
 .history-tools-advanced {
   display: grid;
   grid-template-columns: minmax(180px, 1.4fr) repeat(3, minmax(130px, 1fr));
@@ -7480,6 +7480,9 @@ body[data-active-section="people"] .mobile-bottom-nav-button[data-app-section="p
 body[data-active-section="expenses"] .mobile-bottom-nav-button[data-app-section="expenses"],
 body[data-active-section="summary"] .mobile-bottom-nav-button[data-app-section="summary"],
 body[data-active-section="payments"] .mobile-bottom-nav-button[data-app-section="payments"],
+body[data-active-section="history"] .mobile-bottom-nav-button[data-app-section="history"],
+body[data-active-section="recurring"] .mobile-bottom-nav-button[data-app-section="recurring"],
+body[data-active-section="shared"] .mobile-bottom-nav-button[data-app-section="shared"],
 body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="home"] {
   border-color: color-mix(in srgb, var(--primary) 36%, var(--border));
   background: color-mix(in srgb, var(--primary) 12%, var(--surface));
