@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=11.9" rel="stylesheet"/>
+<link href="styles.css?v=12.0" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -47,7 +47,7 @@
 <p id="currentListMeta">Revisa aquí qué cuenta estás modificando.</p>
 </div>
 <button class="btn btn-light btn-small" data-app-section="history" type="button">Cambiar lista</button>
-</section><section class="app-section is-active" data-app-section-panel="home" id="appSection-home"><section class="section-page-heading card"><div><p class="eyebrow">Inicio rápido</p><h2>Inicio</h2><p class="section-helper">Parte desde una acción clara. En celular la app funciona por pantallas: Personas, Gastos, Resumen y Pagos.</p></div></section><section class="mobile-home-dashboard card" id="homeDashboardPanel">
+</section><section class="card shared-readonly-banner hidden" id="sharedReadOnlyBanner" aria-live="polite"></section><section class="app-section is-active" data-app-section-panel="home" id="appSection-home"><section class="section-page-heading card"><div><p class="eyebrow">Inicio rápido</p><h2>Inicio</h2><p class="section-helper">Parte desde una acción clara. En celular la app funciona por pantallas: Personas, Gastos, Resumen y Pagos.</p></div></section><section class="mobile-home-dashboard card" id="homeDashboardPanel">
 <div class="home-dashboard-top">
 <div>
 <p class="eyebrow">Panel principal</p>
@@ -73,6 +73,7 @@
 <div class="home-primary-actions">
 <button class="btn btn-primary" id="homeNewBillButton" type="button">Nueva cuenta guiada</button>
 <button class="btn btn-light" data-app-section="history" type="button">Ver historial</button>
+<button class="btn btn-light" data-app-section="shared" type="button">Compartidas</button>
 </div>
 <div class="home-recent-block">
 <div class="home-recent-title"><strong>Últimas cuentas</strong><button class="btn btn-light btn-small" data-app-section="history" type="button">Ver todas</button></div>
@@ -628,6 +629,10 @@
 <button class="btn btn-primary btn-small" id="publishSharedAccountButton" type="button">Compartir cuenta actual</button>
 <div class="shared-invite-row">
 <input id="sharedInviteSearchInput" placeholder="Correo o nick registrado" type="search"/>
+<select id="sharedInviteRoleSelect" aria-label="Rol de invitación">
+<option value="editor">Editor</option>
+<option value="viewer">Lector</option>
+</select>
 <button class="btn btn-light btn-small" id="inviteSharedUserButton" type="button">Invitar</button>
 </div>
 <button class="btn btn-light btn-small" id="refreshSharedAccountsButton" type="button">Actualizar</button>
@@ -635,6 +640,7 @@
 <div class="shared-status" id="sharedAccountStatus"></div>
 <div class="shared-list" id="sharedInvitesList"></div>
 <div class="shared-list" id="sharedAccountsList"></div>
+<div class="shared-list shared-members-list" id="sharedMembersList"></div>
 </details></section></section></main>
 <div class="mobile-action-bar" aria-hidden="true">
 <div>
@@ -936,7 +942,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=11.9"></script>
-<script src="script.js?v=11.9"></script>
+<script src="supabase-config.js?v=12.0"></script>
+<script src="script.js?v=12.0"></script>
 </body>
 </html>

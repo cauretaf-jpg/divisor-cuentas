@@ -5955,7 +5955,7 @@ body.simple-mode .section-nav-button[data-app-section="shared"] {
     bottom: 10px;
     z-index: 70;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 6px;
     padding: 8px;
     border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
@@ -6929,5 +6929,114 @@ body.simple-mode .section-nav-button[data-app-section="shared"] {
   .mobile-bottom-icon {
     width: 24px;
     height: 24px;
+  }
+}
+
+
+/* V12.0 - Compartidas, roles y permisos */
+.shared-readonly-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-color: color-mix(in srgb, var(--warning, #f59e0b) 30%, var(--border));
+  background: color-mix(in srgb, #f59e0b 8%, var(--surface));
+}
+
+.shared-readonly-banner.hidden {
+  display: none;
+}
+
+.shared-readonly-banner strong,
+.shared-readonly-banner small {
+  display: block;
+}
+
+.shared-readonly-banner small {
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.shared-invite-row select,
+.shared-member-controls select {
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 12px;
+  font: inherit;
+  font-weight: 800;
+}
+
+.shared-members-list {
+  margin-top: 12px;
+}
+
+.shared-member-card {
+  align-items: center;
+}
+
+.shared-member-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.shared-permission-row {
+  border-style: dashed;
+  background: var(--surface-muted);
+}
+
+.shared-member-card.status-pending {
+  border-color: color-mix(in srgb, #f59e0b 34%, var(--border));
+}
+
+.shared-member-card.status-accepted {
+  border-color: color-mix(in srgb, #22c55e 26%, var(--border));
+}
+
+.shared-member-card.status-rejected {
+  opacity: .72;
+}
+
+body.shared-readonly-mode [data-app-section-panel="people"] input,
+body.shared-readonly-mode [data-app-section-panel="people"] select,
+body.shared-readonly-mode [data-app-section-panel="people"] textarea,
+body.shared-readonly-mode [data-app-section-panel="people"] button:not([data-app-section]),
+body.shared-readonly-mode [data-app-section-panel="expenses"] input,
+body.shared-readonly-mode [data-app-section-panel="expenses"] select,
+body.shared-readonly-mode [data-app-section-panel="expenses"] textarea,
+body.shared-readonly-mode [data-app-section-panel="expenses"] button:not([data-app-section]),
+body.shared-readonly-mode [data-app-section-panel="payments"] input,
+body.shared-readonly-mode [data-app-section-panel="payments"] select,
+body.shared-readonly-mode [data-app-section-panel="payments"] textarea,
+body.shared-readonly-mode [data-app-section-panel="payments"] button:not([data-app-section]) {
+  pointer-events: none;
+  opacity: .55;
+  filter: grayscale(.15);
+}
+
+@media (max-width: 760px) {
+  .shared-readonly-banner {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .shared-readonly-banner .btn {
+    width: 100%;
+  }
+
+  .shared-member-card,
+  .shared-member-controls {
+    display: grid;
+    justify-content: stretch;
+  }
+
+  .shared-member-controls select,
+  .shared-member-controls .btn {
+    width: 100%;
   }
 }

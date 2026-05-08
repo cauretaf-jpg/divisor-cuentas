@@ -278,3 +278,139 @@ grant execute on function public.create_shared_account_safe(text, jsonb) to auth
 grant execute on function public.update_shared_account_safe(uuid, text, jsonb) to authenticated;
 
 notify pgrst, 'reload schema';
+
+-- V12.0 - Roles más seguros para invitaciones y cuentas compartidas
+-- A partir de esta versión, la app usa funciones RPC para aceptar/rechazar invitaciones,
+-- cambiar roles y quitar accesos. El invitado ya no necesita actualizar la fila directamente.
+
+drop policy if exists "shared_account_members_update_access" on public.shared_account_members;
+drop policy if exists "shared_account_members_update_owner_only_v120" on public.shared_account_members;
+
+create policy "shared_account_members_update_owner_only_v120"
+on public.shared_account_members
+for update
+to authenticated
+using (public.is_shared_account_owner(account_id))
+with check (public.is_shared_account_owner(account_id));
+
+create or replace function public.accept_shared_invite_safe(p_account_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid := auth.uid();
+begin
+  if v_user_id is null then
+    raise exception 'Debes iniciar sesión para aceptar invitaciones.';
+  end if;
+
+  update public.shared_account_members
+  set status = 'accepted', updated_at = now()
+  where account_id = p_account_id
+    and user_id = v_user_id
+    and status = 'pending';
+
+  if not found then
+    raise exception 'No hay una invitación pendiente para esta cuenta.';
+  end if;
+
+  return true;
+end;
+$$;
+
+create or replace function public.reject_shared_invite_safe(p_account_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid := auth.uid();
+begin
+  if v_user_id is null then
+    raise exception 'Debes iniciar sesión para rechazar invitaciones.';
+  end if;
+
+  update public.shared_account_members
+  set status = 'rejected', updated_at = now()
+  where account_id = p_account_id
+    and user_id = v_user_id
+    and status = 'pending';
+
+  if not found then
+    raise exception 'No hay una invitación pendiente para esta cuenta.';
+  end if;
+
+  return true;
+end;
+$$;
+
+create or replace function public.set_shared_member_role_safe(p_member_id uuid, p_role text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_account_id uuid;
+begin
+  if auth.uid() is null then
+    raise exception 'Debes iniciar sesión para cambiar permisos.';
+  end if;
+
+  if p_role not in ('viewer', 'editor') then
+    raise exception 'Rol inválido.';
+  end if;
+
+  select account_id into v_account_id
+  from public.shared_account_members
+  where id = p_member_id;
+
+  if v_account_id is null or not public.is_shared_account_owner(v_account_id) then
+    raise exception 'Solo el dueño de la cuenta puede cambiar permisos.';
+  end if;
+
+  update public.shared_account_members
+  set role = p_role, updated_at = now()
+  where id = p_member_id;
+
+  return true;
+end;
+$$;
+
+create or replace function public.remove_shared_member_safe(p_member_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_account_id uuid;
+begin
+  if auth.uid() is null then
+    raise exception 'Debes iniciar sesión para quitar accesos.';
+  end if;
+
+  select account_id into v_account_id
+  from public.shared_account_members
+  where id = p_member_id;
+
+  if v_account_id is null or not public.is_shared_account_owner(v_account_id) then
+    raise exception 'Solo el dueño de la cuenta puede quitar accesos.';
+  end if;
+
+  delete from public.shared_account_members
+  where id = p_member_id;
+
+  return true;
+end;
+$$;
+
+grant execute on function public.accept_shared_invite_safe(uuid) to authenticated;
+grant execute on function public.reject_shared_invite_safe(uuid) to authenticated;
+grant execute on function public.set_shared_member_role_safe(uuid, text) to authenticated;
+grant execute on function public.remove_shared_member_safe(uuid) to authenticated;
+
+notify pgrst, 'reload schema';
