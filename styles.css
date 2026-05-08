@@ -7040,3 +7040,112 @@ body.shared-readonly-mode [data-app-section-panel="payments"] button:not([data-a
     width: 100%;
   }
 }
+
+/* V12.1 - Pulido de compartidas */
+.shared-readonly-banner.readonly {
+  border-color: color-mix(in srgb, #f59e0b 42%, var(--border));
+  background: linear-gradient(135deg, color-mix(in srgb, #f59e0b 13%, var(--surface)), var(--surface));
+}
+
+.shared-status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.shared-status-grid span {
+  display: grid;
+  gap: 2px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface-muted);
+}
+
+.shared-status-grid b {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.shared-status-grid small,
+.shared-rejected-note {
+  color: var(--text-muted);
+}
+
+.shared-status-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 22px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 900;
+  line-height: 1;
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.shared-status-badge.warning {
+  border-color: color-mix(in srgb, #f59e0b 36%, var(--border));
+  background: color-mix(in srgb, #f59e0b 12%, var(--surface));
+  color: color-mix(in srgb, #92400e 88%, var(--text));
+}
+
+.shared-status-badge.success {
+  border-color: color-mix(in srgb, #22c55e 30%, var(--border));
+  background: color-mix(in srgb, #22c55e 11%, var(--surface));
+  color: color-mix(in srgb, #166534 86%, var(--text));
+}
+
+.shared-status-badge.muted {
+  opacity: .78;
+}
+
+.shared-mini-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.shared-current-box {
+  display: grid;
+  gap: 10px;
+}
+
+.shared-current-box > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.shared-invite-row input:disabled,
+.shared-invite-row select:disabled,
+.shared-invite-row button:disabled,
+.shared-member-controls select:disabled,
+.shared-member-controls button:disabled,
+#publishSharedAccountButton:disabled {
+  cursor: not-allowed;
+  opacity: .62;
+}
+
+.shared-row-button > span[aria-hidden="true"] {
+  font-size: .76rem;
+  font-weight: 900;
+  color: var(--primary);
+}
+
+@media (max-width: 760px) {
+  .shared-status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .shared-current-box,
+  .shared-row,
+  .shared-row-button {
+    border-radius: 18px;
+  }
+}

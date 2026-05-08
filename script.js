@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V11.9 cargada');
+console.info('Cuenta Clara V12.1 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -3542,6 +3542,11 @@ function groupHasMonth(group, month, excludedBillId = '') {
 function createRecurringGroupFromActiveBill() {
   const bill = getActiveBill();
 
+  if (bill.sharedAccountId && bill.sharedOwnerId !== currentSession.userId) {
+    showNotice('Permiso requerido', 'Solo el dueño puede actualizar la configuración de una cuenta compartida.');
+    return;
+  }
+
   if (!bill.people.length) {
     showNotice('Faltan participantes', 'Agrega primero las personas que participan en esta cuenta recurrente.');
     return;
@@ -4013,10 +4018,11 @@ function renderSharedPermissionState() {
     return;
   }
 
+  dom.sharedReadOnlyBanner.classList.toggle('readonly', readOnly);
   dom.sharedReadOnlyBanner.classList.remove('hidden');
   dom.sharedReadOnlyBanner.innerHTML = `
     <div>
-      <p class="eyebrow">Cuenta compartida</p>
+      <p class="eyebrow">${readOnly ? 'Solo lectura' : 'Cuenta compartida'}</p>
       <strong>${escapeHtml(roleLabel)}</strong>
       <small>${escapeHtml(getSharedRoleDescription(bill.sharedRole, isOwner))}</small>
     </div>
@@ -4029,6 +4035,34 @@ function getSharedRoleLabel(role, isOwner = false) {
   if (isOwner || role === 'owner') return 'Dueño';
   if (role === 'viewer') return 'Lector';
   return 'Editor';
+}
+
+function canManageActiveSharedAccount() {
+  const bill = getActiveBill();
+  return Boolean(
+    canUseSharedAccounts()
+    && bill.sharedAccountId
+    && bill.sharedOwnerId === currentSession.userId
+  );
+}
+
+function getSharedStatusLabel(status) {
+  if (status === 'accepted') return 'Aceptado';
+  if (status === 'rejected') return 'Rechazado';
+  return 'Pendiente';
+}
+
+function getSharedStatusClass(status) {
+  if (status === 'accepted') return 'success';
+  if (status === 'rejected') return 'muted';
+  return 'warning';
+}
+
+function getSharedInviteHelpText(role) {
+  if (role === 'viewer') {
+    return 'Te invitaron como Lector. Podrás revisar la cuenta, pero no modificar personas, gastos ni pagos.';
+  }
+  return 'Te invitaron como Editor. Podrás modificar personas, gastos y pagos de esta cuenta.';
 }
 
 function createSharedSectionTitle(text, count = null) {
@@ -4057,12 +4091,19 @@ function renderSharedAccountRow(account, roleLabel, metaParts = []) {
     rejectedCount > 0 ? `${rejectedCount} rechazado${rejectedCount === 1 ? '' : 's'}` : '',
   ].filter(Boolean);
 
+  const badges = [
+    pendingCount > 0 ? `<span class="shared-status-badge warning">${pendingCount} pendiente${pendingCount === 1 ? '' : 's'}</span>` : '',
+    acceptedCount > 0 ? `<span class="shared-status-badge success">${acceptedCount} aceptado${acceptedCount === 1 ? '' : 's'}</span>` : '',
+    rejectedCount > 0 ? `<span class="shared-status-badge muted">${rejectedCount} rechazado${rejectedCount === 1 ? '' : 's'}</span>` : '',
+  ].filter(Boolean).join('');
+
   row.innerHTML = `
     <div>
       <strong>${escapeHtml(account.title || accountBill.name || 'Cuenta compartida')}</strong>
       <small>${escapeHtml(details.join(' · '))}</small>
+      ${badges ? `<div class="shared-mini-badges">${badges}</div>` : ''}
     </div>
-    <span aria-hidden="true">↗</span>
+    <span aria-hidden="true">Abrir</span>
   `;
   row.addEventListener('click', () => openSharedAccount(account.id));
   return row;
@@ -4118,15 +4159,12 @@ function renderSharedMembersList() {
   for (const member of members) {
     const row = document.createElement('div');
     row.className = `shared-row shared-member-card status-${member.status || 'pending'}`;
-    const statusLabel = member.status === 'accepted'
-      ? 'Aceptado'
-      : member.status === 'rejected'
-        ? 'Rechazado'
-        : 'Pendiente';
+    const statusLabel = getSharedStatusLabel(member.status);
+    const statusClass = getSharedStatusClass(member.status);
     row.innerHTML = `
       <div>
         <strong>${escapeHtml(getSharedMemberDisplayName(member))}</strong>
-        <small>${escapeHtml(statusLabel)} · ${escapeHtml(getSharedRoleLabel(member.role))}</small>
+        <small><span class="shared-status-badge ${statusClass}">${escapeHtml(statusLabel)}</span> · ${escapeHtml(getSharedRoleLabel(member.role))}</small>
       </div>
       <div class="shared-member-controls">
         <select aria-label="Rol de ${escapeHtml(getSharedMemberDisplayName(member))}">
@@ -4166,11 +4204,48 @@ function renderSharedPanel() {
   const currentLabel = bill.sharedAccountId
     ? `Cuenta actual compartida · ${currentRole}`
     : 'Cuenta actual privada';
+  const isOwnerOfActive = bill.sharedAccountId && bill.sharedOwnerId === currentSession.userId;
+  const canInviteFromActive = !bill.sharedAccountId || isOwnerOfActive;
+  const acceptedMembers = sharedMembersCache.filter((member) => member.status === 'accepted').length;
+  const rejectedMembers = sharedMembersCache.filter((member) => member.status === 'rejected').length;
+
+  if (dom.publishSharedAccountButton) {
+    dom.publishSharedAccountButton.disabled = Boolean(bill.sharedAccountId && !isOwnerOfActive);
+    dom.publishSharedAccountButton.textContent = bill.sharedAccountId
+      ? (isOwnerOfActive ? 'Actualizar cuenta compartida' : 'Solo el dueño puede actualizar')
+      : 'Compartir cuenta actual';
+  }
+
+  [dom.sharedInviteSearchInput, dom.sharedInviteRoleSelect, dom.inviteSharedUserButton].filter(Boolean).forEach((control) => {
+    control.disabled = !canInviteFromActive;
+  });
+
+  if (dom.inviteSharedUserButton) {
+    dom.inviteSharedUserButton.textContent = canInviteFromActive ? 'Invitar' : 'Solo dueño';
+  }
+
+  if (dom.refreshSharedAccountsButton) {
+    dom.refreshSharedAccountsButton.textContent = sharedUiBusy ? 'Actualizando…' : 'Actualizar';
+    dom.refreshSharedAccountsButton.disabled = sharedUiBusy;
+  }
+
+  const inviteHint = canInviteFromActive
+    ? 'Puedes invitar por correo o nick registrado. Elige Editor para permitir cambios o Lector para solo lectura.'
+    : 'Esta cuenta fue compartida contigo. Solo el dueño puede invitar personas o cambiar permisos.';
 
   dom.sharedAccountStatus.innerHTML = `
     <div class="shared-current-box">
-      <strong>${escapeHtml(currentLabel)}</strong>
-      <small>${pending.length} invitación${pending.length === 1 ? '' : 'es'} pendiente${pending.length === 1 ? '' : 's'} · ${ownedAccounts.length} creada${ownedAccounts.length === 1 ? '' : 's'} por mí · ${acceptedAsGuest.length} aceptada${acceptedAsGuest.length === 1 ? '' : 's'}</small>
+      <div>
+        <strong>${escapeHtml(currentLabel)}</strong>
+        <small>${escapeHtml(inviteHint)}</small>
+      </div>
+      <div class="shared-status-grid" aria-label="Estado de colaboración">
+        <span><b>${pending.length}</b><small>Invitaciones</small></span>
+        <span><b>${ownedAccounts.length}</b><small>Creadas por mí</small></span>
+        <span><b>${acceptedAsGuest.length}</b><small>Compartidas conmigo</small></span>
+        <span><b>${acceptedMembers}</b><small>Miembros activos</small></span>
+      </div>
+      ${rejectedMembers ? `<small class="shared-rejected-note">${rejectedMembers} invitación${rejectedMembers === 1 ? '' : 'es'} rechazada${rejectedMembers === 1 ? '' : 's'} en tus cuentas.</small>` : ''}
     </div>
   `;
 
@@ -4186,7 +4261,7 @@ function renderSharedPanel() {
     row.innerHTML = `
       <div>
         <strong>${escapeHtml(invite.title || 'Cuenta compartida')}</strong>
-        <small>Te invitaron como ${escapeHtml(getSharedRoleLabel(invite.role))}. Acepta para verla y editarla desde tu cuenta.</small>
+        <small>${escapeHtml(getSharedInviteHelpText(invite.role))}</small>
       </div>
       <div class="shared-row-actions">
         <button class="btn btn-primary btn-small" type="button" data-action="accept">Aceptar</button>
@@ -4387,6 +4462,11 @@ async function publishActiveBillAsShared() {
 
   const bill = getActiveBill();
 
+  if (bill.sharedAccountId && bill.sharedOwnerId !== currentSession.userId) {
+    showNotice('Permiso requerido', 'Solo el dueño puede actualizar la configuración de una cuenta compartida.');
+    return;
+  }
+
   if (!bill.people.length) {
     showNotice('Cuenta sin participantes', 'Agrega al menos una persona antes de compartir esta cuenta.');
     return;
@@ -4446,6 +4526,11 @@ async function inviteUserToSharedAccount() {
 
   if (!getActiveBill().sharedAccountId) return;
 
+  if (!canManageActiveSharedAccount()) {
+    showNotice('Permiso requerido', 'Solo el dueño de la cuenta puede invitar personas o cambiar permisos.');
+    return;
+  }
+
   const rawQuery = dom.sharedInviteSearchInput?.value || prompt('Correo o nick del usuario registrado:');
   const query = sanitizeSupabaseSearch(rawQuery);
 
@@ -4463,10 +4548,16 @@ async function inviteUserToSharedAccount() {
 
     if (profileError) throw profileError;
 
-    const profile = (profiles || []).find((item) => item.id !== currentSession.userId);
+    const matches = (profiles || []).filter((item) => item.id !== currentSession.userId);
+    const lowerQuery = query.toLowerCase();
+    const exactMatch = matches.find((item) => (item.email || '').toLowerCase() === lowerQuery || (item.nick || '').toLowerCase() === lowerQuery);
+    const profile = exactMatch || (matches.length === 1 ? matches[0] : null);
 
     if (!profile) {
-      showNotice('Usuario no encontrado', 'La persona debe tener cuenta registrada y perfil público activo.');
+      const message = matches.length > 1
+        ? 'Encontré varios usuarios. Escribe el correo exacto o el nick exacto para evitar invitar a la persona equivocada.'
+        : 'La persona debe tener cuenta registrada y perfil público activo.';
+      showNotice('Usuario no encontrado', message);
       return;
     }
 
@@ -4573,6 +4664,12 @@ async function rejectSharedInvite(invite) {
 
 
 async function updateSharedMemberRole(memberId, role) {
+  if (!canManageActiveSharedAccount()) {
+    showNotice('Permiso requerido', 'Solo el dueño de la cuenta puede cambiar roles.');
+    renderSharedPanel();
+    return;
+  }
+
   const cleanRole = role === 'viewer' ? 'viewer' : 'editor';
   try {
     await callSharedRpcOrFallback('set_shared_member_role_safe', { p_member_id: memberId, p_role: cleanRole }, async () => {
@@ -4591,6 +4688,12 @@ async function updateSharedMemberRole(memberId, role) {
 }
 
 async function removeSharedMember(member) {
+  if (!canManageActiveSharedAccount()) {
+    showNotice('Permiso requerido', 'Solo el dueño de la cuenta puede quitar accesos.');
+    renderSharedPanel();
+    return;
+  }
+
   const name = getSharedMemberDisplayName(member);
   const confirmed = confirm(`¿Quitar acceso a ${name}?`);
   if (!confirmed) return;
@@ -4661,7 +4764,7 @@ function scheduleSharedActiveBillSave() {
 async function saveSharedActiveBillNow() {
   const bill = getActiveBill();
 
-  if (!bill.sharedAccountId || !canUseSharedAccounts()) return;
+  if (!bill.sharedAccountId || !canUseSharedAccounts() || isActiveSharedReadOnly()) return;
 
   try {
     const { error } = await supabaseClient.rpc('update_shared_account_safe', {

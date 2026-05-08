@@ -1,22 +1,37 @@
-# Cuenta Clara V11.5
+# Cuenta Clara V12.1
 
-Versión enfocada en claridad móvil y seguimiento de pagos.
+Versión enfocada en pulir **cuentas compartidas, invitaciones y roles**.
 
-## Nuevo en V11.5
+## Nuevo en V12.1
 
-- Perfil visible fuera de “Más opciones”.
-- Menú “Más opciones” más limpio: Privacidad, Instalar App y Modo oscuro.
-- Un solo acceso para boletas: “Escanear boleta”.
-- Botones de pago más claros en Personas y Pagos.
-- En Pagos cada persona muestra monto, estado y acción directa para marcar pagado/pendiente.
-- Los cobros pendientes se filtran según estado de pago.
-- Cache actualizada a `v11.5`.
+- Panel de **Compartidas** más claro.
+- Mejor separación entre acciones del dueño y acciones del invitado.
+- Los invitados ya no pueden usar controles reservados para el dueño.
+- Invitaciones con textos diferenciados para rol **Editor** y rol **Lector**.
+- Estados más visibles para miembros: **Pendiente**, **Aceptado** y **Rechazado**.
+- Resumen de colaboración con invitaciones, cuentas creadas, cuentas compartidas y miembros activos.
+- Búsqueda de invitado más segura: si aparecen varios usuarios, se solicita correo o nick exacto.
+- Banner de **Solo lectura** más evidente para usuarios con rol Lector.
+- Cache actualizada a `v12.1`.
 
-## Recomendación de prueba
+## Base de datos
 
-1. Inicia sesión o entra como invitado.
-2. Crea una cuenta.
-3. Agrega personas y un pagador principal.
-4. Agrega un gasto.
-5. Entra a Pagos y marca a una persona como pagada.
-6. Verifica que desaparezca de los cobros pendientes.
+No se agregan tablas nuevas respecto de la v12.0.
+
+Si ya ejecutaste:
+
+```sql
+sql/03-supabase-shared-accounts.sql
+```
+
+no necesitas repetirlo. Si no lo ejecutaste, hazlo antes de probar invitaciones reales.
+
+## Prueba recomendada
+
+1. Entra con el usuario dueño.
+2. Abre una cuenta con personas y gastos.
+3. Ve a **Compartidas**.
+4. Comparte la cuenta e invita a otro usuario como **Editor**.
+5. Entra con el usuario invitado, acepta la invitación y verifica que pueda editar.
+6. Cambia ese usuario a **Lector** desde el dueño.
+7. Reabre la cuenta con el invitado y verifica que aparezca como **Solo lectura**.

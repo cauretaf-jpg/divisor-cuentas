@@ -1,12 +1,17 @@
-CUENTA CLARA V11.5 - PERFIL VISIBLE Y PAGOS MÁS CLAROS
+CUENTA CLARA V12.1 - PULIDO DE CUENTAS COMPARTIDAS
 
-NUEVO EN V11.5
-- Perfil vuelve a quedar visible en la cabecera para saber si estás conectado o como invitado.
-- Más opciones conserva Privacidad, Instalar App y Modo oscuro.
-- Se eliminó el botón duplicado de boleta: queda solo Escanear boleta.
-- En Pagos ahora cada persona tiene una tarjeta con estado y botón directo para Marcar pagado o Marcar pendiente.
-- La lista de cobros muestra solo transferencias pendientes.
-- Cache/service worker actualizado a v11.5.
+NUEVO EN V12.1
+- Se mejoró la sección Compartidas para que los permisos sean más claros.
+- Un usuario invitado ya no verá acciones de dueño como invitar personas o actualizar permisos.
+- El dueño puede ver mejor estados de invitaciones: pendientes, aceptadas y rechazadas.
+- Las invitaciones ahora explican si la persona entra como Editor o Lector.
+- La búsqueda para invitar es más segura: si hay varios usuarios parecidos, pide correo o nick exacto.
+- El modo Solo lectura queda más visible cuando la cuenta fue compartida como Lector.
+- Se actualizaron cache/service worker y parámetros de archivos a v12.1.
+
+IMPORTANTE
+- Esta versión no requiere crear tablas nuevas si ya ejecutaste sql/03-supabase-shared-accounts.sql en la v12.0.
+- Si todavía no ejecutaste ese archivo SQL, debes hacerlo antes de probar cuentas compartidas.
 
 DESPUÉS DE SUBIR A VERCEL
 - Recarga fuerte en el celular.
