@@ -1,4 +1,4 @@
-console.info('Cuenta Clara Perfil V11.5 cargado');
+console.info('Cuenta Clara Perfil V11.7 cargado');
 
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 let cloudSyncErrorNotified = false;
@@ -76,6 +76,8 @@ const dom = {
   topPeopleAmounts: document.querySelector('#pageTopPeopleAmounts'),
   pendingPeople: document.querySelector('#pagePendingPeople'),
   myReceivablePeople: document.querySelector('#pageMyReceivablePeople'),
+  oweList: document.querySelector('#pageOweList'),
+  owedList: document.querySelector('#pageOwedList'),
   topBills: document.querySelector('#pageTopBills'),
   monthlyTotals: document.querySelector('#pageMonthlyTotals'),
   recurringSummary: document.querySelector('#pageRecurringSummary'),
@@ -184,14 +186,14 @@ function getCloudSyncErrorMessage(error) {
   const message = rawMessage.toLowerCase();
 
   if (code === '42P01' || message.includes('app_states') || message.includes('does not exist') || message.includes('relation')) {
-    return 'No existe la tabla app_states. Ejecuta sql/01-supabase-app-state.sql en Supabase → SQL Editor.';
+    return 'La sincronización en la nube todavía no está configurada. Tus cambios quedaron guardados en este dispositivo.';
   }
 
   if (code === '42501' || message.includes('row-level security') || message.includes('permission denied') || message.includes('policy')) {
-    return 'Supabase bloqueó el guardado por permisos/RLS. Vuelve a ejecutar sql/01-supabase-app-state.sql para recrear las políticas.';
+    return 'La nube no permitió guardar los cambios en este momento. Tus datos quedaron protegidos en este dispositivo.';
   }
 
-  return rawMessage || 'No se pudo sincronizar con Supabase. Se conserva la copia local.';
+  return 'No se pudo sincronizar en la nube. Se conserva la copia local.';
 }
 
 function notifyCloudSyncError(error) {
@@ -617,6 +619,134 @@ function setText(node, value) {
   if (node) node.textContent = value;
 }
 
+function getBillPendingTransferItems(bill) {
+  const snapshot = calculateBillSnapshot(bill);
+  const payer = (bill.people || []).find((person) => person.id === bill.payerId);
+  if (!payer) return [];
+
+  return (bill.people || [])
+    .filter((person) => person.id !== payer.id)
+    .map((person) => ({
+      billId: bill.id,
+      billName: bill.name || 'Cuenta sin nombre',
+      payer,
+      person,
+      amount: Number(snapshot.finalTotals[person.id] || 0),
+      updatedAt: bill.updatedAt || bill.createdAt,
+    }))
+    .filter((item) => item.amount > 0 && !item.person.paid);
+}
+
+function getProfileDebtOverview() {
+  const bills = Array.isArray(state?.bills) ? state.bills : [];
+  const matchKeys = getProfileMatchKeys();
+  const result = { owe: [], owed: [], pendingByPerson: [] };
+  const grouped = new Map();
+
+  for (const bill of bills) {
+    if (bill.archived || !Array.isArray(bill.people) || bill.people.length === 0) continue;
+    const payer = bill.people.find((person) => person.id === bill.payerId);
+    const selfPerson = bill.people.find((person) => personMatchesProfile(person, matchKeys));
+    if (!payer || !selfPerson) continue;
+
+    const transfers = getBillPendingTransferItems(bill);
+    if (selfPerson.id === payer.id) {
+      for (const item of transfers) {
+        result.owed.push({
+          ...item,
+          direction: 'owed',
+          title: `${item.person.name} te debe`,
+          subtitle: item.billName,
+        });
+      }
+    } else {
+      const mine = transfers.find((item) => item.person.id === selfPerson.id);
+      if (mine) {
+        result.owe.push({
+          ...mine,
+          direction: 'owe',
+          title: `Le debes a ${payer.name}`,
+          subtitle: mine.billName,
+        });
+      }
+    }
+  }
+
+  for (const item of [...result.owe, ...result.owed]) {
+    const key = item.direction === 'owed' ? item.person.name : item.payer.name;
+    const current = grouped.get(key) || { label: key, amount: 0, count: 0, billId: item.billId, direction: item.direction };
+    current.amount += item.amount;
+    current.count += 1;
+    grouped.set(key, current);
+  }
+
+  result.owe.sort((a, b) => b.amount - a.amount);
+  result.owed.sort((a, b) => b.amount - a.amount);
+  result.pendingByPerson = [...grouped.values()].sort((a, b) => b.amount - a.amount);
+  return result;
+}
+
+function openBillInApp(billId) {
+  if (!currentUser || !state) return;
+  const bill = state.bills.find((item) => item.id === billId);
+  if (!bill) {
+    showToast('No encontré esa cuenta.');
+    return;
+  }
+
+  state.activeBillId = bill.id;
+  localStorage.setItem(getUserStorageKey(currentUser.id), JSON.stringify(state));
+  localStorage.setItem('cuenta-clara-active-section', 'payments');
+  window.location.href = 'index.html';
+}
+
+function renderDebtActionRows(container, items, emptyText) {
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!items.length) {
+    container.innerHTML = `<p class="helper-text">${escapeHtml(emptyText)}</p>`;
+    return;
+  }
+
+  for (const item of items.slice(0, 8)) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `profile-debt-row ${item.direction === 'owe' ? 'is-owe' : 'is-owed'}`;
+    button.innerHTML = `
+      <span>
+        <strong>${escapeHtml(item.title)}</strong>
+        <small>${escapeHtml(item.subtitle)} · tocar para abrir Pagos</small>
+      </span>
+      <strong>${escapeHtml(formatCurrency(item.amount))}</strong>
+    `;
+    button.addEventListener('click', () => openBillInApp(item.billId));
+    container.appendChild(button);
+  }
+}
+
+function renderPendingPeopleActionRows(container, entries) {
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!entries.length) {
+    container.innerHTML = '<p class="helper-text">No tienes pendientes vinculados a tu perfil.</p>';
+    return;
+  }
+
+  for (const entry of entries.slice(0, 8)) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `mini-ranking-row mini-ranking-action ${entry.direction === 'owe' ? 'is-owe' : 'is-owed'}`;
+    button.innerHTML = `
+      <span>${escapeHtml(entry.label)}<small>${entry.count} cuenta${entry.count === 1 ? '' : 's'}</small></span>
+      <strong>${escapeHtml(formatCurrency(entry.amount))}</strong>
+    `;
+    button.addEventListener('click', () => openBillInApp(entry.billId));
+    container.appendChild(button);
+  }
+}
+
 function renderMiniRanking(container, rows, formatter = (value) => value) {
   if (!container) return;
   container.innerHTML = '';
@@ -718,8 +848,11 @@ function renderStats() {
   renderMiniRanking(dom.topCategories, stats.categories, formatCurrency);
   renderMiniRanking(dom.topPeople, stats.people, (value) => `${value} ${value === 1 ? 'cuenta' : 'cuentas'}`);
   renderMiniRanking(dom.topPeopleAmounts, stats.peopleAmounts, formatCurrency);
-  renderMiniRanking(dom.pendingPeople, stats.peoplePending, formatCurrency);
+  const debtOverview = getProfileDebtOverview();
+  renderPendingPeopleActionRows(dom.pendingPeople, debtOverview.pendingByPerson);
   renderMiniRanking(dom.myReceivablePeople, stats.myReceivablePeople, formatCurrency);
+  renderDebtActionRows(dom.oweList, debtOverview.owe, 'No tienes pagos pendientes por hacer.');
+  renderDebtActionRows(dom.owedList, debtOverview.owed, 'No tienes cobros pendientes vinculados a tu perfil.');
   renderMiniRanking(dom.topBills, stats.topBills, formatCurrency);
   renderMiniRanking(dom.monthlyTotals, stats.monthlyTotals, formatCurrency);
   renderMiniRanking(dom.recurringSummary, stats.recurringSummaries, (value) => value);

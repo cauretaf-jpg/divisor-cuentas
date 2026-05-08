@@ -6215,7 +6215,7 @@ body.simple-mode .section-nav-button[data-app-section="shared"] {
   }
 }
 
-/* V11.6 - Home móvil, cuenta guiada y gastos más intuitivos */
+/* V11.7 - Home móvil, cuenta guiada y gastos más intuitivos */
 .mobile-home-dashboard {
   display: grid;
   gap: 16px;
@@ -6532,4 +6532,231 @@ body.simple-mode .section-nav-button[data-app-section="shared"] {
 
 .consumer-row .consumer-share-control input[type="number"] {
   grid-area: auto;
+}
+
+
+/* V11.7 - Optimización móvil, pagos y perfil accionable */
+.mobile-screen-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.home-recent-block {
+  display: grid;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.home-recent-title,
+.home-recent-row,
+.profile-debt-row,
+.payment-overview-grid > div {
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.home-recent-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 18px;
+}
+
+.home-recent-title strong {
+  color: var(--text);
+  font-size: 0.94rem;
+}
+
+.home-recent-list,
+.profile-debt-list,
+.actionable-list {
+  display: grid;
+  gap: 8px;
+}
+
+.home-recent-row,
+.profile-debt-row,
+.mini-ranking-action {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 18px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.home-recent-row:hover,
+.profile-debt-row:hover,
+.mini-ranking-action:hover {
+  border-color: color-mix(in srgb, var(--primary) 32%, var(--border));
+  background: color-mix(in srgb, var(--primary) 7%, var(--surface));
+}
+
+.home-recent-row.is-active {
+  border-color: color-mix(in srgb, var(--primary) 48%, var(--border));
+  background: var(--primary-soft);
+}
+
+.home-recent-row span,
+.profile-debt-row span,
+.mini-ranking-action span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.home-recent-row strong,
+.profile-debt-row strong,
+.mini-ranking-action strong {
+  color: var(--text);
+  font-weight: 950;
+}
+
+.home-recent-row small,
+.profile-debt-row small,
+.mini-ranking-action small {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.profile-debt-row > strong,
+.mini-ranking-action > strong {
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.profile-debt-row.is-owe > strong,
+.mini-ranking-action.is-owe > strong {
+  color: color-mix(in srgb, var(--warning) 72%, var(--text));
+}
+
+.profile-debt-row.is-owed > strong,
+.mini-ranking-action.is-owed > strong {
+  color: var(--success);
+}
+
+.stats-box-wide {
+  grid-column: span 1;
+}
+
+.payment-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.payment-overview-grid > div {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--surface), color-mix(in srgb, var(--surface-soft) 62%, var(--surface)));
+}
+
+.payment-overview-grid span {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.payment-overview-grid strong {
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 1000;
+  letter-spacing: -0.04em;
+}
+
+.history-bill-main {
+  display: grid;
+  gap: 4px;
+}
+
+.history-status-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.history-status-line em,
+.history-status-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 950;
+}
+
+.history-status-badge.is-paid {
+  border-color: color-mix(in srgb, var(--success) 28%, var(--border));
+  background: color-mix(in srgb, var(--success) 10%, var(--surface));
+  color: var(--success);
+}
+
+.history-status-badge.is-pending {
+  border-color: color-mix(in srgb, var(--warning) 32%, var(--border));
+  background: color-mix(in srgb, var(--warning) 10%, var(--surface));
+  color: color-mix(in srgb, var(--warning) 72%, var(--text));
+}
+
+.history-status-badge.is-archived {
+  opacity: 0.78;
+}
+
+.ad-protected-zone {
+  position: relative;
+}
+
+@media (max-width: 760px) {
+  .mobile-screen-header {
+    align-items: center;
+  }
+
+  .mobile-screen-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .mobile-screen-actions .btn {
+    min-width: 74px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .payment-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-recent-row,
+  .profile-debt-row,
+  .mini-ranking-action {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .profile-debt-row > strong,
+  .mini-ranking-action > strong,
+  .home-recent-row > strong {
+    width: 100%;
+    text-align: left;
+  }
 }

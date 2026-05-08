@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=11.6" rel="stylesheet"/>
+<link href="styles.css?v=11.7" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -40,7 +40,7 @@
 </div>
 </div>
 </header>
-<main class="container app-layout sectioned-layout"><aside aria-label="Navegación principal de Cuenta Clara" class="section-nav"><section class="card section-nav-card"><div class="section-nav-title"><p class="eyebrow">Menú</p><h2>¿Qué quieres hacer?</h2><p>Trabaja por secciones para ver solo lo necesario.</p></div><nav aria-label="Secciones de la app" class="section-nav-list"><button class="section-nav-button is-active" data-app-section="home" type="button"><strong>Inicio</strong><span>Elegir tipo de cuenta</span></button><button class="section-nav-button" data-app-section="people" type="button"><strong>Personas</strong><span>Agregar participantes</span></button><button class="section-nav-button" data-app-section="expenses" type="button"><strong>Gastos</strong><span>Agregar productos o boleta</span></button><button class="section-nav-button" data-app-section="summary" type="button"><strong>Resumen</strong><span>Ver totales</span></button><button class="section-nav-button" data-app-section="payments" type="button"><strong>Pagos</strong><span>Transferencias y compartir</span></button><button class="section-nav-button" data-app-section="history" type="button"><strong>Historial</strong><span>Tus cuentas guardadas</span></button><button class="section-nav-button" data-app-section="recurring" type="button"><strong>Hogar</strong><span>Cuentas recurrentes</span></button><button class="section-nav-button" data-app-section="shared" type="button"><strong>Compartidas</strong><span>Invitaciones y colaboración</span></button></nav><div class="section-nav-footer"><small>Consejo: usa Inicio como guía y vuelve al resumen cuando necesites revisar montos.</small></div></section></aside><section class="workspace section-workspace"><div class="mobile-screen-header" id="mobileScreenHeader" aria-live="polite"><div><p class="eyebrow" id="mobileScreenEyebrow">Cuenta Clara</p><strong id="mobileScreenTitle">Inicio</strong></div><button class="btn btn-light btn-small" id="mobileBackButton" type="button">Atrás</button></div><section class="current-list-indicator card" id="currentListIndicator">
+<main class="container app-layout sectioned-layout"><aside aria-label="Navegación principal de Cuenta Clara" class="section-nav"><section class="card section-nav-card"><div class="section-nav-title"><p class="eyebrow">Menú</p><h2>¿Qué quieres hacer?</h2><p>Trabaja por secciones para ver solo lo necesario.</p></div><nav aria-label="Secciones de la app" class="section-nav-list"><button class="section-nav-button is-active" data-app-section="home" type="button"><strong>Inicio</strong><span>Elegir tipo de cuenta</span></button><button class="section-nav-button" data-app-section="people" type="button"><strong>Personas</strong><span>Agregar participantes</span></button><button class="section-nav-button" data-app-section="expenses" type="button"><strong>Gastos</strong><span>Agregar productos o boleta</span></button><button class="section-nav-button" data-app-section="summary" type="button"><strong>Resumen</strong><span>Ver totales</span></button><button class="section-nav-button" data-app-section="payments" type="button"><strong>Pagos</strong><span>Transferencias y compartir</span></button><button class="section-nav-button" data-app-section="history" type="button"><strong>Historial</strong><span>Tus cuentas guardadas</span></button><button class="section-nav-button" data-app-section="recurring" type="button"><strong>Hogar</strong><span>Cuentas recurrentes</span></button><button class="section-nav-button" data-app-section="shared" type="button"><strong>Compartidas</strong><span>Invitaciones y colaboración</span></button></nav><div class="section-nav-footer"><small>Consejo: usa Inicio como guía y vuelve al resumen cuando necesites revisar montos.</small></div></section></aside><section class="workspace section-workspace"><div class="mobile-screen-header" id="mobileScreenHeader" aria-live="polite"><div><p class="eyebrow" id="mobileScreenEyebrow">Cuenta Clara</p><strong id="mobileScreenTitle">Inicio</strong></div><div class="mobile-screen-actions"><button class="btn btn-light btn-small" id="mobileHomeButton" type="button">Inicio</button><button class="btn btn-light btn-small" id="mobileBackButton" type="button">Atrás</button></div></div><section class="current-list-indicator card" id="currentListIndicator">
 <div>
 <p class="eyebrow">Editando lista</p>
 <h2 id="currentListName">Lista actual</h2>
@@ -73,6 +73,10 @@
 <div class="home-primary-actions">
 <button class="btn btn-primary" id="homeNewBillButton" type="button">Nueva cuenta guiada</button>
 <button class="btn btn-light" data-app-section="history" type="button">Ver historial</button>
+</div>
+<div class="home-recent-block">
+<div class="home-recent-title"><strong>Últimas cuentas</strong><button class="btn btn-light btn-small" data-app-section="history" type="button">Ver todas</button></div>
+<div class="home-recent-list" id="homeRecentBillsList"></div>
 </div>
 </section><section class="mobile-onboarding-card card" id="mobileOnboardingCard">
 <div>
@@ -148,7 +152,7 @@
 <button class="btn btn-light" id="archiveBillButton" type="button">Archivar</button>
 <button class="btn btn-danger-light" id="deleteBillButton" type="button">Eliminar</button>
 </div>
-</section></section><section class="app-section" data-app-section-panel="people" id="appSection-people"><section class="section-page-heading card"><div><p class="eyebrow">Participantes</p><h2>Personas</h2><p class="section-helper">Agrega personas, teléfonos opcionales y estados de pago sin ver el resto de la app.</p></div></section><section class="guide-card card" data-guide-card="people"><div><span class="guide-number">1</span></div><div><strong>Primero agrega a quienes participaron</strong><p>Después selecciona el pagador principal. Sin personas no se puede dividir ningún gasto.</p></div><button class="btn btn-primary btn-small" type="button" data-focus-target="personNameInput">Agregar persona</button></section><section class="grid-two">
+</section></section><section class="app-section ad-protected-zone" data-app-section-panel="people" id="appSection-people"><section class="section-page-heading card"><div><p class="eyebrow">Participantes</p><h2>Personas</h2><p class="section-helper">Agrega personas, teléfonos opcionales y estados de pago sin ver el resto de la app.</p></div></section><section class="guide-card card" data-guide-card="people"><div><span class="guide-number">1</span></div><div><strong>Primero agrega a quienes participaron</strong><p>Después selecciona el pagador principal. Sin personas no se puede dividir ningún gasto.</p></div><button class="btn btn-primary btn-small" type="button" data-focus-target="personNameInput">Agregar persona</button></section><section class="grid-two">
 <section class="card">
 <div class="section-title">
 <div>
@@ -189,7 +193,7 @@
 </section>
 <div class="people-list" id="peopleList"></div>
 </section>
-</section></section><section class="app-section" data-app-section-panel="expenses" id="appSection-expenses"><section class="section-page-heading card"><div><p class="eyebrow">Consumos</p><h2>Gastos</h2><p class="section-helper">Agrega productos, gastos del hogar, boletas y productos rápidos en una vista enfocada.</p></div></section><section class="guide-card card" data-guide-card="expenses"><div><span class="guide-number">2</span></div><div><strong>Luego agrega los consumos</strong><p>Usa “Escribir” para ingresar manualmente o “Escanear boleta” para subir una imagen desde cámara, galería o archivos.</p></div><button class="btn btn-primary btn-small" type="button" data-focus-target="productNameInput">Agregar gasto</button></section><section class="settings-inner-card tip-section-card" id="tipCard">
+</section></section><section class="app-section ad-protected-zone" data-app-section-panel="expenses" id="appSection-expenses"><section class="section-page-heading card"><div><p class="eyebrow">Consumos</p><h2>Gastos</h2><p class="section-helper">Agrega productos, gastos del hogar, boletas y productos rápidos en una vista enfocada.</p></div></section><section class="guide-card card" data-guide-card="expenses"><div><span class="guide-number">2</span></div><div><strong>Luego agrega los consumos</strong><p>Usa “Escribir” para ingresar manualmente o “Escanear boleta” para subir una imagen desde cámara, galería o archivos.</p></div><button class="btn btn-primary btn-small" type="button" data-focus-target="productNameInput">Agregar gasto</button></section><section class="settings-inner-card tip-section-card" id="tipCard">
 <div class="section-title">
 <div>
 <p class="eyebrow">Propina</p>
@@ -363,7 +367,7 @@
 </div>
 <div class="category-totals" id="categoryTotals"></div>
 <div class="product-list" id="productList"></div>
-</section></section><section class="app-section" data-app-section-panel="summary" id="appSection-summary"><section class="section-page-heading card"><div><p class="eyebrow">Totales</p><h2>Resumen</h2><p class="section-helper">Revisa subtotal, propina, total final y estado general de la cuenta.</p></div></section><section class="guide-card card" data-guide-card="summary"><div><span class="guide-number">3</span></div><div><strong>Revisa si el cálculo está correcto</strong><p>Aquí ves subtotal, propina, total final y cuánto queda pendiente por cobrar.</p></div><button class="btn btn-primary btn-small" type="button" data-app-section="payments">Ver pagos</button></section><section class="results-grid results-grid-single">
+</section></section><section class="app-section ad-protected-zone" data-app-section-panel="summary" id="appSection-summary"><section class="section-page-heading card"><div><p class="eyebrow">Totales</p><h2>Resumen</h2><p class="section-helper">Revisa subtotal, propina, total final y estado general de la cuenta.</p></div></section><section class="guide-card card" data-guide-card="summary"><div><span class="guide-number">3</span></div><div><strong>Revisa si el cálculo está correcto</strong><p>Aquí ves subtotal, propina, total final y cuánto queda pendiente por cobrar.</p></div><button class="btn btn-primary btn-small" type="button" data-app-section="payments">Ver pagos</button></section><section class="results-grid results-grid-single">
 <section class="card results-card">
 <div class="section-title">
 <div>
@@ -395,7 +399,7 @@
 </div>
 </div>
 </section>
-</section></section><section class="app-section" data-app-section-panel="payments" id="appSection-payments"><section class="section-page-heading card"><div><p class="eyebrow">Transferencias</p><h2>Pagos</h2><p class="section-helper">Consulta cuánto paga cada persona, quién debe transferir y comparte la cuenta.</p></div></section><section class="guide-card card" data-guide-card="payments"><div><span class="guide-number">4</span></div><div><strong>Comparte el resultado</strong><p>Cuando alguien te transfiera, márcalo como pagado. Los cobros pendientes quedarán visibles abajo para que sea fácil hacer seguimiento.</p></div><button class="btn btn-primary btn-small" type="button" data-open-share="true">Compartir</button></section><section class="card sidebar-payments-panel" id="sidebarPaymentsCard">
+</section></section><section class="app-section ad-protected-zone" data-app-section-panel="payments" id="appSection-payments"><section class="section-page-heading card"><div><p class="eyebrow">Transferencias</p><h2>Pagos</h2><p class="section-helper">Consulta cuánto paga cada persona, quién debe transferir y comparte la cuenta.</p></div></section><section class="guide-card card" data-guide-card="payments"><div><span class="guide-number">4</span></div><div><strong>Comparte el resultado</strong><p>Cuando alguien te transfiera, márcalo como pagado. Los cobros pendientes quedarán visibles abajo para que sea fácil hacer seguimiento.</p></div><button class="btn btn-primary btn-small" type="button" data-open-share="true">Compartir</button></section><section class="card sidebar-payments-panel" id="sidebarPaymentsCard">
 <div class="section-title compact">
 <div>
 <p class="eyebrow">Por persona</p>
@@ -405,6 +409,11 @@
 <div class="sidebar-total-pill">
 <span>Total final</span>
 <strong id="sidebarGrandTotalOutput">$0</strong>
+</div>
+<div class="payment-overview-grid" id="paymentOverviewGrid">
+<div><span>Pendiente</span><strong id="paymentPendingTotalOutput">$0</strong></div>
+<div><span>Pagado</span><strong id="paymentPaidTotalOutput">$0</strong></div>
+<div><span>Faltan</span><strong id="paymentPendingPeopleOutput">0</strong></div>
 </div>
 <div class="profile-payer-summary hidden" id="profilePayerSummary">
 <div class="profile-payer-heading">
@@ -587,7 +596,7 @@
 <button class="btn btn-light btn-small" id="mobileAddProductButton" type="button">Agregar</button>
 <button class="btn btn-primary btn-small" id="mobileShareButton" type="button">Compartir</button>
 </div>
-<nav class="mobile-bottom-nav" aria-label="Acciones principales">
+<nav class="mobile-bottom-nav ad-protected-zone" aria-label="Acciones principales">
 <button class="mobile-bottom-nav-button" data-app-section="people" type="button"><span class="mobile-bottom-icon">👥</span><strong>Personas</strong></button>
 <button class="mobile-bottom-nav-button" data-app-section="expenses" type="button"><span class="mobile-bottom-icon">＋</span><strong>Gastos</strong></button>
 <button class="mobile-bottom-nav-button" data-app-section="summary" type="button"><span class="mobile-bottom-icon">Σ</span><strong>Resumen</strong></button>
@@ -733,6 +742,18 @@
 <div class="mini-ranking" id="statTopPeople"></div>
 </div>
 <div class="stats-box">
+<strong>Pendientes por persona</strong>
+<div class="mini-ranking actionable-list" id="statPendingPeople"></div>
+</div>
+<div class="stats-box stats-box-wide">
+<strong>A quién le debo</strong>
+<div class="profile-debt-list" id="profileOweList"></div>
+</div>
+<div class="stats-box stats-box-wide">
+<strong>Quién me debe</strong>
+<div class="profile-debt-list" id="profileOwedList"></div>
+</div>
+<div class="stats-box">
 <strong>Actividad</strong>
 <p class="helper-text" id="statLastActivity">Sin actividad registrada.</p>
 </div>
@@ -783,7 +804,7 @@
 <input autocomplete="new-password" id="registerPasswordInput" placeholder="Mínimo 4 caracteres" type="password"/>
 <label class="auth-check">
 <input checked="" id="importGuestDataCheckbox" type="checkbox"/>
-<span>Guardar mis cuentas actuales de invitado en mi cuenta Supabase</span>
+<span>Guardar mis cuentas actuales de invitado en mi cuenta</span>
 </label>
 <button class="btn btn-primary" type="submit">Crear cuenta</button>
 </form>
@@ -793,7 +814,7 @@
 <button class="btn btn-light" id="continueGuestButton" type="button">Continuar como invitado</button>
 </div>
 <p class="auth-note">
-          En esta versión, las cuentas de usuario usan Supabase. El modo invitado sigue guardando datos solo en este navegador.
+          Si inicias sesión, tus cuentas se guardan en la nube. El modo invitado sigue guardando datos solo en este navegador.
         </p>
 </div>
 </section>
@@ -866,7 +887,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=11.6"></script>
-<script src="script.js?v=11.6"></script>
+<script src="supabase-config.js?v=11.7"></script>
+<script src="script.js?v=11.7"></script>
 </body>
 </html>

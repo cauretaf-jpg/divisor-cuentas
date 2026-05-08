@@ -1,0 +1,18 @@
+Cuenta Clara v11.7 - Optimización móvil y perfil accionable
+
+Objetivo:
+- Pulir la experiencia móvil antes de incorporar funciones grandes.
+
+Cambios:
+- Botón Inicio visible en encabezado móvil para volver al panel principal desde Personas, Gastos, Resumen, Pagos e Historial.
+- Estados de sincronización con lenguaje profesional: Sincronizado, Guardando, Guardado en la nube, Guardado local o Sin conexión.
+- Inicio móvil con últimas cuentas recientes y resumen más útil.
+- Historial con tarjetas más claras, estado, tipo de cuenta, pendientes y acceso directo a Pagos.
+- Pagos con resumen visual de pendiente, pagado y personas faltantes.
+- Perfil/estadísticas con Pendientes por persona, A quién le debo y Quién me debe, con acceso directo a la cuenta en Pagos.
+- Textos visibles sin nombres técnicos de base de datos para usuario común.
+- Zonas funcionales preparadas para proteger el flujo de anuncios invasivos desde configuración de AdSense.
+
+Validaciones:
+- Revisar script.js y profile.js con node --check.
+- Probar flujo móvil: Inicio -> Personas -> Gastos -> Resumen -> Pagos -> Inicio.

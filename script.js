@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V11.6 cargada');
+console.info('Cuenta Clara V11.7 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -81,6 +81,7 @@ const dom = {
   mobileScreenTitle: document.querySelector('#mobileScreenTitle'),
   mobileScreenEyebrow: document.querySelector('#mobileScreenEyebrow'),
   mobileBackButton: document.querySelector('#mobileBackButton'),
+  mobileHomeButton: document.querySelector('#mobileHomeButton'),
   guidedNextTitle: document.querySelector('#guidedNextTitle'),
   guidedNextHelp: document.querySelector('#guidedNextHelp'),
   smartActionButton: document.querySelector('#smartActionButton'),
@@ -101,6 +102,7 @@ const dom = {
   homeDashboardPendingPeopleOutput: document.querySelector('#homeDashboardPendingPeopleOutput'),
   continueActiveBillButton: document.querySelector('#continueActiveBillButton'),
   homeNewBillButton: document.querySelector('#homeNewBillButton'),
+  homeRecentBillsList: document.querySelector('#homeRecentBillsList'),
 
   historySearchInput: document.querySelector('#historySearchInput'),
   historyFilterSelect: document.querySelector('#historyFilterSelect'),
@@ -233,6 +235,9 @@ const dom = {
   profilePayerOwnOutput: document.querySelector('#profilePayerOwnOutput'),
   profilePayerReceivableOutput: document.querySelector('#profilePayerReceivableOutput'),
   profilePayerDebtorsList: document.querySelector('#profilePayerDebtorsList'),
+  paymentPendingTotalOutput: document.querySelector('#paymentPendingTotalOutput'),
+  paymentPaidTotalOutput: document.querySelector('#paymentPaidTotalOutput'),
+  paymentPendingPeopleOutput: document.querySelector('#paymentPendingPeopleOutput'),
   transferList: document.querySelector('#transferList'),
   transferCard: document.querySelector('#transferCard'),
 
@@ -289,6 +294,9 @@ const dom = {
   statOutingBills: document.querySelector('#statOutingBills'),
   statTopCategories: document.querySelector('#statTopCategories'),
   statTopPeople: document.querySelector('#statTopPeople'),
+  statPendingPeople: document.querySelector('#statPendingPeople'),
+  profileOweList: document.querySelector('#profileOweList'),
+  profileOwedList: document.querySelector('#profileOwedList'),
   statLastActivity: document.querySelector('#statLastActivity'),
 
   shareModal: document.querySelector('#shareModal'),
@@ -371,25 +379,23 @@ function getCloudSyncErrorMessage(error) {
   const message = rawMessage.toLowerCase();
 
   if (code === '42P01' || message.includes('app_states') || message.includes('does not exist') || message.includes('relation')) {
-    return 'La tabla app_states no está disponible. Ejecuta sql/01-supabase-app-state.sql en Supabase → SQL Editor y vuelve a probar.';
+    return 'La sincronización en la nube todavía no está configurada. Tus cambios quedaron guardados en este dispositivo.';
   }
 
   if (code === '42501' || message.includes('row-level security') || message.includes('permission denied') || message.includes('policy')) {
-    return 'Supabase está bloqueando el guardado por permisos/RLS. Vuelve a ejecutar sql/01-supabase-app-state.sql para recrear las políticas de app_states.';
+    return 'La nube no permitió guardar los cambios en este momento. Tus datos quedaron protegidos en este dispositivo.';
   }
 
   if (message.includes('jwt') || message.includes('not authenticated') || message.includes('auth')) {
-    return 'La sesión de Supabase no está activa. Cierra sesión, vuelve a ingresar y presiona Guardar ahora.';
+    return 'Tu sesión no está activa. Vuelve a ingresar y presiona Guardar ahora.';
   }
 
-  return rawMessage
-    ? `Los cambios siguen guardados localmente. Detalle: ${rawMessage}`
-    : 'Los cambios siguen guardados localmente. Revisa conexión, sesión de usuario y la tabla app_states en Supabase.';
+  return 'Los cambios siguen guardados localmente. Revisa tu conexión o vuelve a intentar más tarde.';
 }
 
 function notifyCloudSyncError(title, error) {
   console.error(error);
-  setSyncStatus('error', 'Guardado local');
+  setSyncStatus('error', 'Guardado solo en este dispositivo');
 
   if (!cloudSyncErrorNotified) {
     showNotice(title, getCloudSyncErrorMessage(error));
@@ -521,7 +527,7 @@ async function loadCloudState() {
   isCloudLoading = true;
 
   try {
-    setSyncStatus('saving', 'Cargando nube...');
+    setSyncStatus('saving', 'Cargando datos...');
 
     const { data, error } = await supabaseClient
       .from('app_states')
@@ -550,7 +556,7 @@ async function loadCloudState() {
     localStorage.setItem(activeStorageKey, JSON.stringify(state));
 
     isCloudLoading = false;
-    await saveCloudStateNow({ force: true, message: 'Creando respaldo...' });
+    await saveCloudStateNow({ force: true, message: 'Guardando respaldo...' });
     return true;
   } catch (error) {
     notifyCloudSyncError('Error de sincronización', error);
@@ -659,6 +665,160 @@ function getUsageStats() {
   return stats;
 }
 
+function getBillPendingTransferItems(bill) {
+  const calculation = calculateBill(bill);
+  const payer = bill.people.find((person) => person.id === bill.payerId);
+
+  if (!payer) {
+    return [];
+  }
+
+  return bill.people
+    .filter((person) => person.id !== payer.id)
+    .map((person) => ({
+      billId: bill.id,
+      billName: bill.name || 'Cuenta sin nombre',
+      payer,
+      person,
+      amount: calculation.finalTotals[person.id] || 0,
+      status: getBillStatus(bill),
+      updatedAt: bill.updatedAt || bill.createdAt,
+    }))
+    .filter((item) => item.amount > 0 && !item.person.paid);
+}
+
+function getProfileDebtOverview() {
+  const selfInfo = getSelfParticipantInfo();
+  const result = {
+    owe: [],
+    owed: [],
+    pendingByPerson: [],
+  };
+
+  if (!selfInfo || !Array.isArray(state?.bills)) {
+    return result;
+  }
+
+  const grouped = new Map();
+
+  for (const bill of state.bills) {
+    if (bill.archived || !Array.isArray(bill.people) || bill.people.length === 0) {
+      continue;
+    }
+
+    const selfPerson = findSelfPerson(bill, selfInfo);
+    const payer = bill.people.find((person) => person.id === bill.payerId);
+
+    if (!selfPerson || !payer) {
+      continue;
+    }
+
+    const transfers = getBillPendingTransferItems(bill);
+
+    if (selfPerson.id === payer.id) {
+      for (const item of transfers) {
+        result.owed.push({
+          ...item,
+          direction: 'owed',
+          title: `${item.person.name} te debe`,
+          subtitle: item.billName,
+        });
+      }
+    } else {
+      const mine = transfers.find((item) => item.person.id === selfPerson.id);
+      if (mine) {
+        result.owe.push({
+          ...mine,
+          direction: 'owe',
+          title: `Le debes a ${payer.name}`,
+          subtitle: mine.billName,
+        });
+      }
+    }
+  }
+
+  for (const item of [...result.owe, ...result.owed]) {
+    const key = item.direction === 'owed' ? item.person.name : item.payer.name;
+    const current = grouped.get(key) || { label: key, amount: 0, count: 0, billId: item.billId, direction: item.direction };
+    current.amount += item.amount;
+    current.count += 1;
+    grouped.set(key, current);
+  }
+
+  result.owe.sort((a, b) => b.amount - a.amount);
+  result.owed.sort((a, b) => b.amount - a.amount);
+  result.pendingByPerson = [...grouped.values()].sort((a, b) => b.amount - a.amount);
+  return result;
+}
+
+function openBillFromProfileStats(billId, section = 'payments') {
+  const bill = state?.bills?.find((item) => item.id === billId);
+
+  if (!bill) {
+    showToast('No encontré esa cuenta.');
+    return;
+  }
+
+  state.activeBillId = bill.id;
+  editingProductId = null;
+  accountSettingsPinnedOpenBillId = '';
+  saveState();
+  render();
+  closeAuthModal();
+  setAppSection(section, { scroll: false });
+  showToast(`Abrí ${bill.name || 'la cuenta'} en Pagos.`);
+}
+
+function renderProfileDebtList(container, items, emptyText) {
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!items.length) {
+    container.appendChild(emptyMessage(emptyText));
+    return;
+  }
+
+  for (const item of items.slice(0, 8)) {
+    const button = document.createElement('button');
+    button.className = `profile-debt-row ${item.direction === 'owe' ? 'is-owe' : 'is-owed'}`;
+    button.type = 'button';
+    button.innerHTML = `
+      <span>
+        <strong>${escapeHtml(item.title)}</strong>
+        <small>${escapeHtml(item.subtitle)} · tocar para abrir Pagos</small>
+      </span>
+      <strong>${formatCurrency(item.amount)}</strong>
+    `;
+    button.addEventListener('click', () => openBillFromProfileStats(item.billId, 'payments'));
+    container.appendChild(button);
+  }
+}
+
+function renderPendingPeopleStats(container, entries) {
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!entries.length) {
+    const empty = document.createElement('p');
+    empty.className = 'helper-text';
+    empty.textContent = 'No tienes pendientes vinculados a tu perfil.';
+    container.appendChild(empty);
+    return;
+  }
+
+  for (const entry of entries.slice(0, 6)) {
+    const button = document.createElement('button');
+    button.className = `mini-ranking-row mini-ranking-action ${entry.direction === 'owe' ? 'is-owe' : 'is-owed'}`;
+    button.type = 'button';
+    button.innerHTML = `
+      <span>${escapeHtml(entry.label)}<small>${entry.count} cuenta${entry.count === 1 ? '' : 's'}</small></span>
+      <strong>${formatCurrency(entry.amount)}</strong>
+    `;
+    button.addEventListener('click', () => openBillFromProfileStats(entry.billId, 'payments'));
+    container.appendChild(button);
+  }
+}
+
 function renderProfilePanels() {
   const isUser = currentSession.mode === 'user';
 
@@ -710,6 +870,11 @@ function renderProfilePanels() {
 
   renderMiniRanking(dom.statTopCategories, stats.topCategories, 'Sin categorías todavía.');
   renderMiniRanking(dom.statTopPeople, stats.topPeople, 'Sin personas todavía.');
+
+  const debtOverview = getProfileDebtOverview();
+  renderPendingPeopleStats(dom.statPendingPeople, debtOverview.pendingByPerson);
+  renderProfileDebtList(dom.profileOweList, debtOverview.owe, 'No tienes pagos pendientes por hacer.');
+  renderProfileDebtList(dom.profileOwedList, debtOverview.owed, 'No tienes cobros pendientes vinculados a tu perfil.');
 }
 
 async function saveProfileFromModal() {
@@ -754,7 +919,7 @@ async function saveProfileFromModal() {
     });
 
     if (error) {
-      showNotice('Perfil guardado localmente', `No se pudo actualizar metadata en Supabase: ${error.message}`);
+      showNotice('Perfil guardado localmente', 'No se pudo actualizar el perfil en la nube en este momento.');
     }
   }
 
@@ -780,7 +945,7 @@ function setSyncStatus(status, message = '') {
   dom.syncStatusBadge.classList.toggle('hidden', !isUser);
 
   if (!isUser) {
-    dom.syncStatusBadge.textContent = 'Local';
+    dom.syncStatusBadge.textContent = 'Modo invitado';
     dom.syncStatusBadge.className = 'sync-status-badge hidden';
     return;
   }
@@ -794,13 +959,13 @@ function setSyncStatus(status, message = '') {
   }
 
   if (status === 'saving') {
-    dom.syncStatusBadge.textContent = 'Sincronizando...';
+    dom.syncStatusBadge.textContent = 'Guardando...';
   } else if (status === 'saved') {
     dom.syncStatusBadge.textContent = 'Sincronizado';
   } else if (status === 'error') {
-    dom.syncStatusBadge.textContent = 'Guardado local';
+    dom.syncStatusBadge.textContent = 'Guardado solo en este dispositivo';
   } else {
-    dom.syncStatusBadge.textContent = 'Local';
+    dom.syncStatusBadge.textContent = 'Modo invitado';
   }
 }
 
@@ -856,7 +1021,7 @@ async function savePublicProfileFromMain() {
     if (error) {
       console.warn('No se pudo actualizar public_profiles:', error);
       if (String(error.message || '').toLowerCase().includes('public_profiles')) {
-        showNotice('Perfil público no disponible', 'Ejecuta sql/02-supabase-social.sql en Supabase para activar búsqueda y amigos entre usuarios.');
+        showNotice('Perfil público no disponible', 'La búsqueda de amigos todavía no está configurada para esta cuenta.');
       }
     }
   } catch (error) {
@@ -887,7 +1052,7 @@ function renderAuthUI() {
 
     if (isUser) {
       dom.authSessionTitle.textContent = `Hola, ${displayName}`;
-      dom.authSessionDescription.textContent = `Tus cuentas se están sincronizando con Supabase para ${currentSession.email}. ${lastCloudSyncAt ? 'Última sincronización: ' + new Date(lastCloudSyncAt).toLocaleString('es-CL') : ''}`;
+      dom.authSessionDescription.textContent = `Tus cuentas se guardan en la nube para ${currentSession.email}. ${lastCloudSyncAt ? 'Última sincronización: ' + new Date(lastCloudSyncAt).toLocaleString('es-CL') : ''}`;
       renderProfilePanels();
     }
   }
@@ -1609,7 +1774,7 @@ async function registerLocalUser(event) {
   event.preventDefault();
 
   if (!hasSupabaseClient()) {
-    showNotice('Supabase no disponible', 'No se pudo cargar la conexión a Supabase.');
+    showNotice('Nube no disponible', 'No se pudo cargar la conexión de usuario. Puedes seguir en modo invitado.');
     return;
   }
 
@@ -1651,7 +1816,7 @@ async function registerLocalUser(event) {
   const sessionUser = data?.session?.user || data?.user;
 
   if (!data?.session) {
-    showNotice('Cuenta creada', 'Supabase creó el usuario, pero requiere confirmación de correo antes de iniciar sesión.');
+    showNotice('Cuenta creada', 'Revisa tu correo para confirmar la cuenta antes de iniciar sesión.');
     return;
   }
 
@@ -1684,7 +1849,7 @@ async function loginLocalUser(event) {
   event.preventDefault();
 
   if (!hasSupabaseClient()) {
-    showNotice('Supabase no disponible', 'No se pudo cargar la conexión a Supabase.');
+    showNotice('Nube no disponible', 'No se pudo cargar la conexión de usuario. Puedes seguir en modo invitado.');
     return;
   }
 
@@ -1722,7 +1887,7 @@ async function loginLocalUser(event) {
   saveState();
   render();
   closeAuthModal();
-  showToast('Sesión iniciada con Supabase.');
+  showToast('Sesión iniciada.');
 }
 
 function switchToGuestMode() {
@@ -2533,6 +2698,14 @@ function updateMobileSectionChrome(section) {
     dom.mobileScreenHeader.classList.toggle('is-visible', section !== 'home');
   }
 
+  if (dom.mobileHomeButton) {
+    dom.mobileHomeButton.classList.toggle('hidden', section === 'home');
+  }
+
+  if (dom.mobileBackButton) {
+    dom.mobileBackButton.textContent = previousAppSection && previousAppSection !== 'home' && previousAppSection !== section ? 'Atrás' : 'Volver';
+  }
+
   document.body.dataset.activeSection = section;
 }
 
@@ -2705,7 +2878,7 @@ function renderGuidedExperience() {
 
 function getHomeSyncLabel() {
   if (currentSession.mode !== 'user') {
-    return 'Guardado local';
+    return 'Guardado en este dispositivo';
   }
 
   if (cloudSyncStatus === 'saving') return 'Guardando...';
@@ -2743,8 +2916,8 @@ function renderMobileHomeDashboard() {
 
   dom.homeGreetingOutput.textContent = currentSession.mode === 'user' ? `Hola, ${displayName}` : 'Hola, invitado';
   dom.homeSummaryMetaOutput.textContent = currentSession.mode === 'user'
-    ? 'Tus cuentas se sincronizan con Supabase cuando haces cambios.'
-    : 'Estás usando el modo invitado. Tus datos quedan en este dispositivo.';
+    ? 'Guardado en la nube cuando haces cambios.'
+    : 'Modo invitado: guardado solo en este dispositivo.';
   dom.homeDashboardSyncOutput.textContent = getHomeSyncLabel();
   dom.homeDashboardSyncOutput.classList.toggle('is-error', cloudSyncStatus === 'error');
   dom.homeDashboardSyncOutput.classList.toggle('is-saving', cloudSyncStatus === 'saving');
@@ -2757,6 +2930,51 @@ function renderMobileHomeDashboard() {
 
   if (dom.continueActiveBillButton) {
     dom.continueActiveBillButton.textContent = getSmartActionCopy().button;
+  }
+
+  renderHomeRecentBills();
+}
+
+function renderHomeRecentBills() {
+  if (!dom.homeRecentBillsList || !state?.bills) {
+    return;
+  }
+
+  const recentBills = [...state.bills]
+    .filter((bill) => !bill.archived)
+    .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
+    .slice(0, 3);
+
+  dom.homeRecentBillsList.innerHTML = '';
+
+  if (recentBills.length === 0) {
+    dom.homeRecentBillsList.appendChild(emptyMessage('Todavía no tienes cuentas recientes.'));
+    return;
+  }
+
+  for (const bill of recentBills) {
+    const calc = calculateBill(bill);
+    const pendingPeople = bill.people.filter((person) => !person.paid && (calc.finalTotals[person.id] || 0) > 0).length;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `home-recent-row ${bill.id === state.activeBillId ? 'is-active' : ''}`;
+    button.innerHTML = `
+      <span>
+        <strong>${escapeHtml(bill.name || 'Cuenta sin nombre')}</strong>
+        <small>${getBillModeLabel(bill.mode)} · ${pendingPeople} pendiente${pendingPeople === 1 ? '' : 's'} · ${formatDate(bill.updatedAt || bill.createdAt)}</small>
+      </span>
+      <strong>${formatCurrency(calc.grandTotal)}</strong>
+    `;
+    button.addEventListener('click', () => {
+      state.activeBillId = bill.id;
+      editingProductId = null;
+      accountSettingsPinnedOpenBillId = '';
+      saveState();
+      render();
+      setAppSection('home', { scroll: false });
+      showToast('Cuenta seleccionada.');
+    });
+    dom.homeRecentBillsList.appendChild(button);
   }
 }
 
@@ -3734,9 +3952,9 @@ async function fetchSharedAccounts() {
   } catch (error) {
     console.error(error);
     if (isMissingSharedSqlError(error)) {
-      showNotice('Cuentas compartidas no disponibles', 'Ejecuta sql/03-supabase-shared-accounts.sql en Supabase para activar invitaciones y edición compartida.');
+      showNotice('Cuentas compartidas no disponibles', 'La colaboración todavía no está configurada para esta cuenta.');
     } else {
-      showNotice('No se pudieron cargar compartidas', 'No pude actualizar tus cuentas compartidas. Revisa conexión, sesión de usuario o políticas RLS de Supabase.');
+      showNotice('No se pudieron cargar compartidas', 'No pude actualizar tus cuentas compartidas. Revisa conexión o sesión de usuario.');
     }
   } finally {
     sharedUiBusy = false;
@@ -3876,7 +4094,7 @@ async function inviteUserToSharedAccount() {
     showToast(`Invitación enviada a ${profile.nick || profile.nombre || profile.email}.`);
   } catch (error) {
     console.error(error);
-    showNotice('No se pudo invitar', 'No pude enviar la invitación. Revisa que la persona exista, que no esté repetida y que Supabase esté conectado.');
+    showNotice('No se pudo invitar', 'No pude enviar la invitación. Revisa que la persona exista, que no esté repetida y que la nube esté conectada.');
   }
 }
 
@@ -4023,17 +4241,21 @@ function renderBillList() {
     const statusLabel = status === 'paid' ? 'Pagada' : status === 'archived' ? 'Archivada' : 'Pendiente';
     const row = document.createElement('article');
     row.className = `history-bill-card ${bill.id === state.activeBillId ? 'active' : ''} ${bill.archived ? 'archived' : ''}`;
+    const pendingPeople = bill.people.filter((person) => !person.paid && (calculation.finalTotals[person.id] || 0) > 0).length;
+    const productCount = bill.mode === 'quick' ? (Number(bill.quickTotal || 0) > 0 ? 1 : 0) : bill.products.length;
     row.innerHTML = `
       <button class="bill-item history-bill-open" type="button" aria-label="Abrir ${escapeHtml(bill.name)}">
-        <div>
+        <div class="history-bill-main">
+          <span class="history-status-line"><em class="history-status-badge is-${status}">${statusLabel}</em><em>${escapeHtml(getBillModeLabel(bill.mode))}</em></span>
           <strong>${escapeHtml(bill.name)}</strong>
-          <span>${formatCurrency(calculation.grandTotal)} · ${bill.people.length} personas · ${statusLabel}</span>
-          <span>${formatDate(bill.updatedAt)}</span>
+          <span>${formatCurrency(calculation.grandTotal)} · ${bill.people.length} persona${bill.people.length === 1 ? '' : 's'} · ${productCount} gasto${productCount === 1 ? '' : 's'}</span>
+          <span>${pendingPeople > 0 ? `${pendingPeople} pendiente${pendingPeople === 1 ? '' : 's'} por pagar · ` : ''}${formatDate(bill.updatedAt)}</span>
         </div>
-        <span class="bill-count">${bill.mode === 'quick' ? 'R' : bill.products.length}</span>
+        <span class="bill-count">${pendingPeople > 0 ? pendingPeople : '✓'}</span>
       </button>
       <div class="history-bill-actions" aria-label="Acciones de ${escapeHtml(bill.name)}">
-        <button class="btn btn-light btn-small" data-action="edit" type="button">Editar</button>
+        <button class="btn btn-primary btn-small" data-action="edit" type="button">Editar gastos</button>
+        <button class="btn btn-light btn-small" data-action="payments" type="button">Pagos</button>
         <button class="btn btn-danger-light btn-small" data-action="delete" type="button">Eliminar</button>
       </div>
     `;
@@ -4049,6 +4271,10 @@ function renderBillList() {
 
     row.querySelector('[data-action="edit"]').addEventListener('click', () => {
       editBillFromHistory(bill.id);
+    });
+
+    row.querySelector('[data-action="payments"]').addEventListener('click', () => {
+      openBillFromProfileStats(bill.id, 'payments');
     });
 
     row.querySelector('[data-action="delete"]').addEventListener('click', () => {
@@ -4818,6 +5044,12 @@ function renderTotals() {
   if (dom.sidebarGrandTotalOutput) dom.sidebarGrandTotalOutput.textContent = formatCurrency(calculation.grandTotal);
   dom.paidTotalOutput.textContent = formatCurrency(calculation.paidTotal);
   dom.pendingTotalOutput.textContent = formatCurrency(calculation.pendingTotal);
+  if (dom.paymentPendingTotalOutput) dom.paymentPendingTotalOutput.textContent = formatCurrency(calculation.pendingTotal);
+  if (dom.paymentPaidTotalOutput) dom.paymentPaidTotalOutput.textContent = formatCurrency(calculation.paidTotal);
+  if (dom.paymentPendingPeopleOutput) {
+    const pendingPeople = bill.people.filter((person) => !person.paid && (calculation.finalTotals[person.id] || 0) > 0).length;
+    dom.paymentPendingPeopleOutput.textContent = String(pendingPeople);
+  }
   dom.mobileTotalOutput.textContent = formatCurrency(calculation.grandTotal);
 
   dom.personResults.innerHTML = '';
@@ -4836,7 +5068,7 @@ function renderTotals() {
     row.innerHTML = `
       <div class="payment-person-main">
         <span class="payment-person-name">${escapeHtml(person.name)}</span>
-        <small class="payment-person-status">${person.paid ? 'Pago registrado' : 'Pendiente de pago'}</small>
+        <small class="payment-person-status">${person.paid ? 'Pago registrado' : (bill.payerId && person.id !== bill.payerId ? `Debe transferir a ${(bill.people.find((p) => p.id === bill.payerId) || {}).name || 'pagador'}` : 'Pendiente de pago')}</small>
       </div>
       <div class="result-actions payment-actions">
         <strong>${formatCurrency(amount)}</strong>
@@ -6982,7 +7214,7 @@ dom.saveProfileButton && dom.saveProfileButton.addEventListener('click', savePro
 dom.savePreferencesButton && dom.savePreferencesButton.addEventListener('click', saveProfilePreferences);
 dom.syncNowButton && dom.syncNowButton.addEventListener('click', async () => {
   const saved = await saveCloudStateNow({ force: true, message: 'Guardando...' });
-  showToast(saved ? 'Guardado en Supabase.' : 'No se pudo guardar en Supabase. Quedó guardado localmente.');
+  showToast(saved ? 'Guardado en la nube.' : 'No se pudo guardar en la nube. Quedó guardado localmente.');
 });
 
 dom.installAppButton && dom.installAppButton.addEventListener('click', installApp);
@@ -7014,9 +7246,11 @@ dom.sectionNavButtons?.forEach((button) => {
   button.addEventListener('click', () => setAppSection(button.dataset.appSection));
 });
 
+dom.mobileHomeButton?.addEventListener('click', () => setAppSection('home', { scroll: false }));
+
 dom.mobileBackButton?.addEventListener('click', () => {
   const targetSection = previousAppSection && previousAppSection !== currentAppSection ? previousAppSection : 'home';
-  setAppSection(targetSection, { fromBack: true });
+  setAppSection(targetSection, { fromBack: true, scroll: false });
 });
 
 dom.guidedChoiceButtons?.forEach((button) => {
