@@ -6760,3 +6760,97 @@ body.simple-mode .section-nav-button[data-app-section="shared"] {
     text-align: left;
   }
 }
+
+
+/* V11.8: modo usuario nuevo y plantillas de cuenta */
+.first-use-card {
+  display: grid;
+  gap: 16px;
+  border-color: color-mix(in srgb, var(--primary) 26%, var(--border));
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 14%, transparent), transparent 34%),
+    var(--surface);
+}
+
+.first-use-card.hidden { display: none !important; }
+
+.first-use-content h2 { margin-bottom: 6px; }
+
+.first-use-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.first-use-steps > div {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 80%, var(--surface-soft));
+}
+
+.first-use-steps span {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 1000;
+}
+
+.first-use-steps strong {
+  font-size: 0.95rem;
+}
+
+.first-use-steps small {
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.first-use-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.template-intro {
+  margin-bottom: 12px;
+}
+
+.template-choice-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.guided-choice[data-template="restaurant"]::before { content: "🍽"; }
+.guided-choice[data-template="supermarket"]::before { content: "🛒"; }
+.guided-choice[data-template="streaming"]::before { content: "🎬"; }
+.guided-choice[data-template="trip"]::before { content: "✈️"; }
+.guided-choice[data-template="home"]::before { content: "🏠"; }
+.guided-choice[data-template="quick"]::before { content: "⚡"; }
+.guided-choice[data-template="custom"]::before { content: "✨"; }
+
+@media (max-width: 1040px) {
+  .template-choice-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .first-use-steps,
+  .template-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .first-use-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .first-use-actions .btn {
+    width: 100%;
+  }
+}

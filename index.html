@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=11.7" rel="stylesheet"/>
+<link href="styles.css?v=11.8" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -78,6 +78,23 @@
 <div class="home-recent-title"><strong>Últimas cuentas</strong><button class="btn btn-light btn-small" data-app-section="history" type="button">Ver todas</button></div>
 <div class="home-recent-list" id="homeRecentBillsList"></div>
 </div>
+</section><section class="first-use-card card hidden" id="firstUseCard">
+<div class="first-use-content">
+<p class="eyebrow">Primer uso</p>
+<h2>Bienvenido a Cuenta Clara</h2>
+<p class="section-helper">Sigue un flujo simple: crea una cuenta, agrega personas, registra gastos y revisa quién debe pagar.</p>
+</div>
+<div class="first-use-steps" aria-label="Primeros pasos sugeridos">
+<div><span>1</span><strong>Crear</strong><small>Elige una plantilla.</small></div>
+<div><span>2</span><strong>Personas</strong><small>Agrega participantes.</small></div>
+<div><span>3</span><strong>Gastos</strong><small>Manual o boleta.</small></div>
+<div><span>4</span><strong>Resumen</strong><small>Comparte el resultado.</small></div>
+</div>
+<div class="first-use-actions">
+<button class="btn btn-primary" id="startFirstBillButton" type="button">Crear mi primera cuenta</button>
+<button class="btn btn-light" id="firstUseExampleButton" type="button">Probar con ejemplo</button>
+<button class="btn btn-light" id="dismissFirstUseButton" type="button">Entendido</button>
+</div>
 </section><section class="mobile-onboarding-card card" id="mobileOnboardingCard">
 <div>
 <p class="eyebrow">Guía rápida</p>
@@ -101,18 +118,37 @@
 <h2>Nueva cuenta guiada</h2>
 </div>
 </div>
-<div class="guided-choice-grid">
-<button class="guided-choice" data-guided-mode="detailed" type="button">
-<strong>Dividir una salida</strong>
-<span>Crea una cuenta nueva para restaurant, bar, propina y productos compartidos.</span>
+<div class="template-intro">
+<p class="section-helper">Elige una plantilla para que la app prepare el nombre, tipo de cuenta y opciones iniciales.</p>
+</div>
+<div class="guided-choice-grid template-choice-grid">
+<button class="guided-choice" data-template="restaurant" type="button">
+<strong>Restaurante</strong>
+<span>Propina activa, productos compartidos y resumen para WhatsApp.</span>
 </button>
-<button class="guided-choice" data-guided-mode="home" type="button">
-<strong>Cuentas del hogar</strong>
-<span>Crea una cuenta nueva para luz, agua, internet, supermercado o streaming.</span>
+<button class="guided-choice" data-template="supermarket" type="button">
+<strong>Supermercado</strong>
+<span>Compras del hogar o grupo, sin propina y con categorías de casa.</span>
 </button>
-<button class="guided-choice" data-guided-mode="quick" type="button">
+<button class="guided-choice" data-template="streaming" type="button">
+<strong>Streaming</strong>
+<span>Servicios mensuales, partes distintas y pagos recurrentes más adelante.</span>
+</button>
+<button class="guided-choice" data-template="trip" type="button">
+<strong>Viaje</strong>
+<span>Transporte, comida, alojamiento y gastos compartidos por etapas.</span>
+</button>
+<button class="guided-choice" data-template="home" type="button">
+<strong>Hogar</strong>
+<span>Luz, agua, internet, gastos comunes y cuentas mensuales.</span>
+</button>
+<button class="guided-choice" data-template="quick" type="button">
 <strong>Cuenta rápida</strong>
-<span>Crea una cuenta nueva con total único, personas y reparto simple.</span>
+<span>Un total único dividido entre las personas agregadas.</span>
+</button>
+<button class="guided-choice" data-template="custom" type="button">
+<strong>Personalizada</strong>
+<span>Empieza limpia y ajusta la cuenta a tu caso.</span>
 </button>
 <button class="guided-choice" data-app-section="history" type="button">
 <strong>Ver mis cuentas anteriores</strong>
@@ -887,7 +923,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=11.7"></script>
-<script src="script.js?v=11.7"></script>
+<script src="supabase-config.js?v=11.8"></script>
+<script src="script.js?v=11.8"></script>
 </body>
 </html>

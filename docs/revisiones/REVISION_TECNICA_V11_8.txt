@@ -1,0 +1,19 @@
+Cuenta Clara v11.8 - Modo usuario nuevo y plantillas
+
+Cambios aplicados:
+- Se agregó una tarjeta de primer uso para orientar a usuarios nuevos.
+- Se agregaron acciones claras: Crear mi primera cuenta, Probar con ejemplo y Entendido.
+- Se agregó selector de plantillas: Restaurante, Supermercado, Streaming, Viaje, Hogar, Cuenta rápida y Personalizada.
+- Las plantillas preparan nombre, modo de cuenta, propina y mes según el caso.
+- Se conserva la navegación móvil tipo app creada en v11.4-v11.7.
+- Se mantiene la limpieza de estados de sincronización sin nombres técnicos visibles.
+- Se actualizó cache/service worker a v11.8.
+
+Validaciones:
+- script.js validado con node --check.
+- profile.js validado con node --check.
+- index.html revisado por IDs duplicados: sin duplicados detectados.
+
+Notas:
+- Las plantillas no agregan gastos automáticos con monto para evitar cálculos falsos.
+- La plantilla Streaming queda preparada como cuenta de hogar mensual para avanzar luego a recurrentes.

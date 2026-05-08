@@ -1,8 +1,9 @@
-console.info('Cuenta Clara V11.7 cargada');
+console.info('Cuenta Clara V11.8 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
 const APP_SECTION_KEY = 'cuenta-clara-active-section';
+const ONBOARDING_DISMISSED_KEY = 'cuenta-clara-onboarding-dismissed';
 let activeStorageKey = GUEST_STORAGE_KEY;
 let currentSession = { mode: 'guest', email: '', name: '', userId: '' };
 let cloudSaveTimer = null;
@@ -73,6 +74,11 @@ const dom = {
   guidedStartCard: document.querySelector('#guidedStartCard'),
   guidedChoiceButtons: document.querySelectorAll('[data-guided-mode]'),
   createExampleBillButton: document.querySelector('#createExampleBillButton'),
+  firstUseCard: document.querySelector('#firstUseCard'),
+  startFirstBillButton: document.querySelector('#startFirstBillButton'),
+  firstUseExampleButton: document.querySelector('#firstUseExampleButton'),
+  dismissFirstUseButton: document.querySelector('#dismissFirstUseButton'),
+  templateChoiceButtons: document.querySelectorAll('[data-template]'),
   guideFocusButtons: document.querySelectorAll('[data-focus-target]'),
   guideShareButtons: document.querySelectorAll('[data-open-share]'),
   sectionNavButtons: document.querySelectorAll('[data-app-section]'),
@@ -2193,6 +2199,8 @@ function normalizeState(input) {
       sharedAccountId: String(bill.sharedAccountId || ''),
       sharedRole: String(bill.sharedRole || ''),
       sharedOwnerId: String(bill.sharedOwnerId || ''),
+      templateKey: String(bill.templateKey || ''),
+      templateLabel: String(bill.templateLabel || ''),
       createdAt: bill.createdAt || nowIso(),
       updatedAt: bill.updatedAt || bill.createdAt || nowIso(),
       people,
@@ -2999,6 +3007,69 @@ function getGuidedBillName(mode) {
   return `Salida ${nextNumber}`;
 }
 
+const BILL_TEMPLATES = {
+  restaurant: {
+    label: 'Restaurante',
+    mode: 'detailed',
+    tipPercent: 10,
+    name: () => `Restaurante ${formatShortToday()}`,
+    help: 'Plantilla restaurante creada. Agrega personas, productos y revisa la propina en Gastos.',
+  },
+  supermarket: {
+    label: 'Supermercado',
+    mode: 'home',
+    tipPercent: 0,
+    name: () => `Supermercado ${formatMonthLabel(getCurrentMonthValue())}`,
+    help: 'Plantilla supermercado creada. Agrega personas y gastos del hogar.',
+  },
+  streaming: {
+    label: 'Streaming',
+    mode: 'home',
+    tipPercent: 0,
+    name: () => `Streaming ${formatMonthLabel(getCurrentMonthValue())}`,
+    help: 'Plantilla streaming creada. Agrega servicios como Netflix, Spotify o Max.',
+  },
+  trip: {
+    label: 'Viaje',
+    mode: 'detailed',
+    tipPercent: 0,
+    name: () => `Viaje ${formatShortToday()}`,
+    help: 'Plantilla viaje creada. Agrega transporte, comida, alojamiento y otros gastos.',
+  },
+  home: {
+    label: 'Hogar',
+    mode: 'home',
+    tipPercent: 0,
+    name: () => `Hogar ${formatMonthLabel(getCurrentMonthValue())}`,
+    help: 'Plantilla hogar creada. Registra luz, agua, internet, arriendo o supermercado.',
+  },
+  quick: {
+    label: 'Cuenta rápida',
+    mode: 'quick',
+    tipPercent: 0,
+    name: () => `Cuenta rápida ${formatShortToday()}`,
+    help: 'Cuenta rápida creada. Agrega personas y luego ingresa el monto total.',
+  },
+  custom: {
+    label: 'Personalizada',
+    mode: 'detailed',
+    tipPercent: 10,
+    name: () => getGuidedBillName('detailed'),
+    help: 'Cuenta personalizada creada. Agrega personas y configura los gastos a tu manera.',
+  },
+};
+
+function formatShortToday() {
+  return new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'short' }).format(new Date()).replace('.', '');
+}
+
+function formatMonthLabel(monthValue) {
+  const [year, month] = String(monthValue || getCurrentMonthValue()).split('-').map(Number);
+  const date = new Date(year || new Date().getFullYear(), (month || 1) - 1, 1);
+  const label = new Intl.DateTimeFormat('es-CL', { month: 'long', year: 'numeric' }).format(date);
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 function applyBillModePreset(bill, mode, customName = '') {
   const safeMode = ['detailed', 'home', 'quick'].includes(mode) ? mode : 'detailed';
   bill.mode = safeMode;
@@ -3044,6 +3115,81 @@ function askGuidedBillName(mode) {
   return cleanName || defaultName;
 }
 
+function applyTemplateToBill(bill, templateKey, customName = '') {
+  const template = BILL_TEMPLATES[templateKey] || BILL_TEMPLATES.custom;
+  applyBillModePreset(bill, template.mode, customName || template.name());
+  bill.templateKey = templateKey;
+  bill.templateLabel = template.label;
+  bill.tipPercent = Number(template.tipPercent || 0);
+
+  if (bill.mode === 'home') {
+    bill.homeMonth = getCurrentMonthValue();
+  }
+
+  if (bill.mode === 'quick') {
+    bill.quickTotal = 0;
+  }
+
+  return template;
+}
+
+function createTemplateBill(templateKey) {
+  const template = BILL_TEMPLATES[templateKey] || BILL_TEMPLATES.custom;
+  const defaultName = template.name();
+  const response = prompt('¿Qué nombre quieres darle a esta cuenta?', defaultName);
+
+  if (response === null) {
+    return;
+  }
+
+  const bill = makeDefaultBill();
+  const selectedTemplate = applyTemplateToBill(bill, templateKey, response.trim() || defaultName);
+
+  state.bills.unshift(bill);
+  state.activeBillId = bill.id;
+  editingProductId = null;
+  accountSettingsPinnedOpenBillId = '';
+  localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
+  saveState();
+  render();
+  openInitialAccountSetup(selectedTemplate.help);
+}
+
+function isLikelyFirstUseState() {
+  if (!state || !Array.isArray(state.bills) || state.bills.length !== 1) {
+    return false;
+  }
+
+  const bill = state.bills[0];
+  const hasPeople = Array.isArray(bill.people) && bill.people.length > 0;
+  const hasProducts = Array.isArray(bill.products) && bill.products.length > 0;
+  const hasQuickTotal = Number(bill.quickTotal || 0) > 0;
+  const name = String(bill.name || '').trim().toLowerCase();
+
+  return !hasPeople && !hasProducts && !hasQuickTotal && (!name || name === 'nueva cuenta' || name === 'cuenta sin nombre');
+}
+
+function renderFirstUseOnboarding() {
+  if (!dom.firstUseCard) {
+    return;
+  }
+
+  const dismissed = localStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true';
+  const shouldShow = !dismissed && isLikelyFirstUseState();
+  dom.firstUseCard.classList.toggle('hidden', !shouldShow);
+}
+
+function focusTemplateChoices() {
+  setAppSection('home', { scroll: false });
+  localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
+  dom.guidedStartCard?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function dismissFirstUseOnboarding() {
+  localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
+  renderFirstUseOnboarding();
+}
+
 function createGuidedBill(mode) {
   const listName = askGuidedBillName(mode);
 
@@ -3058,6 +3204,7 @@ function createGuidedBill(mode) {
   state.activeBillId = bill.id;
   editingProductId = null;
   accountSettingsPinnedOpenBillId = '';
+  localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
   saveState();
   render();
   openInitialAccountSetup(
@@ -3131,6 +3278,7 @@ function createExampleBill() {
   state.activeBillId = bill.id;
   editingProductId = null;
   accountSettingsPinnedOpenBillId = '';
+  localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
   saveState();
   render();
   setAppSection('summary', { scroll: false });
@@ -4330,13 +4478,15 @@ function renderBillHeader() {
     const productCount = bill.mode === 'quick' ? (Number(bill.quickTotal || 0) > 0 ? 1 : 0) : bill.products.length;
     const sharedText = bill.sharedAccountId ? ' · Compartida' : '';
     const recurringText = bill.recurringGroupId ? ' · Recurrente' : '';
-    dom.currentListMeta.textContent = `${modeLabel} · ${peopleCount} persona${peopleCount === 1 ? '' : 's'} · ${productCount} gasto${productCount === 1 ? '' : 's'}${sharedText}${recurringText}`;
+    const templateText = bill.templateLabel ? ` · ${bill.templateLabel}` : '';
+    dom.currentListMeta.textContent = `${modeLabel}${templateText} · ${peopleCount} persona${peopleCount === 1 ? '' : 's'} · ${productCount} gasto${productCount === 1 ? '' : 's'}${sharedText}${recurringText}`;
   }
 
   dom.billNameInput.value = bill.name;
   const recurringLabel = bill.recurringGroupId ? ` · Recurrente` : '';
   const sharedLabel = bill.sharedAccountId ? ` · Compartida` : '';
-  dom.billMeta.textContent = `Creada: ${formatDate(bill.createdAt)} · Última edición: ${formatDate(bill.updatedAt)}${recurringLabel}${sharedLabel}`;
+  const templateLabel = bill.templateLabel ? ` · Plantilla: ${bill.templateLabel}` : '';
+  dom.billMeta.textContent = `Creada: ${formatDate(bill.createdAt)} · Última edición: ${formatDate(bill.updatedAt)}${templateLabel}${recurringLabel}${sharedLabel}`;
   dom.deleteBillButton.disabled = state.bills.length <= 1;
   dom.archiveBillButton.textContent = bill.archived ? 'Desarchivar' : 'Archivar';
 
@@ -5206,6 +5356,7 @@ function render() {
   try {
     renderGuidedExperience();
     renderMobileHomeDashboard();
+    renderFirstUseOnboarding();
   } catch (error) {
     console.warn('No se pudo renderizar la experiencia guiada:', error);
   }
@@ -7257,7 +7408,14 @@ dom.guidedChoiceButtons?.forEach((button) => {
   button.addEventListener('click', () => applyGuidedMode(button.dataset.guidedMode));
 });
 
+dom.templateChoiceButtons?.forEach((button) => {
+  button.addEventListener('click', () => createTemplateBill(button.dataset.template));
+});
+
 dom.createExampleBillButton?.addEventListener('click', createExampleBill);
+dom.startFirstBillButton?.addEventListener('click', focusTemplateChoices);
+dom.firstUseExampleButton?.addEventListener('click', createExampleBill);
+dom.dismissFirstUseButton?.addEventListener('click', dismissFirstUseOnboarding);
 
 dom.guideFocusButtons?.forEach((button) => {
   button.addEventListener('click', () => {
