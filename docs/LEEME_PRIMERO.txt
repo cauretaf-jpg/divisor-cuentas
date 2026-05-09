@@ -1,6 +1,6 @@
-CUENTA CLARA V12.4 - ESTABILIDAD MOVIL E HISTORIAL AVANZADO
+CUENTA CLARA V12.4.1 - ESTABILIDAD MOVIL E HISTORIAL AVANZADO
 
-NUEVO EN V12.4
+NUEVO EN V12.4.1
 - Historial con búsqueda, filtros por estado/tipo y orden.
 - Botón para cerrar o reabrir cuentas.
 - Estados claros: Pendiente, Pagada, Cerrada y Archivada.

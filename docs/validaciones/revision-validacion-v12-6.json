@@ -1,0 +1,10 @@
+{
+  "version": "12.6",
+  "validaciones": {
+    "script_js": "ok_node_check",
+    "profile_js": "ok_node_check",
+    "index_ids_duplicados": "sin_duplicados",
+    "cache_actualizada": "cuenta-clara-v12.6.0"
+  },
+  "requiere_sql_nuevo": false
+}

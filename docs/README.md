@@ -1,6 +1,6 @@
-# Cuenta Clara V12.4
+# Cuenta Clara V12.4.1
 
-## Nuevo en V12.4
+## Nuevo en V12.4.1
 
 - Historial avanzado con búsqueda, filtros por estado, tipo de cuenta y orden.
 - Estado formal de cuenta: pendiente, pagada, cerrada o archivada.

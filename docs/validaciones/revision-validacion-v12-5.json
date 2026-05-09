@@ -1,0 +1,18 @@
+{
+  "version": "12.5",
+  "fecha": "2026-05-08",
+  "validaciones": {
+    "script_js": "ok",
+    "profile_js": "ok",
+    "ids_duplicados_index": "sin duplicados",
+    "sql_nuevo": false,
+    "cache_actualizada": "cuenta-clara-v12.5.0"
+  },
+  "alcance": [
+    "pulido móvil",
+    "gastos más intuitivos",
+    "boletas con revisión clara",
+    "comprobante con transferencias pendientes",
+    "barra inferior reforzada"
+  ]
+}

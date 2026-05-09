@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=12.4" rel="stylesheet"/>
+<link href="styles.css?v=12.6" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -300,6 +300,10 @@
 <strong>Productos rápidos</strong>
 <span>Completa gastos frecuentes con menos pasos.</span>
 </button>
+<button class="method-card" id="quickTotalMethodButton" type="button">
+<strong>Monto rápido</strong>
+<span>Divide un total general sin escribir productos.</span>
+</button>
 </div>
 <div class="quick-products-header">
 <span>Accesos rápidos</span>
@@ -476,6 +480,7 @@
 <div><span>Pendiente</span><strong id="receiptPendingOutput">$0</strong></div>
 </div>
 <p class="receipt-next-step" id="receiptNextStepOutput">Agrega personas y gastos para generar un comprobante útil.</p>
+<div class="receipt-transfer-preview" id="receiptTransferPreviewList" aria-live="polite"></div>
 </div>
 <div class="receipt-summary-actions">
 <button class="btn btn-light btn-small" id="copyReceiptSummaryButton" type="button">Copiar comprobante</button>
@@ -776,6 +781,11 @@
 <textarea id="receiptRawTextInput" placeholder="Aquí aparecerá el texto leído de la boleta. Puedes editarlo y volver a detectar productos."></textarea>
 </div>
 <div class="receipt-results-header"><strong>Productos detectados</strong><span id="receiptDetectedCount">0 encontrados</span></div>
+<div class="receipt-audit-panel" id="receiptAuditPanel" aria-live="polite">
+<div><span>Total detectado</span><strong id="receiptDetectedTotalOutput">$0</strong></div>
+<div><span>Seleccionado</span><strong id="receiptSelectedTotalOutput">$0</strong></div>
+<div><span>Revisar</span><strong id="receiptZeroWarningOutput">Sin alertas</strong></div>
+</div>
 <div class="receipt-table-wrap">
 <table class="receipt-table">
 <thead><tr><th>Usar</th><th>Producto</th><th>Monto</th><th>Categoría</th></tr></thead>
@@ -787,6 +797,7 @@
 <div class="receipt-action-buttons">
 <button class="btn btn-light" id="selectAllReceiptItemsButton" type="button">Seleccionar todo</button>
 <button class="btn btn-light" id="unselectAllReceiptItemsButton" type="button">Deseleccionar</button>
+<button class="btn btn-light" id="ignoreZeroReceiptItemsButton" type="button">Ignorar $0</button>
 <button class="btn btn-primary" id="addReceiptItemsButton" type="button">Agregar seleccionados</button>
 </div>
 </div>
@@ -1010,7 +1021,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=12.4"></script>
-<script src="script.js?v=12.4"></script>
+<script src="supabase-config.js?v=12.6"></script>
+<script src="script.js?v=12.6"></script>
 </body>
 </html>

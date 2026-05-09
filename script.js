@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V12.4.1 cargada');
+console.info('Cuenta Clara V12.6 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -200,6 +200,7 @@ const dom = {
   manualProductMethodButton: document.querySelector('#manualProductMethodButton'),
   receiptMethodButton: document.querySelector('#receiptMethodButton'),
   quickProductMethodButton: document.querySelector('#quickProductMethodButton'),
+  quickTotalMethodButton: document.querySelector('#quickTotalMethodButton'),
   productDueDateInput: document.querySelector('#productDueDateInput'),
   productRecurringInput: document.querySelector('#productRecurringInput'),
   consumerPanelTitle: document.querySelector('#consumerPanelTitle'),
@@ -222,10 +223,14 @@ const dom = {
   receiptDetectedBody: document.querySelector('#receiptDetectedBody'),
   receiptRawTextInput: document.querySelector('#receiptRawTextInput'),
   receiptSelectionSummary: document.querySelector('#receiptSelectionSummary'),
+  receiptDetectedTotalOutput: document.querySelector('#receiptDetectedTotalOutput'),
+  receiptSelectedTotalOutput: document.querySelector('#receiptSelectedTotalOutput'),
+  receiptZeroWarningOutput: document.querySelector('#receiptZeroWarningOutput'),
   reparseReceiptTextButton: document.querySelector('#reparseReceiptTextButton'),
   receiptDetectedCount: document.querySelector('#receiptDetectedCount'),
   selectAllReceiptItemsButton: document.querySelector('#selectAllReceiptItemsButton'),
   unselectAllReceiptItemsButton: document.querySelector('#unselectAllReceiptItemsButton'),
+  ignoreZeroReceiptItemsButton: document.querySelector('#ignoreZeroReceiptItemsButton'),
   addReceiptItemsButton: document.querySelector('#addReceiptItemsButton'),
   toggleQuickProductsEditorButton: document.querySelector('#toggleQuickProductsEditorButton'),
   quickProductsList: document.querySelector('#quickProductsList'),
@@ -261,6 +266,7 @@ const dom = {
   receiptPaidPeopleOutput: document.querySelector('#receiptPaidPeopleOutput'),
   receiptPendingOutput: document.querySelector('#receiptPendingOutput'),
   receiptNextStepOutput: document.querySelector('#receiptNextStepOutput'),
+  receiptTransferPreviewList: document.querySelector('#receiptTransferPreviewList'),
   copyReceiptSummaryButton: document.querySelector('#copyReceiptSummaryButton'),
   whatsappReceiptSummaryButton: document.querySelector('#whatsappReceiptSummaryButton'),
   openPaymentsFromReceiptButton: document.querySelector('#openPaymentsFromReceiptButton'),
@@ -372,6 +378,7 @@ let friendsPickerItems = [];
 let toastTimer = null;
 let noticeTimer = null;
 let deferredInstallPrompt = null;
+let lastUndoAction = null;
 
 function createId(prefix) {
   if (window.crypto && typeof window.crypto.randomUUID === 'function') {
@@ -1671,13 +1678,45 @@ function reparseReceiptRawText() {
   updateReceiptStatus(`Se detectaron ${receiptDetectedItems.length} productos desde el texto.`);
 }
 
+function getReceiptSelectionMetrics() {
+  const items = Array.isArray(receiptDetectedItems) ? receiptDetectedItems : [];
+  const validItems = items.filter((item) => Number(item.price || 0) > 0);
+  const zeroItems = items.filter((item) => Number(item.price || 0) <= 0);
+  const selectedItems = validItems.filter((item) => item.selected);
+  const detectedTotal = validItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
+  const selectedTotal = selectedItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
+
+  return {
+    total: items.length,
+    valid: validItems.length,
+    zero: zeroItems.length,
+    selected: selectedItems.length,
+    detectedTotal,
+    selectedTotal,
+  };
+}
+
 function updateReceiptSelectionSummary() {
   if (!dom.receiptSelectionSummary) return;
 
-  const selectedItems = receiptDetectedItems.filter((item) => item.selected && Number(item.price || 0) > 0);
-  const selectedTotal = selectedItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
-  const countText = `${selectedItems.length} seleccionado${selectedItems.length === 1 ? '' : 's'}`;
-  dom.receiptSelectionSummary.textContent = `${countText} · ${formatCurrency(selectedTotal)}`;
+  const metrics = getReceiptSelectionMetrics();
+  const countText = `${metrics.selected} seleccionado${metrics.selected === 1 ? '' : 's'}`;
+  dom.receiptSelectionSummary.textContent = `${countText} · ${formatCurrency(metrics.selectedTotal)}`;
+
+  if (dom.receiptDetectedTotalOutput) {
+    dom.receiptDetectedTotalOutput.textContent = formatCurrency(metrics.detectedTotal);
+  }
+
+  if (dom.receiptSelectedTotalOutput) {
+    dom.receiptSelectedTotalOutput.textContent = formatCurrency(metrics.selectedTotal);
+  }
+
+  if (dom.receiptZeroWarningOutput) {
+    dom.receiptZeroWarningOutput.textContent = metrics.zero > 0
+      ? `${metrics.zero} monto${metrics.zero === 1 ? '' : 's'} en $0`
+      : 'Sin alertas';
+    dom.receiptZeroWarningOutput.classList.toggle('has-warning', metrics.zero > 0);
+  }
 }
 
 function renderReceiptDetectedItems() {
@@ -1695,6 +1734,7 @@ function renderReceiptDetectedItems() {
   for (const item of receiptDetectedItems) {
     const row = document.createElement('tr');
     row.dataset.itemId = item.id;
+    row.classList.toggle('receipt-row-warning', Number(item.price || 0) <= 0);
     row.innerHTML = `
       <td><input type="checkbox" ${item.selected ? 'checked' : ''} aria-label="Usar producto" /></td>
       <td><input type="text" value="${escapeHtml(item.name)}" aria-label="Producto detectado" /></td>
@@ -1738,6 +1778,14 @@ function renderReceiptDetectedItems() {
 function setAllReceiptItems(selected) {
   receiptDetectedItems = receiptDetectedItems.map((item) => ({ ...item, selected }));
   renderReceiptDetectedItems();
+}
+
+function ignoreZeroReceiptItems() {
+  const before = receiptDetectedItems.length;
+  receiptDetectedItems = receiptDetectedItems.filter((item) => Number(item.price || 0) > 0);
+  renderReceiptDetectedItems();
+  const removed = before - receiptDetectedItems.length;
+  showToast(removed > 0 ? `${removed} producto${removed === 1 ? '' : 's'} de $0 ignorado${removed === 1 ? '' : 's'}.` : 'No hay montos en $0 para ignorar.');
 }
 
 function addReceiptItemsToBill() {
@@ -2370,14 +2418,99 @@ function persistAndRender() {
   render();
 }
 
-function showToast(message) {
+function captureUndoSnapshot(label = 'Cambio') {
+  try {
+    return {
+      label,
+      stateJson: JSON.stringify(state),
+      activeBillId: state?.activeBillId || '',
+      section: currentAppSection || 'home',
+      editingProductId: editingProductId || '',
+    };
+  } catch (error) {
+    console.warn('No se pudo preparar deshacer:', error);
+    return null;
+  }
+}
+
+function restoreUndoSnapshot(snapshot) {
+  if (!snapshot?.stateJson) return false;
+
+  try {
+    state = normalizeState(JSON.parse(snapshot.stateJson));
+    if (snapshot.activeBillId && state.bills.some((bill) => bill.id === snapshot.activeBillId)) {
+      state.activeBillId = snapshot.activeBillId;
+    }
+    editingProductId = snapshot.editingProductId || null;
+    saveState();
+    render();
+    setAppSection(snapshot.section || 'home', { scroll: false });
+    return true;
+  } catch (error) {
+    console.error(error);
+    showNotice('No se pudo deshacer', 'El cambio ya fue procesado, pero tus datos actuales siguen guardados.');
+    return false;
+  }
+}
+
+function undoLastAction() {
+  const snapshot = lastUndoAction;
+  lastUndoAction = null;
+
+  if (!snapshot) {
+    showToast('No hay cambios recientes para deshacer.');
+    return;
+  }
+
+  if (restoreUndoSnapshot(snapshot)) {
+    showToast('Cambio deshecho.');
+  }
+}
+
+function showUndoToast(message, snapshot) {
+  if (!snapshot) {
+    showToast(message);
+    return;
+  }
+
+  lastUndoAction = snapshot;
+  showToast(message, {
+    actionLabel: 'Deshacer',
+    onAction: undoLastAction,
+    duration: 5200,
+  });
+}
+
+function confirmAction(title, detail) {
+  return confirm(`${title}${detail ? `\n\n${detail}` : ''}`);
+}
+
+function showToast(message, options = {}) {
   clearTimeout(toastTimer);
-  dom.toast.textContent = message;
+  const text = String(message || '');
+  const actionLabel = options.actionLabel ? String(options.actionLabel) : '';
+
+  dom.toast.classList.toggle('has-action', Boolean(actionLabel && typeof options.onAction === 'function'));
+
+  if (actionLabel && typeof options.onAction === 'function') {
+    dom.toast.innerHTML = `
+      <span>${escapeHtml(text)}</span>
+      <button class="toast-action" type="button">${escapeHtml(actionLabel)}</button>
+    `;
+    dom.toast.querySelector('.toast-action')?.addEventListener('click', () => {
+      clearTimeout(toastTimer);
+      dom.toast.classList.remove('show', 'has-action');
+      options.onAction();
+    });
+  } else {
+    dom.toast.textContent = text;
+  }
+
   dom.toast.classList.add('show');
 
   toastTimer = setTimeout(() => {
-    dom.toast.classList.remove('show');
-  }, 2200);
+    dom.toast.classList.remove('show', 'has-action');
+  }, Number(options.duration || 2400));
 }
 
 function showNotice(title, message) {
@@ -2806,7 +2939,12 @@ function setAppSection(section, options = {}) {
 
   if (options.scroll !== false) {
     const panel = document.querySelector(`[data-app-section-panel="${nextSection}"]`);
-    panel?.scrollIntoView({ behavior: options.instant ? 'auto' : 'smooth', block: 'start' });
+    const isMobile = typeof window !== 'undefined' && window.matchMedia?.('(max-width: 760px)').matches;
+    if (isMobile) {
+      window.scrollTo({ top: 0, behavior: options.instant ? 'auto' : 'smooth' });
+    } else {
+      panel?.scrollIntoView({ behavior: options.instant ? 'auto' : 'smooth', block: 'start' });
+    }
   }
 }
 
@@ -2981,20 +3119,20 @@ function renderNetworkStatus() {
 
   if (isOffline) {
     dom.networkStatusTitle.textContent = 'Sin conexión';
-    dom.networkStatusText.textContent = 'Puedes seguir usando Cuenta Clara. Los cambios quedan en este dispositivo y se sincronizarán cuando vuelva internet.';
-    dom.networkStatusPill.textContent = 'Modo local';
+    dom.networkStatusText.textContent = 'Puedes seguir usando Cuenta Clara. Tus cambios quedan guardados en este dispositivo y se sincronizarán cuando vuelva internet.';
+    dom.networkStatusPill.textContent = 'Guardado local';
     return;
   }
 
   if (hasCloudIssue) {
     dom.networkStatusTitle.textContent = 'Guardado local activo';
-    dom.networkStatusText.textContent = 'No se pudo sincronizar en este momento. Tus datos no se pierden y puedes intentar guardar nuevamente desde Perfil.';
-    dom.networkStatusPill.textContent = 'Revisar luego';
+    dom.networkStatusText.textContent = 'No se pudo sincronizar ahora. Tus datos no se pierden; quedaron guardados en este dispositivo y puedes reintentar desde Perfil.';
+    dom.networkStatusPill.textContent = 'Pendiente';
     return;
   }
 
   dom.networkStatusTitle.textContent = 'Modo invitado';
-  dom.networkStatusText.textContent = 'Tus cuentas se guardan solo en este dispositivo. Inicia sesión para respaldarlas en la nube.';
+  dom.networkStatusText.textContent = 'Tus cuentas se guardan solo en este dispositivo. Inicia sesión para respaldarlas y abrirlas desde otro equipo.';
   dom.networkStatusPill.textContent = 'Local';
 }
 
@@ -3540,6 +3678,27 @@ function showQuickProductsArea() {
 
   revealSectionForElement(dom.quickProductsList);
   dom.quickProductsList?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function focusQuickTotalPanel() {
+  const bill = getActiveBill();
+  const hasDetailedProducts = Array.isArray(bill.products) && bill.products.length > 0;
+
+  if (bill.mode !== 'quick' && hasDetailedProducts) {
+    const confirmed = confirm('Esta cuenta ya tiene productos. Si la pasas a monto rápido, los productos seguirán guardados, pero el cálculo usará el total rápido. ¿Continuar?');
+    if (!confirmed) return;
+  }
+
+  bill.mode = 'quick';
+  bill.tipPercent = Number(bill.tipPercent || 0);
+  accountSettingsPinnedOpenBillId = '';
+  persistAndRender();
+  setAppSection('expenses', { scroll: false });
+
+  requestAnimationFrame(() => {
+    dom.quickTotalInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    dom.quickTotalInput?.focus();
+  });
 }
 
 
@@ -5369,9 +5528,11 @@ function setPersonPaidStatus(personId, paid) {
   }
 
   const nextPaid = Boolean(paid);
+  if (person.paid === nextPaid) return;
+  const undoSnapshot = captureUndoSnapshot(nextPaid ? 'Marcar pagado' : 'Marcar pendiente');
   person.paid = nextPaid;
   persistAndRender();
-  showToast(nextPaid ? `${person.name}: pago registrado.` : `${person.name}: vuelve a pendiente.`);
+  showUndoToast(nextPaid ? `${person.name}: pago registrado.` : `${person.name}: vuelve a pendiente.`, undoSnapshot);
 }
 
 
@@ -5858,6 +6019,22 @@ function renderReceiptSummary() {
   } else {
     dom.receiptNextStepOutput.textContent = 'Todo aparece pagado. Puedes copiar o enviar el comprobante final.';
   }
+
+  if (dom.receiptTransferPreviewList) {
+    const transfers = getTransferLines(bill, calculation).filter((transfer) => !transfer.paid).slice(0, 4);
+    if (!hasMinimumData) {
+      dom.receiptTransferPreviewList.innerHTML = '';
+    } else if (transfers.length === 0) {
+      dom.receiptTransferPreviewList.innerHTML = '<span class="receipt-transfer-item is-paid">Sin transferencias pendientes.</span>';
+    } else {
+      dom.receiptTransferPreviewList.innerHTML = transfers.map((transfer) => `
+        <span class="receipt-transfer-item">
+          <strong>${escapeHtml(transfer.from)}</strong>
+          <em>${formatCurrency(transfer.amount)} → ${escapeHtml(transfer.to)}</em>
+        </span>
+      `).join('');
+    }
+  }
 }
 
 async function copyReceiptSummary() {
@@ -6209,7 +6386,11 @@ function deleteActiveBill() {
   }
 
   const bill = getActiveBill();
-  const confirmed = confirm(`¿Eliminar "${bill.name}"? Esta acción no se puede deshacer.`);
+  const undoSnapshot = captureUndoSnapshot('Eliminar cuenta');
+  const confirmed = confirmAction(
+    `¿Eliminar “${bill.name}”?`,
+    'Se eliminarán personas, gastos y pagos asociados. Podrás deshacerlo durante unos segundos.'
+  );
 
   if (!confirmed) {
     return;
@@ -6220,7 +6401,7 @@ function deleteActiveBill() {
   editingProductId = null;
   saveState();
   render();
-  showToast('Cuenta eliminada.');
+  showUndoToast('Cuenta eliminada.', undoSnapshot);
 }
 
 function editBillFromHistory(billId) {
@@ -6251,7 +6432,11 @@ function deleteBillFromHistory(billId) {
     return;
   }
 
-  const confirmed = confirm(`¿Eliminar "${bill.name}" del historial? Esta acción no se puede deshacer.`);
+  const undoSnapshot = captureUndoSnapshot('Eliminar cuenta del historial');
+  const confirmed = confirmAction(
+    `¿Eliminar “${bill.name}” del historial?`,
+    'Se eliminarán personas, gastos y pagos asociados. Podrás deshacerlo durante unos segundos.'
+  );
   if (!confirmed) return;
 
   state.bills = state.bills.filter((item) => item.id !== bill.id);
@@ -6263,14 +6448,15 @@ function deleteBillFromHistory(billId) {
   editingProductId = null;
   saveState();
   render();
-  showToast('Cuenta eliminada del historial.');
+  showUndoToast('Cuenta eliminada del historial.', undoSnapshot);
 }
 
 function toggleArchiveBill() {
   const bill = getActiveBill();
+  const undoSnapshot = captureUndoSnapshot(bill.archived ? 'Desarchivar cuenta' : 'Archivar cuenta');
   bill.archived = !bill.archived;
   persistAndRender();
-  showToast(bill.archived ? 'Cuenta archivada.' : 'Cuenta desarchivada.');
+  showUndoToast(bill.archived ? 'Cuenta archivada.' : 'Cuenta desarchivada.', undoSnapshot);
 }
 
 function setBillClosedState(bill, closed) {
@@ -6287,11 +6473,13 @@ function toggleCloseBill() {
     return;
   }
 
+  const undoSnapshot = captureUndoSnapshot(bill.closed ? 'Reabrir cuenta' : 'Cerrar cuenta');
+
   if (!bill.closed) {
     const calculation = calculateBill(bill);
     const hasPending = calculation.pendingTotal > 0 && !calculation.isPaid;
     const confirmed = hasPending
-      ? confirm('Esta cuenta todavía tiene pagos pendientes. ¿Quieres cerrarla de todas formas?')
+      ? confirmAction('Esta cuenta todavía tiene pagos pendientes.', 'Si la cierras, seguirá visible en Historial y podrás reabrirla o deshacer el cambio.')
       : true;
 
     if (!confirmed) return;
@@ -6300,7 +6488,7 @@ function toggleCloseBill() {
   setBillClosedState(bill, !bill.closed);
   saveState();
   render();
-  showToast(bill.closed ? 'Cuenta cerrada.' : 'Cuenta reabierta.');
+  showUndoToast(bill.closed ? 'Cuenta cerrada.' : 'Cuenta reabierta.', undoSnapshot);
 }
 
 function toggleBillClosedFromHistory(billId) {
@@ -6316,11 +6504,13 @@ function toggleBillClosedFromHistory(billId) {
     return;
   }
 
+  const undoSnapshot = captureUndoSnapshot(bill.closed ? 'Reabrir cuenta' : 'Cerrar cuenta');
+
   if (!bill.closed) {
     const calculation = calculateBill(bill);
     const hasPending = calculation.pendingTotal > 0 && !calculation.isPaid;
     const confirmed = hasPending
-      ? confirm(`"${bill.name}" todavía tiene pagos pendientes. ¿Quieres cerrarla de todas formas?`)
+      ? confirmAction(`“${bill.name}” todavía tiene pagos pendientes.`, 'Si la cierras, seguirá visible en Historial y podrás reabrirla o deshacer el cambio.')
       : true;
 
     if (!confirmed) return;
@@ -6329,7 +6519,7 @@ function toggleBillClosedFromHistory(billId) {
   setBillClosedState(bill, !bill.closed);
   saveState();
   render();
-  showToast(bill.closed ? 'Cuenta cerrada.' : 'Cuenta reabierta.');
+  showUndoToast(bill.closed ? 'Cuenta cerrada.' : 'Cuenta reabierta.', undoSnapshot);
 }
 
 function addPerson(name, phone = '') {
@@ -6371,7 +6561,11 @@ function deletePerson(personId) {
     return;
   }
 
-  const confirmed = confirm(`¿Eliminar a ${person.name}? También se quitará de los productos compartidos.`);
+  const undoSnapshot = captureUndoSnapshot('Eliminar persona');
+  const confirmed = confirmAction(
+    `¿Eliminar a ${person.name}?`,
+    'También se quitará de los gastos compartidos y puede cambiar el resumen. Podrás deshacerlo durante unos segundos.'
+  );
 
   if (!confirmed) {
     return;
@@ -6388,6 +6582,7 @@ function deletePerson(personId) {
   }
 
   persistAndRender();
+  showUndoToast('Persona eliminada.', undoSnapshot);
 }
 
 function editPerson(personId) {
@@ -6443,9 +6638,10 @@ function markAllPaid(paid) {
     return;
   }
 
+  const undoSnapshot = captureUndoSnapshot(paid ? 'Marcar todo pagado' : 'Marcar todo pendiente');
   bill.people = bill.people.map((person) => ({ ...person, paid }));
   persistAndRender();
-  showToast(paid ? 'Todos quedaron como pagados.' : 'Todos quedaron como pendientes.');
+  showUndoToast(paid ? 'Todos quedaron como pagados.' : 'Todos quedaron como pendientes.', undoSnapshot);
 }
 
 function getConsumersFromForm() {
@@ -6563,7 +6759,11 @@ function deleteProduct(productId) {
     return;
   }
 
-  const confirmed = confirm(`¿Eliminar "${product.name}"?`);
+  const undoSnapshot = captureUndoSnapshot('Eliminar gasto');
+  const confirmed = confirmAction(
+    `¿Eliminar “${product.name}”?`,
+    'Esta acción cambiará el resumen de la cuenta. Podrás deshacerlo durante unos segundos.'
+  );
 
   if (!confirmed) {
     return;
@@ -6577,6 +6777,7 @@ function deleteProduct(productId) {
   }
 
   persistAndRender();
+  showUndoToast('Gasto eliminado.', undoSnapshot);
 }
 
 function resetProductForm() {
@@ -6594,19 +6795,27 @@ function resetProductForm() {
 
 function clearProducts() {
   const bill = getActiveBill();
-  const confirmed = confirm('¿Limpiar todos los productos de esta cuenta?');
+  const undoSnapshot = captureUndoSnapshot('Limpiar gastos');
+  const confirmed = confirmAction(
+    '¿Limpiar todos los gastos de esta cuenta?',
+    'Se eliminarán los productos/gastos registrados y el monto rápido. Podrás deshacerlo durante unos segundos.'
+  );
 
   if (!confirmed) return;
 
   bill.products = [];
   bill.quickTotal = 0;
   persistAndRender();
-  showToast('Productos limpiados.');
+  showUndoToast('Gastos limpiados.', undoSnapshot);
 }
 
 function resetBill() {
   const bill = getActiveBill();
-  const confirmed = confirm('¿Reiniciar esta cuenta? Se eliminarán personas, productos, pagador y pagos.');
+  const undoSnapshot = captureUndoSnapshot('Reiniciar cuenta');
+  const confirmed = confirmAction(
+    '¿Reiniciar esta cuenta?',
+    'Se eliminarán personas, gastos, pagador y pagos. Podrás deshacerlo durante unos segundos.'
+  );
 
   if (!confirmed) return;
 
@@ -6617,7 +6826,7 @@ function resetBill() {
   bill.tipPercent = 10;
   bill.mode = 'detailed';
   persistAndRender();
-  showToast('Cuenta reiniciada.');
+  showUndoToast('Cuenta reiniciada.', undoSnapshot);
 }
 
 function getShareOptions() {
@@ -8102,6 +8311,7 @@ if (dom.reparseReceiptTextButton) {
 }
 dom.selectAllReceiptItemsButton.addEventListener('click', () => setAllReceiptItems(true));
 dom.unselectAllReceiptItemsButton.addEventListener('click', () => setAllReceiptItems(false));
+dom.ignoreZeroReceiptItemsButton?.addEventListener('click', ignoreZeroReceiptItems);
 dom.addReceiptItemsButton.addEventListener('click', addReceiptItemsToBill);
 
 
@@ -8213,6 +8423,7 @@ dom.advancedModeButton?.addEventListener('click', () => setExperienceMode('advan
 dom.manualProductMethodButton?.addEventListener('click', focusManualProductForm);
 dom.receiptMethodButton?.addEventListener('click', openReceiptModal);
 dom.quickProductMethodButton?.addEventListener('click', showQuickProductsArea);
+dom.quickTotalMethodButton?.addEventListener('click', focusQuickTotalPanel);
 
 
 dom.newBillButton.addEventListener('click', focusGuidedNewBillChoices);
@@ -8459,7 +8670,7 @@ dom.downloadImageButton.addEventListener('click', downloadShareImage);
 dom.nativeShareImageButton.addEventListener('click', shareImageNatively);
 
 window.addEventListener('online', () => {
-  showToast('Conexión restablecida.');
+  showToast('Conexión recuperada. Sincronizando cambios…');
   if (currentSession.mode === 'user') {
     saveCloudStateNow({ force: true, message: 'Sincronizando...' }).finally(render);
   } else {
@@ -8468,7 +8679,7 @@ window.addEventListener('online', () => {
 });
 
 window.addEventListener('offline', () => {
-  showNotice('Sin conexión', 'Puedes seguir usando la app. Tus cambios quedarán guardados en este dispositivo.');
+  showNotice('Sin conexión', 'Puedes seguir usando la app. Tus cambios quedarán guardados en este dispositivo y se sincronizarán cuando vuelva internet.');
   render();
 });
 
