@@ -1,0 +1,14 @@
+Cuenta Clara v12.7 - Comprobante visual e imagen para WhatsApp
+
+Cambios aplicados:
+- Se agregó botón directo “Generar imagen” dentro del comprobante del Resumen.
+- El modal de compartir ahora permite elegir “Solo pendientes”.
+- La imagen generada incluye fecha, estado de cuenta, pagador principal, total, pendiente y transferencias.
+- Se mejoró el texto compartido por WhatsApp con estado, fecha y pagador.
+- Se reforzó la vista móvil del modal de compartir.
+- Cache/service worker actualizado a v12.7.
+
+Validación:
+- script.js validado con node --check.
+- profile.js validado con node --check.
+- index.html revisado sin IDs duplicados.

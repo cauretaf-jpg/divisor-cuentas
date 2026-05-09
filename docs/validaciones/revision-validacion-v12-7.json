@@ -1,0 +1,10 @@
+{
+  "version": "12.7",
+  "checks": {
+    "script_js": "ok",
+    "profile_js": "ok",
+    "ids_duplicados_index": false,
+    "cache_actualizada": "cuenta-clara-v12.7.0",
+    "requiere_sql_nuevo": false
+  }
+}

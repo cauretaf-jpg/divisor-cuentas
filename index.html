@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=12.6" rel="stylesheet"/>
+<link href="styles.css?v=12.7" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -485,6 +485,7 @@
 <div class="receipt-summary-actions">
 <button class="btn btn-light btn-small" id="copyReceiptSummaryButton" type="button">Copiar comprobante</button>
 <button class="btn btn-primary btn-small" id="whatsappReceiptSummaryButton" type="button">Enviar WhatsApp</button>
+<button class="btn btn-light btn-small" id="generateReceiptImageButton" type="button">Generar imagen</button>
 <button class="btn btn-light btn-small" id="openPaymentsFromReceiptButton" type="button">Ir a pagos</button>
 </div>
 </section></section></section><section class="app-section ad-protected-zone" data-app-section-panel="payments" id="appSection-payments"><section class="section-page-heading card"><div><p class="eyebrow">Transferencias</p><h2>Pagos</h2><p class="section-helper">Consulta cuánto paga cada persona, quién debe transferir y comparte la cuenta.</p></div></section><section class="guide-card card" data-guide-card="payments"><div><span class="guide-number">4</span></div><div><strong>Comparte el resultado</strong><p>Cuando alguien te transfiera, márcalo como pagado. Los cobros pendientes quedarán visibles abajo para que sea fácil hacer seguimiento.</p></div><button class="btn btn-primary btn-small" type="button" data-open-share="true">Compartir</button></section><section class="card sidebar-payments-panel" id="sidebarPaymentsCard">
@@ -984,6 +985,10 @@
 <input name="shareContent" type="radio" value="detail"/>
 <span>Monto con detalle</span>
 </label>
+<label class="radio-row">
+<input name="shareContent" type="radio" value="pending"/>
+<span>Solo pendientes</span>
+</label>
 </fieldset>
 </div>
 <div class="share-preview">
@@ -1021,7 +1026,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=12.6"></script>
-<script src="script.js?v=12.6"></script>
+<script src="supabase-config.js?v=12.7"></script>
+<script src="script.js?v=12.7"></script>
 </body>
 </html>

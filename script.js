@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V12.6 cargada');
+console.info('Cuenta Clara V12.7 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -269,6 +269,7 @@ const dom = {
   receiptTransferPreviewList: document.querySelector('#receiptTransferPreviewList'),
   copyReceiptSummaryButton: document.querySelector('#copyReceiptSummaryButton'),
   whatsappReceiptSummaryButton: document.querySelector('#whatsappReceiptSummaryButton'),
+  generateReceiptImageButton: document.querySelector('#generateReceiptImageButton'),
   openPaymentsFromReceiptButton: document.querySelector('#openPaymentsFromReceiptButton'),
   personResults: document.querySelector('#personResults'),
   profilePayerSummary: document.querySelector('#profilePayerSummary'),
@@ -6853,14 +6854,49 @@ function getTransferLines(bill, calculation) {
     }));
 }
 
+function getSummaryContentLabel(content = 'simple') {
+  if (content === 'detail') return 'Resumen detallado';
+  if (content === 'pending') return 'Solo pendientes';
+  return 'Resumen simple';
+}
+
+function getBillStatusLabel(bill, calculation) {
+  if (bill.archived) return 'Archivada';
+  if (bill.closed) return 'Cerrada';
+  return calculation.isPaid && bill.people.length > 0 ? 'Pagada' : 'Pendiente';
+}
+
 function getSummaryText(content = 'simple') {
   const bill = getActiveBill();
   const calculation = calculateBill(bill);
+  const payer = bill.people.find((person) => person.id === bill.payerId);
+  const transfers = getTransferLines(bill, calculation);
+  const pendingTransfers = transfers.filter((transfer) => !transfer.paid);
+  const generatedAt = new Date().toLocaleDateString('es-CL');
   const lines = [
     `*Cuenta Clara - ${bill.name}*`,
+    `${getSummaryContentLabel(content)} · ${generatedAt}`,
     bill.mode === 'home' ? `Mes hogar: *${bill.homeMonth || getCurrentMonthValue()}*` : '',
+    payer ? `Pagador principal: *${payer.name}*` : 'Pagador principal: pendiente',
+    `Estado: *${getBillStatusLabel(bill, calculation)}*`,
     '',
-  ].filter((line, index) => index !== 1 || line);
+  ].filter((line) => line !== '');
+
+  if (content === 'pending') {
+    lines.push(`Total pendiente: *${formatCurrency(calculation.pendingTotal)}*`);
+    lines.push(`Personas pendientes: *${calculation.pendingPeople}*`);
+
+    if (pendingTransfers.length > 0) {
+      lines.push('', '*Transferencias pendientes:*');
+      for (const transfer of pendingTransfers) {
+        lines.push(`- ${transfer.from} debe transferir a ${transfer.to}: *${formatCurrency(transfer.amount)}*`);
+      }
+    } else {
+      lines.push('', 'Sin transferencias pendientes.');
+    }
+
+    return lines.join('\n');
+  }
 
   if (content === 'detail') {
     for (const person of bill.people) {
@@ -6872,7 +6908,6 @@ function getSummaryText(content = 'simple') {
         lines.push('Detalle:');
         for (const item of detail.items) {
           const shareText = item.totalShares > 1 ? ` (${item.share}/${item.totalShares} partes)` : '';
-          const detailLabel = item.splitMode === 'responsibles' ? 'Responsable' : 'Detalle';
           lines.push(`- ${item.productName}${shareText}: ${formatCurrency(item.amount)}`);
         }
       } else {
@@ -6902,14 +6937,13 @@ function getSummaryText(content = 'simple') {
   lines.push(`Total pagado: *${formatCurrency(calculation.paidTotal)}*`);
   lines.push(`Total pendiente: *${formatCurrency(calculation.pendingTotal)}*`);
 
-  const transfers = getTransferLines(bill, calculation);
-
   if (transfers.length > 0) {
     lines.push('');
     lines.push('*Transferencias:*');
 
     for (const transfer of transfers) {
-      lines.push(`*${transfer.from} debe transferir a ${transfer.to}: ${formatCurrency(transfer.amount)}*`);
+      const status = transfer.paid ? 'Pagado' : 'Pendiente';
+      lines.push(`*${transfer.from} debe transferir a ${transfer.to}: ${formatCurrency(transfer.amount)}* · ${status}`);
     }
   }
 
@@ -6931,6 +6965,19 @@ function shareWhatsapp(content = 'simple') {
   const summary = getSummaryText(content);
   const url = `https://wa.me/?text=${encodeURIComponent(summary)}`;
   window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+function setShareOptions({ format = 'text', content = 'simple' } = {}) {
+  const formatInput = document.querySelector(`input[name="shareFormat"][value="${format}"]`);
+  const contentInput = document.querySelector(`input[name="shareContent"][value="${content}"]`);
+
+  if (formatInput) formatInput.checked = true;
+  if (contentInput) contentInput.checked = true;
+}
+
+function openReceiptImageShare() {
+  setShareOptions({ format: 'image', content: 'simple' });
+  openShareModal();
 }
 
 function compactBillForLink(bill) {
@@ -7864,7 +7911,7 @@ function closeShareModal() {
 
 function updateSharePreview() {
   const { format, content } = getShareOptions();
-  const contentLabel = content === 'detail' ? 'Monto con detalle' : 'Solo monto total';
+  const contentLabel = getSummaryContentLabel(content);
   const formatLabel = format === 'image' ? 'Imagen' : 'Texto';
 
   dom.sharePreviewType.textContent = `${formatLabel} · ${contentLabel}`;
@@ -7925,24 +7972,34 @@ function roundRect(ctx, x, y, width, height, radius) {
 function getCanvasLines(content = 'simple') {
   const bill = getActiveBill();
   const calculation = calculateBill(bill);
-  const people = bill.people.map((person) => {
-    const detail = calculation.personDetails[person.id];
-    return {
-      name: person.name,
-      paid: person.paid,
-      subtotal: detail.subtotal,
-      tip: detail.tip,
-      total: detail.total,
-      items: detail.items,
-    };
-  });
+  const pendingOnly = content === 'pending';
+  const people = bill.people
+    .map((person) => {
+      const detail = calculation.personDetails[person.id];
+      return {
+        name: person.name,
+        paid: person.paid,
+        subtotal: detail.subtotal,
+        tip: detail.tip,
+        total: detail.total,
+        items: detail.items,
+      };
+    })
+    .filter((person) => !pendingOnly || (!person.paid && person.total > 0));
+
+  const allTransfers = getTransferLines(bill, calculation);
 
   return {
     bill,
     calculation,
+    payer: bill.people.find((person) => person.id === bill.payerId),
     people,
-    transfers: getTransferLines(bill, calculation),
+    transfers: pendingOnly ? allTransfers.filter((transfer) => !transfer.paid) : allTransfers,
     detailed: content === 'detail',
+    pendingOnly,
+    statusLabel: getBillStatusLabel(bill, calculation),
+    generatedAt: new Date().toLocaleDateString('es-CL'),
+    contentLabel: getSummaryContentLabel(content),
   };
 }
 
@@ -7952,87 +8009,142 @@ function drawShareImage(content = 'simple') {
   const data = getCanvasLines(content);
   const width = 900;
   const padding = 58;
-  const personBlockBase = data.detailed ? 178 : 74;
+  const visiblePeopleCount = Math.max(1, data.people.length);
+  const personBlockBase = data.detailed ? 178 : 86;
   const itemLineHeight = 32;
   const extraItems = data.detailed
     ? data.people.reduce((sum, person) => sum + Math.max(1, person.items.length) * itemLineHeight, 0)
     : 0;
-  const transferHeight = data.transfers.length > 0 ? 80 + data.transfers.length * 38 : 0;
-  const height = Math.max(900, 420 + data.people.length * personBlockBase + extraItems + transferHeight);
+  const transferHeight = data.transfers.length > 0 ? 92 + data.transfers.length * 42 : (data.pendingOnly ? 96 : 0);
+  const height = Math.max(960, 560 + visiblePeopleCount * personBlockBase + extraItems + transferHeight);
 
   canvas.width = width;
   canvas.height = height;
 
-  ctx.fillStyle = '#f5f7f8';
+  ctx.fillStyle = '#f4f7f6';
   ctx.fillRect(0, 0, width, height);
 
   ctx.fillStyle = '#0f766e';
-  roundRect(ctx, 0, 0, width, 210, 0);
+  roundRect(ctx, 0, 0, width, 252, 0);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  roundRect(ctx, width - 250, -80, 330, 330, 80);
   ctx.fill();
 
   ctx.fillStyle = '#ffffff';
   ctx.font = '800 54px Arial';
-  ctx.fillText('Cuenta Clara', padding, 92);
+  ctx.fillText('Cuenta Clara', padding, 84);
 
-  ctx.font = '700 30px Arial';
-  ctx.fillText(data.bill.name, padding, 142);
+  ctx.font = '700 31px Arial';
+  wrapCanvasText(ctx, data.bill.name || 'Cuenta sin nombre', padding, 136, width - padding * 2 - 170, 36);
 
-  ctx.font = '500 22px Arial';
-  ctx.fillText(data.detailed ? 'Resumen detallado de pagos' : 'Resumen simple de pagos', padding, 176);
+  ctx.font = '600 21px Arial';
+  ctx.fillText(`${data.contentLabel} · ${data.generatedAt}`, padding, 194);
 
-  let y = 255;
+  const statusText = data.statusLabel;
+  ctx.font = '800 20px Arial';
+  const statusWidth = ctx.measureText(statusText).width + 38;
+  ctx.fillStyle = data.statusLabel === 'Pagada' ? '#dcfce7' : '#fef3c7';
+  roundRect(ctx, width - padding - statusWidth, 48, statusWidth, 40, 20);
+  ctx.fill();
+  ctx.fillStyle = data.statusLabel === 'Pagada' ? '#166534' : '#92400e';
+  ctx.fillText(statusText, width - padding - statusWidth + 19, 75);
 
-  for (const person of data.people) {
-    const blockHeight = data.detailed
-      ? 128 + Math.max(1, person.items.length) * itemLineHeight
-      : 74;
+  let y = 294;
 
+  ctx.fillStyle = '#ffffff';
+  roundRect(ctx, padding, y, width - padding * 2, 150, 28);
+  ctx.fill();
+
+  ctx.fillStyle = '#64748b';
+  ctx.font = '800 18px Arial';
+  ctx.fillText('TOTAL CUENTA', padding + 28, y + 42);
+  ctx.fillText('PENDIENTE', padding + 360, y + 42);
+  ctx.fillText('PAGADOR', padding + 590, y + 42);
+
+  ctx.fillStyle = '#0f766e';
+  ctx.font = '900 38px Arial';
+  ctx.fillText(formatCurrency(data.calculation.grandTotal), padding + 28, y + 88);
+
+  ctx.fillStyle = data.calculation.pendingTotal > 0 ? '#92400e' : '#166534';
+  ctx.font = '900 30px Arial';
+  ctx.fillText(formatCurrency(data.calculation.pendingTotal), padding + 360, y + 86);
+
+  ctx.fillStyle = '#102a27';
+  ctx.font = '800 25px Arial';
+  wrapCanvasText(ctx, data.payer ? data.payer.name : 'Sin pagador', padding + 590, y + 86, 210, 28);
+
+  ctx.fillStyle = '#64748b';
+  ctx.font = '600 18px Arial';
+  ctx.fillText(`Total pagado: ${formatCurrency(data.calculation.paidTotal)} · Personas pendientes: ${data.calculation.pendingPeople}`, padding + 28, y + 126);
+
+  y += 182;
+
+  if (data.people.length === 0) {
     ctx.fillStyle = '#ffffff';
-    roundRect(ctx, padding, y, width - padding * 2, blockHeight, 24);
+    roundRect(ctx, padding, y, width - padding * 2, 112, 24);
     ctx.fill();
+    ctx.fillStyle = '#166534';
+    ctx.font = '800 26px Arial';
+    ctx.fillText(data.pendingOnly ? 'Sin personas pendientes.' : 'Sin personas registradas.', padding + 28, y + 52);
+    ctx.fillStyle = '#64748b';
+    ctx.font = '600 20px Arial';
+    ctx.fillText(data.pendingOnly ? 'La cuenta no tiene cobros pendientes por persona.' : 'Agrega personas para completar el comprobante.', padding + 28, y + 84);
+    y += 130;
+  } else {
+    for (const person of data.people) {
+      const blockHeight = data.detailed
+        ? 138 + Math.max(1, person.items.length) * itemLineHeight
+        : 86;
 
-    ctx.fillStyle = '#102a27';
-    ctx.font = '800 30px Arial';
-    ctx.fillText(person.name, padding + 28, y + 48);
-
-    ctx.fillStyle = '#0f766e';
-    ctx.font = '800 32px Arial';
-    const amount = formatCurrency(person.total);
-    const amountWidth = ctx.measureText(amount).width;
-    ctx.fillText(amount, width - padding - 28 - amountWidth, y + 48);
-
-    ctx.fillStyle = person.paid ? '#16a34a' : '#f59e0b';
-    ctx.font = '700 20px Arial';
-    ctx.fillText(person.paid ? 'Pagado' : 'Pendiente', padding + 28, y + 78);
-
-    if (data.detailed) {
-      let detailY = y + 112;
-
-      ctx.fillStyle = '#64748b';
-      ctx.font = '500 20px Arial';
-
-      if (person.items.length === 0) {
-        ctx.fillText('Sin consumos registrados', padding + 28, detailY);
-        detailY += itemLineHeight;
-      } else {
-        for (const item of person.items) {
-          const shareText = item.totalShares > 1 ? ` (${item.share}/${item.totalShares})` : '';
-          const line = `${item.productName}${shareText}: ${formatCurrency(item.amount)}`;
-          detailY = wrapCanvasText(ctx, line, padding + 28, detailY, width - padding * 2 - 56, itemLineHeight);
-        }
-      }
+      ctx.fillStyle = '#ffffff';
+      roundRect(ctx, padding, y, width - padding * 2, blockHeight, 24);
+      ctx.fill();
 
       ctx.fillStyle = '#102a27';
-      ctx.font = '700 20px Arial';
-      ctx.fillText(`Subtotal: ${formatCurrency(person.subtotal)} · Propina: ${formatCurrency(person.tip)}`, padding + 28, detailY + 8);
-    }
+      ctx.font = '800 30px Arial';
+      ctx.fillText(person.name, padding + 28, y + 49);
 
-    y += blockHeight + 18;
+      ctx.fillStyle = '#0f766e';
+      ctx.font = '800 32px Arial';
+      const amount = formatCurrency(person.total);
+      const amountWidth = ctx.measureText(amount).width;
+      ctx.fillText(amount, width - padding - 28 - amountWidth, y + 49);
+
+      ctx.fillStyle = person.paid ? '#16a34a' : '#f59e0b';
+      ctx.font = '700 20px Arial';
+      ctx.fillText(person.paid ? 'Pagado' : 'Pendiente', padding + 28, y + 78);
+
+      if (data.detailed) {
+        let detailY = y + 116;
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '500 20px Arial';
+
+        if (person.items.length === 0) {
+          ctx.fillText('Sin consumos registrados', padding + 28, detailY);
+          detailY += itemLineHeight;
+        } else {
+          for (const item of person.items) {
+            const shareText = item.totalShares > 1 ? ` (${item.share}/${item.totalShares})` : '';
+            const line = `${item.productName}${shareText}: ${formatCurrency(item.amount)}`;
+            detailY = wrapCanvasText(ctx, line, padding + 28, detailY, width - padding * 2 - 56, itemLineHeight);
+          }
+        }
+
+        ctx.fillStyle = '#102a27';
+        ctx.font = '700 20px Arial';
+        ctx.fillText(`Subtotal: ${formatCurrency(person.subtotal)} · Propina: ${formatCurrency(person.tip)}`, padding + 28, detailY + 8);
+      }
+
+      y += blockHeight + 18;
+    }
   }
 
-  if (data.transfers.length > 0) {
+  if (data.transfers.length > 0 || data.pendingOnly) {
     y += 8;
-    const blockHeight = 72 + data.transfers.length * 38;
+    const blockHeight = data.transfers.length > 0 ? 78 + data.transfers.length * 42 : 96;
 
     ctx.fillStyle = '#fff7ed';
     roundRect(ctx, padding, y, width - padding * 2, blockHeight, 24);
@@ -8040,19 +8152,25 @@ function drawShareImage(content = 'simple') {
 
     ctx.fillStyle = '#102a27';
     ctx.font = '800 27px Arial';
-    ctx.fillText('Transferencias', padding + 28, y + 44);
+    ctx.fillText(data.pendingOnly ? 'Transferencias pendientes' : 'Transferencias', padding + 28, y + 44);
 
-    let ty = y + 82;
-    ctx.font = '700 21px Arial';
+    if (data.transfers.length === 0) {
+      ctx.fillStyle = '#166534';
+      ctx.font = '700 22px Arial';
+      ctx.fillText('No hay transferencias pendientes.', padding + 28, y + 80);
+    } else {
+      let ty = y + 84;
+      ctx.font = '700 21px Arial';
 
-    for (const transfer of data.transfers) {
-      ctx.fillStyle = '#102a27';
-      ctx.fillText(`${transfer.from} → ${transfer.to}`, padding + 28, ty);
+      for (const transfer of data.transfers) {
+        ctx.fillStyle = '#102a27';
+        ctx.fillText(`${transfer.from} → ${transfer.to}`, padding + 28, ty);
 
-      ctx.fillStyle = '#0f766e';
-      const amount = formatCurrency(transfer.amount);
-      ctx.fillText(amount, width - padding - 28 - ctx.measureText(amount).width, ty);
-      ty += 38;
+        ctx.fillStyle = transfer.paid ? '#16a34a' : '#0f766e';
+        const amount = formatCurrency(transfer.amount);
+        ctx.fillText(amount, width - padding - 28 - ctx.measureText(amount).width, ty);
+        ty += 42;
+      }
     }
 
     y += blockHeight + 18;
@@ -8070,7 +8188,11 @@ function drawShareImage(content = 'simple') {
 
   ctx.font = '700 23px Arial';
   ctx.fillText(`Subtotal: ${formatCurrency(data.calculation.subtotal)}`, padding + 28, y + 88);
-  ctx.fillText(`Propina (${data.bill.tipPercent}%): ${formatCurrency(data.calculation.tipAmount)}`, padding + 28, y + 122);
+
+  const tipText = data.bill.mode === 'home'
+    ? 'Sin propina en cuenta hogar'
+    : `Propina (${data.bill.tipPercent}%): ${formatCurrency(data.calculation.tipAmount)}`;
+  ctx.fillText(tipText, padding + 28, y + 122);
 
   ctx.fillStyle = '#0f766e';
   ctx.font = '800 34px Arial';
@@ -8079,6 +8201,7 @@ function drawShareImage(content = 'simple') {
   ctx.fillStyle = '#64748b';
   ctx.font = '500 18px Arial';
   ctx.fillText('Generado con Cuenta Clara', padding, height - 32);
+  ctx.fillText(data.generatedAt, width - padding - ctx.measureText(data.generatedAt).width, height - 32);
 }
 
 function getCanvasBlob() {
@@ -8604,6 +8727,7 @@ dom.productFilterSelect.addEventListener('change', renderProducts);
 
 dom.copyReceiptSummaryButton?.addEventListener('click', copyReceiptSummary);
 dom.whatsappReceiptSummaryButton?.addEventListener('click', whatsappReceiptSummary);
+dom.generateReceiptImageButton?.addEventListener('click', openReceiptImageShare);
 dom.openPaymentsFromReceiptButton?.addEventListener('click', () => setAppSection('payments'));
 dom.copySummaryButton.addEventListener('click', () => copySummary('simple'));
 dom.whatsappButton.addEventListener('click', () => shareWhatsapp('simple'));

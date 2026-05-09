@@ -7711,3 +7711,33 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
     align-self: center;
   }
 }
+
+/* V12.7 - comprobante visual e imagen para WhatsApp */
+.share-options-grid .option-card:nth-child(2) {
+  align-content: start;
+}
+
+.share-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.receipt-summary-actions #generateReceiptImageButton {
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--border));
+  background: color-mix(in srgb, var(--primary) 6%, var(--surface));
+  color: var(--primary);
+}
+
+@media (max-width: 720px) {
+  .share-options-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-actions .btn,
+  .receipt-summary-actions #generateReceiptImageButton {
+    width: 100%;
+  }
+}
