@@ -1,0 +1,11 @@
+{
+  "version": "13.1",
+  "objetivo": "Recordatorios y dashboard de pendientes",
+  "validaciones": [
+    "script.js validado con node --check",
+    "profile.js validado con node --check",
+    "index.html revisado por IDs duplicados",
+    "service-worker actualizado a v13.1",
+    "no requiere SQL nuevo"
+  ]
+}

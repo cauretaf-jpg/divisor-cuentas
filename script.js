@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V13.0 cargada');
+console.info('Cuenta Clara V13.1 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -124,6 +124,13 @@ const dom = {
   homeRecurringAmount: document.querySelector('#homeRecurringAmount'),
   homeRecurringActionButton: document.querySelector('#homeRecurringActionButton'),
   homeRecurringOpenButton: document.querySelector('#homeRecurringOpenButton'),
+  homeReminderPanel: document.querySelector('#homeReminderPanel'),
+  homeReminderSummaryOutput: document.querySelector('#homeReminderSummaryOutput'),
+  homeReminderAmountOutput: document.querySelector('#homeReminderAmountOutput'),
+  homeReminderOverdueOutput: document.querySelector('#homeReminderOverdueOutput'),
+  homeReminderSoonOutput: document.querySelector('#homeReminderSoonOutput'),
+  homeReminderList: document.querySelector('#homeReminderList'),
+  homeReminderOpenPaymentsButton: document.querySelector('#homeReminderOpenPaymentsButton'),
 
   historySearchInput: document.querySelector('#historySearchInput'),
   historyFilterSelect: document.querySelector('#historyFilterSelect'),
@@ -3997,6 +4004,7 @@ function renderMobileHomeDashboard() {
   }
 
   renderHomeRecentBills();
+  renderHomeReminderDashboard();
   renderHomeRecurringPanel();
 }
 
@@ -4087,6 +4095,215 @@ function createNextRecurringMonthFromGroup(groupId) {
   state.activeBillId = latest.id;
   saveState();
   createNextRecurringMonthFromActive();
+}
+
+
+function getPaymentDueTiming(bill) {
+  const due = String(bill?.paymentDueAt || '').trim();
+
+  if (!due) {
+    return {
+      label: 'Sin fecha límite',
+      className: 'muted',
+      days: null,
+      priority: 4,
+      overdue: false,
+      soon: false,
+    };
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dueDate = new Date(`${due}T00:00:00`);
+  const diffDays = Math.round((dueDate - today) / 86400000);
+
+  if (!Number.isFinite(diffDays)) {
+    return {
+      label: 'Fecha por revisar',
+      className: 'muted',
+      days: null,
+      priority: 4,
+      overdue: false,
+      soon: false,
+    };
+  }
+
+  if (diffDays < 0) {
+    return {
+      label: `Vencido hace ${Math.abs(diffDays)} día${Math.abs(diffDays) === 1 ? '' : 's'}`,
+      className: 'danger',
+      days: diffDays,
+      priority: 0,
+      overdue: true,
+      soon: false,
+    };
+  }
+
+  if (diffDays === 0) {
+    return {
+      label: 'Vence hoy',
+      className: 'warning',
+      days: 0,
+      priority: 1,
+      overdue: false,
+      soon: true,
+    };
+  }
+
+  if (diffDays <= 3) {
+    return {
+      label: `Vence en ${diffDays} día${diffDays === 1 ? '' : 's'}`,
+      className: 'warning',
+      days: diffDays,
+      priority: 2,
+      overdue: false,
+      soon: true,
+    };
+  }
+
+  if (diffDays <= 7) {
+    return {
+      label: `Vence en ${diffDays} días`,
+      className: 'upcoming',
+      days: diffDays,
+      priority: 3,
+      overdue: false,
+      soon: true,
+    };
+  }
+
+  return {
+    label: `Fecha límite ${formatShortDate(due)}`,
+    className: 'muted',
+    days: diffDays,
+    priority: 5,
+    overdue: false,
+    soon: false,
+  };
+}
+
+function getDashboardReminderItems() {
+  if (!state?.bills?.length) return [];
+
+  const items = [];
+
+  for (const bill of state.bills) {
+    if (!bill || bill.archived) continue;
+
+    const calculation = calculateBill(bill);
+    if (!calculation || Number(calculation.pendingTotal || 0) <= 0) continue;
+
+    const payer = bill.people.find((person) => person.id === bill.payerId) || null;
+    const timing = getPaymentDueTiming(bill);
+    const candidatePeople = bill.people
+      .map((person) => ({ person, amount: calculation.finalTotals[person.id] || 0 }))
+      .filter(({ person, amount }) => amount > 0 && !person.paid && (!payer || person.id !== payer.id));
+
+    const pendingPeople = candidatePeople.length
+      ? candidatePeople
+      : bill.people
+          .map((person) => ({ person, amount: calculation.finalTotals[person.id] || 0 }))
+          .filter(({ amount, person }) => amount > 0 && !person.paid);
+
+    for (const { person, amount } of pendingPeople) {
+      items.push({
+        bill,
+        calculation,
+        payer,
+        person,
+        amount,
+        timing,
+        updatedAt: bill.updatedAt || bill.createdAt || '',
+      });
+    }
+  }
+
+  return items.sort((a, b) => {
+    if (a.timing.priority !== b.timing.priority) return a.timing.priority - b.timing.priority;
+    if ((a.timing.days ?? 9999) !== (b.timing.days ?? 9999)) return (a.timing.days ?? 9999) - (b.timing.days ?? 9999);
+    return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+  });
+}
+
+function openReminderTarget(item, section = 'payments') {
+  if (!item?.bill?.id) {
+    setAppSection(section, { scroll: false });
+    return;
+  }
+
+  state.activeBillId = item.bill.id;
+  editingProductId = null;
+  accountSettingsPinnedOpenBillId = '';
+  saveState();
+  render();
+  setAppSection(section, { scroll: false });
+}
+
+function renderHomeReminderDashboard() {
+  if (!dom.homeReminderPanel || !dom.homeReminderList) return;
+
+  const items = getDashboardReminderItems();
+  const visibleItems = items.slice(0, 5);
+  const billCount = new Set(items.map((item) => item.bill.id)).size;
+  const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
+  const overdueCount = items.filter((item) => item.timing.overdue).length;
+  const soonCount = items.filter((item) => item.timing.soon).length;
+
+  dom.homeReminderPanel.classList.toggle('is-empty', items.length === 0);
+  dom.homeReminderSummaryOutput.textContent = items.length
+    ? `${items.length} pago${items.length === 1 ? '' : 's'} pendiente${items.length === 1 ? '' : 's'} · ${billCount} cuenta${billCount === 1 ? '' : 's'}`
+    : 'Sin pagos pendientes';
+  dom.homeReminderAmountOutput.textContent = formatCurrency(totalAmount);
+  dom.homeReminderOverdueOutput.textContent = String(overdueCount);
+  dom.homeReminderSoonOutput.textContent = String(soonCount);
+  dom.homeReminderList.innerHTML = '';
+
+  if (items.length === 0) {
+    dom.homeReminderList.appendChild(emptyMessage('No hay pagos pendientes con personas por recordar.'));
+    if (dom.homeReminderOpenPaymentsButton) {
+      dom.homeReminderOpenPaymentsButton.textContent = 'Ir a Pagos';
+      dom.homeReminderOpenPaymentsButton.onclick = () => setAppSection('payments', { scroll: false });
+    }
+    return;
+  }
+
+  for (const item of visibleItems) {
+    const hasPhone = Boolean(normalizePhoneNumber(item.person.phone));
+    const row = document.createElement('div');
+    row.className = `home-reminder-row status-${item.timing.className || 'muted'}`;
+    row.innerHTML = `
+      <div class="home-reminder-main">
+        <strong>${escapeHtml(item.person.name)}</strong>
+        <small>${escapeHtml(item.bill.name || 'Cuenta sin nombre')} · ${escapeHtml(item.timing.label)}</small>
+      </div>
+      <strong class="home-reminder-row-amount">${formatCurrency(item.amount)}</strong>
+      <div class="home-reminder-row-actions">
+        <button class="btn btn-light btn-small" data-action="open" type="button">Pagos</button>
+        <button class="btn btn-light btn-small" data-action="copy" type="button">Copiar</button>
+        <button class="btn btn-primary btn-small" data-action="whatsapp" type="button" ${hasPhone ? '' : 'disabled'}>WhatsApp</button>
+      </div>
+    `;
+
+    row.querySelector('[data-action="open"]')?.addEventListener('click', () => openReminderTarget(item, 'payments'));
+    row.querySelector('[data-action="copy"]')?.addEventListener('click', () => copyPaymentReminder(item.person, item.payer, item.amount, item.bill));
+    row.querySelector('[data-action="whatsapp"]')?.addEventListener('click', () => sendPaymentReminderWhatsapp(item.person, item.payer, item.amount, item.bill));
+    dom.homeReminderList.appendChild(row);
+  }
+
+  if (items.length > visibleItems.length) {
+    const more = document.createElement('button');
+    more.type = 'button';
+    more.className = 'home-reminder-more';
+    more.textContent = `Ver ${items.length - visibleItems.length} pendiente${items.length - visibleItems.length === 1 ? '' : 's'} más`;
+    more.addEventListener('click', () => setAppSection('history', { scroll: false }));
+    dom.homeReminderList.appendChild(more);
+  }
+
+  if (dom.homeReminderOpenPaymentsButton) {
+    const first = items[0];
+    dom.homeReminderOpenPaymentsButton.textContent = overdueCount ? 'Revisar vencidos' : 'Revisar pendientes';
+    dom.homeReminderOpenPaymentsButton.onclick = () => openReminderTarget(first, 'payments');
+  }
 }
 
 function renderHomeRecurringPanel() {

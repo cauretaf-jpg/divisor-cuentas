@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=13.0" rel="stylesheet"/>
+<link href="styles.css?v=13.1" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -75,6 +75,25 @@
 <div><span>Mi parte</span><strong id="homeDashboardMineOutput">-</strong></div>
 <div><span>Por cobrar</span><strong id="homeDashboardReceivableOutput">$0</strong></div>
 <div><span>Pendientes</span><strong id="homeDashboardPendingPeopleOutput">0</strong></div>
+</div>
+<div class="home-reminder-panel" id="homeReminderPanel" aria-live="polite">
+<div class="home-reminder-head">
+<div>
+<span class="home-reminder-kicker">Recordatorios</span>
+<strong id="homeReminderSummaryOutput">Sin pagos pendientes</strong>
+<small>Pagos vencidos o próximos a vencer en tus cuentas activas.</small>
+</div>
+<strong class="home-reminder-amount" id="homeReminderAmountOutput">$0</strong>
+</div>
+<div class="home-reminder-stats">
+<span><strong id="homeReminderOverdueOutput">0</strong> vencidos</span>
+<span><strong id="homeReminderSoonOutput">0</strong> por vencer</span>
+</div>
+<div class="home-reminder-list" id="homeReminderList"></div>
+<div class="home-reminder-actions">
+<button class="btn btn-primary btn-small" id="homeReminderOpenPaymentsButton" type="button">Revisar pendientes</button>
+<button class="btn btn-light btn-small" data-app-section="history" type="button">Ver historial</button>
+</div>
 </div>
 <div class="home-primary-actions">
 <button class="btn btn-primary" id="homeNewBillButton" type="button">Nueva cuenta guiada</button>
@@ -1109,7 +1128,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=13.0"></script>
-<script src="script.js?v=13.0"></script>
+<script src="supabase-config.js?v=13.1"></script>
+<script src="script.js?v=13.1"></script>
 </body>
 </html>
