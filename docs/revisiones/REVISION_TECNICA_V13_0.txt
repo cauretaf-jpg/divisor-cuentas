@@ -1,0 +1,17 @@
+Cuenta Clara v13.0 - Recurrentes, actividad y cierre inteligente
+
+Cambios principales:
+- Recurrentes: se agrega vista de carpeta mensual con próximo mes, gastos recurrentes, pagador habitual y último pendiente.
+- Pagos: se agrega fecha límite de pago y estado visual de recordatorio.
+- Recordatorios de WhatsApp: incluyen la fecha límite cuando existe.
+- Compartidas: se agrega actividad reciente de la cuenta para ver cambios relevantes.
+- Actividad local por cuenta: registra pagos, gastos, personas, cierre/reapertura, recurrentes e invitaciones.
+- Cierre inteligente: al cerrar una cuenta se revisan personas, pagador, montos, gastos sin consumidores y pagos pendientes.
+- Privacidad/confianza: se mantienen mensajes orientados al usuario, sin detalles técnicos de base de datos.
+
+Validaciones:
+- Sintaxis de script.js validada con node --check.
+- index.html revisado sin IDs duplicados.
+- service-worker actualizado a v13.0.
+
+No requiere SQL nuevo.

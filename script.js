@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V12.9 cargada');
+console.info('Cuenta Clara V13.0 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -178,6 +178,7 @@ const dom = {
   recurringActiveMonthStatus: document.querySelector('#recurringActiveMonthStatus'),
   recurringCurrentPeopleList: document.querySelector('#recurringCurrentPeopleList'),
   recurringDebtList: document.querySelector('#recurringDebtList'),
+  recurringFolderOverviewList: document.querySelector('#recurringFolderOverviewList'),
   recurringMonthHistoryList: document.querySelector('#recurringMonthHistoryList'),
 
   publishSharedAccountButton: document.querySelector('#publishSharedAccountButton'),
@@ -189,6 +190,7 @@ const dom = {
   sharedInvitesList: document.querySelector('#sharedInvitesList'),
   sharedAccountsList: document.querySelector('#sharedAccountsList'),
   sharedMembersList: document.querySelector('#sharedMembersList'),
+  sharedActivityList: document.querySelector('#sharedActivityList'),
   sharedReadOnlyBanner: document.querySelector('#sharedReadOnlyBanner'),
   networkStatusBanner: document.querySelector('#networkStatusBanner'),
   networkStatusTitle: document.querySelector('#networkStatusTitle'),
@@ -301,6 +303,11 @@ const dom = {
   paymentPendingTotalOutput: document.querySelector('#paymentPendingTotalOutput'),
   paymentPaidTotalOutput: document.querySelector('#paymentPaidTotalOutput'),
   paymentPendingPeopleOutput: document.querySelector('#paymentPendingPeopleOutput'),
+  paymentReminderPanel: document.querySelector('#paymentReminderPanel'),
+  paymentReminderStatusOutput: document.querySelector('#paymentReminderStatusOutput'),
+  paymentDueDateInput: document.querySelector('#paymentDueDateInput'),
+  setPaymentDueDateButton: document.querySelector('#setPaymentDueDateButton'),
+  clearPaymentDueDateButton: document.querySelector('#clearPaymentDueDateButton'),
   transferList: document.querySelector('#transferList'),
   transferCard: document.querySelector('#transferCard'),
 
@@ -2815,6 +2822,8 @@ function makeDefaultBill() {
     archived: false,
     closed: false,
     closedAt: '',
+    paymentDueAt: '',
+    activity: [],
     recurringGroupId: '',
     recurringSequence: 1,
     previousBillId: '',
@@ -2956,6 +2965,44 @@ function createStatePayload(bills, activeBillId, input = {}) {
   };
 }
 
+function normalizeBillActivity(input = []) {
+  if (!Array.isArray(input)) return [];
+
+  return input
+    .map((item) => ({
+      id: String(item.id || createId('activity')),
+      type: String(item.type || 'general'),
+      message: String(item.message || '').trim(),
+      actor: String(item.actor || '').trim(),
+      actorId: String(item.actorId || ''),
+      at: item.at || item.createdAt || nowIso(),
+    }))
+    .filter((item) => item.message)
+    .slice(0, 40);
+}
+
+function getBillActorLabel() {
+  if (currentSession.mode === 'user') {
+    return getProfileDisplayName() || currentSession.email || 'Usuario';
+  }
+  return 'Invitado';
+}
+
+function addBillActivity(message, type = 'general', bill = getActiveBill()) {
+  if (!bill || !message) return;
+
+  bill.activity = normalizeBillActivity(bill.activity);
+  bill.activity.unshift({
+    id: createId('activity'),
+    type,
+    message: String(message).trim(),
+    actor: getBillActorLabel(),
+    actorId: currentSession.userId || currentSession.email || '',
+    at: nowIso(),
+  });
+  bill.activity = bill.activity.slice(0, 40);
+}
+
 function normalizeState(input) {
   if (!input || !Array.isArray(input.bills)) {
     const bill = makeDefaultBill();
@@ -2986,6 +3033,8 @@ function normalizeState(input) {
       archived: Boolean(bill.archived),
       closed: Boolean(bill.closed),
       closedAt: bill.closedAt || '',
+      paymentDueAt: /^\d{4}-\d{2}-\d{2}$/.test(String(bill.paymentDueAt || '')) ? String(bill.paymentDueAt) : '',
+      activity: normalizeBillActivity(bill.activity),
       recurringGroupId: String(bill.recurringGroupId || ''),
       recurringSequence: Math.max(1, Number(bill.recurringSequence || 1)),
       previousBillId: String(bill.previousBillId || ''),
@@ -4728,6 +4777,8 @@ function createNextRecurringMonthFromActive() {
   }));
   group.updatedAt = nowIso();
 
+  addBillActivity(`Se creó el siguiente mes ${nextMonth} con arrastre ${formatCurrency(pendingTotal)}.`, 'recurring', latestBill);
+  addBillActivity(`Mes ${nextMonth} creado desde ${latestBill.homeMonth || 'mes anterior'}.`, 'recurring', newBill);
   state.bills.unshift(newBill);
   state.activeBillId = newBill.id;
   editingProductId = null;
@@ -4848,6 +4899,7 @@ function setRecurringPersonPaid(personId, paid) {
   if (!person) return;
 
   person.paid = Boolean(paid);
+  addBillActivity(`${person.name} quedó como ${person.paid ? 'pagado' : 'pendiente'} en recurrentes.`, 'payment', bill);
   persistAndRender();
   showToast(`${person.name} quedó como ${person.paid ? 'pagado' : 'pendiente'}.`);
 }
@@ -4944,6 +4996,39 @@ function renderRecurringMonthHistory(group) {
   }
 }
 
+function renderRecurringFolderOverview(group, bill, stats, latestBill, latestStats) {
+  if (!dom.recurringFolderOverviewList) return;
+
+  dom.recurringFolderOverviewList.innerHTML = '';
+  const bills = getGroupBills(group);
+  const nextMonth = getNextMonthValue((latestBill || bill).homeMonth || getCurrentMonthValue());
+  const recurringProducts = ((latestBill || bill).products || []).filter((product) => product.recurring);
+  const payer = (latestBill || bill).people.find((person) => person.id === (latestBill || bill).payerId);
+  const summaryItems = [
+    ['Siguiente mes', nextMonth],
+    ['Gastos recurrentes', `${recurringProducts.length} marcado${recurringProducts.length === 1 ? '' : 's'}`],
+    ['Pagador habitual', payer?.name || 'Sin pagador'],
+    ['Último pendiente', formatCurrency(latestStats.pendingTotal || 0)],
+  ];
+
+  const box = document.createElement('div');
+  box.className = 'recurring-folder-overview-grid';
+  box.innerHTML = summaryItems.map(([label, value]) => `
+    <div>
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </div>
+  `).join('');
+  dom.recurringFolderOverviewList.appendChild(box);
+
+  const note = document.createElement('p');
+  note.className = 'helper-text compact-text';
+  note.textContent = bills.length > 1
+    ? 'Esta carpeta ya funciona como historial mensual. Al crear el siguiente mes se copian personas, gastos recurrentes, pagador y deuda pendiente.'
+    : 'Crea el siguiente mes para empezar un historial mensual conectado.';
+  dom.recurringFolderOverviewList.appendChild(note);
+}
+
 function renderRecurringDashboard() {
   if (!dom.recurringDashboardCard) return;
 
@@ -4973,6 +5058,7 @@ function renderRecurringDashboard() {
       : `Pendiente ${formatCurrency(stats.pendingTotal)} de ${formatCurrency(stats.grandTotal)}`;
   }
 
+  renderRecurringFolderOverview(group, bill, stats, latestBill, latestStats);
   renderRecurringCurrentPeople(bill);
   renderRecurringDebtSnapshot(group);
   renderRecurringMonthHistory(group);
@@ -5087,6 +5173,7 @@ function renderSharedAccountRow(account, roleLabel, metaParts = []) {
   const details = [
     roleLabel,
     accountBill.homeMonth || getBillModeLabel(accountBill.mode),
+    account.updated_at ? `Actualizada ${formatDate(account.updated_at)}` : '',
     ...metaParts,
     pendingCount > 0 ? `${pendingCount} pendiente${pendingCount === 1 ? '' : 's'}` : '',
     acceptedCount > 0 ? `${acceptedCount} aceptado${acceptedCount === 1 ? '' : 's'}` : '',
@@ -5183,6 +5270,36 @@ function renderSharedMembersList() {
   }
 }
 
+function renderSharedActivityList() {
+  if (!dom.sharedActivityList) return;
+
+  const bill = getActiveBill();
+  const activity = normalizeBillActivity(bill.activity).slice(0, 10);
+  dom.sharedActivityList.innerHTML = '';
+
+  if (!bill.sharedAccountId && !activity.length) {
+    dom.sharedActivityList.appendChild(emptyMessage('Cuando compartas o edites una cuenta, aquí verás los cambios recientes.'));
+    return;
+  }
+
+  if (!activity.length) {
+    dom.sharedActivityList.appendChild(emptyMessage('Aún no hay actividad registrada en esta cuenta.'));
+    return;
+  }
+
+  for (const item of activity) {
+    const row = document.createElement('div');
+    row.className = `profile-activity-row shared-activity-row activity-${escapeHtml(item.type)}`;
+    row.innerHTML = `
+      <div>
+        <strong>${escapeHtml(item.message)}</strong>
+        <span>${escapeHtml(item.actor || 'Cuenta Clara')} · ${escapeHtml(formatDate(item.at))}</span>
+      </div>
+    `;
+    dom.sharedActivityList.appendChild(row);
+  }
+}
+
 function renderSharedPanel() {
   if (!dom.sharedAccountStatus) return;
 
@@ -5194,6 +5311,7 @@ function renderSharedPanel() {
     dom.sharedAccountsList.innerHTML = '';
     dom.sharedInvitesList.innerHTML = '';
     if (dom.sharedMembersList) dom.sharedMembersList.innerHTML = '';
+    if (dom.sharedActivityList) dom.sharedActivityList.innerHTML = '';
     return;
   }
 
@@ -5506,6 +5624,8 @@ async function publishActiveBillAsShared() {
       saveState();
     }
 
+    addBillActivity(bill.sharedAccountId ? 'Cuenta compartida actualizada.' : 'Cuenta compartida publicada.', 'shared', bill);
+    saveState();
     await fetchSharedAccounts();
     showToast('Cuenta compartida actualizada.');
   } catch (error) {
@@ -5595,9 +5715,12 @@ async function inviteUserToSharedAccount() {
 
     if (error) throw error;
 
+    const invitedName = profile.nick || profile.nombre || profile.email;
+    addBillActivity(`Invitación enviada a ${invitedName} como ${getSharedRoleLabel(dom.sharedInviteRoleSelect?.value)}.`, 'shared', getActiveBill());
+    saveState();
     if (dom.sharedInviteSearchInput) dom.sharedInviteSearchInput.value = '';
     await fetchSharedAccounts();
-    showToast(`Invitación enviada a ${profile.nick || profile.nombre || profile.email} como ${getSharedRoleLabel(dom.sharedInviteRoleSelect?.value)}.`);
+    showToast(`Invitación enviada a ${invitedName} como ${getSharedRoleLabel(dom.sharedInviteRoleSelect?.value)}.`);
   } catch (error) {
     console.error(error);
     showNotice('No se pudo invitar', 'No pude enviar la invitación. Revisa que la persona exista, que no esté repetida y que la nube esté conectada.');
@@ -6500,6 +6623,7 @@ function setPersonPaidStatus(personId, paid) {
   if (person.paid === nextPaid) return;
   const undoSnapshot = captureUndoSnapshot(nextPaid ? 'Marcar pagado' : 'Marcar pendiente');
   person.paid = nextPaid;
+  addBillActivity(`${person.name} quedó como ${nextPaid ? 'pagado' : 'pendiente'}.`, 'payment', bill);
   persistAndRender();
   showUndoToast(nextPaid ? `${person.name}: pago registrado.` : `${person.name}: vuelve a pendiente.`, undoSnapshot);
 }
@@ -7090,6 +7214,10 @@ function buildPaymentReminderMessage(person, payer, amount, bill) {
     lines.push(`Mes: *${bill.homeMonth}*`);
   }
 
+  if (bill.paymentDueAt) {
+    lines.push(`Fecha límite sugerida: *${bill.paymentDueAt}*`);
+  }
+
   lines.push('', 'Gracias.');
   return lines.join('\n');
 }
@@ -7113,6 +7241,77 @@ function sendPaymentReminderWhatsapp(person, payer, amount, bill) {
 
   const text = buildPaymentReminderMessage(person, payer, amount, bill);
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+}
+
+function getPaymentDueStatus(bill = getActiveBill()) {
+  const calculation = calculateBill(bill);
+  const due = String(bill.paymentDueAt || '');
+
+  if (!due) {
+    return { label: calculation.pendingTotal > 0 ? 'Sin fecha límite' : 'Sin pendientes', className: 'muted', overdue: false };
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dueDate = new Date(`${due}T00:00:00`);
+  const diffDays = Math.round((dueDate - today) / 86400000);
+
+  if (calculation.pendingTotal <= 0 || calculation.isPaid) {
+    return { label: `Fecha límite ${due} · cuenta pagada`, className: 'success', overdue: false };
+  }
+
+  if (diffDays < 0) {
+    return { label: `Vencido hace ${Math.abs(diffDays)} día${Math.abs(diffDays) === 1 ? '' : 's'}`, className: 'danger', overdue: true };
+  }
+
+  if (diffDays === 0) {
+    return { label: 'Vence hoy', className: 'warning', overdue: false };
+  }
+
+  return { label: `Vence en ${diffDays} día${diffDays === 1 ? '' : 's'}`, className: diffDays <= 2 ? 'warning' : 'success', overdue: false };
+}
+
+function renderPaymentReminderPanel() {
+  if (!dom.paymentReminderPanel) return;
+
+  const bill = getActiveBill();
+  const status = getPaymentDueStatus(bill);
+  dom.paymentReminderPanel.classList.remove('status-success', 'status-warning', 'status-danger', 'status-muted');
+  dom.paymentReminderPanel.classList.add(`status-${status.className || 'muted'}`);
+
+  if (dom.paymentReminderStatusOutput) {
+    dom.paymentReminderStatusOutput.textContent = status.label;
+  }
+  if (dom.paymentDueDateInput && dom.paymentDueDateInput.value !== (bill.paymentDueAt || '')) {
+    dom.paymentDueDateInput.value = bill.paymentDueAt || '';
+  }
+}
+
+function setPaymentDueDateFromInput() {
+  const bill = getActiveBill();
+  const value = String(dom.paymentDueDateInput?.value || '').trim();
+
+  if (!value) {
+    showToast('Elige una fecha límite.');
+    return;
+  }
+
+  bill.paymentDueAt = value;
+  addBillActivity(`Fecha límite de pago definida para ${value}.`, 'reminder', bill);
+  persistAndRender();
+  showToast('Fecha límite guardada.');
+}
+
+function clearPaymentDueDate() {
+  const bill = getActiveBill();
+  if (!bill.paymentDueAt) {
+    showToast('Esta cuenta no tiene fecha límite.');
+    return;
+  }
+  bill.paymentDueAt = '';
+  addBillActivity('Fecha límite de pago eliminada.', 'reminder', bill);
+  persistAndRender();
+  showToast('Fecha límite eliminada.');
 }
 
 function renderProfilePayerSummary() {
@@ -7224,6 +7423,7 @@ function render() {
   renderRecurringGroups();
   renderSharedPanel();
   renderSharedPermissionState();
+  renderSharedActivityList();
   renderBillHeader();
   renderBillModeSwitcher();
   renderPayerSelect();
@@ -7237,6 +7437,7 @@ function render() {
   renderReceiptSummary();
   renderNetworkStatus();
   renderProfilePayerSummary();
+  renderPaymentReminderPanel();
   renderTransfers();
   try {
     renderGuidedExperience();
@@ -7309,6 +7510,8 @@ function duplicateHomeMonth() {
     archived: false,
     closed: false,
     closedAt: '',
+    paymentDueAt: '',
+    activity: [],
     recurringGroupId: '',
     recurringSequence: Math.max(1, Number(bill.recurringSequence || 1)) + 1,
     previousBillId: bill.id,
@@ -7332,6 +7535,8 @@ function duplicateHomeMonth() {
     }),
   };
 
+  addBillActivity(`Se creó el siguiente mes ${nextMonth} con arrastre ${formatCurrency(pendingTotal)}.`, 'recurring', latestBill);
+  addBillActivity(`Mes ${nextMonth} creado desde ${latestBill.homeMonth || 'mes anterior'}.`, 'recurring', newBill);
   state.bills.unshift(newBill);
   state.activeBillId = newBill.id;
   editingProductId = null;
@@ -7376,6 +7581,8 @@ function duplicateBill() {
     archived: false,
     closed: false,
     closedAt: '',
+    paymentDueAt: '',
+    activity: [],
     recurringGroupId: '',
     recurringSequence: 1,
     previousBillId: '',
@@ -7485,6 +7692,41 @@ function toggleArchiveBill() {
   showUndoToast(bill.archived ? 'Cuenta archivada.' : 'Cuenta desarchivada.', undoSnapshot);
 }
 
+function getCloseReadinessIssues(bill = getActiveBill()) {
+  const issues = [];
+  const calculation = calculateBill(bill);
+
+  if (!bill.people.length) issues.push('No hay personas agregadas.');
+  if (!bill.payerId && calculation.grandTotal > 0) issues.push('Falta seleccionar pagador principal.');
+  if (!billHasAmounts(bill)) issues.push('La cuenta no tiene gastos ni monto total.');
+
+  const productsWithoutConsumers = (bill.products || []).filter((product) =>
+    Number(product.unitPrice || 0) * Number(product.quantity || 0) > 0
+    && (!Array.isArray(product.consumers) || product.consumers.length === 0)
+  );
+  if (productsWithoutConsumers.length) {
+    issues.push(`${productsWithoutConsumers.length} gasto${productsWithoutConsumers.length === 1 ? '' : 's'} sin consumidores.`);
+  }
+
+  const pendingPeople = (bill.people || []).filter((person) => !person.paid && (calculation.finalTotals[person.id] || 0) > 0);
+  if (pendingPeople.length) {
+    issues.push(`${pendingPeople.length} persona${pendingPeople.length === 1 ? '' : 's'} con pago pendiente (${formatCurrency(calculation.pendingTotal)}).`);
+  }
+
+  return issues;
+}
+
+function confirmCloseBillWithReview(bill = getActiveBill()) {
+  const issues = getCloseReadinessIssues(bill);
+
+  if (!issues.length) return true;
+
+  return confirmAction(
+    `Antes de cerrar “${bill.name}”, revisa estos puntos:`,
+    `${issues.map((issue) => `• ${issue}`).join('\n')}\n\nPuedes cerrar igual, pero la cuenta quedará marcada con pendientes.`
+  );
+}
+
 function setBillClosedState(bill, closed) {
   bill.closed = Boolean(closed);
   bill.closedAt = bill.closed ? nowIso() : '';
@@ -7501,17 +7743,12 @@ function toggleCloseBill() {
 
   const undoSnapshot = captureUndoSnapshot(bill.closed ? 'Reabrir cuenta' : 'Cerrar cuenta');
 
-  if (!bill.closed) {
-    const calculation = calculateBill(bill);
-    const hasPending = calculation.pendingTotal > 0 && !calculation.isPaid;
-    const confirmed = hasPending
-      ? confirmAction('Esta cuenta todavía tiene pagos pendientes.', 'Si la cierras, seguirá visible en Historial y podrás reabrirla o deshacer el cambio.')
-      : true;
-
-    if (!confirmed) return;
+  if (!bill.closed && !confirmCloseBillWithReview(bill)) {
+    return;
   }
 
   setBillClosedState(bill, !bill.closed);
+  addBillActivity(bill.closed ? 'Cuenta cerrada.' : 'Cuenta reabierta.', 'status', bill);
   saveState();
   render();
   showUndoToast(bill.closed ? 'Cuenta cerrada.' : 'Cuenta reabierta.', undoSnapshot);
@@ -7532,17 +7769,12 @@ function toggleBillClosedFromHistory(billId) {
 
   const undoSnapshot = captureUndoSnapshot(bill.closed ? 'Reabrir cuenta' : 'Cerrar cuenta');
 
-  if (!bill.closed) {
-    const calculation = calculateBill(bill);
-    const hasPending = calculation.pendingTotal > 0 && !calculation.isPaid;
-    const confirmed = hasPending
-      ? confirmAction(`“${bill.name}” todavía tiene pagos pendientes.`, 'Si la cierras, seguirá visible en Historial y podrás reabrirla o deshacer el cambio.')
-      : true;
-
-    if (!confirmed) return;
+  if (!bill.closed && !confirmCloseBillWithReview(bill)) {
+    return;
   }
 
   setBillClosedState(bill, !bill.closed);
+  addBillActivity(bill.closed ? 'Cuenta cerrada desde Historial.' : 'Cuenta reabierta desde Historial.', 'status', bill);
   saveState();
   render();
   showUndoToast(bill.closed ? 'Cuenta cerrada.' : 'Cuenta reabierta.', undoSnapshot);
@@ -7624,6 +7856,7 @@ function addPerson(name, phone = '') {
     paid: false,
   });
 
+  addBillActivity(`${cleanName} fue agregado a la cuenta.`, 'people', bill);
   dom.personNameInput.value = '';
   dom.personPhoneInput.value = '';
   persistAndRender();
@@ -7647,6 +7880,7 @@ function deletePerson(personId) {
     return;
   }
 
+  addBillActivity(`${person.name} fue eliminado de la cuenta.`, 'people', bill);
   bill.people = bill.people.filter((item) => item.id !== personId);
   bill.products = bill.products.map((product) => ({
     ...product,
@@ -7697,6 +7931,7 @@ function editPerson(personId) {
     return;
   }
 
+  addBillActivity(`${person.name} fue editado como ${cleanName}.`, 'people', bill);
   person.name = cleanName;
   person.phone = normalizePhoneNumber(newPhone);
   persistAndRender();
@@ -7716,6 +7951,7 @@ function markAllPaid(paid) {
 
   const undoSnapshot = captureUndoSnapshot(paid ? 'Marcar todo pagado' : 'Marcar todo pendiente');
   bill.people = bill.people.map((person) => ({ ...person, paid }));
+  addBillActivity(paid ? 'Todos los pagos fueron marcados como pagados.' : 'Todos los pagos volvieron a pendiente.', 'payment', bill);
   persistAndRender();
   showUndoToast(paid ? 'Todos quedaron como pagados.' : 'Todos quedaron como pendientes.', undoSnapshot);
 }
@@ -7782,6 +8018,7 @@ function submitProduct() {
     }
 
     editingProductId = null;
+    addBillActivity(`${name} fue actualizado.`, 'expense', bill);
     showToast('Producto actualizado.');
   } else {
     bill.products.push({
@@ -7796,6 +8033,7 @@ function submitProduct() {
       consumers,
     });
 
+    addBillActivity(`${name} fue agregado por ${formatCurrency(unitPrice * quantity)}.`, 'expense', bill);
     showToast('Producto agregado.');
   }
 
@@ -7823,6 +8061,7 @@ function duplicateProduct(productId) {
     consumers: product.consumers.map((consumer) => ({ ...consumer })),
   });
 
+  addBillActivity(`${product.name} fue duplicado.`, 'expense', bill);
   persistAndRender();
   showToast('Producto duplicado.');
 }
@@ -7846,6 +8085,7 @@ function deleteProduct(productId) {
   }
 
   bill.products = bill.products.filter((item) => item.id !== productId);
+  addBillActivity(`${product.name} fue eliminado.`, 'expense', bill);
 
   if (editingProductId === productId) {
     editingProductId = null;
@@ -8119,6 +8359,8 @@ function billFromCompactLink(data) {
     archived: false,
     closed: false,
     closedAt: '',
+    paymentDueAt: '',
+    activity: [],
     recurringGroupId: '',
     recurringSequence: 1,
     previousBillId: '',
@@ -9696,6 +9938,12 @@ if (dom.inviteSharedUserButton) {
 }
 if (dom.refreshSharedAccountsButton) {
   dom.refreshSharedAccountsButton.addEventListener('click', fetchSharedAccounts);
+}
+if (dom.setPaymentDueDateButton) {
+  dom.setPaymentDueDateButton.addEventListener('click', setPaymentDueDateFromInput);
+}
+if (dom.clearPaymentDueDateButton) {
+  dom.clearPaymentDueDateButton.addEventListener('click', clearPaymentDueDate);
 }
 if (dom.sharedInviteSearchInput) {
   dom.sharedInviteSearchInput.addEventListener('keydown', (event) => {

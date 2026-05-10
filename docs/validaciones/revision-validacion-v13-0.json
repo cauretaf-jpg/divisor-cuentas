@@ -1,0 +1,18 @@
+{
+  "version": "13.0",
+  "fecha": "2026-05-10",
+  "checks": {
+    "script_js_sintaxis": "ok",
+    "profile_js_sintaxis": "ok",
+    "ids_duplicados_index_html": "ok",
+    "service_worker_cache": "cuenta-clara-v13.0",
+    "sql_nuevo_requerido": false
+  },
+  "alcance": [
+    "recurrentes_avanzados",
+    "actividad_compartida",
+    "recordatorios_pago",
+    "cierre_inteligente",
+    "confianza_privacidad"
+  ]
+}
