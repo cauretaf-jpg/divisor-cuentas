@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V12.8 cargada');
+console.info('Cuenta Clara V12.8.1 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -234,6 +234,7 @@ const dom = {
   selectAllReceiptItemsButton: document.querySelector('#selectAllReceiptItemsButton'),
   unselectAllReceiptItemsButton: document.querySelector('#unselectAllReceiptItemsButton'),
   ignoreZeroReceiptItemsButton: document.querySelector('#ignoreZeroReceiptItemsButton'),
+  addManualReceiptItemButton: document.querySelector('#addManualReceiptItemButton'),
   addReceiptItemsButton: document.querySelector('#addReceiptItemsButton'),
   toggleQuickProductsEditorButton: document.querySelector('#toggleQuickProductsEditorButton'),
   quickProductsList: document.querySelector('#quickProductsList'),
@@ -1209,12 +1210,17 @@ function roundReceiptMoney(value) {
 function cleanReceiptProductName(value) {
   return String(value || '')
     .replace(/^\s*\d+\s*[xX]\s*/g, '')
-    .replace(/\b\d+[,.]\d{1,2}\b\s*$/g, '')
-    .replace(/\s{2,}/g, ' ')
     .replace(/[|_*~]+/g, '')
+    .replace(/\d+[,.]\d{1,2}\s*$/g, '')
+    .replace(/\s+\d{1,3}\s+(?:[il1]m|[a-z]{1,3})\s*$/i, '')
+    .replace(/\s+\d{1,3}\s*$/g, '')
+    .replace(/(?:QUE|QVE|OUE|LUPA)\s*$/gi, '')
+    .replace(/^\s*(?:na|ia|la)\s+(?=[A-ZÁÉÍÓÚÜÑ])/i, '')
+    .replace(/\s{2,}/g, ' ')
     .replace(/^[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ$]+/g, '')
     .trim();
 }
+
 
 function normalizeReceiptLine(line) {
   return String(line || '')
@@ -1336,6 +1342,9 @@ function shouldIgnoreReceiptLine(line) {
     'pago',
     'atendido',
     'preferencia',
+    'independencia',
+    'puente alto',
+    'producto',
   ];
 
   return ignoredWords.some((word) => {
@@ -1669,6 +1678,48 @@ function detectSeparatedReceiptColumns(rawLines, items, seen, meta) {
   }
 }
 
+
+function isReceiptInsideProductZone(rawLines, index) {
+  const before = rawLines.slice(0, index + 1).some((line) => /producto/.test(normalizeReceiptKeyword(line)));
+  if (!before) {
+    return false;
+  }
+
+  const between = rawLines.slice(0, index + 1).reverse();
+  const passedTotal = between.some((line) => /^\s*total/.test(normalizeReceiptKeyword(line)) || /propina/.test(normalizeReceiptKeyword(line)));
+  return !passedTotal;
+}
+
+function addReceiptPlaceholderItem(items, seen, line, options = {}) {
+  const cleanName = cleanReceiptProductName(line);
+
+  if (!cleanName || cleanName.length < 3 || shouldIgnoreReceiptLine(cleanName)) {
+    return false;
+  }
+
+  const key = `placeholder-${cleanName.toLowerCase()}-${options.quantity || 1}`;
+  if (seen.has(key)) {
+    return false;
+  }
+
+  seen.add(key);
+  const quantity = Math.max(1, parseReceiptQuantity(options.quantity || 1));
+  items.push(refreshReceiptDerivedValues({
+    id: createId('receipt'),
+    selected: true,
+    name: cleanName,
+    quantity,
+    amount: 0,
+    amountMode: 'line',
+    price: 0,
+    unitPrice: 0,
+    lineTotal: 0,
+    category: guessReceiptCategory(cleanName),
+    needsReview: true,
+  }));
+  return true;
+}
+
 function parseReceiptText(text) {
   const rawLines = String(text || '')
     .split(/\r?\n/)
@@ -1733,11 +1784,24 @@ function parseReceiptText(text) {
       });
       if (added) {
         index += 1;
+        continue;
       }
+    }
+
+    // Caso D previo: el OCR encontró el nombre/cantidad, pero el monto salió corrupto.
+    // Ej: PATRICIO ESTRELLA 2 1m. Se agrega en $0 para que se corrija en la revisión.
+    const corruptedAmountMatch = line.match(/^(.+?)\s+(\d{1,3})\s+(?:[il1]m|[a-z]{1,3})\s*$/i);
+    if (corruptedAmountMatch && isReceiptInsideProductZone(rawLines, index)) {
+      addReceiptPlaceholderItem(items, seen, corruptedAmountMatch[1], { quantity: corruptedAmountMatch[2] });
+      continue;
+    }
+
+    if (isReceiptInsideProductZone(rawLines, index) && isReceiptProductNameLine(line)) {
+      addReceiptPlaceholderItem(items, seen, line);
     }
   }
 
-  // Caso D: OCR leyó las columnas completas por separado:
+  // Caso E: OCR leyó las columnas completas por separado:
   // nombres primero, cantidades después, montos después.
   detectSeparatedReceiptColumns(rawLines, items, seen, meta);
   inferReceiptAmountModes(items, meta);
@@ -1943,6 +2007,26 @@ function updateReceiptSelectionSummary() {
   }
 }
 
+
+function getReceiptReviewLabel(item) {
+  const quantity = Math.max(1, Number(item.quantity || 1));
+  const lineTotal = getReceiptLineTotal(item);
+  const unitPrice = getReceiptUnitPrice(item);
+
+  if (lineTotal <= 0 || item.needsReview) {
+    return 'Completar monto';
+  }
+
+  if (quantity > 1 && item.amountMode === 'line') {
+    if (!Number.isInteger(unitPrice)) {
+      return 'Revisar cantidad';
+    }
+    return 'No multiplica doble';
+  }
+
+  return 'OK';
+}
+
 function renderReceiptDetectedItems() {
   dom.receiptDetectedBody.innerHTML = '';
   dom.receiptDetectedCount.textContent = `${receiptDetectedItems.length} encontrados`;
@@ -1959,7 +2043,7 @@ function renderReceiptDetectedItems() {
     refreshReceiptDerivedValues(item);
     const row = document.createElement('tr');
     row.dataset.itemId = item.id;
-    row.classList.toggle('receipt-row-warning', getReceiptLineTotal(item) <= 0);
+    row.classList.toggle('receipt-row-warning', getReceiptLineTotal(item) <= 0 || Boolean(item.needsReview));
     row.innerHTML = `
       <td><input type="checkbox" ${item.selected ? 'checked' : ''} aria-label="Usar producto" /></td>
       <td><input type="text" value="${escapeHtml(item.name)}" aria-label="Producto detectado" /></td>
@@ -1977,7 +2061,7 @@ function renderReceiptDetectedItems() {
           ${CATEGORIES.map((category) => `<option ${category === item.category ? 'selected' : ''}>${category}</option>`).join('')}
         </select>
       </td>
-      <td class="receipt-review-cell">${Number(item.quantity || 1) > 1 && item.amountMode === 'line' ? 'No multiplica doble' : 'OK'}</td>
+      <td class="receipt-review-cell">${getReceiptReviewLabel(item)}</td>
     `;
 
     const checkbox = row.querySelector('input[type="checkbox"]');
@@ -1992,8 +2076,8 @@ function renderReceiptDetectedItems() {
     const updateRowDerived = () => {
       refreshReceiptDerivedValues(item);
       derivedTotal.textContent = `Total: ${formatCurrency(getReceiptLineTotal(item))} · Unit.: ${formatCurrency(getReceiptUnitPrice(item))}`;
-      reviewCell.textContent = Number(item.quantity || 1) > 1 && item.amountMode === 'line' ? 'No multiplica doble' : 'OK';
-      row.classList.toggle('receipt-row-warning', getReceiptLineTotal(item) <= 0);
+      reviewCell.textContent = getReceiptReviewLabel(item);
+      row.classList.toggle('receipt-row-warning', getReceiptLineTotal(item) <= 0 || Boolean(item.needsReview));
       updateReceiptSelectionSummary();
     };
 
@@ -2008,11 +2092,13 @@ function renderReceiptDetectedItems() {
 
     quantityInput.addEventListener('input', () => {
       item.quantity = Math.max(1, Number(quantityInput.value || 1));
+      item.needsReview = false;
       updateRowDerived();
     });
 
     amountInput.addEventListener('input', () => {
       item.amount = Number(amountInput.value || 0);
+      item.needsReview = false;
       updateRowDerived();
     });
 
@@ -2042,6 +2128,25 @@ function ignoreZeroReceiptItems() {
   renderReceiptDetectedItems();
   const removed = before - receiptDetectedItems.length;
   showToast(removed > 0 ? `${removed} producto${removed === 1 ? '' : 's'} de $0 ignorado${removed === 1 ? '' : 's'}.` : 'No hay montos en $0 para ignorar.');
+}
+
+function addManualReceiptItem() {
+  receiptDetectedItems.push(refreshReceiptDerivedValues({
+    id: createId('receipt'),
+    selected: true,
+    name: 'Producto pendiente',
+    quantity: 1,
+    amount: 0,
+    amountMode: 'line',
+    price: 0,
+    unitPrice: 0,
+    lineTotal: 0,
+    category: getActiveBill().mode === 'home' ? 'Supermercado' : 'Comida',
+    needsReview: true,
+  }));
+
+  renderReceiptDetectedItems();
+  updateReceiptStatus('Fila agregada. Completa producto, cantidad y monto antes de agregar a la cuenta.');
 }
 
 function addReceiptItemsToBill() {
@@ -3308,6 +3413,90 @@ function getSmartActionCopy() {
   };
 }
 
+
+function renderSectionGuidance(copy = getSmartActionCopy()) {
+  const guides = document.querySelectorAll('[data-guide-card]');
+
+  guides.forEach((card) => {
+    const section = card.dataset.guideCard;
+    const strong = card.querySelector('strong');
+    const paragraph = card.querySelector('p');
+    const number = card.querySelector('.guide-number');
+    const button = card.querySelector('button');
+
+    if (!strong || !paragraph) return;
+
+    const isCurrent =
+      (section === 'people' && copy.step === 'people') ||
+      (section === 'expenses' && copy.step === 'products') ||
+      (section === 'summary' && copy.step === 'review') ||
+      (section === 'payments' && copy.step === 'share');
+
+    card.classList.toggle('is-current-guide', isCurrent);
+
+    if (section === 'people') {
+      number.textContent = '1';
+      strong.textContent = copy.step === 'people' ? copy.title : 'Personas listas';
+      paragraph.textContent = copy.step === 'people'
+        ? `${copy.help} Cuando termines, sigue a Gastos.`
+        : 'Ya puedes avanzar a Gastos. También puedes volver aquí para cambiar pagador o teléfonos.';
+      if (button) {
+        button.textContent = copy.step === 'people' ? copy.button : 'Ir a Gastos';
+        button.onclick = () => {
+          if (copy.step === 'people') {
+            scrollToGuideTarget(dom.personNameInput);
+            return;
+          }
+          setAppSection('expenses');
+        };
+      }
+      return;
+    }
+
+    if (section === 'expenses') {
+      number.textContent = '2';
+      strong.textContent = copy.step === 'products' ? copy.title : 'Gastos registrados';
+      paragraph.textContent = copy.step === 'products'
+        ? `${copy.help} Después revisa el Resumen.`
+        : 'Aquí puedes editar productos, escanear boletas o corregir cantidades antes de compartir.';
+      if (button) {
+        button.textContent = copy.step === 'products' ? copy.button : 'Ver resumen';
+        button.onclick = () => {
+          if (copy.step === 'products') {
+            scrollToGuideTarget(billIsQuickForGuidance() ? dom.quickTotalInput : dom.productNameInput);
+            return;
+          }
+          setAppSection('summary');
+        };
+      }
+      return;
+    }
+
+    if (section === 'summary') {
+      number.textContent = '3';
+      strong.textContent = 'Revisa el cálculo';
+      paragraph.textContent = hasProductsForGuidance() ? 'Confirma total, propina, pagador y transferencias antes de compartir.' : 'Cuando agregues gastos, aquí aparecerá el resumen completo.';
+      return;
+    }
+
+    if (section === 'payments') {
+      number.textContent = '4';
+      strong.textContent = 'Cierra el seguimiento';
+      paragraph.textContent = 'Marca pagado cuando te transfieran y envía recordatorios por WhatsApp si falta alguien.';
+    }
+  });
+}
+
+function hasProductsForGuidance() {
+  const { hasProducts } = getGuidedState();
+  return hasProducts;
+}
+
+function billIsQuickForGuidance() {
+  const { bill } = getGuidedState();
+  return bill.mode === 'quick';
+}
+
 function updateStepPill(element, state) {
   if (!element) return;
   element.classList.remove('is-current', 'is-done');
@@ -3335,6 +3524,8 @@ function renderGuidedExperience() {
   updateStepPill(dom.stepProducts, hasProducts ? 'done' : (hasPeople ? 'current' : ''));
   updateStepPill(dom.stepReview, hasAmounts ? 'done' : (hasPeople && hasProducts ? 'current' : ''));
   updateStepPill(dom.stepShare, copy.step === 'share' ? 'current' : '');
+
+  renderSectionGuidance(copy);
 
   const mode = getExperienceMode();
   dom.simpleModeButton?.classList.toggle('is-active', mode === 'simple');
@@ -8695,6 +8886,7 @@ if (dom.reparseReceiptTextButton) {
 dom.selectAllReceiptItemsButton.addEventListener('click', () => setAllReceiptItems(true));
 dom.unselectAllReceiptItemsButton.addEventListener('click', () => setAllReceiptItems(false));
 dom.ignoreZeroReceiptItemsButton?.addEventListener('click', ignoreZeroReceiptItems);
+dom.addManualReceiptItemButton?.addEventListener('click', addManualReceiptItem);
 dom.addReceiptItemsButton.addEventListener('click', addReceiptItemsToBill);
 
 

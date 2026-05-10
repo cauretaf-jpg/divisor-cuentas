@@ -1,0 +1,9 @@
+Cuenta Clara v12.8.1 - Boletas y guía reforzada
+
+Cambios:
+- Se agrega botón Agregar fila en revisión de boletas para productos que el OCR no detecta.
+- Se mantienen columnas Cantidad, Monto leído, Tipo monto, Categoría y Revisión.
+- Se agregan filas en $0 cuando el OCR detecta un posible producto con monto corrupto para que el usuario lo complete.
+- Se mejora limpieza de nombres con basura OCR como QUE, LUPA o prefijos parciales.
+- Se refuerza guía por pantalla: Personas indica siguiente paso, Gastos indica revisar Resumen, Pagos indica seguimiento.
+- Cache actualizado a v12.8.1.
