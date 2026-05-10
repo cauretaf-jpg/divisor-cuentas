@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V13.3 cargada');
+console.info('Cuenta Clara V13.4 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -114,6 +114,11 @@ const dom = {
   homeDashboardMineOutput: document.querySelector('#homeDashboardMineOutput'),
   homeDashboardReceivableOutput: document.querySelector('#homeDashboardReceivableOutput'),
   homeDashboardPendingPeopleOutput: document.querySelector('#homeDashboardPendingPeopleOutput'),
+  homeActionPanel: document.querySelector('#homeActionPanel'),
+  homeActionSummaryOutput: document.querySelector('#homeActionSummaryOutput'),
+  homeActionAmountOutput: document.querySelector('#homeActionAmountOutput'),
+  homeActionList: document.querySelector('#homeActionList'),
+  homeActionOpenPaymentsButton: document.querySelector('#homeActionOpenPaymentsButton'),
   continueActiveBillButton: document.querySelector('#continueActiveBillButton'),
   homeNewBillButton: document.querySelector('#homeNewBillButton'),
   homeRecentBillsList: document.querySelector('#homeRecentBillsList'),
@@ -280,6 +285,10 @@ const dom = {
   productList: document.querySelector('#productList'),
 
   accountStatus: document.querySelector('#accountStatus'),
+  accountReviewPanel: document.querySelector('#accountReviewPanel'),
+  accountReviewStatus: document.querySelector('#accountReviewStatus'),
+  accountReviewList: document.querySelector('#accountReviewList'),
+  accountReviewPrimaryButton: document.querySelector('#accountReviewPrimaryButton'),
   subtotalOutput: document.querySelector('#subtotalOutput'),
   tipOutput: document.querySelector('#tipOutput'),
   grandTotalOutput: document.querySelector('#grandTotalOutput'),
@@ -311,6 +320,12 @@ const dom = {
   paymentPendingTotalOutput: document.querySelector('#paymentPendingTotalOutput'),
   paymentPaidTotalOutput: document.querySelector('#paymentPaidTotalOutput'),
   paymentPendingPeopleOutput: document.querySelector('#paymentPendingPeopleOutput'),
+  paymentActionCenter: document.querySelector('#paymentActionCenter'),
+  paymentActionTotalOutput: document.querySelector('#paymentActionTotalOutput'),
+  paymentActionCountOutput: document.querySelector('#paymentActionCountOutput'),
+  paymentActionFilterSelect: document.querySelector('#paymentActionFilterSelect'),
+  paymentActionRefreshButton: document.querySelector('#paymentActionRefreshButton'),
+  paymentActionList: document.querySelector('#paymentActionList'),
   paymentReminderPanel: document.querySelector('#paymentReminderPanel'),
   paymentReminderStatusOutput: document.querySelector('#paymentReminderStatusOutput'),
   paymentDueDateInput: document.querySelector('#paymentDueDateInput'),
@@ -836,6 +851,363 @@ function getProfileDebtOverview() {
   return result;
 }
 
+function getPaymentActionEntries(filter = 'current') {
+  const selfInfo = getSelfParticipantInfo();
+  const activeBillId = state?.activeBillId || '';
+  const bills = Array.isArray(state?.bills) ? state.bills : [];
+  const entries = [];
+
+  for (const bill of bills) {
+    if (!bill || bill.archived || !Array.isArray(bill.people)) continue;
+    if (filter === 'current' && bill.id !== activeBillId) continue;
+
+    const payer = bill.people.find((person) => person.id === bill.payerId);
+    if (!payer) continue;
+
+    const calculation = calculateBill(bill);
+    const selfPerson = findSelfPerson(bill, selfInfo);
+
+    for (const person of bill.people) {
+      if (person.id === payer.id || person.paid) continue;
+      const amount = calculation.finalTotals[person.id] || 0;
+      if (amount <= 0) continue;
+
+      const direction = selfPerson && selfPerson.id === payer.id
+        ? 'owed'
+        : selfPerson && selfPerson.id === person.id
+          ? 'owe'
+          : 'other';
+
+      if (filter === 'mine' && direction === 'other') continue;
+
+      const dueStatus = getPaymentDueStatus(bill);
+      entries.push({
+        billId: bill.id,
+        billName: bill.name || 'Cuenta sin nombre',
+        billMode: bill.mode,
+        billDueAt: bill.paymentDueAt || '',
+        billUpdatedAt: bill.updatedAt || bill.createdAt || '',
+        person,
+        payer,
+        amount,
+        direction,
+        dueStatus,
+        label: direction === 'owed'
+          ? `${person.name} te debe`
+          : direction === 'owe'
+            ? `Le debes a ${payer.name}`
+            : `${person.name} debe transferir`,
+        subtitle: `${bill.name || 'Cuenta sin nombre'} · ${getBillModeLabel(bill.mode)}`,
+      });
+    }
+  }
+
+  return entries.sort((a, b) => {
+    const dangerA = a.dueStatus?.className === 'danger' ? 0 : a.dueStatus?.className === 'warning' ? 1 : 2;
+    const dangerB = b.dueStatus?.className === 'danger' ? 0 : b.dueStatus?.className === 'warning' ? 1 : 2;
+    if (dangerA !== dangerB) return dangerA - dangerB;
+    return b.amount - a.amount;
+  });
+}
+
+function setPersonPaidStatusInBill(billId, personId, paid) {
+  const bill = state?.bills?.find((item) => item.id === billId);
+  const person = bill?.people?.find((item) => item.id === personId);
+
+  if (!bill || !person) {
+    showToast('No encontré ese pago.');
+    return;
+  }
+
+  const nextPaid = Boolean(paid);
+  if (person.paid === nextPaid) return;
+
+  const undoSnapshot = captureUndoSnapshot(nextPaid ? 'Marcar pagado' : 'Marcar pendiente');
+  person.paid = nextPaid;
+  bill.updatedAt = nowIso();
+  addBillActivity(`${person.name} quedó como ${nextPaid ? 'pagado' : 'pendiente'}.`, 'payment', bill);
+  saveState();
+  render();
+  showUndoToast(nextPaid ? `${person.name}: pago registrado.` : `${person.name}: vuelve a pendiente.`, undoSnapshot);
+}
+
+function openBillForPaymentAction(billId, section = 'payments') {
+  const bill = state?.bills?.find((item) => item.id === billId);
+  if (!bill) {
+    showToast('No encontré esa cuenta.');
+    return;
+  }
+
+  state.activeBillId = bill.id;
+  editingProductId = null;
+  accountSettingsPinnedOpenBillId = '';
+  saveState();
+  render();
+  setAppSection(section, { scroll: false });
+}
+
+function buildPaymentActionMessage(entry, bill, person, payer) {
+  if (entry.direction === 'owe') {
+    return [
+      `Hola ${payer.name}, te aviso que tengo pendiente *${formatCurrency(entry.amount)}* de la cuenta *${bill.name || 'Cuenta Clara'}*.`,
+      bill.mode === 'home' && bill.homeMonth ? `Mes: *${bill.homeMonth}*` : '',
+      bill.paymentDueAt ? `Fecha límite sugerida: *${bill.paymentDueAt}*` : '',
+      '',
+      'Lo revisaré para dejarlo pagado.',
+    ].filter(Boolean).join('\n');
+  }
+
+  return buildPaymentReminderMessage(person, payer, entry.amount, bill);
+}
+
+function getPaymentActionRecipient(entry, person, payer) {
+  return entry.direction === 'owe' ? payer : person;
+}
+
+function sendPaymentActionWhatsapp(entry) {
+  const bill = state?.bills?.find((item) => item.id === entry.billId);
+  const person = bill?.people?.find((item) => item.id === entry.person.id);
+  const payer = bill?.people?.find((item) => item.id === entry.payer.id);
+
+  if (!bill || !person || !payer) {
+    showToast('No encontré los datos para enviar el recordatorio.');
+    return;
+  }
+
+  const recipient = getPaymentActionRecipient(entry, person, payer);
+  const phone = normalizePhoneNumber(recipient.phone);
+  if (!phone) {
+    showNotice('Teléfono faltante', `Agrega un WhatsApp a ${recipient.name} para enviar el mensaje directo.`);
+    return;
+  }
+
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(buildPaymentActionMessage(entry, bill, person, payer))}`, '_blank', 'noopener,noreferrer');
+}
+
+async function copyPaymentActionReminder(entry) {
+  const bill = state?.bills?.find((item) => item.id === entry.billId);
+  const person = bill?.people?.find((item) => item.id === entry.person.id);
+  const payer = bill?.people?.find((item) => item.id === entry.payer.id);
+
+  if (!bill || !person || !payer) {
+    showToast('No encontré los datos para copiar el recordatorio.');
+    return;
+  }
+
+  const text = buildPaymentActionMessage(entry, bill, person, payer);
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('Mensaje copiado.');
+  } catch {
+    prompt('Copia el mensaje:', text);
+  }
+}
+
+function renderPaymentActionRows(container, entries, { limit = 8, compact = false } = {}) {
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!entries.length) {
+    container.appendChild(emptyMessage(compact ? 'No hay acciones pendientes ahora.' : 'No hay pagos pendientes con este filtro.'));
+    return;
+  }
+
+  for (const entry of entries.slice(0, limit)) {
+    const row = document.createElement('div');
+    row.className = `payment-action-row is-${entry.direction}`;
+    const recipient = entry.direction === 'owe' ? entry.payer : entry.person;
+    const hasPhone = Boolean(normalizePhoneNumber(recipient.phone));
+    const dueText = entry.billDueAt ? ` · ${entry.dueStatus.label}` : '';
+    row.innerHTML = `
+      <div class="payment-action-main">
+        <strong>${escapeHtml(entry.label)}</strong>
+        <small>${escapeHtml(entry.subtitle)}${escapeHtml(dueText)}</small>
+      </div>
+      <strong class="payment-action-amount">${formatCurrency(entry.amount)}</strong>
+      <div class="payment-action-buttons">
+        <button class="btn btn-light btn-small" data-action="open" type="button">Ver cuenta</button>
+        <button class="btn btn-light btn-small" data-action="copy" type="button">Copiar</button>
+        <button class="btn btn-primary btn-small" data-action="whatsapp" type="button" ${hasPhone ? '' : 'disabled'}>WhatsApp</button>
+        <button class="btn btn-light btn-small" data-action="paid" type="button">Marcar pagado</button>
+      </div>
+    `;
+
+    row.querySelector('[data-action="open"]')?.addEventListener('click', () => openBillForPaymentAction(entry.billId, 'payments'));
+    row.querySelector('[data-action="copy"]')?.addEventListener('click', () => copyPaymentActionReminder(entry));
+    row.querySelector('[data-action="whatsapp"]')?.addEventListener('click', () => sendPaymentActionWhatsapp(entry));
+    row.querySelector('[data-action="paid"]')?.addEventListener('click', () => setPersonPaidStatusInBill(entry.billId, entry.person.id, true));
+
+    container.appendChild(row);
+  }
+}
+
+function getAccountReviewItems(bill = getActiveBill()) {
+  const calculation = calculateBill(bill);
+  const items = [];
+  const hasPeople = bill.people.length > 0;
+  const hasAmounts = calculation.grandTotal > 0;
+  const payer = bill.people.find((person) => person.id === bill.payerId);
+
+  if (!hasPeople) {
+    items.push({ level: 'danger', title: 'Faltan personas', text: 'Agrega al menos una persona antes de compartir.', section: 'people' });
+  }
+
+  if (!hasAmounts) {
+    items.push({ level: 'danger', title: 'Faltan gastos', text: 'Agrega productos, una boleta o un monto rápido.', section: 'expenses' });
+  }
+
+  if (hasPeople && !payer) {
+    items.push({ level: 'warning', title: 'Falta pagador principal', text: 'Selecciona quién recibirá las transferencias.', section: 'people' });
+  }
+
+  const peopleWithoutAmount = bill.people.filter((person) => (calculation.finalTotals[person.id] || 0) <= 0);
+  if (hasAmounts && peopleWithoutAmount.length > 0) {
+    items.push({
+      level: 'info',
+      title: 'Personas sin monto asignado',
+      text: `${peopleWithoutAmount.slice(0, 3).map((person) => person.name).join(', ')}${peopleWithoutAmount.length > 3 ? '…' : ''} no tiene consumo registrado.`,
+      section: 'expenses',
+    });
+  }
+
+  const productsWithoutConsumers = bill.mode !== 'quick'
+    ? bill.products.filter((product) => !Array.isArray(product.consumers) || product.consumers.length === 0)
+    : [];
+  if (productsWithoutConsumers.length > 0) {
+    items.push({ level: 'danger', title: 'Gastos sin consumidores', text: 'Hay productos que no están asignados a nadie.', section: 'expenses' });
+  }
+
+  const duplicateNames = new Map();
+  for (const person of bill.people) {
+    const key = String(person.name || '').trim().toLowerCase();
+    if (!key) continue;
+    duplicateNames.set(key, (duplicateNames.get(key) || 0) + 1);
+  }
+  const repeated = [...duplicateNames.entries()].filter(([, count]) => count > 1);
+  if (repeated.length > 0) {
+    items.push({ level: 'warning', title: 'Nombres repetidos', text: 'Revisa personas duplicadas para evitar cobros mal asignados.', section: 'people' });
+  }
+
+  const pendingPeople = bill.people.filter((person) => !person.paid && (calculation.finalTotals[person.id] || 0) > 0).length;
+  if (pendingPeople > 0) {
+    items.push({ level: 'info', title: 'Pagos pendientes', text: `Faltan ${pendingPeople} persona${pendingPeople === 1 ? '' : 's'} por marcar como pagada${pendingPeople === 1 ? '' : 's'}.`, section: 'payments' });
+  }
+
+  if (bill.mode === 'home') {
+    const overdue = bill.products.filter((product) => {
+      if (!product.dueDate) return false;
+      const dueDate = new Date(`${product.dueDate}T00:00:00`);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return dueDate < today;
+    }).length;
+    if (overdue > 0) {
+      items.push({ level: 'warning', title: 'Vencimientos atrasados', text: `${overdue} gasto${overdue === 1 ? '' : 's'} del hogar aparece${overdue === 1 ? '' : 'n'} vencido${overdue === 1 ? '' : 's'}.`, section: 'recurring' });
+    }
+  }
+
+  return items;
+}
+
+function renderAccountReviewPanel() {
+  if (!dom.accountReviewPanel || !dom.accountReviewList) return;
+
+  const items = getAccountReviewItems();
+  const blocking = items.filter((item) => item.level === 'danger');
+  const warnings = items.filter((item) => item.level === 'warning');
+
+  dom.accountReviewList.innerHTML = '';
+  dom.accountReviewPanel.classList.toggle('is-ready', items.length === 0);
+  dom.accountReviewPanel.classList.toggle('has-danger', blocking.length > 0);
+
+  if (!items.length) {
+    dom.accountReviewStatus.textContent = 'Lista para compartir';
+    dom.accountReviewStatus.className = 'account-review-status is-ready';
+    dom.accountReviewList.appendChild(emptyMessage('La cuenta no tiene alertas relevantes. Puedes compartirla o cerrarla con confianza.'));
+    dom.accountReviewPrimaryButton.textContent = 'Compartir comprobante';
+    dom.accountReviewPrimaryButton.onclick = openShareModal;
+    return;
+  }
+
+  dom.accountReviewStatus.textContent = blocking.length > 0 ? 'Requiere corrección' : warnings.length > 0 ? 'Revisar' : 'Pendiente menor';
+  dom.accountReviewStatus.className = `account-review-status ${blocking.length > 0 ? 'is-danger' : warnings.length > 0 ? 'is-warning' : 'is-info'}`;
+
+  for (const item of items) {
+    const row = document.createElement('button');
+    row.className = `account-review-row is-${item.level}`;
+    row.type = 'button';
+    row.innerHTML = `
+      <span>
+        <strong>${escapeHtml(item.title)}</strong>
+        <small>${escapeHtml(item.text)}</small>
+      </span>
+      <em>Resolver</em>
+    `;
+    row.addEventListener('click', () => setAppSection(item.section || 'summary', { scroll: false }));
+    dom.accountReviewList.appendChild(row);
+  }
+
+  const primary = items[0];
+  dom.accountReviewPrimaryButton.textContent = 'Resolver pendiente';
+  dom.accountReviewPrimaryButton.onclick = () => setAppSection(primary.section || 'summary', { scroll: false });
+}
+
+function renderHomeActionPanel() {
+  if (!dom.homeActionPanel || !dom.homeActionList) return;
+
+  const entries = getPaymentActionEntries(currentSession.mode === 'user' ? 'mine' : 'current');
+  const total = entries.reduce((sum, entry) => sum + entry.amount, 0);
+  const urgent = entries.filter((entry) => ['danger', 'warning'].includes(entry.dueStatus?.className)).length;
+  const bill = getActiveBill();
+  const reviewItems = getAccountReviewItems(bill).filter((item) => item.level !== 'info');
+
+  dom.homeActionAmountOutput.textContent = formatCurrency(total);
+
+  if (entries.length === 0 && reviewItems.length === 0) {
+    dom.homeActionSummaryOutput.textContent = 'Sin acciones urgentes';
+    dom.homeActionPanel.classList.add('is-clear');
+    dom.homeActionList.innerHTML = '';
+    dom.homeActionList.appendChild(emptyMessage('No hay cobros, pagos o revisiones críticas pendientes.'));
+    return;
+  }
+
+  dom.homeActionPanel.classList.remove('is-clear');
+  dom.homeActionSummaryOutput.textContent = entries.length > 0
+    ? `${entries.length} pago${entries.length === 1 ? '' : 's'} pendiente${entries.length === 1 ? '' : 's'}${urgent ? ` · ${urgent} urgente${urgent === 1 ? '' : 's'}` : ''}`
+    : `${reviewItems.length} revisión${reviewItems.length === 1 ? '' : 'es'} pendiente${reviewItems.length === 1 ? '' : 's'}`;
+  dom.homeActionList.innerHTML = '';
+  if (entries.length > 0) {
+    renderPaymentActionRows(dom.homeActionList, entries, { limit: 3, compact: true });
+  }
+
+  for (const item of reviewItems.slice(0, Math.max(0, 3 - entries.length))) {
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = `payment-action-row account-action-row is-${item.level}`;
+    row.innerHTML = `
+      <div class="payment-action-main">
+        <strong>${escapeHtml(item.title)}</strong>
+        <small>${escapeHtml(item.text)}</small>
+      </div>
+      <strong class="payment-action-amount">Revisar</strong>
+    `;
+    row.addEventListener('click', () => setAppSection(item.section || 'summary', { scroll: false }));
+    dom.homeActionList.appendChild(row);
+  }
+}
+
+function renderPaymentActionCenter() {
+  if (!dom.paymentActionCenter || !dom.paymentActionList) return;
+
+  const filter = dom.paymentActionFilterSelect?.value || 'current';
+  const entries = getPaymentActionEntries(filter);
+  const total = entries.reduce((sum, entry) => sum + entry.amount, 0);
+
+  dom.paymentActionTotalOutput.textContent = formatCurrency(total);
+  dom.paymentActionCountOutput.textContent = String(entries.length);
+  renderPaymentActionRows(dom.paymentActionList, entries, { limit: 20 });
+}
+
 function openBillFromProfileStats(billId, section = 'payments') {
   const bill = state?.bills?.find((item) => item.id === billId);
 
@@ -864,18 +1236,29 @@ function renderProfileDebtList(container, items, emptyText) {
   }
 
   for (const item of items.slice(0, 8)) {
-    const button = document.createElement('button');
-    button.className = `profile-debt-row ${item.direction === 'owe' ? 'is-owe' : 'is-owed'}`;
-    button.type = 'button';
-    button.innerHTML = `
+    const row = document.createElement('div');
+    row.className = `profile-debt-row profile-debt-card ${item.direction === 'owe' ? 'is-owe' : 'is-owed'}`;
+    const recipient = item.direction === 'owe' ? item.payer : item.person;
+    const hasPhone = Boolean(normalizePhoneNumber(recipient.phone));
+    row.innerHTML = `
       <span>
         <strong>${escapeHtml(item.title)}</strong>
-        <small>${escapeHtml(item.subtitle)} · tocar para abrir Pagos</small>
+        <small>${escapeHtml(item.subtitle)} · ${item.direction === 'owed' ? 'cobro pendiente' : 'pago pendiente'}</small>
       </span>
       <strong>${formatCurrency(item.amount)}</strong>
+      <div class="profile-debt-actions">
+        <button class="btn btn-light btn-small" data-action="open" type="button">Ver cuenta</button>
+        <button class="btn btn-light btn-small" data-action="copy" type="button">Copiar</button>
+        <button class="btn btn-primary btn-small" data-action="whatsapp" type="button" ${hasPhone ? '' : 'disabled'}>WhatsApp</button>
+        <button class="btn btn-light btn-small" data-action="paid" type="button">Marcar pagado</button>
+      </div>
     `;
-    button.addEventListener('click', () => openBillFromProfileStats(item.billId, 'payments'));
-    container.appendChild(button);
+
+    row.querySelector('[data-action="open"]')?.addEventListener('click', () => openBillFromProfileStats(item.billId, 'payments'));
+    row.querySelector('[data-action="copy"]')?.addEventListener('click', () => copyPaymentActionReminder(item));
+    row.querySelector('[data-action="whatsapp"]')?.addEventListener('click', () => sendPaymentActionWhatsapp(item));
+    row.querySelector('[data-action="paid"]')?.addEventListener('click', () => setPersonPaidStatusInBill(item.billId, item.person.id, true));
+    container.appendChild(row);
   }
 }
 
@@ -7699,13 +8082,16 @@ function render() {
   renderRecurringDashboard();
   renderTotals();
   renderReceiptSummary();
+  renderAccountReviewPanel();
   renderNetworkStatus();
   renderProfilePayerSummary();
   renderPaymentReminderPanel();
+  renderPaymentActionCenter();
   renderTransfers();
   try {
     renderGuidedExperience();
     renderMobileHomeDashboard();
+    renderHomeActionPanel();
     renderFirstUseOnboarding();
   } catch (error) {
     console.warn('No se pudo renderizar la experiencia guiada:', error);
@@ -10124,6 +10510,7 @@ dom.accountSettingsPanel?.addEventListener('toggle', () => {
 
 dom.smartActionButton?.addEventListener('click', handleSmartAction);
 dom.continueActiveBillButton?.addEventListener('click', continueActiveBillFromHome);
+dom.homeActionOpenPaymentsButton?.addEventListener('click', () => setAppSection('payments', { scroll: false }));
 dom.homeNewBillButton?.addEventListener('click', focusGuidedNewBillChoices);
 dom.simpleModeButton?.addEventListener('click', () => setExperienceMode('simple'));
 dom.advancedModeButton?.addEventListener('click', () => setExperienceMode('advanced'));
@@ -10209,6 +10596,12 @@ if (dom.setPaymentDueDateButton) {
 }
 if (dom.clearPaymentDueDateButton) {
   dom.clearPaymentDueDateButton.addEventListener('click', clearPaymentDueDate);
+}
+if (dom.paymentActionFilterSelect) {
+  dom.paymentActionFilterSelect.addEventListener('change', renderPaymentActionCenter);
+}
+if (dom.paymentActionRefreshButton) {
+  dom.paymentActionRefreshButton.addEventListener('click', renderPaymentActionCenter);
 }
 if (dom.sharedInviteSearchInput) {
   dom.sharedInviteSearchInput.addEventListener('keydown', (event) => {

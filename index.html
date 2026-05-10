@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=13.3" rel="stylesheet"/>
+<link href="styles.css?v=13.4" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -76,6 +76,21 @@
 <div><span>Por cobrar</span><strong id="homeDashboardReceivableOutput">$0</strong></div>
 <div><span>Pendientes</span><strong id="homeDashboardPendingPeopleOutput">0</strong></div>
 </div>
+<section class="home-action-panel" id="homeActionPanel" aria-live="polite">
+<div class="home-action-head">
+<div>
+<span class="home-action-kicker">Pendiente ahora</span>
+<strong id="homeActionSummaryOutput">Sin acciones urgentes</strong>
+<small>Resumen inteligente de pagos, cobros y revisiones pendientes.</small>
+</div>
+<strong class="home-action-amount" id="homeActionAmountOutput">$0</strong>
+</div>
+<div class="home-action-list" id="homeActionList"></div>
+<div class="home-action-actions">
+<button class="btn btn-primary btn-small" id="homeActionOpenPaymentsButton" type="button">Abrir centro de pagos</button>
+<button class="btn btn-light btn-small" data-app-section="summary" type="button">Revisar cuenta actual</button>
+</div>
+</section>
 <div class="home-reminder-panel" id="homeReminderPanel" aria-live="polite">
 <div class="home-reminder-head">
 <div>
@@ -497,7 +512,21 @@
 </div>
 <div class="category-totals" id="categoryTotals"></div>
 <div class="product-list" id="productList"></div>
-</section></section><section class="app-section ad-protected-zone" data-app-section-panel="summary" id="appSection-summary"><section class="section-page-heading card"><div><p class="eyebrow">Totales</p><h2>Resumen</h2><p class="section-helper">Revisa subtotal, propina, total final y estado general de la cuenta.</p></div></section><section class="guide-card card" data-guide-card="summary"><div><span class="guide-number">3</span></div><div><strong>Revisa si el cálculo está correcto</strong><p>Aquí ves subtotal, propina, total final y cuánto queda pendiente por cobrar.</p></div><button class="btn btn-primary btn-small" type="button" data-app-section="payments">Ver pagos</button></section><section class="results-grid results-grid-single">
+</section></section><section class="app-section ad-protected-zone" data-app-section-panel="summary" id="appSection-summary"><section class="section-page-heading card"><div><p class="eyebrow">Totales</p><h2>Resumen</h2><p class="section-helper">Revisa subtotal, propina, total final y estado general de la cuenta.</p></div></section><section class="guide-card card" data-guide-card="summary"><div><span class="guide-number">3</span></div><div><strong>Revisa si el cálculo está correcto</strong><p>Aquí ves subtotal, propina, total final y cuánto queda pendiente por cobrar.</p></div><button class="btn btn-primary btn-small" type="button" data-app-section="payments">Ver pagos</button></section><section class="card account-review-card" id="accountReviewPanel" aria-live="polite">
+<div class="account-review-header">
+<div>
+<p class="eyebrow">Revisión previa</p>
+<h2>Antes de compartir</h2>
+<p class="section-helper">Detecta datos incompletos antes de enviar el comprobante o cerrar la cuenta.</p>
+</div>
+<span class="account-review-status" id="accountReviewStatus">Revisando</span>
+</div>
+<div class="account-review-list" id="accountReviewList"></div>
+<div class="account-review-actions">
+<button class="btn btn-primary btn-small" id="accountReviewPrimaryButton" type="button">Resolver pendiente</button>
+<button class="btn btn-light btn-small" data-app-section="payments" type="button">Ir a pagos</button>
+</div>
+</section><section class="results-grid results-grid-single">
 <section class="card results-card">
 <div class="section-title">
 <div>
@@ -558,7 +587,28 @@
 <button class="btn btn-light btn-small" id="generateReceiptImageButton" type="button">Generar imagen</button>
 <button class="btn btn-light btn-small" id="openPaymentsFromReceiptButton" type="button">Ir a pagos</button>
 </div>
-</section></section></section><section class="app-section ad-protected-zone" data-app-section-panel="payments" id="appSection-payments"><section class="section-page-heading card"><div><p class="eyebrow">Transferencias</p><h2>Pagos</h2><p class="section-helper">Consulta cuánto paga cada persona, quién debe transferir y comparte la cuenta.</p></div></section><section class="guide-card card" data-guide-card="payments"><div><span class="guide-number">4</span></div><div><strong>Comparte el resultado</strong><p>Cuando alguien te transfiera, márcalo como pagado. Los cobros pendientes quedarán visibles abajo para que sea fácil hacer seguimiento.</p></div><button class="btn btn-primary btn-small" type="button" data-open-share="true">Compartir</button></section><section class="card sidebar-payments-panel" id="sidebarPaymentsCard">
+</section></section></section><section class="app-section ad-protected-zone" data-app-section-panel="payments" id="appSection-payments"><section class="section-page-heading card"><div><p class="eyebrow">Transferencias</p><h2>Pagos</h2><p class="section-helper">Consulta cuánto paga cada persona, quién debe transferir y comparte la cuenta.</p></div></section><section class="guide-card card" data-guide-card="payments"><div><span class="guide-number">4</span></div><div><strong>Comparte el resultado</strong><p>Cuando alguien te transfiera, márcalo como pagado. Los cobros pendientes quedarán visibles abajo para que sea fácil hacer seguimiento.</p></div><button class="btn btn-primary btn-small" type="button" data-open-share="true">Compartir</button></section><section class="card payment-action-center" id="paymentActionCenter">
+<div class="payment-action-header">
+<div>
+<p class="eyebrow">Centro financiero</p>
+<h2>Pagos pendientes</h2>
+<p class="section-helper">Acciones rápidas para ver cuenta, recordar por WhatsApp y marcar pagos.</p>
+</div>
+<div class="payment-action-kpis">
+<div><span>Pendiente</span><strong id="paymentActionTotalOutput">$0</strong></div>
+<div><span>Acciones</span><strong id="paymentActionCountOutput">0</strong></div>
+</div>
+</div>
+<div class="payment-action-toolbar">
+<select id="paymentActionFilterSelect" aria-label="Filtrar centro de pagos">
+<option value="current">Cuenta actual</option>
+<option value="all">Todas las cuentas</option>
+<option value="mine">Vinculadas a mi perfil</option>
+</select>
+<button class="btn btn-light btn-small" id="paymentActionRefreshButton" type="button">Actualizar</button>
+</div>
+<div class="payment-action-list" id="paymentActionList"></div>
+</section><section class="card sidebar-payments-panel" id="sidebarPaymentsCard">
 <div class="section-title compact">
 <div>
 <p class="eyebrow">Por persona</p>
@@ -1131,7 +1181,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=13.3"></script>
-<script src="script.js?v=13.3"></script>
+<script src="supabase-config.js?v=13.4"></script>
+<script src="script.js?v=13.4"></script>
 </body>
 </html>
