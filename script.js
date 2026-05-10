@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V13.6 cargada');
+console.info('Cuenta Clara V13.7 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -1019,10 +1019,14 @@ function renderPaymentActionRows(container, entries, { limit = 8, compact = fals
     const recipient = entry.direction === 'owe' ? entry.payer : entry.person;
     const hasPhone = Boolean(normalizePhoneNumber(recipient.phone));
     const dueText = entry.billDueAt ? ` · ${entry.dueStatus.label}` : '';
+    const previousDebt = entry.billMode === 'home' ? Math.max(0, Number(entry.person.previousDebt || 0)) : 0;
+    const carryoverText = previousDebt > 0
+      ? ` · arrastre ${formatCurrency(previousDebt)} + mes actual ${formatCurrency(Math.max(0, entry.amount - previousDebt))}`
+      : '';
     row.innerHTML = `
       <div class="payment-action-main">
         <strong>${escapeHtml(entry.label)}</strong>
-        <small>${escapeHtml(entry.subtitle)}${escapeHtml(dueText)}</small>
+        <small>${escapeHtml(entry.subtitle)}${escapeHtml(dueText)}${escapeHtml(carryoverText)}</small>
       </div>
       <strong class="payment-action-amount">${formatCurrency(entry.amount)}</strong>
       <div class="payment-action-buttons">
@@ -3234,6 +3238,7 @@ function makeDefaultBill() {
     recurringGroupId: '',
     recurringSequence: 1,
     previousBillId: '',
+    recurringCarryoverNotes: [],
     sharedAccountId: '',
     sharedRole: '',
     sharedOwnerId: '',
@@ -3354,6 +3359,24 @@ function normalizeBillActivity(input = []) {
     .slice(0, 40);
 }
 
+function normalizeRecurringCarryoverNotes(input = []) {
+  if (!Array.isArray(input)) return [];
+
+  return input
+    .map((item) => ({
+      id: String(item.id || createId('carryover')),
+      personKey: String(item.personKey || item.key || ''),
+      personName: String(item.personName || item.name || 'Persona'),
+      amount: Math.max(0, Math.round(Number(item.amount || 0))),
+      sourceBillId: String(item.sourceBillId || ''),
+      sourceMonth: String(item.sourceMonth || ''),
+      status: ['separate', 'ignored', 'paid'].includes(item.status) ? item.status : 'separate',
+      createdAt: item.createdAt || nowIso(),
+    }))
+    .filter((item) => item.amount > 0)
+    .slice(0, 80);
+}
+
 function getBillActorLabel() {
   if (currentSession.mode === 'user') {
     return getProfileDisplayName() || currentSession.email || 'Usuario';
@@ -3411,6 +3434,7 @@ function normalizeState(input) {
       recurringGroupId: String(bill.recurringGroupId || ''),
       recurringSequence: Math.max(1, Number(bill.recurringSequence || 1)),
       previousBillId: String(bill.previousBillId || ''),
+      recurringCarryoverNotes: normalizeRecurringCarryoverNotes(bill.recurringCarryoverNotes),
       sharedAccountId: String(bill.sharedAccountId || ''),
       sharedRole: String(bill.sharedRole || ''),
       sharedOwnerId: String(bill.sharedOwnerId || ''),
@@ -4786,6 +4810,9 @@ const BILL_TEMPLATES = {
       { name: 'Netflix', category: 'Streaming' },
       { name: 'Spotify', category: 'Streaming' },
       { name: 'MAX', category: 'Streaming' },
+      { name: 'Disney+', category: 'Streaming' },
+      { name: 'Amazon Prime', category: 'Streaming' },
+      { name: 'Crunchyroll', category: 'Streaming' },
     ],
     nextHint: 'Marca los servicios como recurrentes para repetirlos el próximo mes.',
   },
@@ -4817,6 +4844,9 @@ const BILL_TEMPLATES = {
       { name: 'Agua', category: 'Agua' },
       { name: 'Internet', category: 'Internet' },
       { name: 'Gastos comunes', category: 'Gastos comunes' },
+      { name: 'Gas', category: 'Gas' },
+      { name: 'Arriendo', category: 'Arriendo' },
+      { name: 'Supermercado', category: 'Supermercado' },
     ],
     nextHint: 'Agrega fecha de vencimiento para que Inicio muestre recordatorios útiles.',
   },
@@ -5465,6 +5495,74 @@ function createRecurringGroupFromActiveBill() {
   showToast(`Carpeta "${cleanName}" creada.`);
 }
 
+
+function getCarryoverNotesFromPendingMap(pendingMap, latestBill, status = 'separate') {
+  return [...pendingMap.entries()].map(([key, item]) => ({
+    id: createId('carryover'),
+    personKey: key,
+    personName: item.name || item.person?.name || 'Persona',
+    amount: Math.round(Number(item.amount || 0)),
+    sourceBillId: latestBill?.id || '',
+    sourceMonth: latestBill?.homeMonth || '',
+    status,
+    createdAt: nowIso(),
+  })).filter((item) => item.amount > 0);
+}
+
+function getRecurringCarryoverOption(group, nextMonth, pendingTotal, recurringProductsCount) {
+  if (pendingTotal <= 0) {
+    return 'carryover';
+  }
+
+  const answer = prompt(
+    `Crear ${group.name} - ${nextMonth}\n\n` +
+    `Hay deuda pendiente anterior por ${formatCurrency(pendingTotal)}.\n` +
+    `${recurringProductsCount > 0 ? `Se copiarán ${recurringProductsCount} gasto(s) recurrentes.\n\n` : 'Se copiarán los gastos del último mes.\n\n'}` +
+    'Elige cómo tratar esa deuda:\n' +
+    '1 = Sumarla al nuevo mes como deuda anterior\n' +
+    '2 = Mantenerla visible, pero separada del total del nuevo mes\n' +
+    '3 = Marcarla como pagada en el mes anterior\n' +
+    '4 = Ignorar esta vez',
+    '1'
+  );
+
+  if (answer === null) return 'cancel';
+  const clean = String(answer).trim().toLowerCase();
+  if (['1', 'sumar', 'arrastrar', 'deuda', 'deuda anterior'].includes(clean)) return 'carryover';
+  if (['2', 'separar', 'separada', 'visible'].includes(clean)) return 'separate';
+  if (['3', 'pagada', 'pagar', 'marcar pagada'].includes(clean)) return 'paid';
+  if (['4', 'ignorar', 'omitir'].includes(clean)) return 'ignore';
+
+  showNotice('Opción no reconocida', 'No se creó el siguiente mes. Usa 1, 2, 3 o 4 para elegir cómo tratar la deuda anterior.');
+  return 'cancel';
+}
+
+function markLatestPendingAsPaid(latestBill, pendingMap) {
+  if (!latestBill || !pendingMap?.size) return;
+
+  for (const person of latestBill.people || []) {
+    const key = getPersonStableKey(person);
+    if (pendingMap.has(key)) {
+      person.paid = true;
+    }
+  }
+
+  latestBill.updatedAt = nowIso();
+  addBillActivity('Deuda pendiente marcada como pagada al crear el siguiente mes recurrente.', 'payment', latestBill);
+}
+
+function getBillSeparateCarryoverTotal(bill = getActiveBill()) {
+  return normalizeRecurringCarryoverNotes(bill?.recurringCarryoverNotes || [])
+    .filter((item) => item.status === 'separate')
+    .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+}
+
+function getBillSeparateCarryoverNotes(bill = getActiveBill()) {
+  return normalizeRecurringCarryoverNotes(bill?.recurringCarryoverNotes || [])
+    .filter((item) => item.status === 'separate' && Number(item.amount || 0) > 0)
+    .sort((a, b) => b.amount - a.amount || a.personName.localeCompare(b.personName));
+}
+
 function createNextRecurringMonthFromActive() {
   const bill = getActiveBill();
   let group = bill.recurringGroupId ? getRecurringGroup(bill.recurringGroupId) : null;
@@ -5499,18 +5597,23 @@ function createNextRecurringMonthFromActive() {
   }
 
   const recurringProducts = (latestBill.products || []).filter((product) => product.recurring);
-  const copyLabel = recurringProducts.length
-    ? `Se copiarán ${recurringProducts.length} gasto${recurringProducts.length === 1 ? '' : 's'} marcado${recurringProducts.length === 1 ? '' : 's'} como recurrente${recurringProducts.length === 1 ? '' : 's'}.`
-    : 'No hay gastos marcados como recurrentes; se copiarán todos los gastos del último mes.';
+  const carryoverOption = getRecurringCarryoverOption(group, nextMonth, pendingTotal, recurringProducts.length);
 
-  const confirmed = confirm(
-    `Crear ${group.name} - ${nextMonth}?\n\n` +
-    `${pendingTotal > 0 ? `Se arrastrará deuda pendiente por ${formatCurrency(pendingTotal)}.` : 'No hay deuda pendiente para arrastrar.'}\n` +
-    copyLabel
-  );
-
-  if (!confirmed) {
+  if (carryoverOption === 'cancel') {
     return;
+  }
+
+  if (pendingTotal <= 0) {
+    const confirmed = confirm(
+      `Crear ${group.name} - ${nextMonth}?\n\n` +
+      'No hay deuda pendiente para arrastrar.\n' +
+      `${recurringProducts.length ? `Se copiarán ${recurringProducts.length} gasto(s) recurrentes.` : 'No hay gastos marcados como recurrentes; se copiarán todos los gastos.'}`
+    );
+    if (!confirmed) return;
+  }
+
+  if (carryoverOption === 'paid') {
+    markLatestPendingAsPaid(latestBill, pendingFromLatest);
   }
 
   const createdAt = nowIso();
@@ -5526,7 +5629,7 @@ function createNextRecurringMonthFromActive() {
       ...person,
       id: newId,
       paid: false,
-      previousDebt: pending ? Math.round(pending.amount) : 0,
+      previousDebt: carryoverOption === 'carryover' && pending ? Math.round(pending.amount) : 0,
     };
   });
 
@@ -5546,6 +5649,7 @@ function createNextRecurringMonthFromActive() {
     recurringGroupId: group.id,
     recurringSequence: Math.max(1, Number(latestBill.recurringSequence || 1)) + 1,
     previousBillId: latestBill.id,
+    recurringCarryoverNotes: carryoverOption === 'separate' ? getCarryoverNotesFromPendingMap(pendingFromLatest, latestBill, 'separate') : [],
     sharedAccountId: '',
     sharedRole: '',
     sharedOwnerId: '',
@@ -5576,14 +5680,21 @@ function createNextRecurringMonthFromActive() {
   }));
   group.updatedAt = nowIso();
 
-  addBillActivity(`Se creó el siguiente mes ${nextMonth} con arrastre ${formatCurrency(pendingTotal)}.`, 'recurring', latestBill);
-  addBillActivity(`Mes ${nextMonth} creado desde ${latestBill.homeMonth || 'mes anterior'}.`, 'recurring', newBill);
+  const carryoverLabel = carryoverOption === 'carryover'
+    ? `con deuda anterior ${formatCurrency(pendingTotal)}`
+    : carryoverOption === 'separate'
+      ? `con deuda anterior separada ${formatCurrency(pendingTotal)}`
+      : carryoverOption === 'paid'
+        ? 'marcando deuda anterior como pagada'
+        : 'sin arrastre de deuda anterior';
+  addBillActivity(`Se creó el siguiente mes ${nextMonth} ${carryoverLabel}.`, 'recurring', latestBill);
+  addBillActivity(`Mes ${nextMonth} creado desde ${latestBill.homeMonth || 'mes anterior'} ${carryoverLabel}.`, 'recurring', newBill);
   state.bills.unshift(newBill);
   state.activeBillId = newBill.id;
   editingProductId = null;
   saveState();
   render();
-  showToast('Siguiente mes creado con deudas acumuladas.');
+  showToast(carryoverOption === 'carryover' ? 'Siguiente mes creado con deuda acumulada.' : 'Siguiente mes creado.');
 }
 
 function renderRecurringGroups() {
@@ -5635,6 +5746,7 @@ function getRecurringBillStats(bill) {
   const unpaidPeople = (bill.people || []).filter((person) => !person.paid);
   const paidPeople = (bill.people || []).filter((person) => person.paid);
   const carryover = (bill.people || []).reduce((sum, person) => sum + Math.max(0, Number(person.previousDebt || 0)), 0);
+  const separateCarryover = getBillSeparateCarryoverTotal(bill);
   const pendingPeople = unpaidPeople
     .map((person) => ({
       person,
@@ -5647,6 +5759,7 @@ function getRecurringBillStats(bill) {
   return {
     calculation,
     carryover,
+    separateCarryover,
     pendingPeople,
     paidPeople,
     unpaidPeople,
@@ -5801,12 +5914,14 @@ function renderRecurringFolderOverview(group, bill, stats, latestBill, latestSta
   const nextMonth = getNextMonthValue((latestBill || bill).homeMonth || getCurrentMonthValue());
   const recurringProducts = ((latestBill || bill).products || []).filter((product) => product.recurring);
   const payer = (latestBill || bill).people.find((person) => person.id === (latestBill || bill).payerId);
+  const separateCarryover = getBillSeparateCarryoverTotal(latestBill || bill);
   const summaryItems = [
     ['Siguiente mes', nextMonth],
     ['Gastos recurrentes', `${recurringProducts.length} marcado${recurringProducts.length === 1 ? '' : 's'}`],
     ['Pagador habitual', payer?.name || 'Sin pagador'],
     ['Último pendiente', formatCurrency(latestStats.pendingTotal || 0)],
-  ];
+    separateCarryover > 0 ? ['Deuda separada visible', formatCurrency(separateCarryover)] : null,
+  ].filter(Boolean);
 
   const box = document.createElement('div');
   box.className = 'recurring-folder-overview-grid';
@@ -5824,6 +5939,22 @@ function renderRecurringFolderOverview(group, bill, stats, latestBill, latestSta
     ? 'Esta carpeta ya funciona como historial mensual. Al crear el siguiente mes se copian personas, gastos recurrentes, pagador y deuda pendiente.'
     : 'Crea el siguiente mes para empezar un historial mensual conectado.';
   dom.recurringFolderOverviewList.appendChild(note);
+
+  const separateNotes = getBillSeparateCarryoverNotes(latestBill || bill);
+  if (separateNotes.length > 0) {
+    const list = document.createElement('div');
+    list.className = 'recurring-separated-carryover-list';
+    list.innerHTML = `
+      <strong>Deuda anterior visible, no sumada al mes</strong>
+      ${separateNotes.map((item) => `
+        <div>
+          <span>${escapeHtml(item.personName)} · ${escapeHtml(item.sourceMonth || 'mes anterior')}</span>
+          <strong>${formatCurrency(item.amount)}</strong>
+        </div>
+      `).join('')}
+    `;
+    dom.recurringFolderOverviewList.appendChild(list);
+  }
 }
 
 function renderRecurringDashboard() {
@@ -5846,7 +5977,9 @@ function renderRecurringDashboard() {
   dom.recurringDashboardHelp.textContent = `Esta carpeta conecta ${bills.length} mes${bills.length === 1 ? '' : 'es'} de ${group.name}. Usa el historial para abrir meses anteriores y marca pagos para que el siguiente mes arrastre solo lo pendiente.`;
   dom.recurringCurrentMonthOutput.textContent = activeMonthLabel;
   dom.recurringMonthsOutput.textContent = bills.length;
-  dom.recurringCarryoverOutput.textContent = formatCurrency(stats.carryover);
+  dom.recurringCarryoverOutput.textContent = stats.separateCarryover > 0
+    ? `${formatCurrency(stats.carryover)} + ${formatCurrency(stats.separateCarryover)} separado`
+    : formatCurrency(stats.carryover);
   if (dom.recurringPendingOutput) dom.recurringPendingOutput.textContent = formatCurrency(latestStats.pendingTotal);
   if (dom.recurringActiveMonthTitle) dom.recurringActiveMonthTitle.textContent = activeMonthLabel;
   if (dom.recurringActiveMonthStatus) {
@@ -7982,6 +8115,13 @@ function buildPaymentReminderMessage(person, payer, amount, bill) {
     lines.push(`Mes: *${bill.homeMonth}*`);
   }
 
+  const previousDebt = Math.max(0, Number(person.previousDebt || 0));
+  if (bill.mode === 'home' && previousDebt > 0) {
+    lines.push(`Deuda anterior: *${formatCurrency(previousDebt)}*`);
+    lines.push(`Mes actual: *${formatCurrency(Math.max(0, amount - previousDebt))}*`);
+    lines.push(`Total acumulado: *${formatCurrency(amount)}*`);
+  }
+
   if (bill.paymentDueAt) {
     lines.push(`Fecha límite sugerida: *${bill.paymentDueAt}*`);
   }
@@ -8288,6 +8428,7 @@ function duplicateHomeMonth() {
     recurringGroupId: '',
     recurringSequence: Math.max(1, Number(bill.recurringSequence || 1)) + 1,
     previousBillId: bill.id,
+    recurringCarryoverNotes: [],
     sharedAccountId: '',
     sharedRole: '',
     sharedOwnerId: '',
@@ -8308,8 +8449,8 @@ function duplicateHomeMonth() {
     }),
   };
 
-  addBillActivity(`Se creó el siguiente mes ${nextMonth} con arrastre ${formatCurrency(pendingTotal)}.`, 'recurring', latestBill);
-  addBillActivity(`Mes ${nextMonth} creado desde ${latestBill.homeMonth || 'mes anterior'}.`, 'recurring', newBill);
+  addBillActivity(`Mes ${nextMonth} duplicado con arrastre ${formatCurrency(pendingTotal)}.`, 'recurring', bill);
+  addBillActivity(`Mes ${nextMonth} creado desde ${bill.homeMonth || 'mes anterior'} con arrastre ${formatCurrency(pendingTotal)}.`, 'recurring', newBill);
   state.bills.unshift(newBill);
   state.activeBillId = newBill.id;
   editingProductId = null;
@@ -8358,6 +8499,7 @@ function duplicateBill() {
     recurringGroupId: '',
     recurringSequence: 1,
     previousBillId: '',
+    recurringCarryoverNotes: [],
     sharedAccountId: '',
     sharedRole: '',
     sharedOwnerId: '',
@@ -9135,6 +9277,7 @@ function billFromCompactLink(data) {
     recurringGroupId: '',
     recurringSequence: 1,
     previousBillId: '',
+    recurringCarryoverNotes: [],
     sharedAccountId: '',
     sharedRole: '',
     sharedOwnerId: '',

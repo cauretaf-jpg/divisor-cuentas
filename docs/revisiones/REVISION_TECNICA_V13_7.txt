@@ -1,0 +1,24 @@
+REVISION TECNICA - CUENTA CLARA V13.7
+
+Objetivo
+- Fortalecer cuentas recurrentes con deuda acumulada, historial mensual y mensajes de cobro más claros.
+
+Cambios principales
+- Version actualizada a V13.7.
+- Service worker actualizado a cuenta-clara-v13.7.
+- Referencias HTML actualizadas a ?v=13.7.
+- Se reforzo el flujo Crear siguiente mes para cuentas recurrentes.
+- Al detectar deuda pendiente anterior, la app permite elegir entre:
+  1) sumar como deuda anterior del nuevo mes;
+  2) mantener visible como deuda separada sin sumarla al total;
+  3) marcar como pagada en el mes anterior;
+  4) ignorarla esta vez.
+- Se agregaron notas de deuda separada visible para recurrentes.
+- Los mensajes de WhatsApp muestran deuda anterior, mes actual y total acumulado cuando corresponde.
+- Las filas de pagos muestran el desglose de arrastre + mes actual.
+- Plantillas recurrentes de Streaming y Hogar ampliadas con mas ejemplos.
+
+Validacion
+- Sin SQL nuevo.
+- Sin dependencias nuevas.
+- Cambios compatibles con estados existentes.

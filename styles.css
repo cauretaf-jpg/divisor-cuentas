@@ -8970,3 +8970,46 @@ button.template-example-chip:hover {
   }
 }
 .guided-choice { position: relative; }
+
+
+/* V13.7 - recurrentes con deuda acumulada */
+.recurring-separated-carryover-list {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+  padding: 0.8rem;
+  border: 1px dashed rgba(148, 163, 184, 0.45);
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.72);
+}
+
+.recurring-separated-carryover-list > strong {
+  font-size: 0.82rem;
+  color: var(--text-strong);
+}
+
+.recurring-separated-carryover-list div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.86rem;
+}
+
+.recurring-separated-carryover-list span {
+  color: var(--text-soft);
+}
+
+.dark-mode .recurring-separated-carryover-list,
+body.dark .recurring-separated-carryover-list {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(148, 163, 184, 0.28);
+}
+
+@media (max-width: 720px) {
+  .recurring-separated-carryover-list div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}

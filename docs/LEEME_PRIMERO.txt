@@ -1,69 +1,36 @@
-CUENTA CLARA V13.6 - ONBOARDING Y PLANTILLAS INTELIGENTES
+CUENTA CLARA V13.7 - RECURRENTES CON DEUDA ACUMULADA
 
-NUEVO EN V13.6
+NUEVO EN V13.7
+- Cuentas recurrentes mas claras para hogar, streaming y gastos mensuales.
+- Boton Crear siguiente mes con tratamiento de deuda pendiente.
+- Opciones para deuda anterior:
+  1) sumar al nuevo mes;
+  2) dejar visible pero separada del total;
+  3) marcar pagada en el mes anterior;
+  4) ignorar esta vez.
+- Historial mensual conectado por carpeta recurrente.
+- Resumen de deuda acumulada por persona.
+- Mensajes de WhatsApp con deuda anterior, mes actual y total acumulado.
+- Plantillas recurrentes ampliadas para Streaming y Hogar.
 
-1. Asistente de plantillas en Inicio
-- Ahora Inicio muestra una plantilla sugerida.
-- Al tocar una plantilla, la app muestra una vista previa antes de crear la cuenta.
-- El usuario ve descripcion, configuracion, beneficios y ejemplos.
+COMO PROBAR
+1. Abre index.html.
+2. Crea una cuenta tipo Streaming u Hogar.
+3. Agrega personas y gastos.
+4. Marca al menos una persona como pendiente.
+5. Activa la carpeta recurrente desde Hogar.
+6. Usa Crear siguiente mes.
+7. Prueba las opciones de deuda acumulada.
 
-2. Plantillas mas inteligentes
-- Restaurante: propina activa, productos compartidos y comprobante WhatsApp.
-- Supermercado: gastos del hogar o grupo, sin propina.
-- Streaming: servicios mensuales y deuda pendiente arrastrable.
-- Viaje: transporte, alojamiento, comida y gastos por etapa.
-- Hogar: luz, agua, internet, gas, gastos comunes y cuentas recurrentes.
-- Cuenta rapida: total unico dividido entre personas.
-- Personalizada: configuracion libre.
+IMPORTANTE
+- No requiere SQL nuevo.
+- No agrega dependencias nuevas.
+- Si el navegador conserva una version anterior, limpiar cache del sitio o abrir en ventana privada.
 
-3. Ayuda contextual en Gastos
-- La app muestra la plantilla activa y el siguiente paso recomendado.
-- Los ejemplos de gastos preparan el formulario, pero no agregan montos automaticamente.
-- Esto reduce errores y evita cargar datos falsos.
-
-4. Recomendacion automatica
-- La app recomienda una plantilla segun la cuenta activa, uso reciente y contexto.
-- Si el usuario selecciona otra plantilla, se respeta su seleccion.
-
-5. Pulido adicional
-- Se corrigio un texto duplicado en la tarjeta de cuenta actual.
-- Version actualizada a V13.6.
-- Service worker actualizado a cuenta-clara-v13.6.
-- Sin SQL nuevo.
-- Sin dependencias nuevas.
-
-VALIDACIONES
-
-- shared-utils.js: validado.
-- script.js: validado.
-- profile.js: validado.
-- index.html: sin IDs duplicados.
-- perfil.html: sin IDs duplicados.
-- privacidad.html: sin IDs duplicados.
-- styles.css: llaves balanceadas.
-- querySelector('#id'): sin referencias faltantes en HTML principal.
-
-PASOS PARA SUBIR
-
-1. Descomprimir este ZIP.
-2. Reemplazar los archivos en la carpeta local del proyecto.
-3. En PowerShell, desde la carpeta del proyecto:
-   git status
+PUBLICACION SUGERIDA
+1. Reemplazar archivos del proyecto.
+2. Probar localmente.
+3. Ejecutar:
    git add .
-   git commit -m "Publica Cuenta Clara v13.6"
+   git commit -m "Publica Cuenta Clara v13.7"
    git push
-
-4. Esperar el despliegue automatico de Vercel.
-5. Probar desde celular.
-
-PRUEBAS RECOMENDADAS
-
-1. Inicio > revisar plantilla sugerida.
-2. Inicio > tocar distintas plantillas y revisar vista previa.
-3. Crear una cuenta desde el asistente.
-4. Personas > agregar persona.
-5. Gastos > tocar ejemplos de plantilla.
-6. Gastos > confirmar que no se agrega ningun gasto hasta ingresar monto y guardar.
-7. Resumen > Antes de compartir.
-8. Pagos > Centro financiero.
-9. Perfil > dashboard financiero.

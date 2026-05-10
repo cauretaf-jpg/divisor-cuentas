@@ -1,7 +1,7 @@
 {
   "name": "Cuenta Clara",
   "short_name": "Cuenta Clara",
-  "description": "App web para dividir cuentas con plantillas, boletas, pagos pendientes y transferencias.",
+  "description": "App web para dividir cuentas con plantillas, boletas, pagos pendientes, recurrentes y deuda acumulada.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#e6f4f1",
