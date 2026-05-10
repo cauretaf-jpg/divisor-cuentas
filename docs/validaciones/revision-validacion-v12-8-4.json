@@ -1,0 +1,11 @@
+{
+  "version": "12.8.4",
+  "objetivo": "Filtrar datos que no son consumo en el escaneo de boletas y facilitar la corrección manual.",
+  "validaciones": {
+    "scriptJs": "ok",
+    "profileJs": "ok",
+    "idsDuplicados": "ok",
+    "sqlNuevo": false
+  },
+  "cache": "cuenta-clara-v12.8.4"
+}

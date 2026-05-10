@@ -7796,7 +7796,7 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
   }
 }
 
-/* V12.8.3 - lectura OCR robusta y acceso Compartidas visible */
+/* V12.8.4 - lectura OCR robusta y acceso Compartidas visible */
 .receipt-audit-warning {
   display: flex;
   align-items: center;
@@ -7839,7 +7839,7 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
   }
 }
 
-/* V12.8.3 - Más claridad si el OCR no cuadra */
+/* V12.8.4 - Más claridad si el OCR no cuadra */
 .receipt-audit-warning:not(.hidden) {
   border-color: color-mix(in srgb, #f59e0b 44%, var(--border));
   background: color-mix(in srgb, #f59e0b 12%, var(--surface));
@@ -7851,5 +7851,22 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
 @media (max-width: 760px) {
   .mobile-bottom-nav {
     grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+
+/* V12.8.4 - limpieza de boletas: datos que no son consumo */
+.receipt-row-warning .receipt-remove-row {
+  white-space: nowrap;
+}
+.receipt-review-cell {
+  min-width: 120px;
+}
+.receipt-table td:last-child {
+  text-align: center;
+}
+@media (max-width: 720px) {
+  .receipt-remove-row {
+    width: 100%;
   }
 }

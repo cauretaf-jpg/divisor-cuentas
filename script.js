@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V12.8.3 cargada');
+console.info('Cuenta Clara V12.8.4 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -1253,7 +1253,12 @@ function normalizeReceiptKeyword(line) {
 
 function isReceiptLineTotalHeader(line) {
   const normalized = normalizeReceiptKeyword(line);
-  return /producto/.test(normalized) && /(cant|cantidad)/.test(normalized) && /total/.test(normalized);
+  return /producto/.test(normalized) && (/(cant|cantidad)/.test(normalized) || /total/.test(normalized));
+}
+
+function isReceiptProductHeaderLine(line) {
+  const normalized = normalizeReceiptKeyword(line);
+  return /producto/.test(normalized) && !/^\s*total\b/.test(normalized);
 }
 
 function isReceiptFinalTotalLine(line) {
@@ -1314,6 +1319,13 @@ function shouldIgnoreReceiptLine(line) {
     'bebidas',
     'detalle de cuenta',
     'terraza',
+    'ide',
+    'ro',
+    'ona',
+    'que',
+    'qve',
+    'oue',
+    'lupa',
   ];
 
   if (exactSectionWords.includes(normalized.trim())) {
@@ -1363,7 +1375,19 @@ function shouldIgnoreReceiptLine(line) {
     'atendido',
     'preferencia',
     'independencia',
+    'incerendencia',
+    'incerendencia',
     'puente alto',
+    'puente',
+    'alte',
+    'frente',
+    'local',
+    'sucursal',
+    'razon social',
+    'giro',
+    'cliente',
+    'codigo',
+    'documento',
     'producto',
   ];
 
@@ -1375,6 +1399,36 @@ function shouldIgnoreReceiptLine(line) {
     const escaped = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
     return new RegExp(`\\b${escaped}\\b`).test(normalized);
   });
+}
+
+function isReceiptSuspiciousNonConsumptionName(name) {
+  const normalized = normalizeReceiptKeyword(name);
+
+  if (!normalized || normalized.length < 3) {
+    return true;
+  }
+
+  const strongNonConsumptionPatterns = [
+    /\b(total|subtotal|propina|iva|neto|exento|vuelto|descuento)\b/,
+    /\b(mesa|rut|folio|boleta|factura|ticket|voucher|terminal|autorizacion)\b/,
+    /\b(fecha|hora|caja|garzon|vendedor|atendido|cliente)\b/,
+    /\b(tarjeta|debito|credito|efectivo|redcompra|transbank|medio de pago)\b/,
+    /\b(direccion|telefono|local|sucursal|giro|razon social|comercio)\b/,
+    /\b(independencia|incerendencia|incerendencia|puente|alte|alto|frente)\b/,
+    /\b(producto|cant|cantidad|precio|monto)\b/,
+  ];
+
+  if (strongNonConsumptionPatterns.some((pattern) => pattern.test(normalized))) {
+    return true;
+  }
+
+  // Si parece más un código/dato administrativo que un producto, no seleccionarlo automáticamente.
+  const letters = normalized.replace(/[^a-záéíóúüñ]/g, '');
+  if (letters.length < 3) {
+    return true;
+  }
+
+  return false;
 }
 
 function guessReceiptCategory(name) {
@@ -1478,10 +1532,11 @@ function createReceiptItem(name, amount, seen, items, options = {}) {
   }
 
   seen.add(key);
+  const suspiciousNonConsumption = isReceiptSuspiciousNonConsumptionName(cleanName);
 
   return refreshReceiptDerivedValues({
     id: createId('receipt'),
-    selected: true,
+    selected: !suspiciousNonConsumption,
     name: cleanName,
     quantity,
     amount: parsedAmount,
@@ -1490,6 +1545,8 @@ function createReceiptItem(name, amount, seen, items, options = {}) {
     unitPrice: amountMode === 'unit' ? parsedAmount : roundReceiptMoney(parsedAmount / quantity),
     lineTotal,
     category: guessReceiptCategory(cleanName),
+    needsReview: suspiciousNonConsumption,
+    nonConsumptionSuspect: suspiciousNonConsumption,
   });
 }
 
@@ -1608,8 +1665,26 @@ function inferReceiptAmountModes(items, meta) {
 
 function detectSeparatedReceiptColumns(rawLines, items, seen, meta) {
   let index = 0;
+  const hasProductHeader = rawLines.some(isReceiptProductHeaderLine);
+  let productZoneActive = !hasProductHeader;
 
   while (index < rawLines.length) {
+    if (isReceiptProductHeaderLine(rawLines[index])) {
+      productZoneActive = true;
+      index += 1;
+      continue;
+    }
+
+    if (isReceiptFinalTotalLine(rawLines[index]) || /propina/.test(normalizeReceiptKeyword(rawLines[index]))) {
+      productZoneActive = false;
+      index += 1;
+      continue;
+    }
+
+    if (hasProductHeader && !productZoneActive && !isReceiptInsideProductZone(rawLines, index)) {
+      index += 1;
+      continue;
+    }
     const productLines = [];
 
     // Buscar bloque de nombres de productos.
@@ -1728,9 +1803,10 @@ function addReceiptPlaceholderItem(items, seen, line, options = {}) {
 
   seen.add(key);
   const quantity = Math.max(1, parseReceiptQuantity(options.quantity || 1));
+  const nonConsumptionSuspect = isReceiptSuspiciousNonConsumptionName(cleanName);
   items.push(refreshReceiptDerivedValues({
     id: createId('receipt'),
-    selected: true,
+    selected: !nonConsumptionSuspect,
     name: cleanName,
     quantity,
     amount: 0,
@@ -1740,6 +1816,7 @@ function addReceiptPlaceholderItem(items, seen, line, options = {}) {
     lineTotal: 0,
     category: guessReceiptCategory(cleanName),
     needsReview: true,
+    nonConsumptionSuspect,
   }));
   return true;
 }
@@ -1755,14 +1832,24 @@ function parseReceiptText(text) {
 
   const items = [];
   const seen = new Set();
-  let productZoneActive = rawLines.some((line) => /producto/.test(normalizeReceiptKeyword(line)));
+  const hasProductHeader = rawLines.some(isReceiptProductHeaderLine);
+  let productZoneActive = !hasProductHeader;
 
   for (let index = 0; index < rawLines.length; index++) {
     const line = rawLines[index];
     const normalized = normalizeReceiptKeyword(line);
 
+    if (isReceiptProductHeaderLine(line)) {
+      productZoneActive = true;
+      continue;
+    }
+
     if (isReceiptFinalTotalLine(line) || /propina/.test(normalized)) {
       productZoneActive = false;
+      continue;
+    }
+
+    if (hasProductHeader && !productZoneActive && !isReceiptInsideProductZone(rawLines, index)) {
       continue;
     }
 
@@ -1856,7 +1943,17 @@ function parseReceiptText(text) {
   detectSeparatedReceiptColumns(rawLines, items, seen, meta);
   inferReceiptAmountModes(items, meta);
 
-  return items;
+  return items
+    .filter((item) => item && item.name && !shouldIgnoreReceiptLine(item.name))
+    .map((item) => {
+      const nonConsumptionSuspect = isReceiptSuspiciousNonConsumptionName(item.name);
+      return refreshReceiptDerivedValues({
+        ...item,
+        selected: nonConsumptionSuspect ? false : item.selected,
+        needsReview: Boolean(item.needsReview || nonConsumptionSuspect),
+        nonConsumptionSuspect,
+      });
+    });
 }
 
 function loadImageFromFile(file) {
@@ -2157,6 +2254,10 @@ function getReceiptReviewLabel(item) {
   const lineTotal = getReceiptLineTotal(item);
   const unitPrice = getReceiptUnitPrice(item);
 
+  if (item.nonConsumptionSuspect) {
+    return 'Revisar: posible dato de boleta';
+  }
+
   if (lineTotal <= 0 || item.needsReview) {
     return 'Completar monto';
   }
@@ -2177,7 +2278,7 @@ function renderReceiptDetectedItems() {
 
   if (receiptDetectedItems.length === 0) {
     const row = document.createElement('tr');
-    row.innerHTML = `<td colspan="7">No hay productos detectados todavía.</td>`;
+    row.innerHTML = `<td colspan="8">No hay productos detectados todavía.</td>`;
     dom.receiptDetectedBody.appendChild(row);
     updateReceiptSelectionSummary();
     return;
@@ -2206,6 +2307,7 @@ function renderReceiptDetectedItems() {
         </select>
       </td>
       <td class="receipt-review-cell">${getReceiptReviewLabel(item)}</td>
+      <td><button class="btn btn-light btn-small receipt-remove-row" type="button">No es consumo</button></td>
     `;
 
     const checkbox = row.querySelector('input[type="checkbox"]');
@@ -2216,6 +2318,7 @@ function renderReceiptDetectedItems() {
     const categorySelect = row.querySelector('select[aria-label="Categoría detectada"]');
     const derivedTotal = row.querySelector('.receipt-derived-total');
     const reviewCell = row.querySelector('.receipt-review-cell');
+    const removeRowButton = row.querySelector('.receipt-remove-row');
 
     const updateRowDerived = () => {
       refreshReceiptDerivedValues(item);
@@ -2232,6 +2335,9 @@ function renderReceiptDetectedItems() {
 
     nameInput.addEventListener('input', () => {
       item.name = nameInput.value;
+      item.nonConsumptionSuspect = isReceiptSuspiciousNonConsumptionName(item.name);
+      item.needsReview = item.nonConsumptionSuspect || item.needsReview;
+      updateRowDerived();
     });
 
     quantityInput.addEventListener('input', () => {
@@ -2253,6 +2359,12 @@ function renderReceiptDetectedItems() {
 
     categorySelect.addEventListener('change', () => {
       item.category = categorySelect.value;
+    });
+
+    removeRowButton?.addEventListener('click', () => {
+      receiptDetectedItems = receiptDetectedItems.filter((candidate) => candidate.id !== item.id);
+      renderReceiptDetectedItems();
+      showToast('Fila quitada de la revisión.');
     });
 
     dom.receiptDetectedBody.appendChild(row);
