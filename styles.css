@@ -7798,3 +7798,46 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
     grid-template-columns: 1fr;
   }
 }
+
+/* V12.8.2 - validación estricta de boletas contra total impreso */
+.receipt-audit-warning {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--danger) 38%, var(--border));
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+}
+
+.receipt-audit-warning strong {
+  display: block;
+  color: var(--danger);
+  font-weight: 950;
+  margin-bottom: 4px;
+}
+
+.receipt-audit-warning p {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.receipt-audit-warning.hidden,
+.receipt-audit-warning .hidden {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .receipt-audit-warning {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .receipt-audit-warning .btn {
+    width: 100%;
+  }
+}

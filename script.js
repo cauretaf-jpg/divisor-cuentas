@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V12.8.1 cargada');
+console.info('Cuenta Clara V12.8.2 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -229,6 +229,9 @@ const dom = {
   receiptDifferenceOutput: document.querySelector('#receiptDifferenceOutput'),
   receiptTipDetectedOutput: document.querySelector('#receiptTipDetectedOutput'),
   receiptZeroWarningOutput: document.querySelector('#receiptZeroWarningOutput'),
+  receiptAuditWarning: document.querySelector('#receiptAuditWarning'),
+  receiptAuditWarningText: document.querySelector('#receiptAuditWarningText'),
+  addMissingReceiptDifferenceButton: document.querySelector('#addMissingReceiptDifferenceButton'),
   reparseReceiptTextButton: document.querySelector('#reparseReceiptTextButton'),
   receiptDetectedCount: document.querySelector('#receiptDetectedCount'),
   selectAllReceiptItemsButton: document.querySelector('#selectAllReceiptItemsButton'),
@@ -1211,10 +1214,10 @@ function cleanReceiptProductName(value) {
   return String(value || '')
     .replace(/^\s*\d+\s*[xX]\s*/g, '')
     .replace(/[|_*~]+/g, '')
-    .replace(/\d+[,.]\d{1,2}\s*$/g, '')
+    .replace(/\b\d+[,.]\d{1,2}\b\s*$/g, '')
     .replace(/\s+\d{1,3}\s+(?:[il1]m|[a-z]{1,3})\s*$/i, '')
     .replace(/\s+\d{1,3}\s*$/g, '')
-    .replace(/(?:QUE|QVE|OUE|LUPA)\s*$/gi, '')
+    .replace(/\b(?:QUE|QVE|OUE|LUPA)\b\s*$/gi, '')
     .replace(/^\s*(?:na|ia|la)\s+(?=[A-ZÁÉÍÓÚÜÑ])/i, '')
     .replace(/\s{2,}/g, ' ')
     .replace(/^[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ$]+/g, '')
@@ -1500,7 +1503,7 @@ function isReceiptProductNameLine(line) {
 }
 
 function extractReceiptAmounts(line) {
-  const matches = String(line || '').match(/-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{4,7}/g) || [];
+  const matches = String(line || '').match(/-?\d{1,3}(?:(?:[.\s,])\s?\d{3})+|-?\d{4,7}/g) || [];
 
   return matches
     .map(parseMoneyFromReceipt)
@@ -1517,7 +1520,7 @@ function isReceiptQuantityLine(line) {
 }
 
 function parseReceiptQuantityAndAmountLine(line) {
-  const match = String(line || '').match(/^\s*(\d{1,3}(?:[,.]\d{1,2})?)\s+\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
+  const match = String(line || '').match(/^\s*(\d{1,3}(?:[,.]\d{1,2})?)\s+\$?\s*(-?\d{1,3}(?:(?:[.\s,])\s?\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
   if (!match) {
     return null;
   }
@@ -1686,7 +1689,7 @@ function isReceiptInsideProductZone(rawLines, index) {
   }
 
   const between = rawLines.slice(0, index + 1).reverse();
-  const passedTotal = between.some((line) => /^\s*total/.test(normalizeReceiptKeyword(line)) || /propina/.test(normalizeReceiptKeyword(line)));
+  const passedTotal = between.some((line) => /^\s*total\b/.test(normalizeReceiptKeyword(line)) || /propina/.test(normalizeReceiptKeyword(line)));
   return !passedTotal;
 }
 
@@ -1740,7 +1743,7 @@ function parseReceiptText(text) {
     }
 
     // Caso A: Producto + cantidad + monto. Ej: LONDON MULE 2 13.980
-    let match = line.match(/^(.+?)\s+(\d{1,3}(?:[,.]\d{1,2})?)\s+\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
+    let match = line.match(/^(.+?)\s+(\d{1,3}(?:[,.]\d{1,2})?)\s+\$?\s*(-?\d{1,3}(?:(?:[.\s,])\s?\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
     if (match) {
       addReceiptItemFromParts(items, seen, match[1], match[3], {
         quantity: match[2],
@@ -1750,7 +1753,7 @@ function parseReceiptText(text) {
     }
 
     // Caso B: Producto + precio/total. Ej: Papas fritas 8.250
-    match = line.match(/^(.+?)\s+\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
+    match = line.match(/^(.+?)\s+\$?\s*(-?\d{1,3}(?:(?:[.\s,])\s?\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
     if (match) {
       addReceiptItemFromParts(items, seen, match[1], match[2], {
         quantity: 1,
@@ -1776,7 +1779,7 @@ function parseReceiptText(text) {
       }
     }
 
-    const splitMatch = nextLine.match(/^\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
+    const splitMatch = nextLine.match(/^\$?\s*(-?\d{1,3}(?:(?:[.\s,])\s?\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
     if (splitMatch && isReceiptProductNameLine(line)) {
       const added = addReceiptItemFromParts(items, seen, line, splitMatch[1], {
         quantity: 1,
@@ -1904,7 +1907,12 @@ async function processReceiptImage() {
       return;
     }
 
-    updateReceiptStatus(`Lectura terminada. Revisa cantidades, total de línea/precio unitario y corrige ${receiptDetectedItems.length} productos antes de agregarlos.`);
+    const receiptMetrics = getReceiptSelectionMetrics();
+    if (receiptMetrics.mismatch) {
+      updateReceiptStatus('Lectura terminada, pero el total no coincide con la boleta. Corrige cantidades, montos o agrega productos faltantes antes de guardar.');
+    } else {
+      updateReceiptStatus(`Lectura terminada. Revisa cantidades, total de línea/precio unitario y corrige ${receiptDetectedItems.length} productos antes de agregarlos.`);
+    }
   } catch (error) {
     console.error(error);
     showNotice('Error al leer boleta', 'No se pudo procesar la imagen. Prueba con otra foto más clara.');
@@ -1930,7 +1938,12 @@ function reparseReceiptRawText() {
     return;
   }
 
-  updateReceiptStatus(`Se detectaron ${receiptDetectedItems.length} productos desde el texto. Revisa si el monto leído es total de línea o precio unitario.`);
+  const receiptMetrics = getReceiptSelectionMetrics();
+  if (receiptMetrics.mismatch) {
+    updateReceiptStatus('Se detectaron productos, pero el total no coincide con la boleta. Revisa la alerta antes de agregar.');
+  } else {
+    updateReceiptStatus(`Se detectaron ${receiptDetectedItems.length} productos desde el texto. Revisa si el monto leído es total de línea o precio unitario.`);
+  }
 }
 
 function getReceiptSelectionMetrics() {
@@ -2004,6 +2017,30 @@ function updateReceiptSelectionSummary() {
     }
     dom.receiptZeroWarningOutput.textContent = warnings.length ? warnings.join(' · ') : 'Sin alertas';
     dom.receiptZeroWarningOutput.classList.toggle('has-warning', metrics.zero > 0 || metrics.mismatch);
+  }
+
+  if (dom.receiptAuditWarning && dom.receiptAuditWarningText) {
+    const canCompare = metrics.receiptTotal > 0;
+    const missingAmount = canCompare ? Math.max(0, metrics.receiptTotal - metrics.detectedTotal) : 0;
+
+    dom.receiptAuditWarning.classList.toggle('hidden', !metrics.mismatch);
+
+    if (metrics.mismatch) {
+      const direction = metrics.detectedTotal < metrics.receiptTotal ? 'faltan' : 'sobran';
+      const amount = Math.abs(metrics.receiptTotal - metrics.detectedTotal);
+      dom.receiptAuditWarningText.textContent = `Detectamos ${formatCurrency(metrics.detectedTotal)} en productos, pero la boleta indica ${formatCurrency(metrics.receiptTotal)}. ${direction === 'faltan' ? 'Faltan' : 'Sobran'} ${formatCurrency(amount)}. Corrige cantidades, montos o agrega productos faltantes antes de guardar.`;
+    } else if (canCompare) {
+      dom.receiptAuditWarningText.textContent = 'El total detectado coincide con el total de la boleta.';
+    } else {
+      dom.receiptAuditWarningText.textContent = '';
+    }
+
+    if (dom.addMissingReceiptDifferenceButton) {
+      dom.addMissingReceiptDifferenceButton.classList.toggle('hidden', !(metrics.mismatch && missingAmount > 0));
+      dom.addMissingReceiptDifferenceButton.textContent = missingAmount > 0
+        ? `Agregar fila por diferencia ${formatCurrency(missingAmount)}`
+        : 'Agregar fila por diferencia';
+    }
   }
 }
 
@@ -2149,6 +2186,39 @@ function addManualReceiptItem() {
   updateReceiptStatus('Fila agregada. Completa producto, cantidad y monto antes de agregar a la cuenta.');
 }
 
+function addMissingReceiptDifferenceItem() {
+  const metrics = getReceiptSelectionMetrics();
+
+  if (!metrics.receiptTotal || metrics.receiptTotal <= 0) {
+    showToast('No se detectó el total de la boleta para calcular diferencia.');
+    return;
+  }
+
+  const missingAmount = Math.round(metrics.receiptTotal - metrics.detectedTotal);
+
+  if (missingAmount <= 0) {
+    showToast('No hay diferencia faltante para agregar.');
+    return;
+  }
+
+  receiptDetectedItems.push(refreshReceiptDerivedValues({
+    id: createId('receipt'),
+    selected: true,
+    name: 'Producto faltante por revisar',
+    quantity: 1,
+    amount: missingAmount,
+    amountMode: 'line',
+    price: missingAmount,
+    unitPrice: missingAmount,
+    lineTotal: missingAmount,
+    category: getActiveBill().mode === 'home' ? 'Supermercado' : 'Comida',
+    needsReview: true,
+  }));
+
+  renderReceiptDetectedItems();
+  updateReceiptStatus(`Agregué una fila por la diferencia de ${formatCurrency(missingAmount)}. Cambia el nombre, cantidad o monto si corresponde.`);
+}
+
 function addReceiptItemsToBill() {
   const bill = getActiveBill();
 
@@ -2178,6 +2248,26 @@ function addReceiptItemsToBill() {
   if (bill.people.length === 0) {
     showNotice('Agrega personas primero', 'Para agregar productos desde boleta necesitas tener personas en la cuenta.');
     return;
+  }
+
+  const metrics = getReceiptSelectionMetrics();
+  const hasUnreviewedItems = selectedItems.some((item) => item.needsReview || item.lineTotal <= 0);
+
+  if (metrics.mismatch) {
+    const difference = Math.abs(metrics.receiptTotal - metrics.detectedTotal);
+    const message = `El total detectado (${formatCurrency(metrics.detectedTotal)}) no coincide con el total de la boleta (${formatCurrency(metrics.receiptTotal)}). Diferencia: ${formatCurrency(difference)}.\n\nCorrige la revisión antes de guardar. Si decides continuar, los productos se agregarán igual bajo tu responsabilidad.`;
+    if (!window.confirm(message)) {
+      updateReceiptStatus('Revisa la boleta: el total detectado no coincide con el total impreso. Puedes editar montos o agregar productos faltantes.');
+      return;
+    }
+  }
+
+  if (hasUnreviewedItems) {
+    const shouldContinue = window.confirm('Hay productos marcados para revisar. ¿Quieres agregarlos igualmente?');
+    if (!shouldContinue) {
+      updateReceiptStatus('Completa o corrige los productos marcados antes de agregarlos.');
+      return;
+    }
   }
 
   const defaultSplitMode = bill.mode === 'home' ? 'responsibles' : 'participants';
@@ -8887,6 +8977,7 @@ dom.selectAllReceiptItemsButton.addEventListener('click', () => setAllReceiptIte
 dom.unselectAllReceiptItemsButton.addEventListener('click', () => setAllReceiptItems(false));
 dom.ignoreZeroReceiptItemsButton?.addEventListener('click', ignoreZeroReceiptItems);
 dom.addManualReceiptItemButton?.addEventListener('click', addManualReceiptItem);
+dom.addMissingReceiptDifferenceButton?.addEventListener('click', addMissingReceiptDifferenceItem);
 dom.addReceiptItemsButton.addEventListener('click', addReceiptItemsToBill);
 
 

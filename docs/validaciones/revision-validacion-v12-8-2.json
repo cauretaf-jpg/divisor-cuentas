@@ -1,0 +1,11 @@
+{
+  "version": "12.8.2",
+  "checks": {
+    "script_js_syntax": "ok",
+    "profile_js_syntax": "ok",
+    "receipt_total_validation": "ok",
+    "receipt_missing_difference_row": "ok",
+    "receipt_mismatch_confirmation": "ok"
+  },
+  "cache": "cuenta-clara-v12.8.2"
+}
