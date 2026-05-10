@@ -1160,8 +1160,8 @@ label {
   }
 
   .person-row .icon-button {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
   }
 
   .mobile-action-bar {
@@ -5681,9 +5681,6 @@ textarea:focus-visible {
   margin: 0;
 }
 
-body.simple-mode .section-nav-button[data-app-section="shared"] {
-  display: none;
-}
 
 @media (max-width: 900px) {
   .onboarding-steps-grid {
@@ -5955,9 +5952,9 @@ body.simple-mode .section-nav-button[data-app-section="shared"] {
     bottom: 10px;
     z-index: 70;
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 6px;
-    padding: 8px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 5px;
+    padding: 7px;
     border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
     border-radius: 24px;
     background: color-mix(in srgb, var(--surface) 94%, transparent);
@@ -5985,8 +5982,8 @@ body.simple-mode .section-nav-button[data-app-section="shared"] {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 0.74rem;
-    letter-spacing: -0.02em;
+    font-size: 0.68rem;
+    letter-spacing: -0.035em;
   }
 
   .mobile-bottom-icon {
@@ -6908,7 +6905,7 @@ body.simple-mode .section-nav-button[data-app-section="shared"] {
 
 @media (max-width: 760px) {
   .mobile-bottom-nav {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 
   .home-recurring-panel {
@@ -7634,7 +7631,7 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
   }
 
   .mobile-bottom-nav {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     contain: layout paint;
   }
 
@@ -7799,7 +7796,7 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
   }
 }
 
-/* V12.8.2 - validación estricta de boletas contra total impreso */
+/* V12.8.3 - lectura OCR robusta y acceso Compartidas visible */
 .receipt-audit-warning {
   display: flex;
   align-items: center;
@@ -7839,5 +7836,20 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
 
   .receipt-audit-warning .btn {
     width: 100%;
+  }
+}
+
+/* V12.8.3 - Más claridad si el OCR no cuadra */
+.receipt-audit-warning:not(.hidden) {
+  border-color: color-mix(in srgb, #f59e0b 44%, var(--border));
+  background: color-mix(in srgb, #f59e0b 12%, var(--surface));
+}
+.receipt-row-warning input,
+.receipt-row-warning select {
+  border-color: color-mix(in srgb, #f59e0b 38%, var(--border));
+}
+@media (max-width: 760px) {
+  .mobile-bottom-nav {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }

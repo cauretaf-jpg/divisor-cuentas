@@ -1,0 +1,14 @@
+Cuenta Clara v12.8.3 - OCR reforzado y Compartidas visible
+
+Cambios:
+- Lectura reforzada de boletas con segunda pasada OCR cuando el resultado no cuadra.
+- Mejor interpretación de montos abreviados por OCR como 24.76 => 24.760.
+- Evita usar TOTAL de boleta como monto de un producto mal leído.
+- Productos con cantidad pero sin monto quedan como fila $0 para corregir, no como total erróneo.
+- Compartidas vuelve a estar visible en modo simple y también en barra inferior móvil.
+- Cache actualizado a v12.8.3.
+
+Validaciones:
+- node --check script.js
+- node --check profile.js
+- revisión de IDs duplicados en index.html

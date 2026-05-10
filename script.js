@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V12.8.2 cargada');
+console.info('Cuenta Clara V12.8.3 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -1187,11 +1187,22 @@ function parseMoneyFromReceipt(value) {
     return 0;
   }
 
-  const clean = raw
+  const compact = raw
     .replace(/\$/g, '')
-    .replace(/\s/g, '')
+    .replace(/\s+/g, '')
+    .replace(/,/g, '.')
+    .replace(/[^\d.\-]/g, '');
+
+  // OCR habitual en boletas chilenas: 13.99, 14.98 o 24.76 suelen ser
+  // 13.990, 14.980 o 24.760, no valores con centavos.
+  const shortThousands = compact.match(/^-?(\d{1,3})\.(\d{2})$/);
+  if (shortThousands) {
+    const amount = Number(`${shortThousands[1]}${shortThousands[2]}0`);
+    return Number.isFinite(amount) ? Math.abs(amount) : 0;
+  }
+
+  const clean = compact
     .replace(/\./g, '')
-    .replace(/,/g, '')
     .replace(/[^\d-]/g, '');
 
   const amount = Number(clean);
@@ -1218,7 +1229,8 @@ function cleanReceiptProductName(value) {
     .replace(/\s+\d{1,3}\s+(?:[il1]m|[a-z]{1,3})\s*$/i, '')
     .replace(/\s+\d{1,3}\s*$/g, '')
     .replace(/\b(?:QUE|QVE|OUE|LUPA)\b\s*$/gi, '')
-    .replace(/^\s*(?:na|ia|la)\s+(?=[A-ZÁÉÍÓÚÜÑ])/i, '')
+    .replace(/^\s*(?:na|ia|la|rap|tap|pap|raf)\s+(?=[A-ZÁÉÍÓÚÜÑáéíóúüñ])/i, '')
+    .replace(/^(?:ESTRELLA)$/i, 'PATRICIO ESTRELLA')
     .replace(/\s{2,}/g, ' ')
     .replace(/^[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ$]+/g, '')
     .trim();
@@ -1242,6 +1254,11 @@ function normalizeReceiptKeyword(line) {
 function isReceiptLineTotalHeader(line) {
   const normalized = normalizeReceiptKeyword(line);
   return /producto/.test(normalized) && /(cant|cantidad)/.test(normalized) && /total/.test(normalized);
+}
+
+function isReceiptFinalTotalLine(line) {
+  const normalized = normalizeReceiptKeyword(line);
+  return /^\s*(total|sub\s*total|subtotal|propina|total\s*\/\s*prop|total\s*prop)\b/.test(normalized);
 }
 
 function extractReceiptMetadata(text) {
@@ -1503,7 +1520,7 @@ function isReceiptProductNameLine(line) {
 }
 
 function extractReceiptAmounts(line) {
-  const matches = String(line || '').match(/-?\d{1,3}(?:(?:[.\s,])\s?\d{3})+|-?\d{4,7}/g) || [];
+  const matches = String(line || '').match(/-?\d{1,3}(?:(?:[.\s,])\s?\d{2,3})+|-?\d{4,7}/g) || [];
 
   return matches
     .map(parseMoneyFromReceipt)
@@ -1520,7 +1537,7 @@ function isReceiptQuantityLine(line) {
 }
 
 function parseReceiptQuantityAndAmountLine(line) {
-  const match = String(line || '').match(/^\s*(\d{1,3}(?:[,.]\d{1,2})?)\s+\$?\s*(-?\d{1,3}(?:(?:[.\s,])\s?\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
+  const match = String(line || '').match(/^\s*(\d{1,3}(?:[,.]\d{1,2})?)\s+\$?\s*(-?\d{1,3}(?:(?:[.\s,])\s?\d{2,3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
   if (!match) {
     return null;
   }
@@ -1619,6 +1636,10 @@ function detectSeparatedReceiptColumns(rawLines, items, seen, meta) {
 
     while (scan < rawLines.length) {
       const line = rawLines[scan];
+
+      if (isReceiptFinalTotalLine(line) || /propina/.test(normalizeReceiptKeyword(line))) {
+        break;
+      }
 
       if (isReceiptProductNameLine(line)) {
         break;
@@ -1734,32 +1755,46 @@ function parseReceiptText(text) {
 
   const items = [];
   const seen = new Set();
+  let productZoneActive = rawLines.some((line) => /producto/.test(normalizeReceiptKeyword(line)));
 
   for (let index = 0; index < rawLines.length; index++) {
     const line = rawLines[index];
+    const normalized = normalizeReceiptKeyword(line);
+
+    if (isReceiptFinalTotalLine(line) || /propina/.test(normalized)) {
+      productZoneActive = false;
+      continue;
+    }
 
     if (shouldIgnoreReceiptLine(line)) {
       continue;
     }
 
     // Caso A: Producto + cantidad + monto. Ej: LONDON MULE 2 13.980
-    let match = line.match(/^(.+?)\s+(\d{1,3}(?:[,.]\d{1,2})?)\s+\$?\s*(-?\d{1,3}(?:(?:[.\s,])\s?\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
+    // También acepta lecturas OCR abreviadas como 24.76 => 24.760.
+    let match = line.match(/^(.+?)\s+(\d{1,3}(?:[,.]\d{1,2})?)\s+\$?\s*(-?\d{1,3}(?:(?:[.\s,])\s?\d{2,3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
     if (match) {
-      addReceiptItemFromParts(items, seen, match[1], match[3], {
+      const added = addReceiptItemFromParts(items, seen, match[1], match[3], {
         quantity: match[2],
         amountMode: meta.hasLineTotalColumns ? 'line' : 'line',
       });
-      continue;
+      productZoneActive = productZoneActive || added;
+      if (added) {
+        continue;
+      }
     }
 
     // Caso B: Producto + precio/total. Ej: Papas fritas 8.250
-    match = line.match(/^(.+?)\s+\$?\s*(-?\d{1,3}(?:(?:[.\s,])\s?\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
+    match = line.match(/^(.+?)\s+\$?\s*(-?\d{1,3}(?:(?:[.\s,])\s?\d{2,3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
     if (match) {
-      addReceiptItemFromParts(items, seen, match[1], match[2], {
+      const added = addReceiptItemFromParts(items, seen, match[1], match[2], {
         quantity: 1,
         amountMode: 'line',
       });
-      continue;
+      productZoneActive = productZoneActive || added;
+      if (added) {
+        continue;
+      }
     }
 
     // Caso C: OCR separó producto y números en líneas distintas.
@@ -1768,43 +1803,55 @@ function parseReceiptText(text) {
     // 2 8.180
     const nextLine = rawLines[index + 1] || '';
     const splitQuantityAmount = parseReceiptQuantityAndAmountLine(nextLine);
-    if (splitQuantityAmount && isReceiptProductNameLine(line)) {
+    if (splitQuantityAmount && isReceiptProductNameLine(line) && !isReceiptFinalTotalLine(nextLine)) {
       const added = addReceiptItemFromParts(items, seen, line, splitQuantityAmount.amount, {
         quantity: splitQuantityAmount.quantity,
         amountMode: meta.hasLineTotalColumns ? 'line' : 'line',
       });
       if (added) {
+        productZoneActive = true;
         index += 1;
         continue;
       }
     }
 
-    const splitMatch = nextLine.match(/^\$?\s*(-?\d{1,3}(?:(?:[.\s,])\s?\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
-    if (splitMatch && isReceiptProductNameLine(line)) {
+    const splitMatch = nextLine.match(/^\$?\s*(-?\d{1,3}(?:(?:[.\s,])\s?\d{2,3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
+    if (splitMatch && isReceiptProductNameLine(line) && !isReceiptFinalTotalLine(nextLine)) {
       const added = addReceiptItemFromParts(items, seen, line, splitMatch[1], {
         quantity: 1,
         amountMode: 'line',
       });
       if (added) {
+        productZoneActive = true;
         index += 1;
         continue;
       }
     }
 
-    // Caso D previo: el OCR encontró el nombre/cantidad, pero el monto salió corrupto.
-    // Ej: PATRICIO ESTRELLA 2 1m. Se agrega en $0 para que se corrija en la revisión.
-    const corruptedAmountMatch = line.match(/^(.+?)\s+(\d{1,3})\s+(?:[il1]m|[a-z]{1,3})\s*$/i);
-    if (corruptedAmountMatch && isReceiptInsideProductZone(rawLines, index)) {
-      addReceiptPlaceholderItem(items, seen, corruptedAmountMatch[1], { quantity: corruptedAmountMatch[2] });
+    // Caso D: producto con cantidad pero sin monto confiable. Se agrega en $0 para corregir.
+    const quantityOnlyProductMatch = line.match(/^(.+?)\s+(\d{1,3})\s*$/);
+    if (quantityOnlyProductMatch && (productZoneActive || isReceiptInsideProductZone(rawLines, index)) && isReceiptProductNameLine(quantityOnlyProductMatch[1])) {
+      addReceiptPlaceholderItem(items, seen, quantityOnlyProductMatch[1], { quantity: quantityOnlyProductMatch[2] });
+      productZoneActive = true;
       continue;
     }
 
-    if (isReceiptInsideProductZone(rawLines, index) && isReceiptProductNameLine(line)) {
+    // Caso E: el OCR encontró el nombre/cantidad, pero el monto salió corrupto.
+    // Ej: PATRICIO ESTRELLA 2 1m. Se agrega en $0 para que se corrija en la revisión.
+    const corruptedAmountMatch = line.match(/^(.+?)\s+(\d{1,3})\s+(?:[il1]m|[a-z]{1,3})\s*$/i);
+    if (corruptedAmountMatch && (productZoneActive || isReceiptInsideProductZone(rawLines, index))) {
+      addReceiptPlaceholderItem(items, seen, corruptedAmountMatch[1], { quantity: corruptedAmountMatch[2] });
+      productZoneActive = true;
+      continue;
+    }
+
+    if ((productZoneActive || isReceiptInsideProductZone(rawLines, index)) && isReceiptProductNameLine(line)) {
       addReceiptPlaceholderItem(items, seen, line);
+      productZoneActive = true;
     }
   }
 
-  // Caso E: OCR leyó las columnas completas por separado:
+  // Caso F: OCR leyó las columnas completas por separado:
   // nombres primero, cantidades después, montos después.
   detectSeparatedReceiptColumns(rawLines, items, seen, meta);
   inferReceiptAmountModes(items, meta);
@@ -1864,6 +1911,43 @@ async function preprocessReceiptImage(file) {
   });
 }
 
+
+function mergeReceiptTexts(...texts) {
+  const seen = new Set();
+  const lines = [];
+
+  for (const text of texts) {
+    for (const line of String(text || '').split(/\r?\n/)) {
+      const cleanLine = normalizeReceiptLine(line);
+      if (!cleanLine) continue;
+      const key = normalizeReceiptKeyword(cleanLine).replace(/\s+/g, ' ');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      lines.push(cleanLine);
+    }
+  }
+
+  return lines.join('\n');
+}
+
+async function recognizeReceiptText(imageInput, pageSegMode, label) {
+  if (label) {
+    updateReceiptStatus(label);
+  }
+
+  const result = await Tesseract.recognize(imageInput, 'spa+eng', {
+    logger: (event) => {
+      if (event.status === 'recognizing text' && Number.isFinite(event.progress)) {
+        updateReceiptStatus(`${label || 'Leyendo texto'} ${Math.round(event.progress * 100)}%`);
+      }
+    },
+    tessedit_pageseg_mode: String(pageSegMode || '6'),
+    preserve_interword_spaces: '1',
+  });
+
+  return result?.data?.text || '';
+}
+
 async function processReceiptImage() {
   if (!receiptSelectedFile) {
     showToast('Primero sube una foto de la boleta.');
@@ -1883,23 +1967,47 @@ async function processReceiptImage() {
 
     updateReceiptStatus('Leyendo boleta... Esto puede tardar algunos segundos.');
 
-    const result = await Tesseract.recognize(processedImage, 'spa+eng', {
-      logger: (event) => {
-        if (event.status === 'recognizing text' && Number.isFinite(event.progress)) {
-          updateReceiptStatus(`Leyendo texto... ${Math.round(event.progress * 100)}%`);
-        }
-      },
-      tessedit_pageseg_mode: '6',
-      preserve_interword_spaces: '1',
-    });
+    let text = await recognizeReceiptText(processedImage, '6', 'Leyendo texto...');
 
-    const text = result?.data?.text || '';
+    receiptDetectedItems = parseReceiptText(text);
+    let receiptMetrics = getReceiptSelectionMetrics();
+
+    const needsReinforcedRead = (receiptMetrics.mismatch && Math.abs(receiptMetrics.difference) > Math.max(500, receiptMetrics.receiptTotal * 0.08))
+      || receiptDetectedItems.length < 5;
+
+    if (needsReinforcedRead) {
+      updateReceiptStatus('Reforzando lectura de la boleta...');
+      const secondaryText = await recognizeReceiptText(receiptSelectedFile, '4', 'Segunda lectura...');
+      const mergedText = mergeReceiptTexts(text, secondaryText);
+
+      if (mergedText.trim() && mergedText.trim() !== text.trim()) {
+        const previousText = text;
+        const previousItems = receiptDetectedItems;
+        const previousMeta = receiptDetectedMeta;
+        const previousMetrics = receiptMetrics;
+
+        text = mergedText;
+        receiptDetectedItems = parseReceiptText(text);
+        receiptMetrics = getReceiptSelectionMetrics();
+
+        const betterByCount = receiptMetrics.valid > previousMetrics.valid;
+        const betterByDifference = previousMetrics.receiptTotal > 0
+          && Math.abs(receiptMetrics.difference) < Math.abs(previousMetrics.difference);
+        const betterByTotal = previousMetrics.receiptTotal <= 0 && receiptMetrics.receiptTotal > 0;
+
+        if (!(betterByCount || betterByDifference || betterByTotal)) {
+          text = previousText;
+          receiptDetectedItems = previousItems;
+          receiptDetectedMeta = previousMeta;
+          receiptMetrics = previousMetrics;
+        }
+      }
+    }
 
     if (dom.receiptRawTextInput) {
       dom.receiptRawTextInput.value = text.trim();
     }
 
-    receiptDetectedItems = parseReceiptText(text);
     renderReceiptDetectedItems();
 
     if (receiptDetectedItems.length === 0) {
@@ -1907,7 +2015,6 @@ async function processReceiptImage() {
       return;
     }
 
-    const receiptMetrics = getReceiptSelectionMetrics();
     if (receiptMetrics.mismatch) {
       updateReceiptStatus('Lectura terminada, pero el total no coincide con la boleta. Corrige cantidades, montos o agrega productos faltantes antes de guardar.');
     } else {
