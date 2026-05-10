@@ -419,11 +419,7 @@ label {
   background: var(--surface-soft);
 }
 
-.sidebar-help p {
-  margin: 4px 0 0;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
+
 
 .grid-two,
 .results-grid {
@@ -432,11 +428,7 @@ label {
   gap: 18px;
 }
 
-.inline-form {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
-}
+
 
 .bulk-actions,
 .account-actions {
@@ -449,33 +441,13 @@ label {
   gap: 10px;
 }
 
-.radio-pill {
-  margin: 0;
-  cursor: pointer;
-}
 
-.radio-pill input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
 
-.radio-pill span {
-  min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface-soft);
-  color: var(--text);
-  display: grid;
-  place-items: center;
-  font-weight: 900;
-}
 
-.radio-pill input:checked + span {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
-}
+
+
+
+
 
 .quick-total-panel {
   margin-top: 16px;
@@ -777,9 +749,7 @@ label {
   margin-top: 16px;
 }
 
-.transfer-card {
-  border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
-}
+
 
 .empty-state {
   border: 1px dashed var(--border);
@@ -1044,9 +1014,7 @@ label {
     grid-template-columns: 1fr;
   }
 
-  .inline-form {
-    grid-template-columns: 1fr;
-  }
+  
 
   .card,
   .modal-card {
@@ -1645,9 +1613,7 @@ main,
 
 
 /* V4.2: limpieza y ajustes */
-.sidebar-help {
-  display: none !important;
-}
+
 
 #tipCard.hidden {
   display: none !important;
@@ -3004,53 +2970,21 @@ body .hidden {
   box-shadow: none;
 }
 
-.account-settings-card {
-  padding: 0;
-  overflow: hidden;
-}
 
-.account-settings-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 18px 22px;
-  cursor: pointer;
-  list-style: none;
-}
 
-.account-settings-summary::-webkit-details-marker {
-  display: none;
-}
 
-.account-settings-summary h2,
-.account-settings-summary p {
-  margin: 0;
-}
 
-.account-settings-summary p:not(.eyebrow) {
-  color: var(--text-muted);
-  font-size: 0.92rem;
-}
 
-.account-settings-summary > span {
-  flex: 0 0 auto;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface-soft);
-  color: var(--text-muted);
-  padding: 8px 12px;
-  font-size: 0.82rem;
-  font-weight: 900;
-}
 
-.account-settings-card[open] .account-settings-summary {
-  border-bottom: 1px solid var(--border);
-}
 
-.account-settings-content {
-  padding: 18px;
-}
+
+
+
+
+
+
+
+
 
 .settings-inner-card {
   border: 1px solid var(--border);
@@ -3088,20 +3022,11 @@ body .hidden {
 }
 
 @media (max-width: 760px) {
-  .account-settings-summary {
-    align-items: stretch;
-    flex-direction: column;
-    padding: 16px;
-  }
+  
 
-  .account-settings-summary > span {
-    width: 100%;
-    text-align: center;
-  }
+  
 
-  .account-settings-content {
-    padding: 14px;
-  }
+  
 
   .sidebar-summary-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3134,9 +3059,7 @@ body .hidden {
 
 
 /* V8.9: historial arriba, propina dentro de edición y perfil por pestañas */
-.account-settings-content {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
+
 
 #tipCard .section-title {
   margin-bottom: 12px;
@@ -3161,15 +3084,11 @@ body .hidden {
 }
 
 @media (max-width: 1180px) {
-  .account-settings-content {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  
 }
 
 @media (max-width: 760px) {
-  .account-settings-content {
-    grid-template-columns: minmax(0, 1fr);
-  }
+  
 
   .sidebar-history-card .bill-list {
     max-height: none;
@@ -4026,9 +3945,7 @@ details[open] .sidebar-details-summary > span {
   margin-top: 0;
 }
 
-#appSection-settings .account-settings-card {
-  max-width: none;
-}
+
 
 #appSection-people .grid-two {
   grid-template-columns: 1fr;
@@ -4202,9 +4119,7 @@ details[open] .sidebar-details-summary > span {
   justify-content: flex-end;
 }
 
-#appSection-settings .account-settings-content {
-  grid-template-columns: minmax(0, 1fr);
-}
+
 
 @media (max-width: 900px) {
   .tip-section-card {
@@ -5791,7 +5706,7 @@ textarea:focus-visible {
 }
 
 .header-more-trigger::after {
-  content: '⌄';
+  content: "⌄";
   margin-left: 8px;
   font-size: 0.9rem;
   line-height: 1;
@@ -7685,7 +7600,7 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
 }
 
 .shared-current-box strong::after {
-  content: '';
+  content: "";
 }
 
 .shared-current-box small {

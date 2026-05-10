@@ -1,38 +1,53 @@
-# Cuenta Clara V13.4
+# Cuenta Clara V13.5
 
-## Nuevo en V13.4
+## Limpieza tecnica y estabilidad
 
-Versión enfocada en claridad financiera, pagos pendientes y revisión previa antes de compartir una cuenta.
+Esta version no agrega funciones grandes nuevas. Su objetivo es ordenar la base de la app antes de seguir creciendo con nuevas caracteristicas.
 
-### Cambios principales
+## Cambios principales
 
-- Actualización general de versión a V13.4 en HTML, scripts, estilos y service worker.
-- Nuevo panel **Pendiente ahora** en Inicio: muestra pagos/cobros pendientes, urgencias y revisiones críticas de la cuenta activa.
-- Nuevo **Centro financiero** dentro de Pagos: permite revisar la cuenta actual, todas las cuentas o solo las vinculadas al perfil.
-- Acciones rápidas por deuda: **Ver cuenta**, **Copiar mensaje**, **WhatsApp** y **Marcar pagado**.
-- Perfil financiero más accionable: las secciones “A quién le debo” y “Quién me debe” ahora permiten operar directamente sobre cada deuda.
-- Nueva revisión previa **Antes de compartir** en Resumen: detecta datos faltantes o riesgos de error antes de enviar el comprobante.
-- CSS responsivo para que los nuevos paneles se vean bien en celular.
-- Caché/service worker actualizado a `cuenta-clara-v13.4`.
+- Se agrego `shared-utils.js` como archivo comun de utilidades.
+- Se centralizaron funciones repetidas entre `script.js` y `profile.js`:
+  - formato de moneda;
+  - fechas ISO;
+  - telefonos;
+  - iniciales;
+  - almacenamiento por usuario;
+  - perfil base;
+  - amigos;
+  - escape HTML;
+  - etiquetas de tipo de cuenta;
+  - modo claro/oscuro.
+- Se conecto el boton **Aplicar plantilla** con la funcion `changeActiveBillTemplate()`.
+- Se eliminaron referencias antiguas a `accountSettingsPanel`, `accountSettingsSummaryText` y `receiptButton`.
+- Se reemplazo un mensaje tecnico relacionado con SQL por un mensaje profesional para usuario final.
+- Se eliminaron reglas CSS de componentes antiguos sin uso actual.
+- Se actualizo el cache del service worker a `cuenta-clara-v13.5`.
+- Se agrego `shared-utils.js` al service worker.
 
-### Validaciones realizadas
+## Validaciones realizadas
 
+- `shared-utils.js` validado con `node --check`.
 - `script.js` validado con `node --check`.
 - `profile.js` validado con `node --check`.
 - `index.html` revisado sin IDs duplicados.
 - `perfil.html` revisado sin IDs duplicados.
+- `privacidad.html` revisado sin IDs duplicados.
+- `styles.css` revisado con llaves balanceadas.
 - No requiere SQL nuevo.
 - No agrega dependencias nuevas.
 
-### Recomendación de prueba
+## Recomendacion de prueba
 
-Después de subir a GitHub/Vercel, revisar estos flujos:
+Despues de subir a GitHub/Vercel, probar estos flujos:
 
-1. Inicio > Pendiente ahora.
-2. Resumen > Antes de compartir.
-3. Pagos > Centro financiero.
-4. Perfil > Estadísticas > A quién le debo / Quién me debe.
-5. Marcar pagado desde Pagos y confirmar que el Inicio/Perfil se actualicen.
-6. Enviar/copiar recordatorio por WhatsApp desde el Centro financiero.
+1. Abrir Inicio y cambiar entre secciones moviles.
+2. Crear o abrir una cuenta existente.
+3. Probar el selector de plantilla y el boton **Aplicar plantilla**.
+4. Agregar una persona y un gasto manual.
+5. Usar OCR de boleta y confirmar que el flujo sigue funcionando.
+6. Revisar Resumen > Antes de compartir.
+7. Revisar Pagos > Centro financiero.
+8. Abrir Perfil y revisar dashboard financiero.
 
-Si el navegador mantiene una versión anterior, cerrar la app, limpiar caché del sitio o abrir una ventana privada para confirmar que cargue V13.4.
+Si el navegador mantiene una version anterior, cerrar la app, limpiar cache del sitio o abrir una ventana privada para confirmar que cargue V13.5.

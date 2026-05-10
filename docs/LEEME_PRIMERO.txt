@@ -1,39 +1,45 @@
-CUENTA CLARA V13.4 - CENTRO FINANCIERO Y PAGOS PENDIENTES
+CUENTA CLARA V13.5 - LIMPIEZA TECNICA Y ESTABILIDAD
 
-NUEVO EN V13.4
+NUEVO EN V13.5
 
-1. Panel “Pendiente ahora” en Inicio
-- Muestra acciones importantes sin entrar a cada sección.
-- Resume cobros, pagos, vencimientos y revisiones críticas.
-- Permite abrir rápidamente el Centro de pagos o revisar la cuenta actual.
+1. Limpieza de codigo repetido
+- Se agrego el archivo shared-utils.js.
+- Ahora script.js y profile.js comparten utilidades comunes para moneda, telefonos, fechas, iniciales, perfiles, amigos, HTML seguro y tema visual.
+- Se mantuvieron las funciones publicas para no romper llamadas existentes.
 
-2. Centro financiero en Pagos
-- Nueva sección dentro de Pagos para revisar pendientes.
-- Filtros disponibles: Cuenta actual, Todas las cuentas y Vinculadas a mi perfil.
-- Cada pendiente permite Ver cuenta, Copiar mensaje, enviar WhatsApp y Marcar pagado.
+2. Boton Aplicar plantilla corregido
+- El boton Aplicar plantilla ahora ejecuta el cambio de plantilla seleccionado.
+- Antes estaba definido en pantalla, pero no tenia accion conectada.
 
-3. Perfil financiero más accionable
-- “A quién le debo” y “Quién me debe” ahora tienen botones directos.
-- Desde el perfil se puede abrir la cuenta, copiar mensaje, enviar WhatsApp y marcar pagado.
+3. Limpieza de residuos antiguos
+- Se eliminaron referencias a accountSettingsPanel y accountSettingsSummaryText, que ya no existen en el HTML actual.
+- Se elimino la referencia antigua receiptButton, reemplazada por el flujo actual de boletas/OCR.
 
-4. Revisión previa antes de compartir
-- Nueva tarjeta “Antes de compartir” en Resumen.
-- Detecta personas faltantes, gastos faltantes, pagador principal pendiente, gastos sin consumidores, nombres repetidos, pagos pendientes y vencimientos del hogar.
-- Ayuda a evitar enviar comprobantes incompletos o mal revisados.
+4. Mensajes mas profesionales
+- Se reemplazo un mensaje tecnico que mencionaba SQL social.
+- El usuario ahora ve un mensaje simple si no se pueden buscar usuarios registrados.
 
-5. Mantenimiento
-- Versión actualizada a V13.4.
-- Service worker actualizado a cuenta-clara-v13.4.
-- Sin cambios de base de datos.
+5. CSS depurado de forma segura
+- Se eliminaron reglas de componentes antiguos sin uso actual.
+- No se eliminaron overrides moviles o reglas historicas que podrian afectar la experiencia responsive.
+
+6. Versionado y cache
+- Version actualizada a V13.5.
+- Service worker actualizado a cuenta-clara-v13.5.
+- shared-utils.js agregado al cache.
+- Sin SQL nuevo.
 - Sin dependencias nuevas.
 
 VALIDACIONES
 
+- shared-utils.js: validado.
 - script.js: validado.
 - profile.js: validado.
 - index.html: sin IDs duplicados.
 - perfil.html: sin IDs duplicados.
-- No requiere ejecutar SQL nuevo.
+- privacidad.html: sin IDs duplicados.
+- styles.css: llaves balanceadas.
+- Sin referencias activas a accountSettingsPanel, accountSettingsSummaryText, receiptButton ni SQL social.
 
 PASOS PARA SUBIR
 
@@ -42,8 +48,18 @@ PASOS PARA SUBIR
 3. En PowerShell, desde la carpeta del proyecto:
    git status
    git add .
-   git commit -m "Publica Cuenta Clara v13.4"
+   git commit -m "Publica Cuenta Clara v13.5"
    git push
 
-4. Esperar el despliegue automático de Vercel.
+4. Esperar el despliegue automatico de Vercel.
 5. Probar desde celular.
+
+PRUEBAS RECOMENDADAS
+
+1. Inicio > abrir cuenta reciente.
+2. Personas > agregar persona.
+3. Gastos > OCR/boleta y gasto manual.
+4. Gastos > aplicar plantilla desde el selector.
+5. Resumen > Antes de compartir.
+6. Pagos > marcar pagado y revisar que se actualice Inicio/Perfil.
+7. Perfil > revisar dashboard financiero.

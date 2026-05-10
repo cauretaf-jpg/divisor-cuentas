@@ -1,4 +1,4 @@
-console.info('Cuenta Clara Perfil V13.4 cargado');
+console.info('Cuenta Clara Perfil V13.5 cargado');
 
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 let cloudSyncErrorNotified = false;
@@ -104,42 +104,27 @@ const dom = {
 };
 
 function nowIso() {
-  return new Date().toISOString();
+  return window.CuentaClaraUtils.nowIso();
 }
 
 function createId(prefix = 'id') {
-  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  return window.CuentaClaraUtils.createId(prefix);
 }
 
 function normalizePhoneNumber(value) {
-  const raw = String(value || '').trim();
-  if (!raw) return '';
-  let digits = raw.replace(/\D/g, '');
-  if (digits.length === 9 && digits.startsWith('9')) digits = `56${digits}`;
-  if (digits.length === 10 && digits.startsWith('09')) digits = `56${digits.slice(1)}`;
-  return digits;
+  return window.CuentaClaraUtils.normalizePhoneNumber(value);
 }
 
 function formatPhoneForDisplay(value) {
-  const digits = normalizePhoneNumber(value);
-  if (!digits) return '';
-  if (digits.startsWith('56') && digits.length === 11) {
-    return `+${digits.slice(0, 2)} ${digits.slice(2, 3)} ${digits.slice(3, 7)} ${digits.slice(7)}`;
-  }
-  return `+${digits}`;
+  return window.CuentaClaraUtils.formatPhoneForDisplay(value);
 }
 
 function formatCurrency(value) {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    maximumFractionDigits: 0,
-  }).format(Math.round(Number(value) || 0));
+  return window.CuentaClaraUtils.formatCurrency(value);
 }
 
 function getInitials(value) {
-  const parts = String(value || 'CC').trim().split(/\s+/).filter(Boolean).slice(0, 2);
-  return parts.length ? parts.map((part) => part.charAt(0).toUpperCase()).join('') : 'CC';
+  return window.CuentaClaraUtils.getInitials(value);
 }
 
 function showToast(message) {
@@ -150,34 +135,15 @@ function showToast(message) {
 }
 
 function getUserStorageKey(userId) {
-  return `cuenta-clara-supabase-state:${userId}`;
+  return window.CuentaClaraUtils.getUserStorageKey(userId);
 }
 
 function makeDefaultProfile(input = {}) {
-  return {
-    nick: String(input.nick || input.displayName || '').trim(),
-    name: String(input.name || '').trim(),
-    phone: normalizePhoneNumber(input.phone || ''),
-    avatarDataUrl: String(input.avatarDataUrl || input.avatar || '').startsWith('data:image/') ? String(input.avatarDataUrl || input.avatar) : '',
-    currency: input.currency === 'CLP' ? 'CLP' : 'CLP',
-    themePreference: ['system', 'light', 'dark'].includes(input.themePreference) ? input.themePreference : 'system',
-    createdAt: input.createdAt || nowIso(),
-    updatedAt: input.updatedAt || nowIso(),
-  };
+  return window.CuentaClaraUtils.makeDefaultProfile(input);
 }
 
 function normalizeFriends(input = []) {
-  if (!Array.isArray(input)) return [];
-  return input.map((friend) => ({
-    id: friend.id || createId('friend'),
-    name: String(friend.name || '').trim(),
-    phone: normalizePhoneNumber(friend.phone || ''),
-    email: String(friend.email || '').trim(),
-    notes: String(friend.notes || '').trim(),
-    avatarDataUrl: String(friend.avatarDataUrl || '').startsWith('data:image/') ? String(friend.avatarDataUrl) : '',
-    createdAt: friend.createdAt || nowIso(),
-    updatedAt: friend.updatedAt || friend.createdAt || nowIso(),
-  })).filter((friend) => friend.name);
+  return window.CuentaClaraUtils.normalizeFriends(input);
 }
 
 function normalizeState(input) {
@@ -338,9 +304,7 @@ function getBillMonthLabel(bill) {
 }
 
 function getBillModeLabel(mode) {
-  if (mode === 'home') return 'Hogar';
-  if (mode === 'quick') return 'Rápida';
-  return 'Salida';
+  return window.CuentaClaraUtils.getBillModeLabel(mode);
 }
 
 function getProfileMatchKeys() {
@@ -1170,7 +1134,7 @@ async function searchRegisteredUsers() {
 
     if (error) {
       console.error(error);
-      renderSocialMessage(dom.userSearchResults, 'No se pudo buscar usuarios. Verifica que ejecutaste el SQL social.');
+      renderSocialMessage(dom.userSearchResults, 'No se pudo buscar usuarios registrados en este momento. Intenta nuevamente más tarde.');
       return;
     }
 
@@ -1568,27 +1532,11 @@ function deleteFriend(friendId) {
 }
 
 function toggleTheme() {
-  const current = document.documentElement.dataset.theme || localStorage.getItem('cuenta-clara-theme') || 'light';
-  const next = current === 'dark' ? 'light' : 'dark';
-
-  document.documentElement.dataset.theme = next;
-  document.body.classList.toggle('dark', next === 'dark');
-  localStorage.setItem('cuenta-clara-theme', next);
-
-  if (dom.themeToggle) {
-    dom.themeToggle.textContent = next === 'dark' ? 'Modo claro' : 'Modo oscuro';
-  }
+  window.CuentaClaraUtils.toggleTheme(dom.themeToggle);
 }
 
 function initTheme() {
-  const saved = localStorage.getItem('cuenta-clara-theme') || 'light';
-
-  document.documentElement.dataset.theme = saved;
-  document.body.classList.toggle('dark', saved === 'dark');
-
-  if (dom.themeToggle) {
-    dom.themeToggle.textContent = saved === 'dark' ? 'Modo claro' : 'Modo oscuro';
-  }
+  window.CuentaClaraUtils.initTheme(dom.themeToggle);
 }
 
 activeProfileSection = getSectionFromHash();

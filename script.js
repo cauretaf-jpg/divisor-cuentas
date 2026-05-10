@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V13.4 cargada');
+console.info('Cuenta Clara V13.5 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -11,8 +11,6 @@ let isCloudLoading = false;
 let lastCloudSyncAt = null;
 let cloudSyncStatus = 'local';
 let cloudSyncErrorNotified = false;
-let accountSettingsPinnedOpenBillId = '';
-let suppressAccountSettingsToggle = false;
 let currentAppSection = 'home';
 let previousAppSection = 'home';
 let sharedSaveTimer = null;
@@ -70,8 +68,6 @@ const dom = {
   billMeta: document.querySelector('#billMeta'),
   currentListName: document.querySelector('#currentListName'),
   currentListMeta: document.querySelector('#currentListMeta'),
-  accountSettingsPanel: document.querySelector('#accountSettingsPanel'),
-  accountSettingsSummaryText: document.querySelector('#accountSettingsSummaryText'),
   billModeSwitcherCard: document.querySelector('#billModeSwitcherCard'),
   billModeCurrentOutput: document.querySelector('#billModeCurrentOutput'),
   billModeChangeHelp: document.querySelector('#billModeChangeHelp'),
@@ -237,7 +233,6 @@ const dom = {
   customSharesConsumerButton: document.querySelector('#customSharesConsumerButton'),
   cancelEditProductButton: document.querySelector('#cancelEditProductButton'),
   productSubmitButton: document.querySelector('#productSubmitButton'),
-  receiptButton: document.querySelector('#receiptButton'),
   receiptModal: document.querySelector('#receiptModal'),
   closeReceiptModalButton: document.querySelector('#closeReceiptModalButton'),
   receiptFileInput: document.querySelector('#receiptFileInput'),
@@ -432,24 +427,16 @@ let noticeTimer = null;
 let deferredInstallPrompt = null;
 let lastUndoAction = null;
 
-function createId(prefix) {
-  if (window.crypto && typeof window.crypto.randomUUID === 'function') {
-    return `${prefix}_${crypto.randomUUID()}`;
-  }
-
-  return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+function createId(prefix = 'id') {
+  return window.CuentaClaraUtils.createId(prefix);
 }
 
 function nowIso() {
-  return new Date().toISOString();
+  return window.CuentaClaraUtils.nowIso();
 }
 
 function formatCurrency(value) {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    maximumFractionDigits: 0,
-  }).format(Math.round(Number(value) || 0));
+  return window.CuentaClaraUtils.formatCurrency(value);
 }
 
 function formatDate(iso) {
@@ -505,7 +492,7 @@ function notifyCloudSyncError(title, error) {
 
 
 function getUserStorageKey(identifier) {
-  return `cuenta-clara-supabase-state:${String(identifier || '').trim()}`;
+  return window.CuentaClaraUtils.getUserStorageKey(identifier);
 }
 
 function setGuestSession() {
@@ -940,7 +927,6 @@ function openBillForPaymentAction(billId, section = 'payments') {
 
   state.activeBillId = bill.id;
   editingProductId = null;
-  accountSettingsPinnedOpenBillId = '';
   saveState();
   render();
   setAppSection(section, { scroll: false });
@@ -1218,7 +1204,6 @@ function openBillFromProfileStats(billId, section = 'payments') {
 
   state.activeBillId = bill.id;
   editingProductId = null;
-  accountSettingsPinnedOpenBillId = '';
   saveState();
   render();
   closeAuthModal();
@@ -3160,41 +3145,11 @@ async function logoutLocalUser() {
 
 
 function normalizePhoneNumber(value) {
-  const raw = String(value || '').trim();
-
-  if (!raw) {
-    return '';
-  }
-
-  let digits = raw.replace(/\D/g, '');
-
-  if (!digits) {
-    return '';
-  }
-
-  if (digits.length === 9 && digits.startsWith('9')) {
-    digits = `56${digits}`;
-  }
-
-  if (digits.length === 10 && digits.startsWith('09')) {
-    digits = `56${digits.slice(1)}`;
-  }
-
-  return digits;
+  return window.CuentaClaraUtils.normalizePhoneNumber(value);
 }
 
 function formatPhoneForDisplay(value) {
-  const digits = normalizePhoneNumber(value);
-
-  if (!digits) {
-    return '';
-  }
-
-  if (digits.startsWith('56') && digits.length === 11) {
-    return `+${digits.slice(0, 2)} ${digits.slice(2, 3)} ${digits.slice(3, 7)} ${digits.slice(7)}`;
-  }
-
-  return `+${digits}`;
+  return window.CuentaClaraUtils.formatPhoneForDisplay(value);
 }
 
 function buildPersonalWhatsappMessage(person, amount) {
@@ -3302,16 +3257,7 @@ function makeDefaultProfile(input = {}) {
     ? currentSession.name
     : '';
 
-  return {
-    nick: String(input.nick || input.displayName || sessionName || '').trim(),
-    name: String(input.name || sessionName || '').trim(),
-    phone: normalizePhoneNumber(input.phone || ''),
-    avatarDataUrl: String(input.avatarDataUrl || input.avatar || '').startsWith('data:image/') ? String(input.avatarDataUrl || input.avatar) : '',
-    currency: input.currency === 'CLP' ? 'CLP' : 'CLP',
-    themePreference: ['system', 'light', 'dark'].includes(input.themePreference) ? input.themePreference : 'system',
-    createdAt: input.createdAt || nowIso(),
-    updatedAt: input.updatedAt || nowIso(),
-  };
+  return window.CuentaClaraUtils.makeDefaultProfile(input, sessionName);
 }
 
 function getProfile() {
@@ -3325,38 +3271,13 @@ function getProfileDisplayName() {
 }
 
 function getInitials(value) {
-  const parts = String(value || 'CC')
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2);
-
-  if (!parts.length) {
-    return 'CC';
-  }
-
-  return parts.map((part) => part.charAt(0).toUpperCase()).join('');
+  return window.CuentaClaraUtils.getInitials(value);
 }
 
 
 
 function normalizeFriends(input = []) {
-  if (!Array.isArray(input)) {
-    return [];
-  }
-
-  return input
-    .map((friend) => ({
-      id: friend.id || createId('friend'),
-      name: String(friend.name || '').trim(),
-      phone: normalizePhoneNumber(friend.phone || ''),
-      email: String(friend.email || '').trim(),
-      notes: String(friend.notes || '').trim(),
-      avatarDataUrl: String(friend.avatarDataUrl || '').startsWith('data:image/') ? String(friend.avatarDataUrl) : '',
-      createdAt: friend.createdAt || nowIso(),
-      updatedAt: friend.updatedAt || friend.createdAt || nowIso(),
-    }))
-    .filter((friend) => friend.name);
+  return window.CuentaClaraUtils.normalizeFriends(input);
 }
 
 function getFriends() {
@@ -4471,7 +4392,6 @@ function renderHomeRecentBills() {
     button.addEventListener('click', () => {
       state.activeBillId = bill.id;
       editingProductId = null;
-      accountSettingsPinnedOpenBillId = '';
       saveState();
       render();
       setAppSection('home', { scroll: false });
@@ -4506,7 +4426,6 @@ function openRecurringSectionForBill(billId = '') {
   if (target) {
     state.activeBillId = target.id;
     editingProductId = null;
-    accountSettingsPinnedOpenBillId = '';
     saveState();
   }
   render();
@@ -4663,7 +4582,6 @@ function openReminderTarget(item, section = 'payments') {
 
   state.activeBillId = item.bill.id;
   editingProductId = null;
-  accountSettingsPinnedOpenBillId = '';
   saveState();
   render();
   setAppSection(section, { scroll: false });
@@ -4890,7 +4808,6 @@ function applyBillModePreset(bill, mode, customName = '') {
 }
 
 function openInitialAccountSetup(message = 'Lista creada. Agrega personas y define el pagador principal.') {
-  accountSettingsPinnedOpenBillId = '';
   setAppSection('people', { scroll: false });
 
   requestAnimationFrame(() => {
@@ -4951,7 +4868,6 @@ function createTemplateBill(templateKey) {
   state.bills.unshift(bill);
   state.activeBillId = bill.id;
   editingProductId = null;
-  accountSettingsPinnedOpenBillId = '';
   localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
   saveState();
   render();
@@ -5006,7 +4922,6 @@ function createGuidedBill(mode) {
   state.bills.unshift(bill);
   state.activeBillId = bill.id;
   editingProductId = null;
-  accountSettingsPinnedOpenBillId = '';
   localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
   saveState();
   render();
@@ -5080,7 +4995,6 @@ function createExampleBill() {
   state.bills.unshift(bill);
   state.activeBillId = bill.id;
   editingProductId = null;
-  accountSettingsPinnedOpenBillId = '';
   localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
   saveState();
   render();
@@ -5469,7 +5383,6 @@ function renderRecurringGroups() {
       const target = latestBill || bills[0];
       if (!target) return;
       state.activeBillId = target.id;
-      accountSettingsPinnedOpenBillId = '';
       editingProductId = null;
       saveState();
       render();
@@ -5533,7 +5446,6 @@ function openRecurringBill(billId) {
   }
 
   state.activeBillId = target.id;
-  accountSettingsPinnedOpenBillId = '';
   editingProductId = null;
   saveState();
   render();
@@ -6643,7 +6555,6 @@ function renderBillList() {
 
     row.querySelector('.history-bill-open').addEventListener('click', () => {
       state.activeBillId = bill.id;
-      accountSettingsPinnedOpenBillId = '';
       editingProductId = null;
       saveState();
       render();
@@ -6671,15 +6582,11 @@ function renderBillList() {
 }
 
 function getBillModeLabel(mode) {
-  if (mode === 'quick') return 'Rápida';
-  if (mode === 'home') return 'Hogar';
-  return 'Detallada';
+  return window.CuentaClaraUtils.getBillModeLabel(mode);
 }
 
 function getBillModeLongLabel(mode) {
-  if (mode === 'quick') return 'Cuenta rápida';
-  if (mode === 'home') return 'Cuenta hogar';
-  return 'Cuenta detallada';
+  return window.CuentaClaraUtils.getBillModeLongLabel(mode);
 }
 
 function getBillModeChangeHelp(mode) {
@@ -6761,7 +6668,6 @@ function changeActiveBillTemplate(templateKey) {
   if (template.mode === 'home' && previousHomeMonth) {
     bill.homeMonth = previousHomeMonth;
   }
-  accountSettingsPinnedOpenBillId = '';
   persistAndRender();
   setAppSection('expenses', { scroll: false });
   showUndoToast(`Plantilla cambiada a ${template.label}.`, snapshot);
@@ -6869,8 +6775,6 @@ Cancelar: cambia el tipo y deja el monto rápido guardado por si vuelves.`
   } else if (!Number.isFinite(Number(bill.tipPercent))) {
     bill.tipPercent = 10;
   }
-
-  accountSettingsPinnedOpenBillId = '';
   persistAndRender();
   setAppSection('expenses', { scroll: false });
 
@@ -6885,35 +6789,11 @@ Cancelar: cambia el tipo y deja el monto rápido guardado por si vuelves.`
   return true;
 }
 
-function renderAccountSettingsSummary(bill) {
-  if (!dom.accountSettingsSummaryText) return;
-
-  const modeDetail = bill.mode === 'quick'
-    ? `Total rápido ${formatCurrency(Number(bill.quickTotal || 0))}`
-    : bill.mode === 'home'
-      ? `Mes ${bill.homeMonth || getCurrentMonthValue()}`
-      : 'Cuenta detallada';
-  dom.accountSettingsSummaryText.textContent = `${getBillModeLabel(bill.mode)} · ${modeDetail}`;
-
-  if (!dom.accountSettingsPanel) return;
-
-  const shouldStayOpen = accountSettingsPinnedOpenBillId === bill.id;
-
-  if (dom.accountSettingsPanel.open !== shouldStayOpen) {
-    suppressAccountSettingsToggle = true;
-    dom.accountSettingsPanel.open = shouldStayOpen;
-    requestAnimationFrame(() => {
-      suppressAccountSettingsToggle = false;
-    });
-  }
-}
-
 function renderBillHeader() {
   const bill = getActiveBill();
   const isQuick = bill.mode === 'quick';
   const isHome = bill.mode === 'home';
 
-  renderAccountSettingsSummary(bill);
 
   if (dom.currentListName) {
     dom.currentListName.textContent = bill.name || 'Nueva lista';
@@ -8207,7 +8087,6 @@ function addBill() {
   state.bills.unshift(bill);
   state.activeBillId = bill.id;
   editingProductId = null;
-  accountSettingsPinnedOpenBillId = '';
   saveState();
   render();
   openInitialAccountSetup('Cuenta creada. Agrega personas, elige pagador principal y luego revisa propina en Gastos.');
@@ -8295,7 +8174,6 @@ function editBillFromHistory(billId) {
   }
 
   state.activeBillId = bill.id;
-  accountSettingsPinnedOpenBillId = '';
   editingProductId = null;
   saveState();
   render();
@@ -10293,27 +10171,15 @@ async function whatsappSelectedShare() {
 }
 
 function escapeHtml(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
+  return window.CuentaClaraUtils.escapeHtml(value);
 }
 
 function initTheme() {
-  const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
-  document.documentElement.dataset.theme = savedTheme;
-  dom.themeToggle.textContent = savedTheme === 'dark' ? 'Modo claro' : 'Modo oscuro';
+  window.CuentaClaraUtils.initTheme(dom.themeToggle);
 }
 
 function toggleTheme() {
-  const current = document.documentElement.dataset.theme;
-  const next = current === 'dark' ? 'light' : 'dark';
-
-  document.documentElement.dataset.theme = next;
-  localStorage.setItem(THEME_KEY, next);
-  dom.themeToggle.textContent = next === 'dark' ? 'Modo claro' : 'Modo oscuro';
+  window.CuentaClaraUtils.toggleTheme(dom.themeToggle);
 }
 
 
@@ -10390,7 +10256,6 @@ function initServiceWorker() {
 dom.closeNoticeTabButton.addEventListener('click', () => dom.noticeTab.classList.add('hidden'));
 
 
-dom.receiptButton?.addEventListener('click', openReceiptModal);
 dom.closeReceiptModalButton.addEventListener('click', closeReceiptModal);
 dom.receiptModal.addEventListener('click', (event) => { if (event.target === dom.receiptModal) closeReceiptModal(); });
 dom.receiptFileInput.addEventListener('change', handleReceiptFileChange);
@@ -10485,6 +10350,10 @@ dom.templateChoiceButtons?.forEach((button) => {
   button.addEventListener('click', () => createTemplateBill(button.dataset.template));
 });
 
+dom.applyTemplateChangeButton?.addEventListener('click', () => {
+  changeActiveBillTemplate(dom.templateChangeSelect?.value || 'custom');
+});
+
 dom.createExampleBillButton?.addEventListener('click', createExampleBill);
 dom.startFirstBillButton?.addEventListener('click', focusTemplateChoices);
 dom.firstUseExampleButton?.addEventListener('click', createExampleBill);
@@ -10501,12 +10370,6 @@ dom.guideShareButtons?.forEach((button) => {
   button.addEventListener('click', openShareModal);
 });
 
-
-dom.accountSettingsPanel?.addEventListener('toggle', () => {
-  if (suppressAccountSettingsToggle) return;
-  const bill = getActiveBill();
-  accountSettingsPinnedOpenBillId = dom.accountSettingsPanel.open ? bill.id : '';
-});
 
 dom.smartActionButton?.addEventListener('click', handleSmartAction);
 dom.continueActiveBillButton?.addEventListener('click', continueActiveBillFromHome);
@@ -10615,7 +10478,6 @@ if (dom.sharedInviteSearchInput) {
 dom.payerSelect.addEventListener('change', () => {
   const bill = getActiveBill();
   bill.payerId = dom.payerSelect.value;
-  accountSettingsPinnedOpenBillId = '';
   persistAndRender();
 });
 
