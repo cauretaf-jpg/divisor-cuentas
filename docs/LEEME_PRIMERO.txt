@@ -1,15 +1,50 @@
-CUENTA CLARA V12.4.1 - ESTABILIDAD MOVIL E HISTORIAL AVANZADO
+CUENTA CLARA V13.3 - PULIDO MOVIL, OCR SEGURO Y DASHBOARD FINANCIERO
 
-NUEVO EN V12.4.1
-- Historial con búsqueda, filtros por estado/tipo y orden.
-- Botón para cerrar o reabrir cuentas.
-- Estados claros: Pendiente, Pagada, Cerrada y Archivada.
-- Perfil con Por pagar, Por cobrar y Cerradas/Archivadas.
-- Barra inferior móvil reforzada.
-- No requiere SQL nuevo.
+NUEVO EN V13.3
 
-PASOS
-1. Reemplaza los archivos en tu proyecto local.
-2. Sube los cambios a GitHub.
-3. Espera el despliegue de Vercel.
-4. En celular, recarga fuerte o reinstala la PWA si conserva cache antiguo.
+1. Inicio móvil más limpio
+- Panel principal más compacto.
+- Acciones rápidas mejor ordenadas.
+- Tarjetas del resumen menos pesadas en celular.
+- Recordatorios, últimas cuentas y recurrentes mantienen el flujo actual, pero con mejor lectura móvil.
+
+2. OCR de boletas más seguro
+- La app compara total de productos detectados contra total de boleta.
+- Si no coinciden, se muestra una alerta clara.
+- Ya no se agregan productos con diferencia solo por presionar “Agregar seleccionados”.
+- Puedes corregir montos, quitar líneas, agregar una fila por la diferencia o aceptar explícitamente “Guardar igual”.
+
+3. Perfil financiero mejorado en celular
+- Dashboard financiero con tarjetas más compactas.
+- Mejor lectura de “Por cobrar”, “Por pagar”, “Pagado por mí” y “Me corresponde”.
+- Listas de deudas siguen abriendo la cuenta correspondiente.
+
+4. Estados más profesionales
+- Textos de guardado y sincronización más claros.
+- Menos lenguaje técnico visible para el usuario común.
+
+5. Mantenimiento
+- Versión actualizada a V13.3.
+- Service worker actualizado para evitar caché antigua.
+- Sin cambios de base de datos.
+
+VALIDACIONES
+
+- script.js: validado.
+- profile.js: validado.
+- index.html: sin IDs duplicados.
+- perfil.html: sin IDs duplicados.
+- No requiere ejecutar SQL nuevo.
+
+PASOS PARA SUBIR
+
+1. Descomprimir este ZIP.
+2. Reemplazar los archivos en la carpeta local del proyecto.
+3. En PowerShell, desde la carpeta del proyecto:
+   git status
+   git add .
+   git commit -m "Publica Cuenta Clara v13.3"
+   git push
+
+4. Esperar el despliegue automático de Vercel.
+5. Probar desde celular.

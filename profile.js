@@ -1,4 +1,4 @@
-console.info('Cuenta Clara Perfil V13.2 cargado');
+console.info('Cuenta Clara Perfil V13.3 cargado');
 
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 let cloudSyncErrorNotified = false;
@@ -199,11 +199,11 @@ function getCloudSyncErrorMessage(error) {
   const message = rawMessage.toLowerCase();
 
   if (code === '42P01' || message.includes('app_states') || message.includes('does not exist') || message.includes('relation')) {
-    return 'La sincronización en la nube todavía no está configurada. Tus cambios quedaron guardados en este dispositivo.';
+    return 'El respaldo en la nube todavía no está configurado. Tus cambios quedaron guardados en este dispositivo.';
   }
 
   if (code === '42501' || message.includes('row-level security') || message.includes('permission denied') || message.includes('policy')) {
-    return 'La nube no permitió guardar los cambios en este momento. Tus datos quedaron protegidos en este dispositivo.';
+    return 'No se pudo guardar el respaldo en este momento. Tus datos quedaron protegidos en este dispositivo.';
   }
 
   return 'No se pudo sincronizar en la nube. Se conserva la copia local.';
@@ -273,7 +273,7 @@ async function saveState() {
   }
 
   cloudSyncErrorNotified = false;
-  showToast('Guardado en la nube.');
+  showToast('Sincronizado.');
   return true;
 }
 

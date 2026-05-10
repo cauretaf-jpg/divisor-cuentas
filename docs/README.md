@@ -1,24 +1,38 @@
-# Cuenta Clara V13.2
+# Cuenta Clara V13.3
 
-## Nuevo en V13.2
+## Nuevo en V13.3
 
-- Perfil transformado en **dashboard financiero**.
-- Nueva pestaña **Dashboard** dentro de Estadísticas.
-- Resumen visible de:
-  - por cobrar;
-  - por pagar;
-  - pagado por mí durante el mes;
-  - cuánto me corresponde;
-  - cuentas abiertas;
-  - cuentas cerradas.
-- Secciones accionables:
-  - **Quién me debe**;
-  - **A quién le debo**;
-  - comparativa mensual;
-  - actividad del mes.
-- Las deudas del dashboard abren directamente la cuenta correspondiente en **Pagos**.
-- Actualización de cache/service worker a V13.2.
+Versión enfocada en pulido móvil, estabilidad visual y control más seguro al leer boletas con OCR.
 
-## Instalación
+### Cambios principales
 
-Reemplaza los archivos del proyecto, sube a GitHub y deja que Vercel despliegue. No requiere SQL nuevo si ya ejecutaste las tablas de compartidas de V12.0.
+- Actualización general de versión a V13.3 en HTML, scripts, estilos y service worker.
+- Inicio móvil más compacto: acciones principales mejor distribuidas, tarjetas menos altas y resumen más fácil de leer.
+- Dashboard financiero del perfil más cómodo en celular, con tarjetas de dinero en grilla compacta.
+- Flujo OCR más seguro: si el total de productos no coincide con el total de la boleta, la app bloquea el agregado directo.
+- Nueva acción explícita “Guardar igual” para aceptar una diferencia OCR bajo revisión manual.
+- Botón de diferencia más claro: “Agregar diferencia $X”.
+- Estados de sincronización y modo local con textos más profesionales, evitando mensajes técnicos visibles.
+- Caché/service worker actualizado a V13.3 para reducir confusiones al subir a Vercel.
+
+### Validaciones realizadas
+
+- `script.js` validado con `node --check`.
+- `profile.js` validado con `node --check`.
+- `index.html` revisado sin IDs duplicados.
+- `perfil.html` revisado sin IDs duplicados.
+- Service worker actualizado a `cuenta-clara-v13.3`.
+- No requiere SQL nuevo.
+
+### Recomendación de prueba
+
+Después de subir a GitHub/Vercel, abrir la app en celular y revisar:
+
+1. Inicio.
+2. Personas.
+3. Gastos > Escanear boleta.
+4. Perfil > Dashboard.
+5. Historial.
+6. Pagos.
+
+Si el navegador mantiene una versión anterior, cerrar la app, limpiar caché del sitio o abrir una ventana privada para confirmar que cargue V13.3.

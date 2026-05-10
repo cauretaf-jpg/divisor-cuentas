@@ -1,0 +1,22 @@
+{
+  "version": "13.3",
+  "fecha": "2026-05-10",
+  "objetivo": "Pulido movil, OCR seguro y dashboard financiero compacto",
+  "validaciones": {
+    "script_js_node_check": "OK",
+    "profile_js_node_check": "OK",
+    "index_html_ids_duplicados": 0,
+    "perfil_html_ids_duplicados": 0,
+    "service_worker_cache": "cuenta-clara-v13.3",
+    "sql_nuevo_requerido": false
+  },
+  "cambios_clave": [
+    "Version actualizada a V13.3",
+    "Inicio movil mas compacto",
+    "OCR bloquea agregado directo si el total no coincide",
+    "Boton Guardar igual requiere aceptacion explicita",
+    "Boton Agregar diferencia muestra el monto faltante",
+    "Dashboard financiero del perfil optimizado para celular",
+    "Estados visibles con lenguaje menos tecnico"
+  ]
+}

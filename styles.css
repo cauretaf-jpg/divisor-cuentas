@@ -8474,3 +8474,216 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
     grid-template-columns: 1fr;
   }
 }
+
+/* V13.3 - Pulido móvil, OCR seguro y dashboard financiero compacto */
+.home-dashboard-top > div,
+.home-active-card > div,
+.home-reminder-head > div,
+.home-recurring-panel > div {
+  min-width: 0;
+}
+
+.home-dashboard-top p,
+.home-active-card small,
+.home-recurring-panel small,
+.home-reminder-head small {
+  max-width: 64ch;
+}
+
+.home-reminder-panel,
+.home-recurring-panel,
+.home-recent-block {
+  margin-top: 0;
+}
+
+.home-primary-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.home-primary-actions .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.home-recent-row span,
+.profile-debt-row span,
+.mini-ranking-action span {
+  overflow: hidden;
+}
+
+.home-recent-row strong,
+.profile-debt-row strong,
+.mini-ranking-action strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.receipt-audit-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.receipt-audit-warning:not(.hidden) {
+  box-shadow: 0 16px 34px rgba(245, 158, 11, 0.12);
+}
+
+.receipt-audit-warning .btn-danger-light {
+  border-color: color-mix(in srgb, var(--danger) 34%, var(--border));
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+  color: var(--danger);
+}
+
+.receipt-selection-summary {
+  min-height: 42px;
+}
+
+.profile-dashboard-grid.two-columns,
+.stats-detail-grid.two-columns.profile-dashboard-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profile-money-card {
+  min-width: 0;
+}
+
+.profile-money-card strong {
+  overflow-wrap: anywhere;
+}
+
+.profile-dashboard-grid .stats-box {
+  min-height: 100%;
+}
+
+.profile-activity-row,
+.profile-insight-row {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .mobile-home-dashboard {
+    gap: 12px;
+    padding: 15px;
+  }
+
+  .home-dashboard-top {
+    align-items: flex-start;
+    flex-direction: row;
+  }
+
+  .home-dashboard-top h2 {
+    font-size: 1.42rem;
+  }
+
+  .home-sync-pill {
+    width: auto;
+    max-width: 45%;
+    padding: 7px 10px;
+    font-size: 0.72rem;
+    text-align: right;
+    white-space: normal;
+  }
+
+  .home-active-card {
+    padding: 12px;
+  }
+
+  .home-kpi-grid {
+    gap: 8px;
+  }
+
+  .home-kpi-grid > div {
+    min-height: 68px;
+    border-radius: 18px;
+    padding: 10px;
+  }
+
+  .home-kpi-grid span {
+    font-size: 0.68rem;
+  }
+
+  .home-kpi-grid strong {
+    font-size: 1rem;
+  }
+
+  .home-primary-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .home-primary-actions .btn:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .home-recent-title {
+    padding: 9px 10px;
+  }
+
+  .home-recent-row,
+  .profile-debt-row,
+  .mini-ranking-action {
+    gap: 8px;
+    padding: 11px;
+  }
+
+  .receipt-audit-warning {
+    gap: 10px;
+  }
+
+  .receipt-audit-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .receipt-audit-actions .btn {
+    width: 100%;
+  }
+
+  .profile-money-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-money-card {
+    border-radius: 18px;
+    padding: 12px;
+  }
+
+  .profile-money-card span,
+  .profile-money-card small {
+    font-size: 0.72rem;
+  }
+
+  .profile-money-card strong {
+    font-size: 1.08rem;
+  }
+
+  .profile-dashboard-grid.two-columns,
+  .stats-detail-grid.two-columns.profile-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 430px) {
+  .home-dashboard-top {
+    flex-direction: column;
+  }
+
+  .home-sync-pill {
+    max-width: none;
+    width: 100%;
+    text-align: center;
+  }
+
+  .home-primary-actions,
+  .profile-money-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-primary-actions .btn:first-child {
+    grid-column: auto;
+  }
+}

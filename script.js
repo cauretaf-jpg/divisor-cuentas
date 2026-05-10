@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V13.1 cargada');
+console.info('Cuenta Clara V13.3 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -253,6 +253,7 @@ const dom = {
   receiptAuditWarning: document.querySelector('#receiptAuditWarning'),
   receiptAuditWarningText: document.querySelector('#receiptAuditWarningText'),
   addMissingReceiptDifferenceButton: document.querySelector('#addMissingReceiptDifferenceButton'),
+  receiptContinueDespiteMismatchButton: document.querySelector('#receiptContinueDespiteMismatchButton'),
   reparseReceiptTextButton: document.querySelector('#reparseReceiptTextButton'),
   receiptDetectedCount: document.querySelector('#receiptDetectedCount'),
   selectAllReceiptItemsButton: document.querySelector('#selectAllReceiptItemsButton'),
@@ -409,6 +410,7 @@ let editingProductId = null;
 let receiptSelectedFile = null;
 let receiptDetectedItems = [];
 let receiptDetectedMeta = { receiptTotal: 0, tip: 0, grandTotal: 0, hasLineTotalColumns: false };
+let receiptMismatchAccepted = false;
 let friendsPickerItems = [];
 let toastTimer = null;
 let noticeTimer = null;
@@ -1172,6 +1174,7 @@ function clearReceiptReader() {
   receiptSelectedFile = null;
   receiptDetectedItems = [];
   receiptDetectedMeta = { receiptTotal: 0, tip: 0, grandTotal: 0, hasLineTotalColumns: false };
+  receiptMismatchAccepted = false;
   dom.receiptFileInput.value = '';
   dom.receiptPreviewImage.removeAttribute('src');
   dom.receiptPreviewWrap.classList.add('hidden');
@@ -1199,6 +1202,7 @@ function handleReceiptFileChange() {
   dom.receiptPreviewWrap.classList.remove('hidden');
   receiptDetectedItems = [];
   receiptDetectedMeta = { receiptTotal: 0, tip: 0, grandTotal: 0, hasLineTotalColumns: false };
+  receiptMismatchAccepted = false;
   if (dom.receiptRawTextInput) {
     dom.receiptRawTextInput.value = '';
   }
@@ -2093,6 +2097,7 @@ async function processReceiptImage() {
     let text = await recognizeReceiptText(processedImage, '6', 'Leyendo texto...');
 
     receiptDetectedItems = parseReceiptText(text);
+    receiptMismatchAccepted = false;
     let receiptMetrics = getReceiptSelectionMetrics();
 
     const needsReinforcedRead = (receiptMetrics.mismatch && Math.abs(receiptMetrics.difference) > Math.max(500, receiptMetrics.receiptTotal * 0.08))
@@ -2111,6 +2116,7 @@ async function processReceiptImage() {
 
         text = mergedText;
         receiptDetectedItems = parseReceiptText(text);
+        receiptMismatchAccepted = false;
         receiptMetrics = getReceiptSelectionMetrics();
 
         const betterByCount = receiptMetrics.valid > previousMetrics.valid;
@@ -2161,6 +2167,7 @@ function reparseReceiptRawText() {
   }
 
   receiptDetectedItems = parseReceiptText(text);
+  receiptMismatchAccepted = false;
   renderReceiptDetectedItems();
 
   if (receiptDetectedItems.length === 0) {
@@ -2200,6 +2207,24 @@ function getReceiptSelectionMetrics() {
     mismatch,
     multipleQuantityLines,
   };
+}
+
+
+function resetReceiptMismatchAcceptance() {
+  receiptMismatchAccepted = false;
+}
+
+function acceptReceiptMismatchAndContinue() {
+  const metrics = getReceiptSelectionMetrics();
+
+  if (!metrics.mismatch) {
+    showToast('El total ya coincide con la boleta. Puedes agregar los productos.');
+    return;
+  }
+
+  receiptMismatchAccepted = true;
+  updateReceiptSelectionSummary();
+  updateReceiptStatus('Guardar igual autorizado. Revisa por última vez y presiona “Agregar seleccionados”.');
 }
 
 function updateReceiptSelectionSummary() {
@@ -2258,18 +2283,34 @@ function updateReceiptSelectionSummary() {
     if (metrics.mismatch) {
       const direction = metrics.detectedTotal < metrics.receiptTotal ? 'faltan' : 'sobran';
       const amount = Math.abs(metrics.receiptTotal - metrics.detectedTotal);
-      dom.receiptAuditWarningText.textContent = `Detectamos ${formatCurrency(metrics.detectedTotal)} en productos, pero la boleta indica ${formatCurrency(metrics.receiptTotal)}. ${direction === 'faltan' ? 'Faltan' : 'Sobran'} ${formatCurrency(amount)}. Corrige cantidades, montos o agrega productos faltantes antes de guardar.`;
+      const actionHint = direction === 'faltan'
+        ? 'Puedes agregar una fila por la diferencia, editar montos o quitar líneas mal leídas.'
+        : 'Revisa si hay líneas duplicadas, propina leída como producto o montos que no corresponden al consumo.';
+      dom.receiptAuditWarningText.textContent = `Detectamos ${formatCurrency(metrics.detectedTotal)} en productos, pero la boleta indica ${formatCurrency(metrics.receiptTotal)}. ${direction === 'faltan' ? 'Faltan' : 'Sobran'} ${formatCurrency(amount)}. ${actionHint}`;
     } else if (canCompare) {
       dom.receiptAuditWarningText.textContent = 'El total detectado coincide con el total de la boleta.';
+      receiptMismatchAccepted = false;
     } else {
       dom.receiptAuditWarningText.textContent = '';
+      receiptMismatchAccepted = false;
     }
 
     if (dom.addMissingReceiptDifferenceButton) {
       dom.addMissingReceiptDifferenceButton.classList.toggle('hidden', !(metrics.mismatch && missingAmount > 0));
       dom.addMissingReceiptDifferenceButton.textContent = missingAmount > 0
-        ? `Agregar fila por diferencia ${formatCurrency(missingAmount)}`
-        : 'Agregar fila por diferencia';
+        ? `Agregar diferencia ${formatCurrency(missingAmount)}`
+        : 'Agregar diferencia';
+    }
+
+    if (dom.receiptContinueDespiteMismatchButton) {
+      dom.receiptContinueDespiteMismatchButton.classList.toggle('hidden', !metrics.mismatch);
+      dom.receiptContinueDespiteMismatchButton.textContent = receiptMismatchAccepted ? 'Guardar igual autorizado' : 'Guardar igual';
+    }
+
+    if (dom.addReceiptItemsButton) {
+      dom.addReceiptItemsButton.textContent = metrics.mismatch && !receiptMismatchAccepted
+        ? 'Revisar antes de agregar'
+        : 'Agregar seleccionados';
     }
   }
 }
@@ -2351,11 +2392,13 @@ function renderReceiptDetectedItems() {
       derivedTotal.textContent = `Total: ${formatCurrency(getReceiptLineTotal(item))} · Unit.: ${formatCurrency(getReceiptUnitPrice(item))}`;
       reviewCell.textContent = getReceiptReviewLabel(item);
       row.classList.toggle('receipt-row-warning', getReceiptLineTotal(item) <= 0 || Boolean(item.needsReview));
+      resetReceiptMismatchAcceptance();
       updateReceiptSelectionSummary();
     };
 
     checkbox.addEventListener('change', () => {
       item.selected = checkbox.checked;
+      resetReceiptMismatchAcceptance();
       updateReceiptSelectionSummary();
     });
 
@@ -2385,6 +2428,8 @@ function renderReceiptDetectedItems() {
 
     categorySelect.addEventListener('change', () => {
       item.category = categorySelect.value;
+      resetReceiptMismatchAcceptance();
+      updateReceiptSelectionSummary();
     });
 
     removeRowButton?.addEventListener('click', () => {
@@ -2400,11 +2445,13 @@ function renderReceiptDetectedItems() {
 }
 
 function setAllReceiptItems(selected) {
+  resetReceiptMismatchAcceptance();
   receiptDetectedItems = receiptDetectedItems.map((item) => ({ ...item, selected }));
   renderReceiptDetectedItems();
 }
 
 function ignoreZeroReceiptItems() {
+  resetReceiptMismatchAcceptance();
   const before = receiptDetectedItems.length;
   receiptDetectedItems = receiptDetectedItems.filter((item) => getReceiptLineTotal(item) > 0);
   renderReceiptDetectedItems();
@@ -2413,6 +2460,7 @@ function ignoreZeroReceiptItems() {
 }
 
 function addManualReceiptItem() {
+  resetReceiptMismatchAcceptance();
   receiptDetectedItems.push(refreshReceiptDerivedValues({
     id: createId('receipt'),
     selected: true,
@@ -2432,6 +2480,7 @@ function addManualReceiptItem() {
 }
 
 function addMissingReceiptDifferenceItem() {
+  resetReceiptMismatchAcceptance();
   const metrics = getReceiptSelectionMetrics();
 
   if (!metrics.receiptTotal || metrics.receiptTotal <= 0) {
@@ -2498,13 +2547,11 @@ function addReceiptItemsToBill() {
   const metrics = getReceiptSelectionMetrics();
   const hasUnreviewedItems = selectedItems.some((item) => item.needsReview || item.lineTotal <= 0);
 
-  if (metrics.mismatch) {
+  if (metrics.mismatch && !receiptMismatchAccepted) {
     const difference = Math.abs(metrics.receiptTotal - metrics.detectedTotal);
-    const message = `El total detectado (${formatCurrency(metrics.detectedTotal)}) no coincide con el total de la boleta (${formatCurrency(metrics.receiptTotal)}). Diferencia: ${formatCurrency(difference)}.\n\nCorrige la revisión antes de guardar. Si decides continuar, los productos se agregarán igual bajo tu responsabilidad.`;
-    if (!window.confirm(message)) {
-      updateReceiptStatus('Revisa la boleta: el total detectado no coincide con el total impreso. Puedes editar montos o agregar productos faltantes.');
-      return;
-    }
+    updateReceiptStatus(`No agregué los productos: el total detectado no coincide con la boleta. Diferencia: ${formatCurrency(difference)}. Corrige la lectura, agrega la diferencia o usa “Guardar igual” desde la alerta.`);
+    showNotice('Revisa la boleta antes de guardar', `La boleta indica ${formatCurrency(metrics.receiptTotal)}, pero los productos suman ${formatCurrency(metrics.detectedTotal)}. Diferencia: ${formatCurrency(difference)}.`);
+    return;
   }
 
   if (hasUnreviewedItems) {
@@ -2583,7 +2630,7 @@ async function registerLocalUser(event) {
   event.preventDefault();
 
   if (!hasSupabaseClient()) {
-    showNotice('Nube no disponible', 'No se pudo cargar la conexión de usuario. Puedes seguir en modo invitado.');
+    showNotice('Modo local disponible', 'No se pudo cargar la conexión de usuario. Puedes seguir usando Cuenta Clara como invitado.');
     return;
   }
 
@@ -2658,7 +2705,7 @@ async function loginLocalUser(event) {
   event.preventDefault();
 
   if (!hasSupabaseClient()) {
-    showNotice('Nube no disponible', 'No se pudo cargar la conexión de usuario. Puedes seguir en modo invitado.');
+    showNotice('Modo local disponible', 'No se pudo cargar la conexión de usuario. Puedes seguir usando Cuenta Clara como invitado.');
     return;
   }
 
@@ -3987,7 +4034,7 @@ function renderMobileHomeDashboard() {
 
   dom.homeGreetingOutput.textContent = currentSession.mode === 'user' ? `Hola, ${displayName}` : 'Hola, invitado';
   dom.homeSummaryMetaOutput.textContent = currentSession.mode === 'user'
-    ? 'Guardado en la nube cuando haces cambios.'
+    ? 'Sincronizado automáticamente al hacer cambios.'
     : 'Modo invitado: guardado solo en este dispositivo.';
   dom.homeDashboardSyncOutput.textContent = getHomeSyncLabel();
   dom.homeDashboardSyncOutput.classList.toggle('is-error', cloudSyncStatus === 'error');
@@ -9971,6 +10018,7 @@ dom.unselectAllReceiptItemsButton.addEventListener('click', () => setAllReceiptI
 dom.ignoreZeroReceiptItemsButton?.addEventListener('click', ignoreZeroReceiptItems);
 dom.addManualReceiptItemButton?.addEventListener('click', addManualReceiptItem);
 dom.addMissingReceiptDifferenceButton?.addEventListener('click', addMissingReceiptDifferenceItem);
+dom.receiptContinueDespiteMismatchButton?.addEventListener('click', acceptReceiptMismatchAndContinue);
 dom.addReceiptItemsButton.addEventListener('click', addReceiptItemsToBill);
 
 
