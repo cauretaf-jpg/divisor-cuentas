@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V12.7 cargada');
+console.info('Cuenta Clara V12.8 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -225,6 +225,9 @@ const dom = {
   receiptSelectionSummary: document.querySelector('#receiptSelectionSummary'),
   receiptDetectedTotalOutput: document.querySelector('#receiptDetectedTotalOutput'),
   receiptSelectedTotalOutput: document.querySelector('#receiptSelectedTotalOutput'),
+  receiptBillTotalOutput: document.querySelector('#receiptBillTotalOutput'),
+  receiptDifferenceOutput: document.querySelector('#receiptDifferenceOutput'),
+  receiptTipDetectedOutput: document.querySelector('#receiptTipDetectedOutput'),
   receiptZeroWarningOutput: document.querySelector('#receiptZeroWarningOutput'),
   reparseReceiptTextButton: document.querySelector('#reparseReceiptTextButton'),
   receiptDetectedCount: document.querySelector('#receiptDetectedCount'),
@@ -375,6 +378,7 @@ let state = {
 let editingProductId = null;
 let receiptSelectedFile = null;
 let receiptDetectedItems = [];
+let receiptDetectedMeta = { receiptTotal: 0, tip: 0, grandTotal: 0, hasLineTotalColumns: false };
 let friendsPickerItems = [];
 let toastTimer = null;
 let noticeTimer = null;
@@ -1137,6 +1141,7 @@ function updateReceiptStatus(message) {
 function clearReceiptReader() {
   receiptSelectedFile = null;
   receiptDetectedItems = [];
+  receiptDetectedMeta = { receiptTotal: 0, tip: 0, grandTotal: 0, hasLineTotalColumns: false };
   dom.receiptFileInput.value = '';
   dom.receiptPreviewImage.removeAttribute('src');
   dom.receiptPreviewWrap.classList.add('hidden');
@@ -1163,6 +1168,7 @@ function handleReceiptFileChange() {
   dom.receiptPreviewImage.src = url;
   dom.receiptPreviewWrap.classList.remove('hidden');
   receiptDetectedItems = [];
+  receiptDetectedMeta = { receiptTotal: 0, tip: 0, grandTotal: 0, hasLineTotalColumns: false };
   if (dom.receiptRawTextInput) {
     dom.receiptRawTextInput.value = '';
   }
@@ -1189,6 +1195,17 @@ function parseMoneyFromReceipt(value) {
   return Number.isFinite(amount) ? Math.abs(amount) : 0;
 }
 
+function parseReceiptQuantity(value) {
+  const clean = String(value || '').trim().replace(',', '.');
+  const quantity = Number(clean);
+  return Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
+}
+
+function roundReceiptMoney(value) {
+  const amount = Number(value || 0);
+  return Number.isFinite(amount) ? Math.round(amount) : 0;
+}
+
 function cleanReceiptProductName(value) {
   return String(value || '')
     .replace(/^\s*\d+\s*[xX]\s*/g, '')
@@ -1211,6 +1228,52 @@ function normalizeReceiptKeyword(line) {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
+}
+
+function isReceiptLineTotalHeader(line) {
+  const normalized = normalizeReceiptKeyword(line);
+  return /producto/.test(normalized) && /(cant|cantidad)/.test(normalized) && /total/.test(normalized);
+}
+
+function extractReceiptMetadata(text) {
+  const lines = String(text || '')
+    .split(/\r?\n/)
+    .map(normalizeReceiptLine)
+    .filter(Boolean);
+
+  const meta = {
+    receiptTotal: 0,
+    tip: 0,
+    grandTotal: 0,
+    hasLineTotalColumns: lines.some(isReceiptLineTotalHeader),
+  };
+
+  for (const line of lines) {
+    const normalized = normalizeReceiptKeyword(line);
+    const amounts = extractReceiptAmounts(line);
+
+    if (!amounts.length) {
+      continue;
+    }
+
+    const amount = amounts[amounts.length - 1];
+
+    if (/total\s*\/\s*prop|total\s*prop|total\s*con\s*prop/.test(normalized)) {
+      meta.grandTotal = amount;
+      continue;
+    }
+
+    if (/propina/.test(normalized)) {
+      meta.tip = amount;
+      continue;
+    }
+
+    if (/^\s*total\b/.test(normalized) && !/prop/.test(normalized)) {
+      meta.receiptTotal = amount;
+    }
+  }
+
+  return meta;
 }
 
 function shouldIgnoreReceiptLine(line) {
@@ -1275,13 +1338,20 @@ function shouldIgnoreReceiptLine(line) {
     'preferencia',
   ];
 
-  return ignoredWords.some((word) => normalized.includes(word));
+  return ignoredWords.some((word) => {
+    if (word.includes(' ')) {
+      return normalized.includes(word);
+    }
+
+    const escaped = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    return new RegExp(`\\b${escaped}\\b`).test(normalized);
+  });
 }
 
 function guessReceiptCategory(name) {
   const normalized = normalizeReceiptKeyword(name);
 
-  if (/(cerveza|pisco|mojito|piscola|ron|vino|trago|shop|sch|kunstmann|austral|escudo|jager|daiquiri|daikiri|tequila|whisky|vodka|royal|calafate)/.test(normalized)) {
+  if (/(cerveza|pisco|mojito|piscola|ron|vino|trago|shop|sch|kunstmann|austral|escudo|jager|daiquiri|daikiri|tequila|whisky|vodka|royal|calafate|aperol|mule|estrella)/.test(normalized)) {
     return 'Tragos';
   }
 
@@ -1304,6 +1374,28 @@ function guessReceiptCategory(name) {
   return 'Comida';
 }
 
+function getReceiptLineTotal(item) {
+  const quantity = Math.max(1, Number(item.quantity || 1));
+  const amount = Math.max(0, Number(item.amount ?? item.price ?? 0));
+  return roundReceiptMoney(item.amountMode === 'unit' ? amount * quantity : amount);
+}
+
+function getReceiptUnitPrice(item) {
+  const quantity = Math.max(1, Number(item.quantity || 1));
+  const amount = Math.max(0, Number(item.amount ?? item.price ?? 0));
+  return roundReceiptMoney(item.amountMode === 'unit' ? amount : amount / quantity);
+}
+
+function refreshReceiptDerivedValues(item) {
+  item.quantity = Math.max(1, Number(item.quantity || 1));
+  item.amount = Math.max(0, Number(item.amount ?? item.price ?? 0));
+  item.amountMode = item.amountMode === 'unit' ? 'unit' : 'line';
+  item.price = getReceiptLineTotal(item);
+  item.unitPrice = getReceiptUnitPrice(item);
+  item.lineTotal = getReceiptLineTotal(item);
+  return item;
+}
+
 function isLikelyReceiptSubtotalLine(name, price, previousItems) {
   const normalized = normalizeReceiptKeyword(name);
 
@@ -1323,7 +1415,7 @@ function isLikelyReceiptSubtotalLine(name, price, previousItems) {
   }
 
   // Evitar tomar como producto un subtotal que sea igual a la suma parcial cercana.
-  const recentSum = previousItems.slice(-5).reduce((sum, item) => sum + item.price, 0);
+  const recentSum = previousItems.slice(-5).reduce((sum, item) => sum + getReceiptLineTotal(item), 0);
   if (recentSum > 0 && Math.abs(recentSum - price) <= 5 && normalized.length <= 16) {
     return true;
   }
@@ -1331,15 +1423,18 @@ function isLikelyReceiptSubtotalLine(name, price, previousItems) {
   return false;
 }
 
-function createReceiptItem(name, price, seen, items) {
+function createReceiptItem(name, amount, seen, items, options = {}) {
   const cleanName = cleanReceiptProductName(name);
-  const amount = parseMoneyFromReceipt(price);
+  const parsedAmount = parseMoneyFromReceipt(amount);
+  const quantity = Math.max(1, parseReceiptQuantity(options.quantity || 1));
+  const amountMode = options.amountMode === 'unit' ? 'unit' : 'line';
+  const lineTotal = amountMode === 'unit' ? roundReceiptMoney(parsedAmount * quantity) : parsedAmount;
 
-  if (!cleanName || amount <= 0) {
+  if (!cleanName || parsedAmount <= 0) {
     return null;
   }
 
-  if (isLikelyReceiptSubtotalLine(cleanName, amount, items)) {
+  if (isLikelyReceiptSubtotalLine(cleanName, lineTotal, items)) {
     return null;
   }
 
@@ -1347,7 +1442,7 @@ function createReceiptItem(name, price, seen, items) {
     return null;
   }
 
-  const key = `${cleanName.toLowerCase()}-${amount}`;
+  const key = `${cleanName.toLowerCase()}-${quantity}-${lineTotal}`;
 
   if (seen.has(key)) {
     return null;
@@ -1355,15 +1450,19 @@ function createReceiptItem(name, price, seen, items) {
 
   seen.add(key);
 
-  return {
+  return refreshReceiptDerivedValues({
     id: createId('receipt'),
     selected: true,
     name: cleanName,
-    price: amount,
+    quantity,
+    amount: parsedAmount,
+    amountMode,
+    price: lineTotal,
+    unitPrice: amountMode === 'unit' ? parsedAmount : roundReceiptMoney(parsedAmount / quantity),
+    lineTotal,
     category: guessReceiptCategory(cleanName),
-  };
+  });
 }
-
 
 function isReceiptProductNameLine(line) {
   const cleanLine = cleanReceiptProductName(line);
@@ -1382,7 +1481,7 @@ function isReceiptProductNameLine(line) {
 
   // Evita encabezados o nombres demasiado genéricos.
   const normalized = normalizeReceiptKeyword(cleanLine);
-  const nonProductWords = ['comidas', 'bebidas', 'detalle', 'restaurant', 'restaurante', 'terraza'];
+  const nonProductWords = ['comidas', 'bebidas', 'detalle', 'restaurant', 'restaurante', 'terraza', 'producto', 'cant', 'cantidad'];
 
   if (nonProductWords.some((word) => normalized === word || normalized.includes(`${word} de`))) {
     return false;
@@ -1400,20 +1499,32 @@ function extractReceiptAmounts(line) {
 }
 
 function isReceiptQuantityLine(line) {
-  return /^\s*\d+[,.]\d{1,2}\s*$/.test(String(line || ''));
+  const raw = String(line || '').trim();
+  if (!/^\d{1,3}(?:[,.]\d{1,2})?$/.test(raw)) {
+    return false;
+  }
+  const value = parseReceiptQuantity(raw);
+  return value > 0 && value <= 99;
+}
+
+function parseReceiptQuantityAndAmountLine(line) {
+  const match = String(line || '').match(/^\s*(\d{1,3}(?:[,.]\d{1,2})?)\s+\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    quantity: parseReceiptQuantity(match[1]),
+    amount: parseMoneyFromReceipt(match[2]),
+  };
 }
 
 function isReceiptQuantityAndAmountLine(line) {
-  return /^\s*\d+[,.]\d{1,2}\s+\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/.test(String(line || ''));
+  return Boolean(parseReceiptQuantityAndAmountLine(line));
 }
 
-function amountFromQuantityAndAmountLine(line) {
-  const match = String(line || '').match(/^\s*\d+[,.]\d{1,2}\s+\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
-  return match ? parseMoneyFromReceipt(match[1]) : 0;
-}
-
-function addReceiptItemFromParts(items, seen, name, price) {
-  const item = createReceiptItem(name, price, seen, items);
+function addReceiptItemFromParts(items, seen, name, amount, options = {}) {
+  const item = createReceiptItem(name, amount, seen, items, options);
 
   if (item) {
     items.push(item);
@@ -1423,7 +1534,50 @@ function addReceiptItemFromParts(items, seen, name, price) {
   return false;
 }
 
-function detectSeparatedReceiptColumns(rawLines, items, seen) {
+function inferReceiptAmountModes(items, meta) {
+  if (!items.length) {
+    return items;
+  }
+
+  const total = Number(meta?.receiptTotal || 0);
+  const hasLineHeader = Boolean(meta?.hasLineTotalColumns);
+
+  if (total > 0) {
+    const lineModeSum = items.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const unitModeSum = items.reduce((sum, item) => sum + (Number(item.amount || 0) * Math.max(1, Number(item.quantity || 1))), 0);
+    const tolerance = Math.max(20, Math.round(total * 0.015));
+
+    if (Math.abs(lineModeSum - total) <= tolerance || (hasLineHeader && Math.abs(lineModeSum - total) <= Math.max(100, tolerance * 3))) {
+      items.forEach((item) => {
+        item.amountMode = 'line';
+        refreshReceiptDerivedValues(item);
+      });
+      return items;
+    }
+
+    if (Math.abs(unitModeSum - total) <= tolerance) {
+      items.forEach((item) => {
+        item.amountMode = 'unit';
+        refreshReceiptDerivedValues(item);
+      });
+      return items;
+    }
+  }
+
+  if (hasLineHeader) {
+    items.forEach((item) => {
+      item.amountMode = 'line';
+      refreshReceiptDerivedValues(item);
+    });
+    return items;
+  }
+
+  // En boletas chilenas de restaurantes el monto de la derecha suele ser total de línea.
+  items.forEach(refreshReceiptDerivedValues);
+  return items;
+}
+
+function detectSeparatedReceiptColumns(rawLines, items, seen, meta) {
   let index = 0;
 
   while (index < rawLines.length) {
@@ -1471,29 +1625,41 @@ function detectSeparatedReceiptColumns(rawLines, items, seen) {
 
     // Caso 1: cada línea numérica trae cantidad + monto.
     const quantityAmountLines = numericLines
-      .filter(isReceiptQuantityAndAmountLine)
-      .map(amountFromQuantityAndAmountLine)
-      .filter((amount) => amount > 0);
+      .map(parseReceiptQuantityAndAmountLine)
+      .filter(Boolean)
+      .filter((entry) => entry.amount > 0);
 
     if (quantityAmountLines.length >= productLines.length) {
       productLines.forEach((name, productIndex) => {
-        addReceiptItemFromParts(items, seen, name, quantityAmountLines[productIndex]);
+        const entry = quantityAmountLines[productIndex];
+        addReceiptItemFromParts(items, seen, name, entry.amount, {
+          quantity: entry.quantity,
+          amountMode: meta?.hasLineTotalColumns ? 'line' : 'line',
+        });
       });
       index = scan;
       continue;
     }
 
     // Caso 2: OCR separa nombres, cantidades y montos por columnas.
+    const quantities = numericLines
+      .filter(isReceiptQuantityLine)
+      .map(parseReceiptQuantity)
+      .filter((quantity) => quantity > 0 && quantity <= 99);
+
     const amounts = numericLines
       .flatMap(extractReceiptAmounts)
       .filter((amount) => amount >= 300);
 
-    // Si viene un subtotal al final, normalmente sobra un monto.
     const usableAmounts = amounts.slice(0, productLines.length);
+    const usableQuantities = quantities.slice(0, productLines.length);
 
     if (usableAmounts.length >= productLines.length) {
       productLines.forEach((name, productIndex) => {
-        addReceiptItemFromParts(items, seen, name, usableAmounts[productIndex]);
+        addReceiptItemFromParts(items, seen, name, usableAmounts[productIndex], {
+          quantity: usableQuantities[productIndex] || 1,
+          amountMode: meta?.hasLineTotalColumns ? 'line' : 'line',
+        });
       });
       index = scan;
       continue;
@@ -1509,6 +1675,9 @@ function parseReceiptText(text) {
     .map(normalizeReceiptLine)
     .filter(Boolean);
 
+  const meta = extractReceiptMetadata(text);
+  receiptDetectedMeta = meta;
+
   const items = [];
   const seen = new Set();
 
@@ -1519,28 +1688,49 @@ function parseReceiptText(text) {
       continue;
     }
 
-    // Caso A: Producto + cantidad + precio. Ej: VIAN ITALIANA 2.00 8,180
-    let match = line.match(/^(.+?)\s+(\d+[,.]\d{1,2})\s+\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
+    // Caso A: Producto + cantidad + monto. Ej: LONDON MULE 2 13.980
+    let match = line.match(/^(.+?)\s+(\d{1,3}(?:[,.]\d{1,2})?)\s+\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
     if (match) {
-      addReceiptItemFromParts(items, seen, match[1], match[3]);
+      addReceiptItemFromParts(items, seen, match[1], match[3], {
+        quantity: match[2],
+        amountMode: meta.hasLineTotalColumns ? 'line' : 'line',
+      });
       continue;
     }
 
-    // Caso B: Producto + precio. Ej: Papas fritas 8.250
+    // Caso B: Producto + precio/total. Ej: Papas fritas 8.250
     match = line.match(/^(.+?)\s+\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
     if (match) {
-      addReceiptItemFromParts(items, seen, match[1], match[2]);
+      addReceiptItemFromParts(items, seen, match[1], match[2], {
+        quantity: 1,
+        amountMode: 'line',
+      });
       continue;
     }
 
     // Caso C: OCR separó producto y números en líneas distintas.
     // Ej:
     // VIAN ITALIANA
-    // 2.00 8,180
+    // 2 8.180
     const nextLine = rawLines[index + 1] || '';
-    const splitMatch = nextLine.match(/^(?:\d+[,.]\d{1,2}\s+)?\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
+    const splitQuantityAmount = parseReceiptQuantityAndAmountLine(nextLine);
+    if (splitQuantityAmount && isReceiptProductNameLine(line)) {
+      const added = addReceiptItemFromParts(items, seen, line, splitQuantityAmount.amount, {
+        quantity: splitQuantityAmount.quantity,
+        amountMode: meta.hasLineTotalColumns ? 'line' : 'line',
+      });
+      if (added) {
+        index += 1;
+        continue;
+      }
+    }
+
+    const splitMatch = nextLine.match(/^\$?\s*(-?\d{1,3}(?:[.\s,]\d{3})+|-?\d{3,7})(?:,\d{1,2})?\s*$/);
     if (splitMatch && isReceiptProductNameLine(line)) {
-      const added = addReceiptItemFromParts(items, seen, line, splitMatch[1]);
+      const added = addReceiptItemFromParts(items, seen, line, splitMatch[1], {
+        quantity: 1,
+        amountMode: 'line',
+      });
       if (added) {
         index += 1;
       }
@@ -1549,11 +1739,11 @@ function parseReceiptText(text) {
 
   // Caso D: OCR leyó las columnas completas por separado:
   // nombres primero, cantidades después, montos después.
-  detectSeparatedReceiptColumns(rawLines, items, seen);
+  detectSeparatedReceiptColumns(rawLines, items, seen, meta);
+  inferReceiptAmountModes(items, meta);
 
   return items;
 }
-
 
 function loadImageFromFile(file) {
   return new Promise((resolve, reject) => {
@@ -1650,7 +1840,7 @@ async function processReceiptImage() {
       return;
     }
 
-    updateReceiptStatus(`Lectura terminada. Revisa y corrige ${receiptDetectedItems.length} productos antes de agregarlos.`);
+    updateReceiptStatus(`Lectura terminada. Revisa cantidades, total de línea/precio unitario y corrige ${receiptDetectedItems.length} productos antes de agregarlos.`);
   } catch (error) {
     console.error(error);
     showNotice('Error al leer boleta', 'No se pudo procesar la imagen. Prueba con otra foto más clara.');
@@ -1676,16 +1866,20 @@ function reparseReceiptRawText() {
     return;
   }
 
-  updateReceiptStatus(`Se detectaron ${receiptDetectedItems.length} productos desde el texto.`);
+  updateReceiptStatus(`Se detectaron ${receiptDetectedItems.length} productos desde el texto. Revisa si el monto leído es total de línea o precio unitario.`);
 }
 
 function getReceiptSelectionMetrics() {
-  const items = Array.isArray(receiptDetectedItems) ? receiptDetectedItems : [];
-  const validItems = items.filter((item) => Number(item.price || 0) > 0);
-  const zeroItems = items.filter((item) => Number(item.price || 0) <= 0);
+  const items = Array.isArray(receiptDetectedItems) ? receiptDetectedItems.map(refreshReceiptDerivedValues) : [];
+  const validItems = items.filter((item) => getReceiptLineTotal(item) > 0);
+  const zeroItems = items.filter((item) => getReceiptLineTotal(item) <= 0);
   const selectedItems = validItems.filter((item) => item.selected);
-  const detectedTotal = validItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
-  const selectedTotal = selectedItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
+  const detectedTotal = validItems.reduce((sum, item) => sum + getReceiptLineTotal(item), 0);
+  const selectedTotal = selectedItems.reduce((sum, item) => sum + getReceiptLineTotal(item), 0);
+  const receiptTotal = Number(receiptDetectedMeta?.receiptTotal || 0);
+  const difference = receiptTotal > 0 ? detectedTotal - receiptTotal : 0;
+  const mismatch = receiptTotal > 0 && Math.abs(difference) > Math.max(20, receiptTotal * 0.015);
+  const multipleQuantityLines = validItems.filter((item) => Number(item.quantity || 1) > 1).length;
 
   return {
     total: items.length,
@@ -1694,6 +1888,10 @@ function getReceiptSelectionMetrics() {
     selected: selectedItems.length,
     detectedTotal,
     selectedTotal,
+    receiptTotal,
+    difference,
+    mismatch,
+    multipleQuantityLines,
   };
 }
 
@@ -1712,11 +1910,36 @@ function updateReceiptSelectionSummary() {
     dom.receiptSelectedTotalOutput.textContent = formatCurrency(metrics.selectedTotal);
   }
 
+  if (dom.receiptBillTotalOutput) {
+    dom.receiptBillTotalOutput.textContent = metrics.receiptTotal > 0 ? formatCurrency(metrics.receiptTotal) : 'No detectado';
+  }
+
+  if (dom.receiptDifferenceOutput) {
+    dom.receiptDifferenceOutput.textContent = metrics.receiptTotal > 0 ? formatCurrency(Math.abs(metrics.difference)) : 'Sin comparar';
+    dom.receiptDifferenceOutput.classList.toggle('has-warning', metrics.mismatch);
+  }
+
+  if (dom.receiptTipDetectedOutput) {
+    const tip = Number(receiptDetectedMeta?.tip || 0);
+    const grandTotal = Number(receiptDetectedMeta?.grandTotal || 0);
+    dom.receiptTipDetectedOutput.textContent = tip > 0
+      ? `${formatCurrency(tip)}${grandTotal > 0 ? ` · ${formatCurrency(grandTotal)} c/prop.` : ''}`
+      : 'No detectada';
+  }
+
   if (dom.receiptZeroWarningOutput) {
-    dom.receiptZeroWarningOutput.textContent = metrics.zero > 0
-      ? `${metrics.zero} monto${metrics.zero === 1 ? '' : 's'} en $0`
-      : 'Sin alertas';
-    dom.receiptZeroWarningOutput.classList.toggle('has-warning', metrics.zero > 0);
+    const warnings = [];
+    if (metrics.zero > 0) {
+      warnings.push(`${metrics.zero} monto${metrics.zero === 1 ? '' : 's'} en $0`);
+    }
+    if (metrics.mismatch) {
+      warnings.push('total no coincide');
+    }
+    if (metrics.multipleQuantityLines > 0 && !metrics.mismatch) {
+      warnings.push('cantidades OK');
+    }
+    dom.receiptZeroWarningOutput.textContent = warnings.length ? warnings.join(' · ') : 'Sin alertas';
+    dom.receiptZeroWarningOutput.classList.toggle('has-warning', metrics.zero > 0 || metrics.mismatch);
   }
 }
 
@@ -1726,31 +1949,53 @@ function renderReceiptDetectedItems() {
 
   if (receiptDetectedItems.length === 0) {
     const row = document.createElement('tr');
-    row.innerHTML = `<td colspan="4">No hay productos detectados todavía.</td>`;
+    row.innerHTML = `<td colspan="7">No hay productos detectados todavía.</td>`;
     dom.receiptDetectedBody.appendChild(row);
     updateReceiptSelectionSummary();
     return;
   }
 
   for (const item of receiptDetectedItems) {
+    refreshReceiptDerivedValues(item);
     const row = document.createElement('tr');
     row.dataset.itemId = item.id;
-    row.classList.toggle('receipt-row-warning', Number(item.price || 0) <= 0);
+    row.classList.toggle('receipt-row-warning', getReceiptLineTotal(item) <= 0);
     row.innerHTML = `
       <td><input type="checkbox" ${item.selected ? 'checked' : ''} aria-label="Usar producto" /></td>
       <td><input type="text" value="${escapeHtml(item.name)}" aria-label="Producto detectado" /></td>
-      <td><input type="number" min="0" step="1" value="${item.price}" aria-label="Monto detectado" /></td>
+      <td><input type="number" min="1" step="1" value="${item.quantity}" aria-label="Cantidad detectada" /></td>
+      <td><input type="number" min="0" step="1" value="${item.amount}" aria-label="Monto leído" /></td>
+      <td>
+        <select class="receipt-amount-mode" aria-label="Tipo de monto detectado">
+          <option value="line" ${item.amountMode === 'line' ? 'selected' : ''}>Total línea</option>
+          <option value="unit" ${item.amountMode === 'unit' ? 'selected' : ''}>Precio unitario</option>
+        </select>
+        <small class="receipt-derived-total">Total: ${formatCurrency(getReceiptLineTotal(item))} · Unit.: ${formatCurrency(getReceiptUnitPrice(item))}</small>
+      </td>
       <td>
         <select aria-label="Categoría detectada">
           ${CATEGORIES.map((category) => `<option ${category === item.category ? 'selected' : ''}>${category}</option>`).join('')}
         </select>
       </td>
+      <td class="receipt-review-cell">${Number(item.quantity || 1) > 1 && item.amountMode === 'line' ? 'No multiplica doble' : 'OK'}</td>
     `;
 
     const checkbox = row.querySelector('input[type="checkbox"]');
     const nameInput = row.querySelector('input[type="text"]');
-    const priceInput = row.querySelector('input[type="number"]');
-    const categorySelect = row.querySelector('select');
+    const quantityInput = row.querySelector('input[type="number"][aria-label="Cantidad detectada"]');
+    const amountInput = row.querySelector('input[type="number"][aria-label="Monto leído"]');
+    const amountModeSelect = row.querySelector('.receipt-amount-mode');
+    const categorySelect = row.querySelector('select[aria-label="Categoría detectada"]');
+    const derivedTotal = row.querySelector('.receipt-derived-total');
+    const reviewCell = row.querySelector('.receipt-review-cell');
+
+    const updateRowDerived = () => {
+      refreshReceiptDerivedValues(item);
+      derivedTotal.textContent = `Total: ${formatCurrency(getReceiptLineTotal(item))} · Unit.: ${formatCurrency(getReceiptUnitPrice(item))}`;
+      reviewCell.textContent = Number(item.quantity || 1) > 1 && item.amountMode === 'line' ? 'No multiplica doble' : 'OK';
+      row.classList.toggle('receipt-row-warning', getReceiptLineTotal(item) <= 0);
+      updateReceiptSelectionSummary();
+    };
 
     checkbox.addEventListener('change', () => {
       item.selected = checkbox.checked;
@@ -1761,9 +2006,19 @@ function renderReceiptDetectedItems() {
       item.name = nameInput.value;
     });
 
-    priceInput.addEventListener('input', () => {
-      item.price = Number(priceInput.value || 0);
-      updateReceiptSelectionSummary();
+    quantityInput.addEventListener('input', () => {
+      item.quantity = Math.max(1, Number(quantityInput.value || 1));
+      updateRowDerived();
+    });
+
+    amountInput.addEventListener('input', () => {
+      item.amount = Number(amountInput.value || 0);
+      updateRowDerived();
+    });
+
+    amountModeSelect.addEventListener('change', () => {
+      item.amountMode = amountModeSelect.value === 'unit' ? 'unit' : 'line';
+      updateRowDerived();
     });
 
     categorySelect.addEventListener('change', () => {
@@ -1783,7 +2038,7 @@ function setAllReceiptItems(selected) {
 
 function ignoreZeroReceiptItems() {
   const before = receiptDetectedItems.length;
-  receiptDetectedItems = receiptDetectedItems.filter((item) => Number(item.price || 0) > 0);
+  receiptDetectedItems = receiptDetectedItems.filter((item) => getReceiptLineTotal(item) > 0);
   renderReceiptDetectedItems();
   const removed = before - receiptDetectedItems.length;
   showToast(removed > 0 ? `${removed} producto${removed === 1 ? '' : 's'} de $0 ignorado${removed === 1 ? '' : 's'}.` : 'No hay montos en $0 para ignorar.');
@@ -1798,12 +2053,17 @@ function addReceiptItemsToBill() {
   }
 
   const selectedItems = receiptDetectedItems
-    .map((item) => ({
-      ...item,
-      name: String(item.name || '').trim(),
-      price: Number(item.price || 0),
-    }))
-    .filter((item) => item.selected && item.name && item.price > 0);
+    .map((item) => {
+      refreshReceiptDerivedValues(item);
+      return {
+        ...item,
+        name: String(item.name || '').trim(),
+        quantity: Math.max(1, Number(item.quantity || 1)),
+        unitPrice: getReceiptUnitPrice(item),
+        lineTotal: getReceiptLineTotal(item),
+      };
+    })
+    .filter((item) => item.selected && item.name && item.lineTotal > 0);
 
   if (selectedItems.length === 0) {
     showToast('Selecciona al menos un producto válido.');
@@ -1827,8 +2087,8 @@ function addReceiptItemsToBill() {
     bill.products.push({
       id: createId('product'),
       name: item.name,
-      unitPrice: item.price,
-      quantity: 1,
+      unitPrice: item.unitPrice,
+      quantity: item.quantity,
       category: CATEGORIES.includes(item.category) ? item.category : (bill.mode === 'home' ? 'Supermercado' : 'Comida'),
       splitMode: defaultSplitMode,
       dueDate: '',

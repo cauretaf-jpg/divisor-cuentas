@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=12.7" rel="stylesheet"/>
+<link href="styles.css?v=12.8" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -769,6 +769,8 @@
 <li>Haz que la boleta ocupe casi toda la imagen.</li>
 <li>Evita sombras y reflejos.</li>
 <li>Procura que los precios se vean nítidos.</li>
+<li>Si la boleta trae columnas Producto / Cantidad / Total, revisa que el monto quede como “Total línea”.</li>
+<li>Si el monto detectado era precio unitario, cambia el selector a “Precio unitario”.</li>
 <li>Si faltan productos, revisa el texto leído y presiona “Volver a detectar”.</li>
 </ul>
 </details>
@@ -783,13 +785,16 @@
 </div>
 <div class="receipt-results-header"><strong>Productos detectados</strong><span id="receiptDetectedCount">0 encontrados</span></div>
 <div class="receipt-audit-panel" id="receiptAuditPanel" aria-live="polite">
-<div><span>Total detectado</span><strong id="receiptDetectedTotalOutput">$0</strong></div>
+<div><span>Total productos</span><strong id="receiptDetectedTotalOutput">$0</strong></div>
+<div><span>Total boleta</span><strong id="receiptBillTotalOutput">No detectado</strong></div>
+<div><span>Diferencia</span><strong id="receiptDifferenceOutput">Sin comparar</strong></div>
 <div><span>Seleccionado</span><strong id="receiptSelectedTotalOutput">$0</strong></div>
+<div><span>Propina / total</span><strong id="receiptTipDetectedOutput">No detectada</strong></div>
 <div><span>Revisar</span><strong id="receiptZeroWarningOutput">Sin alertas</strong></div>
 </div>
 <div class="receipt-table-wrap">
 <table class="receipt-table">
-<thead><tr><th>Usar</th><th>Producto</th><th>Monto</th><th>Categoría</th></tr></thead>
+<thead><tr><th>Usar</th><th>Producto</th><th>Cant.</th><th>Monto leído</th><th>Tipo monto</th><th>Categoría</th><th>Revisión</th></tr></thead>
 <tbody id="receiptDetectedBody"></tbody>
 </table>
 </div>
@@ -1026,7 +1031,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=12.7"></script>
-<script src="script.js?v=12.7"></script>
+<script src="supabase-config.js?v=12.8"></script>
+<script src="script.js?v=12.8"></script>
 </body>
 </html>

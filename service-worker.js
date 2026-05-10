@@ -1,15 +1,15 @@
-const CACHE_NAME = 'cuenta-clara-v12.7.0';
+const CACHE_NAME = 'cuenta-clara-v12.8.0';
 
 const ASSETS = [
   './',
   './index.html',
-  './styles.css?v=12.7',
-  './script.js?v=12.7',
-  './supabase-config.js?v=12.7',
+  './styles.css?v=12.8',
+  './script.js?v=12.8',
+  './supabase-config.js?v=12.8',
   './manifest.json',
   './privacidad.html',
   './perfil.html',
-  './profile.js?v=12.7',
+  './profile.js?v=12.8',
   './ads.txt',
   './assets/logo.svg',
 ];

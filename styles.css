@@ -1915,14 +1915,14 @@ main,
 .receipt-results-header { margin-bottom: 12px; }
 .receipt-results-header span { color: var(--text-muted); font-size: 0.9rem; }
 .receipt-table-wrap { max-height: 520px; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
-.receipt-table { width: 100%; border-collapse: collapse; min-width: 680px; }
+.receipt-table { width: 100%; border-collapse: collapse; min-width: 980px; }
 .receipt-table th, .receipt-table td { border-bottom: 1px solid var(--border); padding: 8px; text-align: left; vertical-align: middle; }
 .receipt-table th { position: sticky; top: 0; z-index: 1; background: var(--primary); color: white; font-size: 0.86rem; }
 .receipt-table td:first-child, .receipt-table th:first-child { width: 72px; text-align: center; }
 .receipt-table input[type="checkbox"] { width: 18px; min-height: 18px; }
 .receipt-table input, .receipt-table select { min-height: 36px; padding: 7px 9px; }
 .receipt-actions { margin-top: 14px; justify-content: flex-end; }
-@media (max-width: 900px) { .section-actions { width: 100%; justify-content: stretch; } .section-actions .btn { flex: 1; } .receipt-layout { grid-template-columns: 1fr; } .receipt-table { min-width: 620px; } }
+@media (max-width: 900px) { .section-actions { width: 100%; justify-content: stretch; } .section-actions .btn { flex: 1; } .receipt-layout { grid-template-columns: 1fr; } .receipt-table { min-width: 920px; } }
 @media (max-width: 520px) { .receipt-actions { display: grid; grid-template-columns: 1fr; } .receipt-actions .btn { width: 100%; } }
 
 
@@ -7739,5 +7739,62 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
   .modal-actions .btn,
   .receipt-summary-actions #generateReceiptImageButton {
     width: 100%;
+  }
+}
+
+
+/* V12.8 - OCR boletas con cantidad, total de línea y comparación contra total */
+.receipt-table input[aria-label="Cantidad detectada"] {
+  width: 76px;
+}
+
+.receipt-table input[aria-label="Monto leído"] {
+  width: 116px;
+}
+
+.receipt-amount-mode {
+  min-width: 132px;
+}
+
+.receipt-derived-total {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.receipt-review-cell {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.receipt-row-warning .receipt-review-cell {
+  color: var(--danger);
+}
+
+.receipt-audit-panel {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.receipt-audit-panel strong.has-warning {
+  color: var(--danger);
+}
+
+@media (max-width: 760px) {
+  .receipt-table {
+    min-width: 980px;
+  }
+
+  .receipt-audit-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .receipt-audit-panel {
+    grid-template-columns: 1fr;
   }
 }

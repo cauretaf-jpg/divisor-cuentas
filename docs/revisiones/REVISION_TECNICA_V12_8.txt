@@ -1,0 +1,18 @@
+Cuenta Clara v12.8 - OCR de boletas más inteligente
+
+Cambios aplicados:
+- El lector de boletas ahora distingue cantidad, monto leído y tipo de monto.
+- Se agregó selector por producto: Total línea / Precio unitario.
+- Si la boleta trae columnas Producto, Cantidad y Total, el monto se interpreta como total de línea.
+- Se evita duplicar valores cuando la boleta ya trae el total por línea.
+- Se calcula automáticamente el precio unitario desde total de línea / cantidad.
+- Se detecta total de boleta, propina sugerida y total con propina cuando aparecen en el texto leído.
+- Se compara total de productos calculado vs total detectado de la boleta.
+- Se agregan alertas cuando hay diferencia de totales o montos en $0.
+- Se ajustó la detección para no descartar productos como “Ruta Roll” por contener “rut”.
+
+Validaciones:
+- script.js validado con node --check.
+- profile.js validado con node --check.
+- index.html revisado por IDs duplicados.
+- service-worker actualizado a v12.8.
