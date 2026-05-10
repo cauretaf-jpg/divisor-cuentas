@@ -1,0 +1,52 @@
+REVISION TECNICA - CUENTA CLARA V13.6
+
+Objetivo:
+- Mejorar la experiencia de primer uso y convertir las plantillas en un flujo guiado mas claro.
+- Mantener compatibilidad con V13.5 sin SQL nuevo ni dependencias nuevas.
+
+Cambios realizados:
+1. Inicio / onboarding
+- Se agrego templateAssistantPanel.
+- Se agrego seleccion visual de plantilla.
+- Se agrego recomendacion automatica de plantilla.
+- Los botones de plantilla ahora seleccionan/vista previa antes de crear.
+- La creacion final se hace desde "Crear con esta plantilla".
+
+2. Plantillas
+- Se expandio BILL_TEMPLATES con descripcion, checklist, ejemplos y siguiente ayuda.
+- Se agregaron funciones:
+  - getTemplateDefinition()
+  - getRecommendedTemplateKey()
+  - ensureSelectedTemplateKey()
+  - selectTemplatePreview()
+  - renderTemplateAssistant()
+  - renderActiveTemplateHelper()
+  - prefillSuggestedProduct()
+
+3. Gastos
+- Se agrego templateActiveHelper.
+- Los ejemplos preparan nombre/categoria/campo recurrente cuando corresponde.
+- No se crean gastos automaticamente.
+
+4. UI/CSS
+- Nuevos estilos para panel de asistente, chips de plantilla, estados seleccionado/sugerido y ayuda activa.
+- Ajustes responsivos para celular.
+
+5. Versionado
+- console.info actualizado a V13.6.
+- cache del service worker actualizado a cuenta-clara-v13.6.
+- referencias ?v=13.6 actualizadas en HTML.
+
+Validaciones:
+- node --check shared-utils.js: OK.
+- node --check script.js: OK.
+- node --check profile.js: OK.
+- index.html: sin IDs duplicados.
+- perfil.html: sin IDs duplicados.
+- privacidad.html: sin IDs duplicados.
+- styles.css: llaves balanceadas.
+- querySelector('#id'): sin referencias faltantes.
+
+Riesgo:
+- Bajo. No se modifica SQL, autenticacion ni calculos principales.
+- El cambio mas visible es que tocar una plantilla ahora muestra vista previa antes de crearla, evitando creaciones accidentales.

@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V13.5 cargada');
+console.info('Cuenta Clara V13.6 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -19,6 +19,8 @@ let sharedInvitesCache = [];
 let sharedMembersCache = [];
 let sharedUiBusy = false;
 const THEME_KEY = 'cuenta-clara-theme';
+let selectedTemplateKey = 'restaurant';
+let templateSelectionTouched = false;
 
 const CATEGORIES = [
   'Comida',
@@ -83,6 +85,19 @@ const dom = {
   templateChoiceButtons: document.querySelectorAll('[data-template]'),
   templateChangeSelect: document.querySelector('#templateChangeSelect'),
   applyTemplateChangeButton: document.querySelector('#applyTemplateChangeButton'),
+  templateAssistantPanel: document.querySelector('#templateAssistantPanel'),
+  templateAssistantKicker: document.querySelector('#templateAssistantKicker'),
+  templateAssistantTitle: document.querySelector('#templateAssistantTitle'),
+  templateAssistantDescription: document.querySelector('#templateAssistantDescription'),
+  templateAssistantMeta: document.querySelector('#templateAssistantMeta'),
+  templateAssistantExamples: document.querySelector('#templateAssistantExamples'),
+  templateAssistantStartButton: document.querySelector('#templateAssistantStartButton'),
+  templateAssistantPeopleButton: document.querySelector('#templateAssistantPeopleButton'),
+  templateActiveHelper: document.querySelector('#templateActiveHelper'),
+  templateActiveKicker: document.querySelector('#templateActiveKicker'),
+  templateActiveTitle: document.querySelector('#templateActiveTitle'),
+  templateActiveHelp: document.querySelector('#templateActiveHelp'),
+  templateActiveExamples: document.querySelector('#templateActiveExamples'),
   guideFocusButtons: document.querySelectorAll('[data-focus-target]'),
   guideShareButtons: document.querySelectorAll('[data-open-share]'),
   sectionNavButtons: document.querySelectorAll('[data-app-section]'),
@@ -4734,49 +4749,104 @@ const BILL_TEMPLATES = {
     mode: 'detailed',
     tipPercent: 10,
     name: () => `Restaurante ${formatShortToday()}`,
+    description: 'Para cenas, salidas y cuentas con productos compartidos. Activa propina y prepara el resumen para WhatsApp.',
     help: 'Plantilla restaurante creada. Agrega personas, productos y revisa la propina en Gastos.',
+    checklist: ['Propina 10% activa', 'Productos por consumidor', 'Comprobante para WhatsApp'],
+    examples: [
+      { name: 'Plato de fondo', category: 'Comida' },
+      { name: 'Bebida', category: 'Bebestibles' },
+      { name: 'Postre compartido', category: 'Postres' },
+    ],
+    nextHint: 'Después de agregar personas, usa productos rápidos o escanea una boleta.',
   },
   supermarket: {
     label: 'Supermercado',
     mode: 'home',
     tipPercent: 0,
     name: () => `Supermercado ${formatMonthLabel(getCurrentMonthValue())}`,
-    help: 'Plantilla supermercado creada. Agrega personas y gastos; si se repite mensualmente, actívala como recurrente.'
+    description: 'Para compras compartidas del hogar o grupo. Sin propina y con foco en gastos mensuales.',
+    help: 'Plantilla supermercado creada. Agrega personas y gastos; si se repite mensualmente, actívala como recurrente.',
+    checklist: ['Sin propina', 'Categorías de hogar', 'Puede volverse recurrente'],
+    examples: [
+      { name: 'Supermercado mensual', category: 'Supermercado' },
+      { name: 'Aseo y limpieza', category: 'Otros' },
+      { name: 'Reposición compartida', category: 'Supermercado' },
+    ],
+    nextHint: 'Agrega el total de la compra o separa productos si algunas personas consumieron distinto.',
   },
   streaming: {
     label: 'Streaming',
     mode: 'home',
     tipPercent: 0,
     name: () => `Streaming ${formatMonthLabel(getCurrentMonthValue())}`,
-    help: 'Plantilla streaming creada. Agrega personas y gastos; luego activa la carpeta recurrente desde Inicio u Hogar.'
+    description: 'Para Netflix, Spotify, MAX, Crunchyroll u otros servicios mensuales. Pensada para pagos recurrentes.',
+    help: 'Plantilla streaming creada. Agrega personas y gastos; luego activa la carpeta recurrente desde Inicio u Hogar.',
+    checklist: ['Sin propina', 'Pagos mensuales', 'Arrastre de deuda pendiente'],
+    examples: [
+      { name: 'Netflix', category: 'Streaming' },
+      { name: 'Spotify', category: 'Streaming' },
+      { name: 'MAX', category: 'Streaming' },
+    ],
+    nextHint: 'Marca los servicios como recurrentes para repetirlos el próximo mes.',
   },
   trip: {
     label: 'Viaje',
     mode: 'detailed',
     tipPercent: 0,
     name: () => `Viaje ${formatShortToday()}`,
+    description: 'Para viajes con gastos por etapa: transporte, alojamiento, comida y compras compartidas.',
     help: 'Plantilla viaje creada. Agrega transporte, comida, alojamiento y otros gastos.',
+    checklist: ['Sin propina por defecto', 'Gastos por categoría', 'Ideal para varias personas'],
+    examples: [
+      { name: 'Alojamiento', category: 'Arriendo' },
+      { name: 'Transporte', category: 'Transporte' },
+      { name: 'Comida del viaje', category: 'Comida' },
+    ],
+    nextHint: 'Usa categorías para revisar mejor en el historial cuánto gastaron por tipo de gasto.',
   },
   home: {
     label: 'Hogar',
     mode: 'home',
     tipPercent: 0,
     name: () => `Hogar ${formatMonthLabel(getCurrentMonthValue())}`,
-    help: 'Plantilla hogar creada. Agrega personas y gastos; luego crea el siguiente mes desde Hogar/Recurrentes.'
+    description: 'Para luz, agua, internet, gas, arriendo y gastos comunes. Diseñada para controlar deudas mensuales.',
+    help: 'Plantilla hogar creada. Agrega personas y gastos; luego crea el siguiente mes desde Hogar/Recurrentes.',
+    checklist: ['Sin propina', 'Mes activo', 'Carpeta recurrente disponible'],
+    examples: [
+      { name: 'Luz', category: 'Luz' },
+      { name: 'Agua', category: 'Agua' },
+      { name: 'Internet', category: 'Internet' },
+      { name: 'Gastos comunes', category: 'Gastos comunes' },
+    ],
+    nextHint: 'Agrega fecha de vencimiento para que Inicio muestre recordatorios útiles.',
   },
   quick: {
     label: 'Cuenta rápida',
     mode: 'quick',
     tipPercent: 0,
     name: () => `Cuenta rápida ${formatShortToday()}`,
+    description: 'Para dividir un total único sin cargar productos. Es el camino más corto para salir rápido.',
     help: 'Cuenta rápida creada. Agrega personas y luego ingresa el monto total.',
+    checklist: ['Total único', 'División inmediata', 'Ideal para urgencias'],
+    examples: [
+      { name: 'Total de la cuenta', category: 'Otros' },
+      { name: 'Pago grupal', category: 'Otros' },
+    ],
+    nextHint: 'Agrega personas, ingresa el monto total y comparte el resultado.',
   },
   custom: {
     label: 'Personalizada',
     mode: 'detailed',
     tipPercent: 10,
     name: () => getGuidedBillName('detailed'),
+    description: 'Empieza limpia y ajusta propina, categorías, personas y pagos según tu caso.',
     help: 'Cuenta personalizada creada. Agrega personas y configura los gastos a tu manera.',
+    checklist: ['Configuración libre', 'Productos manuales', 'Propina editable'],
+    examples: [
+      { name: 'Gasto compartido', category: 'Otros' },
+      { name: 'Producto individual', category: 'Otros' },
+    ],
+    nextHint: 'Configura primero el tipo de cuenta y luego agrega gastos.',
   },
 };
 
@@ -4789,6 +4859,172 @@ function formatMonthLabel(monthValue) {
   const date = new Date(year || new Date().getFullYear(), (month || 1) - 1, 1);
   const label = new Intl.DateTimeFormat('es-CL', { month: 'long', year: 'numeric' }).format(date);
   return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+
+function getTemplateDefinition(templateKey = '') {
+  return BILL_TEMPLATES[templateKey] || BILL_TEMPLATES.custom;
+}
+
+function getRecommendedTemplateKey() {
+  const activeBill = state?.bills?.find?.((bill) => bill.id === state.activeBillId) || null;
+
+  if (activeBill) {
+    const hasPeople = Array.isArray(activeBill.people) && activeBill.people.length > 0;
+    const hasProducts = Array.isArray(activeBill.products) && activeBill.products.length > 0;
+    const hasQuickTotal = Number(activeBill.quickTotal || 0) > 0;
+
+    if (!hasPeople && !hasProducts && !hasQuickTotal && activeBill.templateKey && BILL_TEMPLATES[activeBill.templateKey]) {
+      return activeBill.templateKey;
+    }
+
+    if (activeBill.mode === 'quick' && !hasQuickTotal) return 'quick';
+    if (activeBill.mode === 'home' && !hasProducts) return activeBill.templateKey || 'home';
+  }
+
+  const recentBills = Array.isArray(state?.bills) ? state.bills.filter((bill) => !bill.archived).slice(0, 6) : [];
+  const frequency = new Map();
+
+  for (const bill of recentBills) {
+    const key = BILL_TEMPLATES[bill.templateKey] ? bill.templateKey : '';
+    if (key) frequency.set(key, (frequency.get(key) || 0) + 1);
+  }
+
+  const strongest = [...frequency.entries()].sort((a, b) => b[1] - a[1])[0];
+  if (strongest?.[0]) return strongest[0];
+
+  const hour = new Date().getHours();
+  if (hour >= 18 && hour <= 23) return 'restaurant';
+  return 'quick';
+}
+
+function ensureSelectedTemplateKey() {
+  if (!templateSelectionTouched || !BILL_TEMPLATES[selectedTemplateKey]) {
+    selectedTemplateKey = getRecommendedTemplateKey();
+  }
+  return selectedTemplateKey;
+}
+
+function selectTemplatePreview(templateKey, options = {}) {
+  if (!BILL_TEMPLATES[templateKey]) {
+    return;
+  }
+
+  selectedTemplateKey = templateKey;
+  templateSelectionTouched = true;
+  renderTemplateAssistant();
+
+  if (options.scroll && dom.templateAssistantPanel) {
+    dom.templateAssistantPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function renderTemplateChips(container, items = []) {
+  if (!container) return;
+  container.innerHTML = '';
+
+  items.forEach((item) => {
+    const chip = document.createElement('span');
+    chip.className = 'template-chip';
+    chip.textContent = item;
+    container.appendChild(chip);
+  });
+}
+
+function renderTemplateExamples(container, examples = [], interactive = false) {
+  if (!container) return;
+  container.innerHTML = '';
+
+  examples.forEach((example) => {
+    const element = document.createElement(interactive ? 'button' : 'span');
+    element.className = 'template-example-chip';
+    element.textContent = `${example.name} · ${example.category}`;
+
+    if (interactive) {
+      element.type = 'button';
+      element.addEventListener('click', () => prefillSuggestedProduct(example));
+    }
+
+    container.appendChild(element);
+  });
+}
+
+function renderTemplateAssistant() {
+  if (!dom.templateAssistantPanel) return;
+
+  const recommendedKey = getRecommendedTemplateKey();
+  const key = ensureSelectedTemplateKey();
+  const template = getTemplateDefinition(key);
+  const recommendedTemplate = getTemplateDefinition(recommendedKey);
+  const isRecommended = key === recommendedKey;
+
+  dom.templateAssistantKicker.textContent = isRecommended ? 'Plantilla sugerida' : 'Plantilla seleccionada';
+  dom.templateAssistantTitle.textContent = template.label;
+  dom.templateAssistantDescription.textContent = template.description || template.help;
+  renderTemplateChips(dom.templateAssistantMeta, [
+    getBillModeLongLabel(template.mode),
+    template.tipPercent ? `Propina ${template.tipPercent}%` : 'Sin propina',
+    ...(template.checklist || []),
+  ]);
+  renderTemplateExamples(dom.templateAssistantExamples, template.examples || []);
+
+  if (dom.templateAssistantStartButton) {
+    dom.templateAssistantStartButton.textContent = `Crear ${template.label}`;
+  }
+
+  if (dom.templateAssistantPeopleButton) {
+    dom.templateAssistantPeopleButton.textContent = `Crear y agregar personas`;
+  }
+
+  dom.templateChoiceButtons?.forEach((button) => {
+    const buttonKey = button.dataset.template;
+    button.classList.toggle('is-selected', buttonKey === key);
+    button.classList.toggle('is-recommended', buttonKey === recommendedKey);
+    button.setAttribute('aria-pressed', buttonKey === key ? 'true' : 'false');
+
+    const strong = button.querySelector('strong');
+    if (strong && buttonKey === recommendedKey && !strong.textContent.includes('Sugerida')) {
+      strong.textContent = `${recommendedTemplate.label} · Sugerida`;
+    } else if (strong && buttonKey !== recommendedKey) {
+      strong.textContent = getTemplateDefinition(buttonKey).label;
+    }
+  });
+}
+
+function renderActiveTemplateHelper() {
+  if (!dom.templateActiveHelper) return;
+
+  const bill = getActiveBill();
+  const key = bill.templateKey && BILL_TEMPLATES[bill.templateKey] ? bill.templateKey : 'custom';
+  const template = getTemplateDefinition(key);
+  const hasTemplate = Boolean(bill.templateKey && BILL_TEMPLATES[bill.templateKey]);
+
+  dom.templateActiveHelper.classList.toggle('hidden', !bill);
+  dom.templateActiveKicker.textContent = hasTemplate ? 'Plantilla activa' : 'Plantilla sugerida';
+  dom.templateActiveTitle.textContent = hasTemplate ? template.label : 'Personalizada';
+  dom.templateActiveHelp.textContent = `${template.nextHint || template.help} Puedes tocar un ejemplo para preparar el formulario sin agregar montos automáticamente.`;
+  renderTemplateExamples(dom.templateActiveExamples, template.examples || [], true);
+}
+
+function prefillSuggestedProduct(example = {}) {
+  const bill = getActiveBill();
+
+  if (bill.mode === 'quick') {
+    setAppSection('expenses', { scroll: false });
+    scrollToGuideTarget(dom.quickTotalInput);
+    showToast('Ingresa el total de la cuenta rápida.');
+    return;
+  }
+
+  setAppSection('expenses', { scroll: false });
+
+  if (dom.productNameInput) dom.productNameInput.value = example.name || '';
+  if (dom.productCategoryInput && example.category) dom.productCategoryInput.value = CATEGORIES.includes(example.category) ? example.category : 'Otros';
+  if (dom.productQuantityInput && !Number(dom.productQuantityInput.value || 0)) dom.productQuantityInput.value = 1;
+  if (dom.productRecurringInput && bill.mode === 'home') dom.productRecurringInput.checked = true;
+
+  scrollToGuideTarget(dom.productNameInput);
+  showToast('Ejemplo preparado. Solo falta ingresar el monto y guardar.');
 }
 
 function applyBillModePreset(bill, mode, customName = '') {
@@ -4854,7 +5090,9 @@ function applyTemplateToBill(bill, templateKey, customName = '') {
 }
 
 function createTemplateBill(templateKey) {
-  const template = BILL_TEMPLATES[templateKey] || BILL_TEMPLATES.custom;
+  selectedTemplateKey = BILL_TEMPLATES[templateKey] ? templateKey : 'custom';
+  templateSelectionTouched = true;
+  const template = BILL_TEMPLATES[selectedTemplateKey] || BILL_TEMPLATES.custom;
   const defaultName = template.name();
   const response = prompt('¿Qué nombre quieres darle a esta cuenta?', defaultName);
 
@@ -4863,7 +5101,7 @@ function createTemplateBill(templateKey) {
   }
 
   const bill = makeDefaultBill();
-  const selectedTemplate = applyTemplateToBill(bill, templateKey, response.trim() || defaultName);
+  const selectedTemplate = applyTemplateToBill(bill, selectedTemplateKey, response.trim() || defaultName);
 
   state.bills.unshift(bill);
   state.activeBillId = bill.id;
@@ -6626,7 +6864,10 @@ function renderBillModeSwitcher() {
   if (dom.applyTemplateChangeButton) {
     dom.applyTemplateChangeButton.disabled = isActiveSharedReadOnly();
   }
+
+  renderActiveTemplateHelper();
 }
+
 
 function changeActiveBillTemplate(templateKey) {
   const bill = getActiveBill();
@@ -7970,6 +8211,8 @@ function render() {
   renderTransfers();
   try {
     renderGuidedExperience();
+    renderTemplateAssistant();
+    renderActiveTemplateHelper();
     renderMobileHomeDashboard();
     renderHomeActionPanel();
     renderFirstUseOnboarding();
@@ -10347,8 +10590,11 @@ dom.guidedChoiceButtons?.forEach((button) => {
 });
 
 dom.templateChoiceButtons?.forEach((button) => {
-  button.addEventListener('click', () => createTemplateBill(button.dataset.template));
+  button.addEventListener('click', () => selectTemplatePreview(button.dataset.template, { scroll: true }));
 });
+
+dom.templateAssistantStartButton?.addEventListener('click', () => createTemplateBill(selectedTemplateKey));
+dom.templateAssistantPeopleButton?.addEventListener('click', () => createTemplateBill(selectedTemplateKey));
 
 dom.applyTemplateChangeButton?.addEventListener('click', () => {
   changeActiveBillTemplate(dom.templateChangeSelect?.value || 'custom');

@@ -1,0 +1,25 @@
+{
+  "version": "13.6",
+  "nombre": "Cuenta Clara v13.6 - onboarding y plantillas inteligentes",
+  "fecha_revision": "2026-05-10",
+  "validaciones": {
+    "shared_utils_js_sintaxis": "OK",
+    "script_js_sintaxis": "OK",
+    "profile_js_sintaxis": "OK",
+    "index_html_ids_duplicados": "OK",
+    "perfil_html_ids_duplicados": "OK",
+    "privacidad_html_ids_duplicados": "OK",
+    "styles_css_llaves": "OK",
+    "query_selector_ids": "OK"
+  },
+  "service_worker_cache": "cuenta-clara-v13.6",
+  "requiere_sql_nuevo": false,
+  "dependencias_nuevas": false,
+  "cambios_clave": [
+    "Asistente de plantillas en Inicio",
+    "Recomendacion automatica de plantilla",
+    "Vista previa antes de crear cuenta",
+    "Ayuda contextual de plantilla activa en Gastos",
+    "Ejemplos que preparan el formulario sin crear gastos automaticamente"
+  ]
+}

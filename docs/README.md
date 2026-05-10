@@ -1,29 +1,43 @@
-# Cuenta Clara V13.5
+# Cuenta Clara V13.6
 
-## Limpieza tecnica y estabilidad
+## Onboarding y plantillas inteligentes
 
-Esta version no agrega funciones grandes nuevas. Su objetivo es ordenar la base de la app antes de seguir creciendo con nuevas caracteristicas.
+Esta version mantiene la limpieza tecnica previa y suma un flujo guiado para nuevos usuarios. El foco es que una persona nueva entienda mas rapido que tipo de cuenta debe crear y que la app entregue ayuda contextual segun la plantilla elegida.
 
 ## Cambios principales
 
-- Se agrego `shared-utils.js` como archivo comun de utilidades.
-- Se centralizaron funciones repetidas entre `script.js` y `profile.js`:
-  - formato de moneda;
-  - fechas ISO;
-  - telefonos;
-  - iniciales;
-  - almacenamiento por usuario;
-  - perfil base;
-  - amigos;
-  - escape HTML;
-  - etiquetas de tipo de cuenta;
-  - modo claro/oscuro.
-- Se conecto el boton **Aplicar plantilla** con la funcion `changeActiveBillTemplate()`.
-- Se eliminaron referencias antiguas a `accountSettingsPanel`, `accountSettingsSummaryText` y `receiptButton`.
-- Se reemplazo un mensaje tecnico relacionado con SQL por un mensaje profesional para usuario final.
-- Se eliminaron reglas CSS de componentes antiguos sin uso actual.
-- Se actualizo el cache del service worker a `cuenta-clara-v13.5`.
-- Se agrego `shared-utils.js` al service worker.
+- Se agrego un panel de asistente de plantillas en Inicio.
+- La app ahora sugiere una plantilla inicial segun el contexto de uso:
+  - cuenta activa vacia;
+  - modo de cuenta actual;
+  - plantillas usadas recientemente;
+  - horario del dia como fallback.
+- Las plantillas ahora tienen descripcion, checklist, ejemplos y ayuda especifica.
+- Al tocar una plantilla en Inicio, primero se muestra una vista previa antes de crear la cuenta.
+- Se agrego una tarjeta de ayuda de plantilla activa en Gastos.
+- Los ejemplos de plantilla pueden preparar el formulario de gasto sin agregar montos automaticamente.
+- Se corrigio un texto duplicado en la tarjeta de cuenta actual.
+- Se actualizo el cache del service worker a `cuenta-clara-v13.6`.
+
+## Plantillas reforzadas
+
+- Restaurante.
+- Supermercado.
+- Streaming.
+- Viaje.
+- Hogar.
+- Cuenta rapida.
+- Personalizada.
+
+Cada plantilla define:
+
+- tipo de cuenta;
+- propina inicial;
+- nombre sugerido;
+- descripcion para usuario nuevo;
+- checklist de uso;
+- ejemplos de gastos/categorias;
+- siguiente accion recomendada.
 
 ## Validaciones realizadas
 
@@ -34,6 +48,7 @@ Esta version no agrega funciones grandes nuevas. Su objetivo es ordenar la base 
 - `perfil.html` revisado sin IDs duplicados.
 - `privacidad.html` revisado sin IDs duplicados.
 - `styles.css` revisado con llaves balanceadas.
+- Referencias `querySelector('#id')` revisadas contra los HTML principales.
 - No requiere SQL nuevo.
 - No agrega dependencias nuevas.
 
@@ -41,13 +56,15 @@ Esta version no agrega funciones grandes nuevas. Su objetivo es ordenar la base 
 
 Despues de subir a GitHub/Vercel, probar estos flujos:
 
-1. Abrir Inicio y cambiar entre secciones moviles.
-2. Crear o abrir una cuenta existente.
-3. Probar el selector de plantilla y el boton **Aplicar plantilla**.
-4. Agregar una persona y un gasto manual.
-5. Usar OCR de boleta y confirmar que el flujo sigue funcionando.
-6. Revisar Resumen > Antes de compartir.
-7. Revisar Pagos > Centro financiero.
-8. Abrir Perfil y revisar dashboard financiero.
+1. Inicio > revisar plantilla sugerida.
+2. Inicio > tocar Restaurante, Streaming, Hogar y Cuenta rapida para ver la vista previa.
+3. Crear una cuenta desde el asistente.
+4. Personas > agregar participantes.
+5. Gastos > revisar la tarjeta de plantilla activa.
+6. Tocar ejemplos de plantilla y confirmar que preparan el formulario sin crear gastos automaticamente.
+7. Probar OCR/boleta para confirmar que el flujo sigue funcionando.
+8. Resumen > Antes de compartir.
+9. Pagos > Centro financiero.
+10. Perfil > dashboard financiero.
 
-Si el navegador mantiene una version anterior, cerrar la app, limpiar cache del sitio o abrir una ventana privada para confirmar que cargue V13.5.
+Si el navegador mantiene una version anterior, cerrar la app, limpiar cache del sitio o abrir una ventana privada para confirmar que cargue V13.6.

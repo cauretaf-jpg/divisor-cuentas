@@ -1,32 +1,34 @@
-CUENTA CLARA V13.5 - LIMPIEZA TECNICA Y ESTABILIDAD
+CUENTA CLARA V13.6 - ONBOARDING Y PLANTILLAS INTELIGENTES
 
-NUEVO EN V13.5
+NUEVO EN V13.6
 
-1. Limpieza de codigo repetido
-- Se agrego el archivo shared-utils.js.
-- Ahora script.js y profile.js comparten utilidades comunes para moneda, telefonos, fechas, iniciales, perfiles, amigos, HTML seguro y tema visual.
-- Se mantuvieron las funciones publicas para no romper llamadas existentes.
+1. Asistente de plantillas en Inicio
+- Ahora Inicio muestra una plantilla sugerida.
+- Al tocar una plantilla, la app muestra una vista previa antes de crear la cuenta.
+- El usuario ve descripcion, configuracion, beneficios y ejemplos.
 
-2. Boton Aplicar plantilla corregido
-- El boton Aplicar plantilla ahora ejecuta el cambio de plantilla seleccionado.
-- Antes estaba definido en pantalla, pero no tenia accion conectada.
+2. Plantillas mas inteligentes
+- Restaurante: propina activa, productos compartidos y comprobante WhatsApp.
+- Supermercado: gastos del hogar o grupo, sin propina.
+- Streaming: servicios mensuales y deuda pendiente arrastrable.
+- Viaje: transporte, alojamiento, comida y gastos por etapa.
+- Hogar: luz, agua, internet, gas, gastos comunes y cuentas recurrentes.
+- Cuenta rapida: total unico dividido entre personas.
+- Personalizada: configuracion libre.
 
-3. Limpieza de residuos antiguos
-- Se eliminaron referencias a accountSettingsPanel y accountSettingsSummaryText, que ya no existen en el HTML actual.
-- Se elimino la referencia antigua receiptButton, reemplazada por el flujo actual de boletas/OCR.
+3. Ayuda contextual en Gastos
+- La app muestra la plantilla activa y el siguiente paso recomendado.
+- Los ejemplos de gastos preparan el formulario, pero no agregan montos automaticamente.
+- Esto reduce errores y evita cargar datos falsos.
 
-4. Mensajes mas profesionales
-- Se reemplazo un mensaje tecnico que mencionaba SQL social.
-- El usuario ahora ve un mensaje simple si no se pueden buscar usuarios registrados.
+4. Recomendacion automatica
+- La app recomienda una plantilla segun la cuenta activa, uso reciente y contexto.
+- Si el usuario selecciona otra plantilla, se respeta su seleccion.
 
-5. CSS depurado de forma segura
-- Se eliminaron reglas de componentes antiguos sin uso actual.
-- No se eliminaron overrides moviles o reglas historicas que podrian afectar la experiencia responsive.
-
-6. Versionado y cache
-- Version actualizada a V13.5.
-- Service worker actualizado a cuenta-clara-v13.5.
-- shared-utils.js agregado al cache.
+5. Pulido adicional
+- Se corrigio un texto duplicado en la tarjeta de cuenta actual.
+- Version actualizada a V13.6.
+- Service worker actualizado a cuenta-clara-v13.6.
 - Sin SQL nuevo.
 - Sin dependencias nuevas.
 
@@ -39,7 +41,7 @@ VALIDACIONES
 - perfil.html: sin IDs duplicados.
 - privacidad.html: sin IDs duplicados.
 - styles.css: llaves balanceadas.
-- Sin referencias activas a accountSettingsPanel, accountSettingsSummaryText, receiptButton ni SQL social.
+- querySelector('#id'): sin referencias faltantes en HTML principal.
 
 PASOS PARA SUBIR
 
@@ -48,7 +50,7 @@ PASOS PARA SUBIR
 3. En PowerShell, desde la carpeta del proyecto:
    git status
    git add .
-   git commit -m "Publica Cuenta Clara v13.5"
+   git commit -m "Publica Cuenta Clara v13.6"
    git push
 
 4. Esperar el despliegue automatico de Vercel.
@@ -56,10 +58,12 @@ PASOS PARA SUBIR
 
 PRUEBAS RECOMENDADAS
 
-1. Inicio > abrir cuenta reciente.
-2. Personas > agregar persona.
-3. Gastos > OCR/boleta y gasto manual.
-4. Gastos > aplicar plantilla desde el selector.
-5. Resumen > Antes de compartir.
-6. Pagos > marcar pagado y revisar que se actualice Inicio/Perfil.
-7. Perfil > revisar dashboard financiero.
+1. Inicio > revisar plantilla sugerida.
+2. Inicio > tocar distintas plantillas y revisar vista previa.
+3. Crear una cuenta desde el asistente.
+4. Personas > agregar persona.
+5. Gastos > tocar ejemplos de plantilla.
+6. Gastos > confirmar que no se agrega ningun gasto hasta ingresar monto y guardar.
+7. Resumen > Antes de compartir.
+8. Pagos > Centro financiero.
+9. Perfil > dashboard financiero.

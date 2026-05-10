@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=13.5" rel="stylesheet"/>
+<link href="styles.css?v=13.6" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -208,6 +208,19 @@
 <span>Abre el historial para editar, eliminar o recuperar cuentas guardadas.</span>
 </button>
 </div>
+<div class="template-assistant-panel" id="templateAssistantPanel" aria-live="polite">
+<div>
+<p class="eyebrow" id="templateAssistantKicker">Plantilla sugerida</p>
+<h3 id="templateAssistantTitle">Restaurante</h3>
+<p id="templateAssistantDescription">Elige una plantilla para ver cómo se configurará la cuenta.</p>
+</div>
+<div class="template-assistant-meta" id="templateAssistantMeta"></div>
+<div class="template-assistant-examples" id="templateAssistantExamples"></div>
+<div class="template-assistant-actions">
+<button class="btn btn-primary" id="templateAssistantStartButton" type="button">Crear con esta plantilla</button>
+<button class="btn btn-light" id="templateAssistantPeopleButton" type="button">Crear y agregar personas</button>
+</div>
+</div>
 </section><section class="guided-steps-card card" id="guidedStepsCard">
 <div class="guided-next">
 <div>
@@ -329,6 +342,14 @@
 <button class="btn btn-light btn-small" id="applyTemplateChangeButton" type="button">Aplicar plantilla</button>
 </div>
 <p class="helper-text">Puedes corregir la plantilla si elegiste una opción equivocada. Se conservan personas, gastos y pagos.</p>
+</div>
+<div class="template-active-helper hidden" id="templateActiveHelper">
+<div>
+<p class="eyebrow" id="templateActiveKicker">Plantilla activa</p>
+<strong id="templateActiveTitle">Cuenta personalizada</strong>
+<p id="templateActiveHelp">Sigue los pasos sugeridos para completar la cuenta.</p>
+</div>
+<div class="template-active-examples" id="templateActiveExamples"></div>
 </div>
 <p class="helper-text">No se eliminan tus datos al cambiar: los productos detallados y el monto rápido quedan resguardados para que puedas volver si lo necesitas.</p>
 </section><section class="settings-inner-card tip-section-card" id="tipCard">
@@ -1181,8 +1202,8 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="shared-utils.js?v=13.5"></script>
-<script src="supabase-config.js?v=13.5"></script>
-<script src="script.js?v=13.5"></script>
+<script src="shared-utils.js?v=13.6"></script>
+<script src="supabase-config.js?v=13.6"></script>
+<script src="script.js?v=13.6"></script>
 </body>
 </html>

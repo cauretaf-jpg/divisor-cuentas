@@ -8856,3 +8856,117 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
     padding: 13px;
   }
 }
+
+/* V13.6 - onboarding inteligente y plantillas */
+.template-assistant-panel,
+.template-active-helper {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border));
+  border-radius: 22px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 8%, var(--surface)), var(--surface));
+  box-shadow: var(--shadow-soft, 0 14px 30px rgba(15, 23, 42, .08));
+}
+
+.template-assistant-panel h3 {
+  margin: 2px 0 6px;
+  font-size: 1.12rem;
+}
+
+.template-assistant-panel p,
+.template-active-helper p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.template-assistant-meta,
+.template-assistant-examples,
+.template-active-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.template-chip,
+.template-example-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--primary) 15%, var(--border));
+  background: color-mix(in srgb, var(--surface) 86%, var(--primary));
+  color: var(--text);
+  font-size: .78rem;
+  font-weight: 850;
+  padding: 7px 10px;
+}
+
+button.template-example-chip {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+button.template-example-chip:hover {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  transform: translateY(-1px);
+}
+
+.template-assistant-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.guided-choice.is-selected {
+  border-color: color-mix(in srgb, var(--primary) 58%, var(--border));
+  background: color-mix(in srgb, var(--primary) 9%, var(--surface));
+  box-shadow: 0 16px 32px color-mix(in srgb, var(--primary) 13%, transparent);
+}
+
+.guided-choice.is-recommended:not(.is-selected) {
+  border-color: color-mix(in srgb, var(--success) 32%, var(--border));
+}
+
+.guided-choice.is-recommended:not(.is-selected)::after {
+  content: 'Sugerida';
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--success) 16%, var(--surface));
+  color: var(--success);
+  font-size: .68rem;
+  font-weight: 950;
+  padding: 4px 8px;
+}
+
+.template-active-helper.hidden {
+  display: none !important;
+}
+
+.template-active-helper {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(220px, .9fr);
+  gap: 14px;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .template-assistant-actions,
+  .template-assistant-actions .btn {
+    width: 100%;
+  }
+
+  .template-active-helper {
+    grid-template-columns: 1fr;
+  }
+
+  .template-assistant-panel,
+  .template-active-helper {
+    padding: 13px;
+    border-radius: 18px;
+  }
+}
+.guided-choice { position: relative; }
