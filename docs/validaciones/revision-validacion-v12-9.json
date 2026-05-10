@@ -1,0 +1,18 @@
+{
+  "version": "12.9",
+  "nombre": "flujo guiado y personas inteligentes",
+  "fecha": "2026-05-10",
+  "validaciones": {
+    "script_js": "ok",
+    "profile_js": "ok",
+    "ids_duplicados_index_html": 0,
+    "sql_nuevo": false
+  },
+  "cambios": [
+    "cambio de plantilla desde Gastos",
+    "personas frecuentes",
+    "boton Yo mas visible",
+    "seleccion de consumo mas visual",
+    "guia de correccion en boletas"
+  ]
+}

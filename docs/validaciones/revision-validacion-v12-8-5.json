@@ -1,0 +1,12 @@
+{
+  "version": "12.8.5",
+  "script_check": "ok",
+  "profile_check": "ok",
+  "duplicate_ids": [],
+  "changes": [
+    "Cambio de tipo de cuenta desde Gastos",
+    "Conversión opcional de monto rápido a gasto",
+    "Resguardo de productos al pasar a Cuenta rápida",
+    "Deshacer para cambio de tipo"
+  ]
+}

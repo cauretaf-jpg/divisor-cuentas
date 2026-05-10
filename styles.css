@@ -7870,3 +7870,202 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
     width: 100%;
   }
 }
+
+
+/* V12.8.5: cambio de tipo de cuenta desde Gastos */
+.bill-mode-switcher-card {
+  border-color: color-mix(in srgb, var(--primary) 18%, var(--border));
+}
+
+.mode-current-pill {
+  align-self: start;
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--border));
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+  font-size: 0.8rem;
+  font-weight: 900;
+  padding: 7px 10px;
+  white-space: nowrap;
+}
+
+.mode-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.mode-choice-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  color: var(--text);
+  cursor: pointer;
+  min-height: 92px;
+  padding: 13px;
+  text-align: left;
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+
+.mode-choice-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 38%, var(--border));
+  background: var(--primary-soft);
+}
+
+.mode-choice-card.is-active {
+  border-color: color-mix(in srgb, var(--primary) 62%, var(--border));
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.mode-choice-card strong,
+.mode-choice-card span {
+  display: block;
+}
+
+.mode-choice-card strong {
+  margin-bottom: 6px;
+}
+
+.mode-choice-card span {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 720px) {
+  .mode-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-current-pill {
+    justify-self: start;
+  }
+}
+
+/* v12.9 - flujo guiado y personas inteligentes */
+.template-change-box {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color, rgba(148, 163, 184, 0.25));
+  border-radius: 1rem;
+  background: rgba(248, 250, 252, 0.72);
+}
+
+[data-theme="dark"] .template-change-box {
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.template-change-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.template-change-row select {
+  width: 100%;
+}
+
+.frequent-people-panel {
+  margin: 0.85rem 0;
+  padding: 0.85rem;
+  border: 1px solid rgba(14, 165, 233, 0.18);
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(99, 102, 241, 0.06));
+}
+
+.frequent-people-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: baseline;
+  margin-bottom: 0.65rem;
+}
+
+.frequent-people-header small {
+  color: var(--muted-text, #64748b);
+  font-size: 0.78rem;
+}
+
+.frequent-people-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.frequent-person-chip {
+  border: 1px solid rgba(14, 165, 233, 0.22);
+  background: var(--card-bg, #fff);
+  border-radius: 999px;
+  padding: 0.48rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  color: inherit;
+}
+
+.frequent-person-chip span {
+  color: var(--muted-text, #64748b);
+  font-size: 0.74rem;
+}
+
+.self-participant-card {
+  box-shadow: 0 14px 32px rgba(14, 165, 233, 0.08);
+}
+
+.person-form #addMePersonQuickButton {
+  white-space: nowrap;
+}
+
+.consumer-panel-actions {
+  flex-wrap: wrap;
+}
+
+.consumer-row.is-editing-shares {
+  outline: 2px solid rgba(14, 165, 233, 0.45);
+  outline-offset: 2px;
+}
+
+.receipt-correction-helper {
+  margin: 0.8rem 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.9rem;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  display: grid;
+  gap: 0.25rem;
+}
+
+.receipt-correction-helper span {
+  color: var(--muted-text, #64748b);
+  font-size: 0.88rem;
+}
+
+@media (max-width: 720px) {
+  .template-change-row {
+    grid-template-columns: 1fr;
+  }
+
+  .frequent-people-header {
+    display: block;
+  }
+
+  .frequent-person-chip {
+    width: 100%;
+    justify-content: space-between;
+    border-radius: 0.85rem;
+  }
+
+  .person-form {
+    grid-template-columns: 1fr;
+  }
+
+  .consumer-panel-actions .btn {
+    flex: 1 1 calc(50% - 0.35rem);
+  }
+}

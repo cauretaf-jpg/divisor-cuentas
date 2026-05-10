@@ -1,0 +1,17 @@
+# Revisión técnica v12.9 - Flujo guiado y personas inteligentes
+
+Cambios principales:
+- Se agregó cambio de plantilla desde la pantalla Gastos, conservando personas, gastos y pagos.
+- Se reforzó el flujo guiado para que la creación de cuenta se entienda como un asistente por pasos.
+- Se agregó botón rápido + Yo junto al formulario de Personas.
+- Se agregó panel de Personas frecuentes, construido desde cuentas anteriores y amigos del perfil.
+- Se mejoró la selección de consumidores con acciones: Todos, Solo yo, Partes iguales, Partes distintas y Limpiar.
+- Se agregó ayuda de corrección asistida en la revisión de boletas.
+- Se actualizó cache/service worker a v12.9.
+
+Validaciones:
+- script.js validado con node --check.
+- profile.js validado con node --check.
+- index.html revisado sin IDs duplicados.
+
+No requiere SQL nuevo.

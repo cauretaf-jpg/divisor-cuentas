@@ -138,7 +138,7 @@
 </div>
 </div>
 <div class="template-intro">
-<p class="section-helper">Elige una plantilla para que la app prepare el nombre, tipo de cuenta y opciones iniciales.</p>
+<p class="section-helper">Elige una plantilla y la app te guiará por pasos: nombre, personas, gastos, resumen y pagos.</p>
 </div>
 <div class="guided-choice-grid template-choice-grid">
 <button class="guided-choice" data-template="restaurant" type="button">
@@ -221,6 +221,7 @@
 <input autocomplete="off" id="personNameInput" placeholder="Ej: Nombre" type="text"/>
 <input autocomplete="tel" id="personPhoneInput" placeholder="WhatsApp opcional" type="tel"/>
 <button class="btn btn-primary" type="submit">Agregar persona</button>
+<button class="btn btn-light" id="addMePersonQuickButton" type="button">+ Yo</button>
 </form>
 <div class="self-participant-card" id="selfParticipantCard">
 <div>
@@ -228,6 +229,13 @@
 <span>Usa tu usuario registrado como participante y vincula sus movimientos a tus estadísticas.</span>
 </div>
 <button class="btn btn-primary btn-small" id="addMePersonButton" type="button">+ Yo</button>
+</div>
+<div class="frequent-people-panel hidden" id="frequentPeoplePanel">
+<div class="frequent-people-header">
+<strong>Personas frecuentes</strong>
+<small>Toca para agregarlas rápido a esta cuenta.</small>
+</div>
+<div class="frequent-people-chips" id="frequentPeopleChips"></div>
 </div>
 <div class="bulk-actions">
 <button class="btn btn-light btn-small" id="markAllPaidButton" type="button">Todos pagados</button>
@@ -249,7 +257,47 @@
 </section>
 <div class="people-list" id="peopleList"></div>
 </section>
-</section></section><section class="app-section ad-protected-zone" data-app-section-panel="expenses" id="appSection-expenses"><section class="section-page-heading card"><div><p class="eyebrow">Consumos</p><h2>Gastos</h2><p class="section-helper">Agrega productos, gastos del hogar, boletas y productos rápidos en una vista enfocada.</p></div></section><section class="guide-card card" data-guide-card="expenses"><div><span class="guide-number">2</span></div><div><strong>Luego agrega los consumos</strong><p>Usa “Escribir” para ingresar manualmente o “Escanear boleta” para subir una imagen desde cámara, galería o archivos.</p></div><button class="btn btn-primary btn-small" type="button" data-focus-target="productNameInput">Agregar gasto</button></section><section class="settings-inner-card tip-section-card" id="tipCard">
+</section></section><section class="app-section ad-protected-zone" data-app-section-panel="expenses" id="appSection-expenses"><section class="section-page-heading card"><div><p class="eyebrow">Consumos</p><h2>Gastos</h2><p class="section-helper">Agrega productos, gastos del hogar, boletas y productos rápidos en una vista enfocada.</p></div></section><section class="guide-card card" data-guide-card="expenses"><div><span class="guide-number">2</span></div><div><strong>Luego agrega los consumos</strong><p>Usa “Escribir” para ingresar manualmente o “Escanear boleta” para subir una imagen desde cámara, galería o archivos.</p></div><button class="btn btn-primary btn-small" type="button" data-focus-target="productNameInput">Agregar gasto</button></section><section class="card bill-mode-switcher-card" id="billModeSwitcherCard">
+<div class="section-title compact">
+<div>
+<p class="eyebrow">Tipo de cuenta</p>
+<h2>Cambiar forma de dividir</h2>
+<p class="section-helper" id="billModeChangeHelp">Puedes volver y cambiar el tipo de cuenta si te arrepentiste.</p>
+</div>
+<span class="mode-current-pill" id="billModeCurrentOutput">Actual</span>
+</div>
+<div class="mode-choice-grid" role="group" aria-label="Cambiar tipo de cuenta">
+<button class="mode-choice-card" data-bill-mode-choice="detailed" type="button">
+<strong>Detallada</strong>
+<span>Productos, cantidades y consumidores.</span>
+</button>
+<button class="mode-choice-card" data-bill-mode-choice="quick" type="button">
+<strong>Rápida</strong>
+<span>Un total general dividido entre personas.</span>
+</button>
+<button class="mode-choice-card" data-bill-mode-choice="home" type="button">
+<strong>Hogar</strong>
+<span>Gastos mensuales sin propina.</span>
+</button>
+</div>
+<div class="template-change-box">
+<label for="templateChangeSelect">Cambiar plantilla</label>
+<div class="template-change-row">
+<select id="templateChangeSelect">
+<option value="restaurant">Restaurante</option>
+<option value="supermarket">Supermercado</option>
+<option value="streaming">Streaming</option>
+<option value="trip">Viaje</option>
+<option value="home">Hogar</option>
+<option value="quick">Cuenta rápida</option>
+<option value="custom">Personalizada</option>
+</select>
+<button class="btn btn-light btn-small" id="applyTemplateChangeButton" type="button">Aplicar plantilla</button>
+</div>
+<p class="helper-text">Puedes corregir la plantilla si elegiste una opción equivocada. Se conservan personas, gastos y pagos.</p>
+</div>
+<p class="helper-text">No se eliminan tus datos al cambiar: los productos detallados y el monto rápido quedan resguardados para que puedas volver si lo necesitas.</p>
+</section><section class="settings-inner-card tip-section-card" id="tipCard">
 <div class="section-title">
 <div>
 <p class="eyebrow">Propina</p>
@@ -389,6 +437,9 @@
 </div>
 <div class="consumer-panel-actions">
 <button class="btn btn-light btn-small" id="selectAllConsumersButton" type="button">Todos</button>
+<button class="btn btn-light btn-small" id="selectSelfConsumerButton" type="button">Solo yo</button>
+<button class="btn btn-light btn-small" id="equalSharesConsumerButton" type="button">Partes iguales</button>
+<button class="btn btn-light btn-small" id="customSharesConsumerButton" type="button">Partes distintas</button>
 <button class="btn btn-light btn-small" id="clearConsumersButton" type="button">Limpiar</button>
 </div>
 </div>
@@ -800,6 +851,10 @@
 <p id="receiptAuditWarningText">El total detectado no coincide con el total de la boleta.</p>
 </div>
 <button class="btn btn-light btn-small hidden" id="addMissingReceiptDifferenceButton" type="button">Agregar fila por diferencia</button>
+</div>
+<div class="receipt-correction-helper">
+<strong>Corrección asistida</strong>
+<span>Si el total no cuadra, revisa cantidades, cambia entre total línea/precio unitario, quita lo que no es consumo o agrega una fila faltante.</span>
 </div>
 <div class="receipt-table-wrap">
 <table class="receipt-table">
