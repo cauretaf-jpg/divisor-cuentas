@@ -8367,3 +8367,110 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
     padding-inline: 0.35rem;
   }
 }
+
+/* V13.2 - Perfil dashboard financiero */
+.profile-dashboard-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid color-mix(in srgb, var(--primary) 26%, var(--border));
+  border-radius: 24px;
+  padding: 16px;
+  margin-bottom: 14px;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 13%, transparent), transparent 34%),
+    linear-gradient(180deg, var(--surface), color-mix(in srgb, var(--surface-soft) 68%, var(--surface)));
+}
+
+.profile-dashboard-hero h3 {
+  margin: 3px 0 4px;
+  font-size: clamp(1.35rem, 4vw, 2rem);
+  letter-spacing: -0.05em;
+}
+
+.profile-dashboard-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 950;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.profile-dashboard-badge.is-ok {
+  border-color: color-mix(in srgb, var(--success) 28%, var(--border));
+  background: color-mix(in srgb, var(--success) 10%, var(--surface));
+  color: var(--success);
+}
+
+.profile-dashboard-badge.is-positive {
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--border));
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.profile-dashboard-badge.is-warning {
+  border-color: color-mix(in srgb, var(--warning) 35%, var(--border));
+  background: color-mix(in srgb, var(--warning) 12%, var(--surface));
+  color: color-mix(in srgb, var(--warning) 76%, var(--text));
+}
+
+.profile-money-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.profile-money-card {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 14px;
+  background: var(--surface);
+}
+
+.profile-money-card span,
+.profile-money-card small {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.profile-money-card strong {
+  color: var(--text);
+  font-size: clamp(1.1rem, 3.5vw, 1.55rem);
+  font-weight: 1000;
+  letter-spacing: -0.05em;
+}
+
+.profile-money-card.is-positive strong { color: var(--success); }
+.profile-money-card.is-warning strong { color: color-mix(in srgb, var(--warning) 76%, var(--text)); }
+
+.profile-dashboard-grid .stats-box {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .profile-dashboard-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .profile-dashboard-badge {
+    width: 100%;
+  }
+
+  .profile-money-grid {
+    grid-template-columns: 1fr;
+  }
+}

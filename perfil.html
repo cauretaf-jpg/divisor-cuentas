@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0f766e" />
   <meta name="google-adsense-account" content="ca-pub-4358472434423818" />
   <title>Mi perfil | Cuenta Clara</title>
-  <link rel="stylesheet" href="styles.css?v=13.0" />
+  <link rel="stylesheet" href="styles.css?v=13.2" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
 </head>
@@ -105,14 +105,56 @@
       </div>
 
       <div class="profile-stats-tabs" role="tablist" aria-label="Vistas de estadísticas">
-        <button class="profile-stats-tab active" data-profile-stats-tab="resumen" type="button">Resumen</button>
+        <button class="profile-stats-tab active" data-profile-stats-tab="dashboard" type="button">Dashboard</button>
+        <button class="profile-stats-tab" data-profile-stats-tab="resumen" type="button">Resumen</button>
         <button class="profile-stats-tab" data-profile-stats-tab="gastos" type="button">Gastos</button>
         <button class="profile-stats-tab" data-profile-stats-tab="personas" type="button">Personas</button>
         <button class="profile-stats-tab" data-profile-stats-tab="pagos" type="button">Pagos y recurrentes</button>
         <button class="profile-stats-tab" data-profile-stats-tab="actividad" type="button">Actividad</button>
       </div>
 
-      <div class="profile-stats-panel active" data-profile-stats-panel="resumen">
+      <div class="profile-stats-panel active" data-profile-stats-panel="dashboard">
+        <div class="profile-dashboard-hero">
+          <div>
+            <p class="eyebrow">Dashboard financiero</p>
+            <h3 id="pageDashboardMonthLabel">Este mes</h3>
+            <p class="helper-text" id="pageDashboardMonthComparison">Comparación mensual no disponible.</p>
+          </div>
+          <div class="profile-dashboard-badge" id="pageDashboardHealth">Sin datos</div>
+        </div>
+
+        <div class="profile-money-grid">
+          <div class="profile-money-card is-positive"><span>Por cobrar</span><strong id="pageDashboardReceivable">$0</strong><small>Pendiente global</small></div>
+          <div class="profile-money-card is-warning"><span>Por pagar</span><strong id="pageDashboardPayable">$0</strong><small>Pendiente global</small></div>
+          <div class="profile-money-card"><span>Pagado por mí</span><strong id="pageDashboardPaidByMe">$0</strong><small>Total donde fuiste pagador</small></div>
+          <div class="profile-money-card"><span>Me corresponde</span><strong id="pageDashboardAssigned">$0</strong><small>Tu participación detectada</small></div>
+          <div class="profile-money-card"><span>Cuentas abiertas</span><strong id="pageDashboardOpenBills">0</strong><small>Sin cerrar ni archivar</small></div>
+          <div class="profile-money-card"><span>Cuentas cerradas</span><strong id="pageDashboardClosedBills">0</strong><small>Finalizadas correctamente</small></div>
+        </div>
+
+        <div class="stats-detail-grid two-columns profile-dashboard-grid">
+          <div class="stats-box">
+            <strong>Quién me debe</strong>
+            <p class="helper-text">Cobros pendientes vinculados a tu perfil. Toca una fila para abrir Pagos.</p>
+            <div id="pageDashboardOwedList" class="profile-debt-list"></div>
+          </div>
+          <div class="stats-box">
+            <strong>A quién le debo</strong>
+            <p class="helper-text">Pagos pendientes donde tú no eres el pagador principal.</p>
+            <div id="pageDashboardOweList" class="profile-debt-list"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Comparativa mensual</strong>
+            <div id="pageDashboardMonthlyComparison" class="profile-insight-list"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Actividad del mes</strong>
+            <div id="pageDashboardMonthActivity" class="profile-activity-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-stats-panel" data-profile-stats-panel="resumen">
         <div class="stats-grid">
           <div class="stat-card"><span>Cuentas creadas</span><strong id="pageStatTotalBills">0</strong></div>
           <div class="stat-card"><span>Cuentas activas</span><strong id="pageStatActiveBills">0</strong></div>
@@ -326,7 +368,7 @@
   <div class="toast hidden" id="profileToast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=13.0"></script>
-  <script src="profile.js?v=13.0"></script>
+  <script src="supabase-config.js?v=13.2"></script>
+  <script src="profile.js?v=13.2"></script>
 </body>
 </html>

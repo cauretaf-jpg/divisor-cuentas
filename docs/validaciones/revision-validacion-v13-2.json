@@ -1,0 +1,19 @@
+{
+  "version": "13.2",
+  "nombre": "Perfil dashboard financiero",
+  "validaciones": {
+    "script_js_syntax": true,
+    "profile_js_syntax": true,
+    "ids_duplicados_index": false,
+    "ids_duplicados_perfil": false,
+    "sql_nuevo_requerido": false
+  },
+  "cambios": [
+    "Nueva pestaña Dashboard en Estadísticas del perfil",
+    "Indicadores de por cobrar y por pagar",
+    "Resumen mensual de pagado por mí y me corresponde",
+    "Comparativa mensual",
+    "Actividad del mes",
+    "Listas accionables para abrir Pagos desde Perfil"
+  ]
+}

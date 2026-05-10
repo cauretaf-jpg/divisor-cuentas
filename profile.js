@@ -1,4 +1,4 @@
-console.info('Cuenta Clara Perfil V11.9 cargado');
+console.info('Cuenta Clara Perfil V13.2 cargado');
 
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 let cloudSyncErrorNotified = false;
@@ -6,7 +6,7 @@ let currentUser = null;
 let state = null;
 let editingFriendId = null;
 let activeProfileSection = 'perfil';
-let activeStatsPanel = 'resumen';
+let activeStatsPanel = 'dashboard';
 
 const dom = {
   pageAvatar: document.querySelector('#pageAvatar'),
@@ -71,6 +71,19 @@ const dom = {
   statRecurringMonths: document.querySelector('#pageStatRecurringMonths'),
   statRecurringPending: document.querySelector('#pageStatRecurringPending'),
   statCarryoverTotal: document.querySelector('#pageStatCarryoverTotal'),
+  dashboardMonthLabel: document.querySelector('#pageDashboardMonthLabel'),
+  dashboardMonthComparison: document.querySelector('#pageDashboardMonthComparison'),
+  dashboardHealth: document.querySelector('#pageDashboardHealth'),
+  dashboardReceivable: document.querySelector('#pageDashboardReceivable'),
+  dashboardPayable: document.querySelector('#pageDashboardPayable'),
+  dashboardPaidByMe: document.querySelector('#pageDashboardPaidByMe'),
+  dashboardAssigned: document.querySelector('#pageDashboardAssigned'),
+  dashboardOpenBills: document.querySelector('#pageDashboardOpenBills'),
+  dashboardClosedBills: document.querySelector('#pageDashboardClosedBills'),
+  dashboardOwedList: document.querySelector('#pageDashboardOwedList'),
+  dashboardOweList: document.querySelector('#pageDashboardOweList'),
+  dashboardMonthlyComparison: document.querySelector('#pageDashboardMonthlyComparison'),
+  dashboardMonthActivity: document.querySelector('#pageDashboardMonthActivity'),
   topCategories: document.querySelector('#pageTopCategories'),
   topPeople: document.querySelector('#pageTopPeople'),
   topPeopleAmounts: document.querySelector('#pageTopPeopleAmounts'),
@@ -436,10 +449,51 @@ function getLatestRecurringBill(group, bills) {
 }
 
 
+function getMonthKeyFromDate(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+}
+
+function getPreviousMonthKey(date = new Date()) {
+  const previous = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+  return getMonthKeyFromDate(previous);
+}
+
+function formatMonthLabel(monthKey) {
+  if (!/^\d{4}-\d{2}$/.test(String(monthKey || ''))) return 'Sin mes';
+  const [year, month] = String(monthKey).split('-').map(Number);
+  const label = new Date(year, month - 1, 1).toLocaleDateString('es-CL', {
+    month: 'long',
+    year: 'numeric',
+  });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function makeMonthDashboardStats() {
+  return {
+    total: 0,
+    bills: 0,
+    assigned: 0,
+    pendingAssociated: 0,
+    paidByMe: 0,
+    ownShareAsPayer: 0,
+    receivable: 0,
+    payable: 0,
+    closedBills: 0,
+    openBills: 0,
+    activity: [],
+  };
+}
+
 function calculateStats() {
   const bills = Array.isArray(state?.bills) ? state.bills : [];
   const recurringGroups = Array.isArray(state?.recurringGroups) ? state.recurringGroups : [];
   const matchKeys = getProfileMatchKeys();
+  const currentMonthKey = getMonthKeyFromDate();
+  const previousMonthKey = getPreviousMonthKey();
+  const currentMonthStats = makeMonthDashboardStats();
+  const previousMonthStats = makeMonthDashboardStats();
 
   let historicalTotal = 0;
   let paidTotal = 0;
@@ -461,6 +515,9 @@ function calculateStats() {
   let myPaidAsPayerTotal = 0;
   let myOwnShareAsPayer = 0;
   let myReceivableTotal = 0;
+  let openBills = 0;
+  let closedBills = 0;
+  let archivedBills = 0;
 
   const categories = new Map();
   const peopleFrequency = new Map();
@@ -479,6 +536,36 @@ function calculateStats() {
       lastActivity = activity;
     }
 
+    const monthLabel = getBillMonthLabel(bill);
+    const monthTarget = monthLabel === currentMonthKey
+      ? currentMonthStats
+      : monthLabel === previousMonthKey
+        ? previousMonthStats
+        : null;
+
+    if (bill.archived) archivedBills += 1;
+    else if (bill.closed) closedBills += 1;
+    else openBills += 1;
+
+    if (monthTarget) {
+      monthTarget.total += snapshot.grandTotal;
+      monthTarget.bills += 1;
+      if (bill.closed) monthTarget.closedBills += 1;
+      if (!bill.closed && !bill.archived) monthTarget.openBills += 1;
+      monthTarget.activity.push({
+        bill,
+        total: snapshot.grandTotal,
+        pending: snapshot.pendingTotal,
+        paid: snapshot.paidTotal,
+        isPaid: snapshot.isPaid,
+        peopleCount: Array.isArray(bill.people) ? bill.people.length : 0,
+        productCount: Array.isArray(bill.products) ? bill.products.length : 0,
+        month: monthLabel,
+        modeLabel: getBillModeLabel(bill.mode),
+        activity,
+      });
+    }
+
     if (bill.mode === 'home') homeBills += 1;
     else if (bill.mode === 'quick') quickBills += 1;
     else outingBills += 1;
@@ -495,7 +582,7 @@ function calculateStats() {
     if (snapshot.isPaid) paidBills += 1;
     else if (snapshot.grandTotal > 0) pendingBills += 1;
 
-    addToMap(monthlyTotals, getBillMonthLabel(bill), snapshot.grandTotal);
+    addToMap(monthlyTotals, monthLabel, snapshot.grandTotal);
 
     for (const [category, amount] of snapshot.categoryTotals.entries()) {
       addToMap(categories, category, amount);
@@ -519,15 +606,24 @@ function calculateStats() {
       if (personMatchesProfile(person, matchKeys)) {
         myAssignedTotal += personAmount;
         if (!person.paid) myPendingTotal += personAmount;
+        if (monthTarget) {
+          monthTarget.assigned += personAmount;
+          if (!person.paid) monthTarget.pendingAssociated += personAmount;
+        }
       }
     }
 
     const payer = (bill.people || []).find((person) => person.id === bill.payerId);
+    const selfPerson = (bill.people || []).find((person) => personMatchesProfile(person, matchKeys));
 
     if (payer && personMatchesProfile(payer, matchKeys)) {
       const myShare = Number(snapshot.finalTotals[payer.id] || 0);
       myPaidAsPayerTotal += snapshot.grandTotal;
       myOwnShareAsPayer += myShare;
+      if (monthTarget) {
+        monthTarget.paidByMe += snapshot.grandTotal;
+        monthTarget.ownShareAsPayer += myShare;
+      }
 
       for (const person of bill.people || []) {
         if (person.id === payer.id) continue;
@@ -535,8 +631,12 @@ function calculateStats() {
         if (amount > 0 && !person.paid) {
           myReceivableTotal += amount;
           addToMap(myReceivablePeople, String(person.name || 'Persona').trim() || 'Persona', amount);
+          if (monthTarget) monthTarget.receivable += amount;
         }
       }
+    } else if (monthTarget && payer && selfPerson && selfPerson.id !== payer.id) {
+      const amount = Number(snapshot.finalTotals[selfPerson.id] || 0);
+      if (amount > 0 && !selfPerson.paid) monthTarget.payable += amount;
     }
 
     billSnapshots.push({
@@ -580,6 +680,9 @@ function calculateStats() {
     pendingTotal,
     paidBills,
     pendingBills,
+    closedBills,
+    archivedBills,
+    openBills,
     paidRate,
     peopleCount,
     uniquePeopleCount: uniquePeople.size,
@@ -597,6 +700,10 @@ function calculateStats() {
     myPaidAsPayerTotal,
     myOwnShareAsPayer,
     myReceivableTotal,
+    currentMonthKey,
+    previousMonthKey,
+    currentMonthStats,
+    previousMonthStats,
     topMonth,
     biggestBill,
     mostPeopleBill,
@@ -804,6 +911,76 @@ function renderRecentActivity(container, rows) {
   }
 }
 
+function formatSignedCurrency(value) {
+  const amount = Math.round(Number(value) || 0);
+  if (amount === 0) return '$0';
+  return `${amount > 0 ? '+' : '-'}${formatCurrency(Math.abs(amount))}`;
+}
+
+function renderDashboardHealth(stats, debtOverview) {
+  if (!dom.dashboardHealth) return;
+  const owed = debtOverview.owed.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const owe = debtOverview.owe.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  let label = 'Sin pendientes';
+  let tone = 'is-ok';
+  if (owed > 0 && owe > 0) {
+    label = 'Movimientos pendientes';
+    tone = 'is-warning';
+  } else if (owed > 0) {
+    label = 'Tienes cobros pendientes';
+    tone = 'is-positive';
+  } else if (owe > 0) {
+    label = 'Tienes pagos pendientes';
+    tone = 'is-warning';
+  } else if (stats.currentMonthStats.total > 0) {
+    label = 'Mes al día';
+    tone = 'is-ok';
+  }
+  dom.dashboardHealth.textContent = label;
+  dom.dashboardHealth.className = `profile-dashboard-badge ${tone}`;
+}
+
+function renderDashboardMonthlyComparison(stats) {
+  const current = stats.currentMonthStats;
+  const previous = stats.previousMonthStats;
+  const diff = current.total - previous.total;
+  const hasPrevious = previous.total > 0;
+  const percent = hasPrevious ? Math.round((diff / previous.total) * 100) : null;
+  const percentLabel = percent === null ? 'Sin mes anterior para comparar' : `${percent > 0 ? '+' : ''}${percent}% vs mes anterior`;
+  const direction = diff > 0 ? 'más movimiento' : diff < 0 ? 'menos movimiento' : 'sin variación';
+
+  renderInsightList(dom.dashboardMonthlyComparison, [
+    { label: 'Este mes', value: formatCurrency(current.total), help: `${current.bills} cuenta${current.bills === 1 ? '' : 's'} registrada${current.bills === 1 ? '' : 's'}.` },
+    { label: 'Mes anterior', value: formatCurrency(previous.total), help: `${previous.bills} cuenta${previous.bills === 1 ? '' : 's'} registrada${previous.bills === 1 ? '' : 's'}.` },
+    { label: 'Variación', value: hasPrevious ? formatSignedCurrency(diff) : '$0', help: hasPrevious ? `${percentLabel} · ${direction}.` : percentLabel },
+  ]);
+
+  if (dom.dashboardMonthComparison) {
+    dom.dashboardMonthComparison.textContent = hasPrevious
+      ? `${formatSignedCurrency(diff)} · ${percentLabel}`
+      : `${current.bills} cuenta${current.bills === 1 ? '' : 's'} este mes. Sin comparación anterior.`;
+  }
+}
+
+function renderDashboard(stats, debtOverview) {
+  const current = stats.currentMonthStats;
+  const owedTotal = debtOverview.owed.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const oweTotal = debtOverview.owe.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  setText(dom.dashboardMonthLabel, formatMonthLabel(stats.currentMonthKey));
+  setText(dom.dashboardReceivable, formatCurrency(owedTotal));
+  setText(dom.dashboardPayable, formatCurrency(oweTotal));
+  setText(dom.dashboardPaidByMe, formatCurrency(current.paidByMe));
+  setText(dom.dashboardAssigned, formatCurrency(current.assigned));
+  setText(dom.dashboardOpenBills, stats.openBills);
+  setText(dom.dashboardClosedBills, stats.closedBills);
+
+  renderDashboardHealth(stats, debtOverview);
+  renderDashboardMonthlyComparison(stats);
+  renderDebtActionRows(dom.dashboardOwedList, debtOverview.owed, 'No tienes cobros pendientes.');
+  renderDebtActionRows(dom.dashboardOweList, debtOverview.owe, 'No tienes pagos pendientes.');
+  renderRecentActivity(dom.dashboardMonthActivity, current.activity.sort((a, b) => String(b.activity || '').localeCompare(String(a.activity || ''))).slice(0, 5));
+}
+
 function renderStats() {
   const stats = calculateStats();
   const topCategory = stats.categories[0];
@@ -849,6 +1026,7 @@ function renderStats() {
   renderMiniRanking(dom.topPeople, stats.people, (value) => `${value} ${value === 1 ? 'cuenta' : 'cuentas'}`);
   renderMiniRanking(dom.topPeopleAmounts, stats.peopleAmounts, formatCurrency);
   const debtOverview = getProfileDebtOverview();
+  renderDashboard(stats, debtOverview);
   renderPendingPeopleActionRows(dom.pendingPeople, debtOverview.pendingByPerson);
   renderMiniRanking(dom.myReceivablePeople, stats.myReceivablePeople, formatCurrency);
   renderDebtActionRows(dom.oweList, debtOverview.owe, 'No tienes pagos pendientes por hacer.');
@@ -1203,10 +1381,10 @@ function renderFriends() {
   }
 }
 
-const PROFILE_STATS_PANELS = ['resumen', 'gastos', 'personas', 'pagos', 'actividad'];
+const PROFILE_STATS_PANELS = ['dashboard', 'resumen', 'gastos', 'personas', 'pagos', 'actividad'];
 
-function setStatsPanel(panelName = 'resumen') {
-  activeStatsPanel = PROFILE_STATS_PANELS.includes(panelName) ? panelName : 'resumen';
+function setStatsPanel(panelName = 'dashboard') {
+  activeStatsPanel = PROFILE_STATS_PANELS.includes(panelName) ? panelName : 'dashboard';
 
   dom.statsPanels.forEach((panel) => {
     panel.classList.toggle('active', panel.dataset.profileStatsPanel === activeStatsPanel);

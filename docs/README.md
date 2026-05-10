@@ -1,13 +1,23 @@
-# Cuenta Clara V12.4.1
+# Cuenta Clara V13.2
 
-## Nuevo en V12.4.1
+## Nuevo en V13.2
 
-- Historial avanzado con búsqueda, filtros por estado, tipo de cuenta y orden.
-- Estado formal de cuenta: pendiente, pagada, cerrada o archivada.
-- Botón **Cerrar cuenta / Reabrir cuenta** desde la cuenta activa y desde Historial.
-- Perfil con indicadores adicionales: por pagar, por cobrar y cerradas/archivadas.
-- Refuerzo de barra inferior móvil fija y navegación más estable.
-- Publicidad protegida fuera de zonas críticas de uso.
+- Perfil transformado en **dashboard financiero**.
+- Nueva pestaña **Dashboard** dentro de Estadísticas.
+- Resumen visible de:
+  - por cobrar;
+  - por pagar;
+  - pagado por mí durante el mes;
+  - cuánto me corresponde;
+  - cuentas abiertas;
+  - cuentas cerradas.
+- Secciones accionables:
+  - **Quién me debe**;
+  - **A quién le debo**;
+  - comparativa mensual;
+  - actividad del mes.
+- Las deudas del dashboard abren directamente la cuenta correspondiente en **Pagos**.
+- Actualización de cache/service worker a V13.2.
 
 ## Instalación
 
