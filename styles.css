@@ -10199,3 +10199,132 @@ textarea {
 [data-theme="dark"] .backup-security-panel {
   background: color-mix(in srgb, var(--surface) 90%, var(--primary) 4%);
 }
+
+/* V13.12 - Inicio limpio y herramientas ordenadas */
+.section-nav-button[data-app-section="tools"]::before { content: "⋯"; }
+
+.home-tools-shortcut {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid color-mix(in srgb, var(--primary) 14%, var(--border));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 7%, var(--surface)), var(--surface));
+}
+
+.home-tools-shortcut h3 {
+  margin: 2px 0 4px;
+}
+
+.home-tools-shortcut .section-helper {
+  margin: 0;
+}
+
+.home-tools-shortcut-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.tools-hub-card {
+  display: grid;
+  gap: 18px;
+}
+
+.tools-hub-card h3 {
+  margin: 2px 0 4px;
+}
+
+.tools-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.tool-hub-button {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 92%, var(--primary) 8%);
+  color: var(--text);
+  border-radius: 18px;
+  padding: 15px;
+  text-align: left;
+  display: grid;
+  gap: 6px;
+  min-height: 108px;
+  cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+
+.tool-hub-button:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  box-shadow: 0 16px 34px rgba(15, 23, 42, .08);
+}
+
+.tool-hub-button strong {
+  font-size: 0.96rem;
+}
+
+.tool-hub-button span {
+  color: var(--text-muted);
+  font-size: 0.83rem;
+  line-height: 1.35;
+}
+
+#appSection-home .mobile-home-dashboard {
+  gap: 14px;
+}
+
+#appSection-home .home-action-list .payment-action-row:nth-child(n+4),
+#appSection-home .home-action-list .account-action-row:nth-child(n+4) {
+  display: none;
+}
+
+#appSection-home .home-recent-list .home-recent-row:nth-child(n+3) {
+  display: none;
+}
+
+body[data-active-section="tools"] .mobile-bottom-nav-button[data-app-section="tools"] {
+  color: var(--primary);
+}
+
+body.simple-mode .section-nav-button[data-app-section="tools"] {
+  display: flex !important;
+}
+
+@media (max-width: 980px) {
+  .tools-hub-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-tools-shortcut {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .home-tools-shortcut-actions,
+  .home-tools-shortcut-actions .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .tools-hub-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tool-hub-button {
+    min-height: auto;
+    padding: 14px;
+  }
+
+  .home-primary-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .home-tools-shortcut {
+    padding: 16px;
+  }
+}

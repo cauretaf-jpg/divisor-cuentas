@@ -1,4 +1,4 @@
-console.info('Cuenta Clara Perfil V13.11.2 cargado');
+console.info('Cuenta Clara Perfil V13.12 cargado');
 
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 let cloudSyncErrorNotified = false;

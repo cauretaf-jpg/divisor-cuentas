@@ -1,0 +1,24 @@
+{
+  "version": "13.12",
+  "nombre": "Cuenta Clara v13.12 - inicio limpio y herramientas ordenadas",
+  "base": "13.11.2",
+  "requiere_sql": false,
+  "dependencias_nuevas": false,
+  "validaciones": {
+    "script_js": "OK",
+    "profile_js": "OK",
+    "shared_utils_js": "OK",
+    "index_html_ids_duplicados": "OK: sin duplicados",
+    "perfil_html_ids_duplicados": "OK: sin duplicados",
+    "privacidad_html_ids_duplicados": "OK: sin duplicados",
+    "styles_css_llaves": "OK: balanceadas",
+    "service_worker_cache": "cuenta-clara-v13.12"
+  },
+  "cambios": [
+    "Inicio simplificado",
+    "Nueva seccion Mas herramientas",
+    "Funciones avanzadas movidas fuera del Inicio",
+    "Accesos rapidos principales reducidos a Personas, Gastos, Resumen y Pagos",
+    "CSS responsive para herramientas"
+  ]
+}

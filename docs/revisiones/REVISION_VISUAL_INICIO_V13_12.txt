@@ -1,0 +1,17 @@
+CHECKLIST VISUAL - INICIO V13.12
+
+Pantallas revisadas:
+- Inicio.
+- Más herramientas.
+- Menú lateral.
+- Navegación móvil inferior.
+- Modo simple.
+- Modo oscuro.
+
+Criterios aplicados:
+- Inicio no debe mezclar todas las funciones avanzadas.
+- Las acciones principales deben ser visibles sin desplazamiento excesivo.
+- Plantillas y demo deben estar agrupadas fuera del Inicio.
+- Historial, recurrentes y compartidas siguen accesibles.
+- Botones no deben comprimirse en celular.
+- La barra móvil inferior se mantiene simple.

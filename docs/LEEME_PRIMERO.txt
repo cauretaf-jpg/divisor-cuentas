@@ -1,34 +1,32 @@
-CUENTA CLARA V13.11.2 - REVISION VISUAL MOVIL COMPLETA
+CUENTA CLARA V13.12 - INICIO LIMPIO Y HERRAMIENTAS ORDENADAS
 
-NUEVO EN V13.11.2
-- Flujo de primer uso con progreso Paso 1 de 5.
-- Nueva tarjeta Modo demo en Inicio.
-- Datos demo para probar restaurante, streaming y hogar sin usar cuentas reales.
-- Boton para borrar datos demo sin afectar cuentas reales.
-- OCR mas comodo: ajustar total de boleta, usar solo productos validos y saltar a productos con revision.
-- Pagos con filtros nuevos: Me deben, Yo debo, Atrasadas o por vencer y Arrastre anterior.
-- Progreso guiado de 5 pasos: Crear, Personas, Gastos, Revisar y Compartir.
+NUEVO EN V13.12
 
-COMO PROBAR
-1. Abre index.html.
-2. En Inicio, presiona Cargar ejemplo completo.
-3. Revisa Pagos y prueba los nuevos filtros.
-4. En Gastos, abre Escanear boleta y revisa los nuevos botones de ayuda.
-5. Borra los datos demo desde Inicio.
-6. Crea una cuenta real y prueba el flujo completo.
+1. Inicio más limpio
+   - Se redujo la carga visual del panel principal.
+   - Inicio ahora muestra cuenta activa, acciones principales, pendientes clave y cuentas recientes.
 
-IMPORTANTE
-- No requiere SQL nuevo.
-- No agrega dependencias nuevas.
-- Mantiene respaldo, diagnostico, OCR, recurrentes, compartidas, permisos y perfil financiero.
-- Recomendacion: exportar respaldo antes de subir una nueva version a GitHub/Vercel.
-- Si el navegador conserva una version anterior, limpiar cache del sitio o abrir en ventana privada.
+2. Nueva sección "Más herramientas"
+   - Plantillas.
+   - Modo demo.
+   - Recordatorios completos.
+   - Recurrentes.
+   - Compartidas.
+   - Detalle avanzado de cuenta.
+   - Acceso a respaldo/diagnóstico desde Historial.
 
-PUBLICACION SUGERIDA
-1. Reemplazar archivos del proyecto.
-2. Probar localmente.
-3. Exportar respaldo antes de subir.
-4. Ejecutar:
-   git add .
-   git commit -m "Publica Cuenta Clara v13.11.2"
-   git push
+3. Mejor experiencia móvil
+   - Menos tarjetas acumuladas en Inicio.
+   - Las funciones avanzadas quedan agrupadas aparte.
+   - Botones principales más claros.
+
+NO REQUIERE
+- SQL nuevo.
+- Dependencias nuevas.
+- Cambios de variables de entorno.
+
+COMANDO SUGERIDO PARA PUBLICAR
+
+git add .
+git commit -m "Publica Cuenta Clara v13.12"
+git push

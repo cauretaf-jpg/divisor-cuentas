@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.11.2 cargada');
-const APP_VERSION = '13.11.2';
+console.info('Cuenta Clara V13.12 cargada');
+const APP_VERSION = '13.12';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -4075,7 +4075,7 @@ function initExperienceMode() {
 
 
 function normalizeAppSection(section) {
-  const allowed = new Set(['home', 'people', 'expenses', 'summary', 'payments', 'history', 'recurring', 'shared']);
+  const allowed = new Set(['home', 'people', 'expenses', 'summary', 'payments', 'tools', 'history', 'recurring', 'shared']);
   const aliases = {
     products: 'expenses',
     gastos: 'expenses',
@@ -4084,6 +4084,9 @@ function normalizeAppSection(section) {
     hogar: 'recurring',
     cuenta: 'expenses',
     settings: 'expenses',
+    herramientas: 'tools',
+    herramientas_avanzadas: 'tools',
+    tools: 'tools',
   };
   const value = aliases[section] || section || 'home';
   return allowed.has(value) ? value : 'home';
@@ -4103,6 +4106,7 @@ const APP_SECTION_TITLES = {
   expenses: { title: 'Gastos', eyebrow: 'Consumos' },
   summary: { title: 'Resumen', eyebrow: 'Totales' },
   payments: { title: 'Pagos', eyebrow: 'Transferencias' },
+  tools: { title: 'Más herramientas', eyebrow: 'Cuenta Clara' },
   history: { title: 'Historial', eyebrow: 'Tus cuentas' },
   recurring: { title: 'Hogar', eyebrow: 'Recurrentes' },
   shared: { title: 'Compartidas', eyebrow: 'Colaboración' },
@@ -4844,7 +4848,7 @@ function continueActiveBillFromHome() {
 }
 
 function focusGuidedNewBillChoices() {
-  setAppSection('home', { scroll: false });
+  setAppSection('tools', { scroll: false });
   const target = dom.guidedStartCard || document.querySelector('#guidedStartCard');
   requestAnimationFrame(() => {
     target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -4897,7 +4901,7 @@ const BILL_TEMPLATES = {
     tipPercent: 0,
     name: () => `Streaming ${formatMonthLabel(getCurrentMonthValue())}`,
     description: 'Para Netflix, Spotify, MAX, Crunchyroll u otros servicios mensuales. Pensada para pagos recurrentes.',
-    help: 'Plantilla streaming creada. Agrega personas y gastos; luego activa la carpeta recurrente desde Inicio u Hogar.',
+    help: 'Plantilla streaming creada. Agrega personas y gastos; luego activa la carpeta recurrente desde Más herramientas u Hogar.',
     checklist: ['Sin propina', 'Pagos mensuales', 'Arrastre de deuda pendiente'],
     examples: [
       { name: 'Netflix', category: 'Streaming' },
@@ -5290,7 +5294,7 @@ function renderFirstUseOnboarding() {
 }
 
 function focusTemplateChoices() {
-  setAppSection('home', { scroll: false });
+  setAppSection('tools', { scroll: false });
   localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
   dom.guidedStartCard?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
