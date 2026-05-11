@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=13.9" rel="stylesheet"/>
+<link href="styles.css?v=13.10" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -756,6 +756,23 @@
 <button class="btn btn-light btn-small" id="importBackupButton" type="button">Importar respaldo</button>
 <input accept="application/json,.json" class="hidden" id="backupFileInput" type="file"/>
 </div>
+<section class="backup-security-panel" aria-label="Respaldo y diagnóstico">
+<div class="backup-security-header">
+<div>
+<p class="eyebrow">Seguridad</p>
+<h3>Respaldo y diagnóstico</h3>
+<p id="backupStatusOutput">Revisa el estado de tus datos antes de importar o publicar una versión nueva.</p>
+</div>
+<span class="security-status-pill" id="diagnosticStatusOutput">Revisando</span>
+</div>
+<div class="diagnostic-grid" id="backupSummaryGrid"></div>
+<div class="diagnostic-actions">
+<button class="btn btn-light btn-small" id="diagnosticRefreshButton" type="button">Actualizar diagnóstico</button>
+<button class="btn btn-light btn-small" id="diagnosticCopyButton" type="button">Copiar diagnóstico</button>
+<button class="btn btn-light btn-small" id="restoreAutoBackupButton" type="button">Restaurar copia previa</button>
+</div>
+<div class="diagnostic-list" id="diagnosticList"></div>
+</section>
 </section></section><section class="app-section" data-app-section-panel="recurring" id="appSection-recurring"><section class="section-page-heading card"><div><p class="eyebrow">Recurrentes</p><h2>Hogar</h2><p class="section-helper">Administra carpetas mensuales, deuda acumulada e historial de cuentas del hogar.</p></div></section><details class="card sidebar-recurring-card" id="recurringSidebarPanel" open="">
 <summary class="sidebar-details-summary">
 <div>
@@ -1238,8 +1255,8 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="shared-utils.js?v=13.9"></script>
-<script src="supabase-config.js?v=13.9"></script>
-<script src="script.js?v=13.9"></script>
+<script src="shared-utils.js?v=13.10"></script>
+<script src="supabase-config.js?v=13.10"></script>
+<script src="script.js?v=13.10"></script>
 </body>
 </html>

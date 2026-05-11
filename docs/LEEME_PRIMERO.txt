@@ -1,38 +1,39 @@
-CUENTA CLARA V13.9 - DISENO PREMIUM Y EXPERIENCIA SIMPLE
+CUENTA CLARA V13.10 - RESPALDO Y SEGURIDAD MINIMA
 
-NUEVO EN V13.9
-- Inicio mas limpio y visual, con enfoque de panel financiero.
-- Accesos rapidos premium para Personas, Gastos, Resumen y Perfil.
-- Navegacion movil inferior mas simple: Inicio, Gastos, Resumen, Pagos y Perfil.
-- Menu superior con acceso directo a Mi perfil.
-- Comprobante premium con fecha visible, estado, total, personas, pagadas y pendiente.
-- Mensaje de WhatsApp del comprobante con fecha y estado de la cuenta.
-- Botones, tarjetas y estados con microinteracciones visuales suaves.
-- Modo Simple mas enfocado para no saturar a usuarios nuevos.
-- Ajustes responsive para mejorar pantallas pequenas.
+NUEVO EN V13.10
+- Se mantiene la experiencia visual de v13.9.
+- Respaldo exportado con version, fecha, diagnostico y estado de la app.
+- Importacion mas segura con vista previa antes de reemplazar datos.
+- Antes de importar, la app crea una copia local previa para poder restaurar.
+- Nueva seccion Respaldo y diagnostico dentro de Historial.
+- Diagnostico simple: version, modo, cuentas, pendientes, sincronizacion y tamano local.
+- Boton para copiar diagnostico.
+- Boton para restaurar copia previa.
+- Botones de respaldo visibles tambien en modo Simple.
 
 COMO PROBAR
 1. Abre index.html.
-2. Revisa Inicio en pantalla grande y celular.
-3. Presiona los accesos rapidos: Personas, Gastos, Resumen y Perfil.
-4. Crea una cuenta guiada.
-5. Agrega personas, pagador y gastos.
-6. Revisa el comprobante premium en Resumen.
-7. Copia y envia el comprobante por WhatsApp.
+2. Entra a Historial.
+3. Revisa la seccion Respaldo y diagnostico.
+4. Presiona Exportar respaldo.
+5. Importa un respaldo valido y revisa la vista previa antes de confirmar.
+6. Despues de importar, prueba Restaurar copia previa.
+7. Prueba importar un archivo JSON invalido: no deberia reemplazar tus datos.
 8. Cambia entre modo Simple y Avanzado.
-9. Entra a Pagos y marca una persona como pagada.
-10. Revisa modo oscuro.
+9. Revisa Inicio, Personas, Gastos, Resumen, Pagos y Perfil.
 
 IMPORTANTE
 - No requiere SQL nuevo.
 - No agrega dependencias nuevas.
-- Mantiene las funciones de v13.8.
+- Mantiene las funciones de v13.9.
+- Recomendacion: exportar respaldo antes de subir una nueva version a GitHub/Vercel.
 - Si el navegador conserva una version anterior, limpiar cache del sitio o abrir en ventana privada.
 
 PUBLICACION SUGERIDA
 1. Reemplazar archivos del proyecto.
 2. Probar localmente.
-3. Ejecutar:
+3. Exportar respaldo antes de subir.
+4. Ejecutar:
    git add .
-   git commit -m "Publica Cuenta Clara v13.9"
+   git commit -m "Publica Cuenta Clara v13.10"
    git push

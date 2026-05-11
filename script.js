@@ -1,4 +1,7 @@
-console.info('Cuenta Clara V13.9 cargada');
+console.info('Cuenta Clara V13.10 cargada');
+const APP_VERSION = '13.10';
+const BACKUP_SCHEMA_VERSION = 6;
+const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -11,6 +14,7 @@ let isCloudLoading = false;
 let lastCloudSyncAt = null;
 let cloudSyncStatus = 'local';
 let cloudSyncErrorNotified = false;
+let lastLocalSaveAt = null;
 let currentAppSection = 'home';
 let previousAppSection = 'home';
 let sharedSaveTimer = null;
@@ -155,6 +159,13 @@ const dom = {
   exportBackupButton: document.querySelector('#exportBackupButton'),
   importBackupButton: document.querySelector('#importBackupButton'),
   backupFileInput: document.querySelector('#backupFileInput'),
+  backupStatusOutput: document.querySelector('#backupStatusOutput'),
+  backupSummaryGrid: document.querySelector('#backupSummaryGrid'),
+  diagnosticStatusOutput: document.querySelector('#diagnosticStatusOutput'),
+  diagnosticRefreshButton: document.querySelector('#diagnosticRefreshButton'),
+  diagnosticCopyButton: document.querySelector('#diagnosticCopyButton'),
+  restoreAutoBackupButton: document.querySelector('#restoreAutoBackupButton'),
+  diagnosticList: document.querySelector('#diagnosticList'),
 
   personForm: document.querySelector('#personForm'),
   personNameInput: document.querySelector('#personNameInput'),
@@ -3518,6 +3529,7 @@ function migrateEmptyDefaultPeople() {
 function saveState() {
   try {
     localStorage.setItem(activeStorageKey, JSON.stringify(state));
+    lastLocalSaveAt = nowIso();
   } catch (error) {
     console.warn('No se pudo guardar localmente:', error);
     showNotice('No se pudo guardar en este navegador', 'La cuenta sigue abierta, pero el navegador no permitió guardar localmente. Si tienes sesión iniciada, intentaré sincronizarla igual; también puedes exportar respaldo.');
@@ -8523,6 +8535,7 @@ function render() {
   renderPaymentReminderPanel();
   renderPaymentActionCenter();
   renderTransfers();
+  renderBackupDiagnostics();
   try {
     renderGuidedExperience();
     renderTemplateAssistant();
@@ -9540,20 +9553,102 @@ function importBillFromUrl() {
   }
 }
 
-function exportBackup() {
-  const payload = {
+function getStorageSizeBytes(key = activeStorageKey) {
+  try {
+    const raw = localStorage.getItem(key) || '';
+    return new Blob([raw]).size;
+  } catch {
+    return 0;
+  }
+}
+
+function formatBytes(bytes) {
+  const value = Number(bytes || 0);
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getLatestBillUpdate() {
+  const dates = (state?.bills || [])
+    .map((bill) => bill.updatedAt || bill.createdAt)
+    .filter(Boolean)
+    .sort();
+
+  return dates.length ? dates[dates.length - 1] : '';
+}
+
+function getBackupDiagnostics() {
+  const bills = Array.isArray(state?.bills) ? state.bills : [];
+  const activeBill = getActiveBill();
+  const peopleCount = bills.reduce((sum, bill) => sum + (Array.isArray(bill.people) ? bill.people.length : 0), 0);
+  const productsCount = bills.reduce((sum, bill) => sum + (Array.isArray(bill.products) ? bill.products.length : 0), 0);
+  const recurringCount = Array.isArray(state?.recurringGroups) ? state.recurringGroups.length : 0;
+  const sharedCount = bills.filter((bill) => bill.sharedAccountId || bill.sharedRole).length;
+  let pendingTotal = 0;
+  let pendingBills = 0;
+
+  for (const bill of bills) {
+    try {
+      const calculation = calculateBill(bill);
+      if ((calculation.pendingTotal || 0) > 0) {
+        pendingBills += 1;
+        pendingTotal += calculation.pendingTotal || 0;
+      }
+    } catch {
+      // Si una cuenta antigua no calcula correctamente, el diagnóstico sigue funcionando.
+    }
+  }
+
+  const hasLocalData = getStorageSizeBytes() > 0 || bills.length > 0;
+  const hasAutoBackup = Boolean(localStorage.getItem(AUTO_IMPORT_BACKUP_KEY));
+  const latestBillUpdate = getLatestBillUpdate();
+
+  return {
+    appVersion: APP_VERSION,
+    exportedAt: nowIso(),
+    sessionMode: currentSession.mode === 'user' ? 'Usuario registrado' : 'Invitado',
+    sessionName: currentSession.name || currentSession.email || 'Sin nombre de perfil',
+    storageKey: activeStorageKey,
+    hasLocalData,
+    hasAutoBackup,
+    localSizeBytes: getStorageSizeBytes(),
+    cloudStatus: currentSession.mode === 'user' ? getHomeSyncLabel() : 'Modo invitado',
+    lastLocalSaveAt: lastLocalSaveAt || latestBillUpdate || '',
+    lastCloudSyncAt: lastCloudSyncAt || '',
+    activeBillName: activeBill?.name || 'Cuenta actual',
+    activeBillMode: getBillModeLongLabel(activeBill?.mode),
+    billsCount: bills.length,
+    peopleCount,
+    productsCount,
+    recurringCount,
+    sharedCount,
+    pendingBills,
+    pendingTotal: Math.round(pendingTotal),
+    quickProductsCount: Array.isArray(state?.quickProducts) ? state.quickProducts.length : 0,
+    friendsCount: Array.isArray(state?.friends) ? state.friends.length : 0,
+  };
+}
+
+function getBackupPayload() {
+  return {
     exportedAt: nowIso(),
     app: 'Cuenta Clara',
-    version: 5,
+    appVersion: APP_VERSION,
+    version: BACKUP_SCHEMA_VERSION,
     profile: {
       mode: currentSession.mode,
       email: currentSession.email || '',
       name: currentSession.name || '',
       storageKey: activeStorageKey,
     },
+    diagnostics: getBackupDiagnostics(),
     state,
   };
+}
 
+function exportBackup() {
+  const payload = getBackupPayload();
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -9562,11 +9657,49 @@ function exportBackup() {
     : 'invitado';
 
   link.href = url;
-  link.download = `cuenta-clara-respaldo-${profileName}-${new Date().toISOString().slice(0, 10)}.json`;
+  link.download = `cuenta-clara-respaldo-v${APP_VERSION}-${profileName}-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
 
   URL.revokeObjectURL(url);
   showToast('Respaldo exportado.');
+  renderBackupDiagnostics();
+}
+
+function saveAutomaticImportBackup() {
+  try {
+    const payload = getBackupPayload();
+    payload.reason = 'Copia automática antes de importar un respaldo';
+    localStorage.setItem(AUTO_IMPORT_BACKUP_KEY, JSON.stringify(payload));
+    return true;
+  } catch (error) {
+    console.warn('No se pudo crear copia previa:', error);
+    return false;
+  }
+}
+
+function extractStateFromBackupPayload(payload) {
+  const importedState = payload?.state || payload;
+  if (!importedState || !Array.isArray(importedState.bills)) {
+    throw new Error('El archivo no contiene cuentas válidas.');
+  }
+  return normalizeState(importedState);
+}
+
+function getImportPreviewText(payload, importedState) {
+  const diagnostics = payload?.diagnostics || {};
+  const bills = importedState?.bills || [];
+  const activeName = bills.find((bill) => bill.id === importedState.activeBillId)?.name || bills[0]?.name || 'Sin cuenta activa';
+  const exportedAt = payload?.exportedAt ? formatDate(payload.exportedAt) : 'fecha no indicada';
+  const originVersion = payload?.appVersion || diagnostics.appVersion || 'versión no indicada';
+
+  return [
+    `Origen: Cuenta Clara ${originVersion}`,
+    `Exportado: ${exportedAt}`,
+    `Cuentas: ${bills.length}`,
+    `Cuenta activa: ${activeName}`,
+    `Productos rápidos: ${Array.isArray(importedState.quickProducts) ? importedState.quickProducts.length : 0}`,
+    `Carpetas recurrentes: ${Array.isArray(importedState.recurringGroups) ? importedState.recurringGroups.length : 0}`,
+  ].join('\n');
 }
 
 function importBackupFile(file) {
@@ -9577,32 +9710,153 @@ function importBackupFile(file) {
   reader.onload = () => {
     try {
       const payload = JSON.parse(reader.result);
-      const importedState = payload.state || payload;
-
-      if (!importedState || !Array.isArray(importedState.bills)) {
-        throw new Error('El archivo no contiene cuentas válidas.');
-      }
-
+      const importedState = extractStateFromBackupPayload(payload);
       const profileLabel = currentSession.mode === 'user'
         ? `el usuario ${currentSession.email}`
         : 'el modo invitado';
-
-      const confirmed = confirm(`¿Importar este respaldo? Reemplazará las cuentas guardadas en ${profileLabel}.`);
+      const preview = getImportPreviewText(payload, importedState);
+      const confirmed = confirm(`¿Importar este respaldo?\n\n${preview}\n\nReemplazará las cuentas guardadas en ${profileLabel}. Antes de importar crearé una copia local de seguridad.`);
 
       if (!confirmed) return;
 
-      state = normalizeState(importedState);
+      const autoBackupCreated = saveAutomaticImportBackup();
+      state = importedState;
       migrateEmptyDefaultPeople();
       saveState();
       render();
-      showToast('Respaldo importado.');
+      showNotice('Respaldo importado', autoBackupCreated
+        ? 'Se importaron tus datos y quedó guardada una copia previa por seguridad.'
+        : 'Se importaron tus datos. No pude crear copia previa automática en este navegador.');
     } catch {
-      showNotice('Respaldo inválido', 'No se pudo leer el archivo seleccionado o no contiene datos válidos de Cuenta Clara.');
+      showNotice('Respaldo inválido', 'No se pudo leer el archivo seleccionado o no contiene datos válidos de Cuenta Clara. Tus datos actuales no fueron modificados.');
     }
+  };
+
+  reader.onerror = () => {
+    showNotice('No se pudo leer el archivo', 'El navegador no permitió abrir el respaldo seleccionado. Prueba nuevamente con otro archivo JSON.');
   };
 
   reader.readAsText(file);
 }
+
+function restoreAutomaticImportBackup() {
+  const raw = localStorage.getItem(AUTO_IMPORT_BACKUP_KEY);
+
+  if (!raw) {
+    showToast('No hay copia previa para restaurar.');
+    return;
+  }
+
+  try {
+    const payload = JSON.parse(raw);
+    const restoredState = extractStateFromBackupPayload(payload);
+    const preview = getImportPreviewText(payload, restoredState);
+    const confirmed = confirm(`¿Restaurar la copia previa?\n\n${preview}\n\nEsto reemplazará los datos actuales de este navegador.`);
+
+    if (!confirmed) return;
+
+    state = restoredState;
+    saveState();
+    render();
+    showNotice('Copia previa restaurada', 'Se recuperaron los datos guardados antes de la última importación.');
+  } catch {
+    showNotice('No se pudo restaurar', 'La copia previa está dañada o ya no contiene datos válidos.');
+  }
+}
+
+function getDiagnosticPlainText() {
+  const diagnostic = getBackupDiagnostics();
+  return [
+    `Cuenta Clara v${diagnostic.appVersion}`,
+    `Modo: ${diagnostic.sessionMode}`,
+    `Datos locales: ${diagnostic.hasLocalData ? 'disponibles' : 'sin datos guardados'}`,
+    `Sincronización: ${diagnostic.cloudStatus}`,
+    `Último guardado local: ${diagnostic.lastLocalSaveAt ? formatDate(diagnostic.lastLocalSaveAt) : 'sin registro'}`,
+    `Última sincronización: ${diagnostic.lastCloudSyncAt ? formatDate(diagnostic.lastCloudSyncAt) : 'sin registro'}`,
+    `Cuentas: ${diagnostic.billsCount}`,
+    `Personas registradas en cuentas: ${diagnostic.peopleCount}`,
+    `Gastos/productos: ${diagnostic.productsCount}`,
+    `Recurrentes: ${diagnostic.recurringCount}`,
+    `Compartidas: ${diagnostic.sharedCount}`,
+    `Cuentas con pendientes: ${diagnostic.pendingBills}`,
+    `Monto pendiente total: ${formatCurrency(diagnostic.pendingTotal)}`,
+    `Tamaño local aproximado: ${formatBytes(diagnostic.localSizeBytes)}`,
+    `Copia previa de importación: ${diagnostic.hasAutoBackup ? 'disponible' : 'no disponible'}`,
+  ].join('\n');
+}
+
+async function copyDiagnosticSummary() {
+  const text = getDiagnosticPlainText();
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('Diagnóstico copiado.');
+  } catch {
+    prompt('Copia el diagnóstico:', text);
+  }
+}
+
+function renderBackupDiagnostics() {
+  if (!dom.backupSummaryGrid || !dom.diagnosticList) return;
+
+  const diagnostic = getBackupDiagnostics();
+  const status = diagnostic.hasLocalData ? 'Protegible' : 'Sin datos';
+  const statusClass = diagnostic.hasLocalData ? 'is-ok' : 'is-muted';
+
+  if (dom.backupStatusOutput) {
+    dom.backupStatusOutput.textContent = diagnostic.hasLocalData
+      ? `Tienes ${diagnostic.billsCount} cuenta${diagnostic.billsCount === 1 ? '' : 's'} guardada${diagnostic.billsCount === 1 ? '' : 's'}. Exporta un respaldo antes de subir una versión nueva o importar datos.`
+      : 'Aún no hay cuentas guardadas para respaldar en este navegador.';
+  }
+
+  if (dom.diagnosticStatusOutput) {
+    dom.diagnosticStatusOutput.textContent = status;
+    dom.diagnosticStatusOutput.classList.remove('is-ok', 'is-muted', 'is-warning');
+    dom.diagnosticStatusOutput.classList.add(statusClass);
+  }
+
+  const cards = [
+    ['Versión', `v${diagnostic.appVersion}`],
+    ['Modo', diagnostic.sessionMode],
+    ['Cuentas', diagnostic.billsCount],
+    ['Pendiente total', formatCurrency(diagnostic.pendingTotal)],
+    ['Datos locales', formatBytes(diagnostic.localSizeBytes)],
+    ['Sincronización', diagnostic.cloudStatus],
+  ];
+
+  dom.backupSummaryGrid.innerHTML = cards.map(([label, value]) => `
+    <article class="diagnostic-card">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(String(value))}</strong>
+    </article>
+  `).join('');
+
+  const items = [
+    ['Cuenta activa', diagnostic.activeBillName],
+    ['Tipo de cuenta activa', diagnostic.activeBillMode],
+    ['Personas en cuentas', diagnostic.peopleCount],
+    ['Gastos/productos', diagnostic.productsCount],
+    ['Carpetas recurrentes', diagnostic.recurringCount],
+    ['Cuentas compartidas', diagnostic.sharedCount],
+    ['Copia previa para restaurar', diagnostic.hasAutoBackup ? 'Disponible' : 'No disponible'],
+    ['Último guardado local', diagnostic.lastLocalSaveAt ? formatDate(diagnostic.lastLocalSaveAt) : 'Sin registro'],
+    ['Última sincronización', diagnostic.lastCloudSyncAt ? formatDate(diagnostic.lastCloudSyncAt) : 'Sin registro'],
+  ];
+
+  dom.diagnosticList.innerHTML = items.map(([label, value]) => `
+    <div class="diagnostic-row">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(String(value || 'Sin datos'))}</strong>
+    </div>
+  `).join('');
+
+  if (dom.restoreAutoBackupButton) {
+    dom.restoreAutoBackupButton.disabled = !diagnostic.hasAutoBackup;
+    dom.restoreAutoBackupButton.title = diagnostic.hasAutoBackup
+      ? 'Restaura la copia creada antes de la última importación.'
+      : 'Se activará después de importar un respaldo.';
+  }
+}
+
 
 
 
@@ -11165,6 +11419,12 @@ dom.backupFileInput.addEventListener('change', () => {
   importBackupFile(dom.backupFileInput.files[0]);
   dom.backupFileInput.value = '';
 });
+dom.diagnosticRefreshButton?.addEventListener('click', () => {
+  renderBackupDiagnostics();
+  showToast('Diagnóstico actualizado.');
+});
+dom.diagnosticCopyButton?.addEventListener('click', copyDiagnosticSummary);
+dom.restoreAutoBackupButton?.addEventListener('click', restoreAutomaticImportBackup);
 
 dom.closeShareModalButton.addEventListener('click', closeShareModal);
 dom.shareModal.addEventListener('click', (event) => {
