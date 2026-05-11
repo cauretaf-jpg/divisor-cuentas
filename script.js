@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.10 cargada');
-const APP_VERSION = '13.10';
+console.info('Cuenta Clara V13.11 cargada');
+const APP_VERSION = '13.11';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -7,6 +7,7 @@ const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
 const APP_SECTION_KEY = 'cuenta-clara-active-section';
 const ONBOARDING_DISMISSED_KEY = 'cuenta-clara-onboarding-dismissed';
+const DEMO_BILL_IDS_KEY = 'cuenta-clara-demo-bill-ids';
 let activeStorageKey = GUEST_STORAGE_KEY;
 let currentSession = { mode: 'guest', email: '', name: '', userId: '' };
 let cloudSaveTimer = null;
@@ -86,6 +87,12 @@ const dom = {
   startFirstBillButton: document.querySelector('#startFirstBillButton'),
   firstUseExampleButton: document.querySelector('#firstUseExampleButton'),
   dismissFirstUseButton: document.querySelector('#dismissFirstUseButton'),
+  firstUseProgressOutput: document.querySelector('#firstUseProgressOutput'),
+  firstUseNextActionOutput: document.querySelector('#firstUseNextActionOutput'),
+  demoDataCard: document.querySelector('#demoDataCard'),
+  demoDataStatusOutput: document.querySelector('#demoDataStatusOutput'),
+  loadDemoDataButton: document.querySelector('#loadDemoDataButton'),
+  clearDemoDataButton: document.querySelector('#clearDemoDataButton'),
   templateChoiceButtons: document.querySelectorAll('[data-template]'),
   templateChangeSelect: document.querySelector('#templateChangeSelect'),
   applyTemplateChangeButton: document.querySelector('#applyTemplateChangeButton'),
@@ -116,6 +123,7 @@ const dom = {
   smartActionButton: document.querySelector('#smartActionButton'),
   simpleModeButton: document.querySelector('#simpleModeButton'),
   advancedModeButton: document.querySelector('#advancedModeButton'),
+  stepCreate: document.querySelector('#stepCreate'),
   stepPeople: document.querySelector('#stepPeople'),
   stepProducts: document.querySelector('#stepProducts'),
   stepReview: document.querySelector('#stepReview'),
@@ -284,6 +292,10 @@ const dom = {
   receiptContinueDespiteMismatchButton: document.querySelector('#receiptContinueDespiteMismatchButton'),
   reparseReceiptTextButton: document.querySelector('#reparseReceiptTextButton'),
   receiptDetectedCount: document.querySelector('#receiptDetectedCount'),
+  editReceiptTotalButton: document.querySelector('#editReceiptTotalButton'),
+  selectValidReceiptItemsButton: document.querySelector('#selectValidReceiptItemsButton'),
+  focusReceiptIssuesButton: document.querySelector('#focusReceiptIssuesButton'),
+  receiptReviewHintOutput: document.querySelector('#receiptReviewHintOutput'),
   selectAllReceiptItemsButton: document.querySelector('#selectAllReceiptItemsButton'),
   unselectAllReceiptItemsButton: document.querySelector('#unselectAllReceiptItemsButton'),
   ignoreZeroReceiptItemsButton: document.querySelector('#ignoreZeroReceiptItemsButton'),
@@ -894,9 +906,15 @@ function getPaymentActionEntries(filter = 'current') {
           ? 'owe'
           : 'other';
 
-      if (filter === 'mine' && direction === 'other') continue;
-
       const dueStatus = getPaymentDueStatus(bill);
+      const previousDebt = bill.mode === 'home' ? Math.max(0, Number(person.previousDebt || 0)) : 0;
+
+      if (filter === 'mine' && direction === 'other') continue;
+      if (filter === 'owed' && direction !== 'owed') continue;
+      if (filter === 'owe' && direction !== 'owe') continue;
+      if (filter === 'overdue' && !['danger', 'warning'].includes(dueStatus?.className)) continue;
+      if (filter === 'carryover' && previousDebt <= 0) continue;
+
       entries.push({
         billId: bill.id,
         billName: bill.name || 'Cuenta sin nombre',
@@ -906,6 +924,8 @@ function getPaymentActionEntries(filter = 'current') {
         person,
         payer,
         amount,
+        previousDebt,
+        currentMonthAmount: Math.max(0, amount - previousDebt),
         direction,
         dueStatus,
         label: direction === 'owed'
@@ -1033,9 +1053,9 @@ function renderPaymentActionRows(container, entries, { limit = 8, compact = fals
     const recipient = entry.direction === 'owe' ? entry.payer : entry.person;
     const hasPhone = Boolean(normalizePhoneNumber(recipient.phone));
     const dueText = entry.billDueAt ? ` · ${entry.dueStatus.label}` : '';
-    const previousDebt = entry.billMode === 'home' ? Math.max(0, Number(entry.person.previousDebt || 0)) : 0;
+    const previousDebt = Math.max(0, Number(entry.previousDebt || 0));
     const carryoverText = previousDebt > 0
-      ? ` · arrastre ${formatCurrency(previousDebt)} + mes actual ${formatCurrency(Math.max(0, entry.amount - previousDebt))}`
+      ? ` · arrastre ${formatCurrency(previousDebt)} + mes actual ${formatCurrency(entry.currentMonthAmount || Math.max(0, entry.amount - previousDebt))}`
       : '';
     row.innerHTML = `
       <div class="payment-action-main">
@@ -2675,6 +2695,18 @@ function updateReceiptSelectionSummary() {
     dom.receiptZeroWarningOutput.classList.toggle('has-warning', metrics.zero > 0 || metrics.mismatch);
   }
 
+  if (dom.receiptReviewHintOutput) {
+    if (metrics.mismatch) {
+      dom.receiptReviewHintOutput.textContent = 'Total no coincide: corrige montos, ajusta total o agrega diferencia antes de guardar.';
+    } else if (metrics.zero > 0) {
+      dom.receiptReviewHintOutput.textContent = 'Hay productos con monto $0. Complétalos o usa Ignorar $0.';
+    } else if (metrics.selected === 0 && metrics.valid > 0) {
+      dom.receiptReviewHintOutput.textContent = 'Selecciona productos válidos para agregarlos a la cuenta.';
+    } else {
+      dom.receiptReviewHintOutput.textContent = 'Edita nombre, cantidad o monto antes de agregar.';
+    }
+  }
+
   if (dom.receiptAuditWarning && dom.receiptAuditWarningText) {
     const canCompare = metrics.receiptTotal > 0;
     const missingAmount = canCompare ? Math.max(0, metrics.receiptTotal - metrics.detectedTotal) : 0;
@@ -2858,6 +2890,51 @@ function ignoreZeroReceiptItems() {
   renderReceiptDetectedItems();
   const removed = before - receiptDetectedItems.length;
   showToast(removed > 0 ? `${removed} producto${removed === 1 ? '' : 's'} de $0 ignorado${removed === 1 ? '' : 's'}.` : 'No hay montos en $0 para ignorar.');
+}
+
+
+function parseCurrencyInput(value) {
+  const normalized = String(value || '').replace(/[^0-9,-]/g, '').replace(',', '.');
+  return Math.max(0, Math.round(Number(normalized || 0)));
+}
+
+function editReceiptTotalFromPrompt() {
+  const current = Number(receiptDetectedMeta?.receiptTotal || 0);
+  const response = prompt('Total de la boleta para comparar:', current > 0 ? String(current) : '');
+  if (response === null) return;
+
+  const total = parseCurrencyInput(response);
+  receiptDetectedMeta.receiptTotal = total;
+  if (total > 0 && !Number(receiptDetectedMeta.grandTotal || 0)) {
+    receiptDetectedMeta.grandTotal = total;
+  }
+  resetReceiptMismatchAcceptance();
+  updateReceiptSelectionSummary();
+  updateReceiptStatus(total > 0 ? `Total de boleta ajustado a ${formatCurrency(total)}.` : 'Total de boleta eliminado. La app no comparará diferencias hasta detectar o ingresar un total.');
+}
+
+function selectOnlyValidReceiptItems() {
+  resetReceiptMismatchAcceptance();
+  receiptDetectedItems = receiptDetectedItems.map((item) => {
+    refreshReceiptDerivedValues(item);
+    return {
+      ...item,
+      selected: getReceiptLineTotal(item) > 0 && !item.nonConsumptionSuspect,
+    };
+  });
+  renderReceiptDetectedItems();
+  showToast('Seleccioné solo productos con monto válido.');
+}
+
+function focusReceiptIssues() {
+  const row = dom.receiptDetectedBody?.querySelector?.('.receipt-row-warning');
+  if (!row) {
+    showToast('No hay productos marcados para revisar.');
+    return;
+  }
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const input = row.querySelector('input[type="text"], input[type="number"]');
+  if (typeof input?.focus === 'function') input.focus();
 }
 
 function addManualReceiptItem() {
@@ -4302,6 +4379,7 @@ function renderGuidedExperience() {
   dom.guidedNextHelp.textContent = copy.help;
   dom.smartActionButton.textContent = copy.button;
 
+  updateStepPill(dom.stepCreate, 'done');
   updateStepPill(dom.stepPeople, hasPeople ? 'done' : 'current');
   updateStepPill(dom.stepProducts, hasProducts ? 'done' : (hasPeople ? 'current' : ''));
   updateStepPill(dom.stepReview, hasAmounts ? 'done' : (hasPeople && hasProducts ? 'current' : ''));
@@ -5171,6 +5249,28 @@ function isLikelyFirstUseState() {
   return !hasPeople && !hasProducts && !hasQuickTotal && (!name || name === 'nueva cuenta' || name === 'cuenta sin nombre');
 }
 
+function getGuidedProgressInfo(copy = getSmartActionCopy()) {
+  const { hasPeople, hasProducts, hasAmounts } = getGuidedState();
+
+  if (!state?.bills?.length || isLikelyFirstUseState()) {
+    return { step: 1, total: 5, text: 'Elige una plantilla para crear tu primera cuenta.' };
+  }
+
+  if (!hasPeople || copy.step === 'people') {
+    return { step: 2, total: 5, text: copy.help };
+  }
+
+  if (!hasProducts || copy.step === 'products') {
+    return { step: 3, total: 5, text: copy.help };
+  }
+
+  if (!hasAmounts || copy.step === 'review') {
+    return { step: 4, total: 5, text: copy.help };
+  }
+
+  return { step: 5, total: 5, text: 'Revisa pagos pendientes y comparte el comprobante final.' };
+}
+
 function renderFirstUseOnboarding() {
   if (!dom.firstUseCard) {
     return;
@@ -5178,7 +5278,15 @@ function renderFirstUseOnboarding() {
 
   const dismissed = localStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true';
   const shouldShow = !dismissed && isLikelyFirstUseState();
+  const progress = getGuidedProgressInfo();
+
   dom.firstUseCard.classList.toggle('hidden', !shouldShow);
+  if (dom.firstUseProgressOutput) {
+    dom.firstUseProgressOutput.textContent = `Paso ${progress.step} de ${progress.total}`;
+  }
+  if (dom.firstUseNextActionOutput) {
+    dom.firstUseNextActionOutput.textContent = progress.text;
+  }
 }
 
 function focusTemplateChoices() {
@@ -5283,6 +5391,211 @@ function createExampleBill() {
   render();
   setAppSection('summary', { scroll: false });
   showToast('Cuenta de ejemplo creada. Revisa el resumen y luego edítala en Gastos.');
+}
+
+
+function readDemoBillIds() {
+  try {
+    const ids = JSON.parse(localStorage.getItem(DEMO_BILL_IDS_KEY) || '[]');
+    return Array.isArray(ids) ? ids.filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeDemoBillIds(ids = []) {
+  try {
+    localStorage.setItem(DEMO_BILL_IDS_KEY, JSON.stringify([...new Set(ids.filter(Boolean))]));
+  } catch {
+    // El modo demo sigue funcionando aunque el navegador no permita registrar los IDs.
+  }
+}
+
+function makeDemoPerson(name, phone = '', extra = {}) {
+  return {
+    id: createId('person'),
+    name,
+    phone: normalizePhoneNumber(phone),
+    email: '',
+    userId: '',
+    previousDebt: Math.max(0, Number(extra.previousDebt || 0)),
+    paid: Boolean(extra.paid),
+  };
+}
+
+function makeDemoProduct(name, amount, category, people, options = {}) {
+  const splitMode = options.splitMode || 'participants';
+  const consumers = splitMode === 'responsibles'
+    ? (options.responsibles || []).map((person) => ({ personId: person.id, share: 1 }))
+    : (options.people || people).map((person) => ({ personId: person.id, share: 1 }));
+
+  return {
+    id: createId('product'),
+    name,
+    unitPrice: Math.round(Number(amount || 0)),
+    quantity: Math.max(1, Number(options.quantity || 1)),
+    category: CATEGORIES.includes(category) ? category : 'Otros',
+    splitMode,
+    dueDate: options.dueDate || '',
+    paidById: options.paidById || '',
+    recurring: Boolean(options.recurring),
+    consumers,
+  };
+}
+
+function buildDemoBills() {
+  const now = nowIso();
+  const today = new Date();
+  const soon = new Date(today);
+  soon.setDate(today.getDate() + 2);
+  const overdue = new Date(today);
+  overdue.setDate(today.getDate() - 3);
+  const formatDateInput = (date) => date.toISOString().slice(0, 10);
+
+  const restaurant = makeDefaultBill();
+  restaurant.name = 'Demo: Restaurante viernes';
+  restaurant.mode = 'detailed';
+  restaurant.tipPercent = 10;
+  restaurant.templateKey = 'restaurant';
+  restaurant.templateLabel = 'Restaurante';
+  restaurant.createdAt = now;
+  restaurant.updatedAt = now;
+  restaurant.people = [
+    makeDemoPerson('Carlos Demo', '', { paid: true }),
+    makeDemoPerson('Felipe Demo'),
+    makeDemoPerson('Martín Demo'),
+    makeDemoPerson('Sarai Demo', '', { paid: true }),
+  ];
+  restaurant.payerId = restaurant.people[0].id;
+  restaurant.products = [
+    makeDemoProduct('Tabla compartida', 28500, 'Comida', restaurant.people),
+    makeDemoProduct('Bebidas', 9900, 'Bebestibles', restaurant.people.slice(0, 3), { people: restaurant.people.slice(0, 3) }),
+    makeDemoProduct('Postre', 7600, 'Postres', restaurant.people.slice(1), { people: restaurant.people.slice(1) }),
+  ];
+  restaurant.activity = [{ id: createId('activity'), type: 'demo', message: 'Cuenta demo creada para probar restaurante.', actor: 'Cuenta Clara', actorId: '', at: now }];
+
+  const streaming = makeDefaultBill();
+  streaming.name = `Demo: Streaming ${formatMonthLabel(getCurrentMonthValue())}`;
+  streaming.mode = 'home';
+  streaming.tipPercent = 0;
+  streaming.templateKey = 'streaming';
+  streaming.templateLabel = 'Streaming';
+  streaming.homeMonth = getCurrentMonthValue();
+  streaming.paymentDueAt = formatDateInput(soon);
+  streaming.people = [
+    makeDemoPerson('Carlos Demo', '', { paid: true }),
+    makeDemoPerson('Wladi Demo', '', { previousDebt: 4200 }),
+    makeDemoPerson('Pamela Demo'),
+  ];
+  streaming.payerId = streaming.people[0].id;
+  streaming.products = [
+    makeDemoProduct('Netflix', 14410, 'Streaming', streaming.people, { recurring: true, dueDate: formatDateInput(soon) }),
+    makeDemoProduct('Spotify', 7050, 'Streaming', streaming.people, { recurring: true, dueDate: formatDateInput(soon) }),
+    makeDemoProduct('Crunchyroll', 4990, 'Streaming', streaming.people.slice(0, 2), { people: streaming.people.slice(0, 2), recurring: true, dueDate: formatDateInput(soon) }),
+  ];
+  streaming.activity = [{ id: createId('activity'), type: 'demo', message: 'Cuenta demo creada para probar recurrentes y arrastre.', actor: 'Cuenta Clara', actorId: '', at: now }];
+
+  const home = makeDefaultBill();
+  home.name = `Demo: Hogar ${formatMonthLabel(getCurrentMonthValue())}`;
+  home.mode = 'home';
+  home.tipPercent = 0;
+  home.templateKey = 'home';
+  home.templateLabel = 'Hogar';
+  home.homeMonth = getCurrentMonthValue();
+  home.paymentDueAt = formatDateInput(overdue);
+  home.people = [
+    makeDemoPerson('Carlos Demo'),
+    makeDemoPerson('Enma Demo', '', { paid: true }),
+    makeDemoPerson('Diego Demo'),
+  ];
+  home.payerId = home.people[1].id;
+  home.products = [
+    makeDemoProduct('Luz', 32340, 'Luz', home.people, { recurring: true, dueDate: formatDateInput(overdue) }),
+    makeDemoProduct('Internet', 19990, 'Internet', home.people, { recurring: true, dueDate: formatDateInput(soon) }),
+    makeDemoProduct('Supermercado común', 48600, 'Supermercado', home.people.slice(0, 2), { people: home.people.slice(0, 2), dueDate: formatDateInput(soon) }),
+  ];
+  home.activity = [{ id: createId('activity'), type: 'demo', message: 'Cuenta demo creada para probar hogar y pagos vencidos.', actor: 'Cuenta Clara', actorId: '', at: now }];
+
+  const recurringGroup = {
+    id: createId('recurring'),
+    name: 'Demo: Streaming mensual',
+    category: 'Streaming',
+    frequency: 'monthly',
+    billIds: [streaming.id],
+    members: streaming.people.map((person) => ({ name: person.name, phone: person.phone, email: person.email, userId: person.userId })),
+    createdAt: now,
+    updatedAt: now,
+  };
+  streaming.recurringGroupId = recurringGroup.id;
+
+  return { bills: [restaurant, streaming, home], recurringGroup };
+}
+
+function clearDemoData(options = {}) {
+  const demoIds = new Set(readDemoBillIds());
+  const hadDemo = demoIds.size > 0 || state.bills.some((bill) => String(bill.name || '').startsWith('Demo:'));
+
+  if (!hadDemo) {
+    if (!options.silent) showToast('No hay datos demo para borrar.');
+    return false;
+  }
+
+  if (!options.silent) {
+    const confirmed = confirm('¿Borrar las cuentas demo? Tus cuentas reales no se eliminarán.');
+    if (!confirmed) return false;
+  }
+
+  state.bills = state.bills.filter((bill) => !demoIds.has(bill.id) && !String(bill.name || '').startsWith('Demo:'));
+  state.recurringGroups = (state.recurringGroups || []).filter((group) => !String(group.name || '').startsWith('Demo:'));
+
+  if (!state.bills.length) {
+    const fallback = makeDefaultBill();
+    state.bills = [fallback];
+    state.activeBillId = fallback.id;
+  } else if (!state.bills.some((bill) => bill.id === state.activeBillId)) {
+    state.activeBillId = state.bills[0].id;
+  }
+
+  writeDemoBillIds([]);
+  saveState();
+  render();
+  if (!options.silent) showToast('Datos demo eliminados.');
+  return true;
+}
+
+function loadDemoData() {
+  const existingDemo = readDemoBillIds().length > 0 || state.bills.some((bill) => String(bill.name || '').startsWith('Demo:'));
+  const message = existingDemo
+    ? 'Se reemplazarán las cuentas demo actuales por un ejemplo limpio. Tus cuentas reales se conservarán. ¿Continuar?'
+    : 'Se agregarán cuentas simuladas para probar la app. Tus cuentas reales se conservarán. ¿Continuar?';
+  if (!confirm(message)) return;
+
+  clearDemoData({ silent: true });
+  const { bills, recurringGroup } = buildDemoBills();
+  state.bills = [...bills, ...state.bills];
+  state.recurringGroups = normalizeRecurringGroups([recurringGroup, ...(state.recurringGroups || [])]);
+  state.activeBillId = bills[0].id;
+  writeDemoBillIds(bills.map((bill) => bill.id));
+  localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
+  saveState();
+  render();
+  setAppSection('home', { scroll: false });
+  showNotice('Modo demo cargado', 'Se agregaron ejemplos de restaurante, streaming y hogar. Puedes borrarlos desde Inicio cuando termines de probar.');
+}
+
+function renderDemoDataCard() {
+  if (!dom.demoDataCard || !dom.demoDataStatusOutput) return;
+  const demoIds = new Set(readDemoBillIds());
+  const demoBills = state.bills.filter((bill) => demoIds.has(bill.id) || String(bill.name || '').startsWith('Demo:'));
+  const totalPending = demoBills.reduce((sum, bill) => sum + Math.max(0, calculateBill(bill).pendingTotal || 0), 0);
+
+  dom.demoDataCard.classList.toggle('has-demo-data', demoBills.length > 0);
+  dom.demoDataStatusOutput.textContent = demoBills.length
+    ? `${demoBills.length} cuenta${demoBills.length === 1 ? '' : 's'} demo activa${demoBills.length === 1 ? '' : 's'} · pendientes simulados ${formatCurrency(totalPending)}`
+    : 'Sin datos demo activos.';
+  if (dom.clearDemoDataButton) {
+    dom.clearDemoDataButton.disabled = demoBills.length === 0;
+  }
 }
 
 function updateMobileActionBar() {
@@ -8543,6 +8856,7 @@ function render() {
     renderMobileHomeDashboard();
     renderHomeActionPanel();
     renderFirstUseOnboarding();
+    renderDemoDataCard();
   } catch (error) {
     console.warn('No se pudo renderizar la experiencia guiada:', error);
   }
@@ -11083,6 +11397,9 @@ dom.unselectAllReceiptItemsButton.addEventListener('click', () => setAllReceiptI
 dom.ignoreZeroReceiptItemsButton?.addEventListener('click', ignoreZeroReceiptItems);
 dom.addManualReceiptItemButton?.addEventListener('click', addManualReceiptItem);
 dom.addMissingReceiptDifferenceButton?.addEventListener('click', addMissingReceiptDifferenceItem);
+dom.editReceiptTotalButton?.addEventListener('click', editReceiptTotalFromPrompt);
+dom.selectValidReceiptItemsButton?.addEventListener('click', selectOnlyValidReceiptItems);
+dom.focusReceiptIssuesButton?.addEventListener('click', focusReceiptIssues);
 dom.receiptContinueDespiteMismatchButton?.addEventListener('click', acceptReceiptMismatchAndContinue);
 dom.addReceiptItemsButton.addEventListener('click', addReceiptItemsToBill);
 
@@ -11172,6 +11489,8 @@ dom.applyTemplateChangeButton?.addEventListener('click', () => {
 });
 
 dom.createExampleBillButton?.addEventListener('click', createExampleBill);
+dom.loadDemoDataButton?.addEventListener('click', loadDemoData);
+dom.clearDemoDataButton?.addEventListener('click', () => clearDemoData());
 dom.startFirstBillButton?.addEventListener('click', focusTemplateChoices);
 dom.firstUseExampleButton?.addEventListener('click', createExampleBill);
 dom.dismissFirstUseButton?.addEventListener('click', dismissFirstUseOnboarding);

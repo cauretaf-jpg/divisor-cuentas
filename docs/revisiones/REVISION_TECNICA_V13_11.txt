@@ -1,0 +1,29 @@
+REVISION TECNICA - CUENTA CLARA V13.11
+
+Objetivo:
+- Mejorar pruebas reales, experiencia guiada, OCR y filtros de pagos sin agregar dependencias ni SQL.
+
+Cambios aplicados:
+- Version actualizada a V13.11.
+- Cache del service worker actualizado a cuenta-clara-v13.11.
+- Se agrego tarjeta Modo demo en Inicio.
+- Se agregaron funciones para cargar y borrar datos demo.
+- Se agregaron cuentas demo de restaurante, streaming y hogar.
+- Se reforzo el flujo guiado con progreso de 5 pasos.
+- Se agregaron controles OCR: ajustar total boleta, usar solo validos y enfocar productos con revision.
+- Se agregaron filtros de pagos: Me deben, Yo debo, Atrasadas o por vencer y Arrastre anterior.
+- Se agrego CSS responsivo para las nuevas tarjetas y barra OCR.
+
+Validaciones realizadas:
+- script.js: sintaxis OK.
+- profile.js: sintaxis OK.
+- shared-utils.js: sintaxis OK.
+- index.html: sin IDs duplicados.
+- perfil.html: sin IDs duplicados.
+- privacidad.html: sin IDs duplicados.
+- styles.css: llaves balanceadas.
+
+Compatibilidad:
+- No requiere SQL nuevo.
+- No agrega dependencias nuevas.
+- Mantiene compatibilidad con V13.10.

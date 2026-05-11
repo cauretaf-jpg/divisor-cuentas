@@ -1,37 +1,35 @@
-# Cuenta Clara V13.10
+# Cuenta Clara V13.11
 
-Version enfocada en respaldo, seguridad minima y diagnostico simple antes de seguir sumando funciones grandes.
+Version enfocada en pruebas reales, experiencia guiada y uso diario. Mantiene la base estable de V13.10 y agrega mejoras pequeñas para probar la app con casos reales sin tocar base de datos.
 
 ## Cambios principales
 
-- Se mantiene la base visual y funcional de v13.9.
-- Respaldo exportado con version de app, diagnostico y resumen de datos.
-- Nombre de archivo de respaldo ahora incluye `v13.10`.
-- Importacion de respaldo mas segura:
-  - muestra vista previa antes de reemplazar datos;
-  - valida que el archivo contenga cuentas validas;
-  - no modifica datos actuales si el archivo es invalido;
-  - crea una copia local previa antes de importar.
-- Nueva seccion `Respaldo y diagnostico` en Historial.
-- Diagnostico simple con:
-  - version instalada;
-  - modo de uso;
-  - cantidad de cuentas;
-  - monto pendiente total;
-  - estado de sincronizacion;
-  - tamano local aproximado;
-  - copia previa disponible.
-- Boton para copiar diagnostico.
-- Boton para restaurar la copia previa creada antes de la ultima importacion.
-- Los botones de respaldo quedan disponibles tambien en modo Simple.
-- Service worker actualizado a `cuenta-clara-v13.10`.
+- Flujo de primer uso reforzado con progreso `Paso 1 de 5`.
+- Inicio con nueva tarjeta `Modo demo`.
+- Datos demo completos para probar:
+  - restaurante con propina;
+  - streaming mensual con arrastre anterior;
+  - hogar con vencimientos y pagos pendientes.
+- Boton para borrar los datos demo sin eliminar cuentas reales.
+- OCR mas comodo para revisar boletas:
+  - ajustar manualmente el total de la boleta;
+  - seleccionar solo productos validos;
+  - saltar rapidamente al primer producto que requiere revision;
+  - ayuda contextual segun diferencia, productos en $0 o seleccion pendiente.
+- Centro financiero con filtros adicionales:
+  - Me deben;
+  - Yo debo;
+  - Atrasadas o por vencer;
+  - Arrastre anterior.
+- Progreso guiado actualizado a 5 pasos: Crear, Personas, Gastos, Revisar y Compartir.
+- Service worker actualizado a `cuenta-clara-v13.11`.
 
 ## Compatibilidad
 
 - No requiere SQL nuevo.
 - No agrega dependencias nuevas.
-- Mantiene compatibilidad con respaldos anteriores que tengan estructura de estado valida.
-- Mantiene las funciones de v13.9: diseno premium, modo simple, navegacion movil, comprobante, perfil financiero, pagos, recurrentes, compartidas y OCR.
+- Mantiene respaldos, diagnostico, perfil financiero, OCR, recurrentes, compartidas y permisos.
+- Los datos demo se agregan como cuentas simuladas y pueden eliminarse desde Inicio.
 
 ## Archivos principales modificados
 
@@ -43,19 +41,13 @@ Version enfocada en respaldo, seguridad minima y diagnostico simple antes de seg
 - `docs/README.md`
 - `docs/LEEME_PRIMERO.txt`
 
-## Recomendacion de prueba
+## Pruebas recomendadas
 
-Probar especialmente:
-
-1. Abrir Historial.
-2. Revisar la tarjeta `Respaldo y diagnostico`.
-3. Exportar respaldo.
-4. Abrir el JSON y confirmar que contiene `appVersion: 13.10`.
-5. Copiar diagnostico.
-6. Importar un respaldo valido y revisar la vista previa.
-7. Confirmar que se crea copia previa automatica.
-8. Restaurar copia previa.
-9. Intentar importar un JSON invalido y confirmar que no reemplaza datos.
-10. Revisar modo Simple y confirmar que los respaldos siguen visibles.
-11. Probar Inicio, Personas, Gastos, Resumen, Pagos, Historial y Perfil.
+1. Abrir Inicio y cargar `Modo demo`.
+2. Revisar que aparezcan las cuentas Demo: Restaurante, Streaming y Hogar.
+3. Abrir Pagos y probar filtros: Me deben, Yo debo, Atrasadas o por vencer y Arrastre anterior.
+4. Abrir Gastos, usar Escanear boleta y probar: ajustar total, usar solo validos y ver productos a revisar.
+5. Borrar datos demo desde Inicio y confirmar que las cuentas reales se mantienen.
+6. Probar flujo normal: crear cuenta, agregar personas, gastos, resumen y compartir.
+7. Revisar en celular que Inicio, Pagos y OCR sean comodos.
 

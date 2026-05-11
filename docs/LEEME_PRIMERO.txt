@@ -1,31 +1,26 @@
-CUENTA CLARA V13.10 - RESPALDO Y SEGURIDAD MINIMA
+CUENTA CLARA V13.11 - PRUEBAS REALES Y EXPERIENCIA GUIADA
 
-NUEVO EN V13.10
-- Se mantiene la experiencia visual de v13.9.
-- Respaldo exportado con version, fecha, diagnostico y estado de la app.
-- Importacion mas segura con vista previa antes de reemplazar datos.
-- Antes de importar, la app crea una copia local previa para poder restaurar.
-- Nueva seccion Respaldo y diagnostico dentro de Historial.
-- Diagnostico simple: version, modo, cuentas, pendientes, sincronizacion y tamano local.
-- Boton para copiar diagnostico.
-- Boton para restaurar copia previa.
-- Botones de respaldo visibles tambien en modo Simple.
+NUEVO EN V13.11
+- Flujo de primer uso con progreso Paso 1 de 5.
+- Nueva tarjeta Modo demo en Inicio.
+- Datos demo para probar restaurante, streaming y hogar sin usar cuentas reales.
+- Boton para borrar datos demo sin afectar cuentas reales.
+- OCR mas comodo: ajustar total de boleta, usar solo productos validos y saltar a productos con revision.
+- Pagos con filtros nuevos: Me deben, Yo debo, Atrasadas o por vencer y Arrastre anterior.
+- Progreso guiado de 5 pasos: Crear, Personas, Gastos, Revisar y Compartir.
 
 COMO PROBAR
 1. Abre index.html.
-2. Entra a Historial.
-3. Revisa la seccion Respaldo y diagnostico.
-4. Presiona Exportar respaldo.
-5. Importa un respaldo valido y revisa la vista previa antes de confirmar.
-6. Despues de importar, prueba Restaurar copia previa.
-7. Prueba importar un archivo JSON invalido: no deberia reemplazar tus datos.
-8. Cambia entre modo Simple y Avanzado.
-9. Revisa Inicio, Personas, Gastos, Resumen, Pagos y Perfil.
+2. En Inicio, presiona Cargar ejemplo completo.
+3. Revisa Pagos y prueba los nuevos filtros.
+4. En Gastos, abre Escanear boleta y revisa los nuevos botones de ayuda.
+5. Borra los datos demo desde Inicio.
+6. Crea una cuenta real y prueba el flujo completo.
 
 IMPORTANTE
 - No requiere SQL nuevo.
 - No agrega dependencias nuevas.
-- Mantiene las funciones de v13.9.
+- Mantiene respaldo, diagnostico, OCR, recurrentes, compartidas, permisos y perfil financiero.
 - Recomendacion: exportar respaldo antes de subir una nueva version a GitHub/Vercel.
 - Si el navegador conserva una version anterior, limpiar cache del sitio o abrir en ventana privada.
 
@@ -35,5 +30,5 @@ PUBLICACION SUGERIDA
 3. Exportar respaldo antes de subir.
 4. Ejecutar:
    git add .
-   git commit -m "Publica Cuenta Clara v13.10"
+   git commit -m "Publica Cuenta Clara v13.11"
    git push

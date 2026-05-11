@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=13.10" rel="stylesheet"/>
+<link href="styles.css?v=13.11" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -144,6 +144,10 @@
 <h2>Bienvenido a Cuenta Clara</h2>
 <p class="section-helper">Sigue un flujo simple: crea una cuenta, agrega personas, registra gastos y revisa quién debe pagar.</p>
 </div>
+<div class="first-use-progress" aria-live="polite">
+<span id="firstUseProgressOutput">Paso 1 de 5</span>
+<strong id="firstUseNextActionOutput">Elige una plantilla para crear tu primera cuenta.</strong>
+</div>
 <div class="first-use-steps" aria-label="Primeros pasos sugeridos">
 <div><span>1</span><strong>Crear</strong><small>Elige una plantilla.</small></div>
 <div><span>2</span><strong>Personas</strong><small>Agrega participantes.</small></div>
@@ -170,6 +174,17 @@
 <div class="onboarding-actions">
 <button class="btn btn-primary" id="createExampleBillButton" type="button">Probar con ejemplo</button>
 <button class="btn btn-light" data-app-section="people" type="button">Seguir mi cuenta actual</button>
+</div>
+</section><section class="demo-data-card card" id="demoDataCard">
+<div>
+<p class="eyebrow">Modo demo</p>
+<h2>Probar con datos de ejemplo</h2>
+<p class="section-helper">Carga cuentas simuladas de restaurante, hogar y streaming para revisar pagos, OCR, recurrentes y perfil sin usar datos reales.</p>
+</div>
+<div class="demo-data-status" id="demoDataStatusOutput">Sin datos demo activos.</div>
+<div class="demo-data-actions">
+<button class="btn btn-primary" id="loadDemoDataButton" type="button">Cargar ejemplo completo</button>
+<button class="btn btn-light" id="clearDemoDataButton" type="button">Borrar datos demo</button>
 </div>
 </section><section class="guided-start-card card" id="guidedStartCard">
 <div class="section-title">
@@ -238,10 +253,11 @@
 <button class="btn btn-primary" id="smartActionButton" type="button">Continuar</button>
 </div>
 <div aria-label="Progreso de la cuenta" class="step-track">
-<div class="step-pill" id="stepPeople"><span>1</span> Personas</div>
-<div class="step-pill" id="stepProducts"><span>2</span> Productos</div>
-<div class="step-pill" id="stepReview"><span>3</span> Revisar</div>
-<div class="step-pill" id="stepShare"><span>4</span> Compartir</div>
+<div class="step-pill" id="stepCreate"><span>1</span> Crear</div>
+<div class="step-pill" id="stepPeople"><span>2</span> Personas</div>
+<div class="step-pill" id="stepProducts"><span>3</span> Gastos</div>
+<div class="step-pill" id="stepReview"><span>4</span> Revisar</div>
+<div class="step-pill" id="stepShare"><span>5</span> Compartir</div>
 </div>
 <div class="experience-row">
 <span>Vista de uso</span>
@@ -633,6 +649,10 @@
 <option value="current">Cuenta actual</option>
 <option value="all">Todas las cuentas</option>
 <option value="mine">Vinculadas a mi perfil</option>
+<option value="owed">Me deben</option>
+<option value="owe">Yo debo</option>
+<option value="overdue">Atrasadas o por vencer</option>
+<option value="carryover">Arrastre anterior</option>
 </select>
 <button class="btn btn-light btn-small" id="paymentActionRefreshButton" type="button">Actualizar</button>
 </div>
@@ -1001,6 +1021,12 @@
 <div><span>Propina / total</span><strong id="receiptTipDetectedOutput">No detectada</strong></div>
 <div><span>Revisar</span><strong id="receiptZeroWarningOutput">Sin alertas</strong></div>
 </div>
+<div class="receipt-review-toolbar" aria-label="Acciones de revisión OCR">
+<button class="btn btn-light btn-small" id="editReceiptTotalButton" type="button">Ajustar total boleta</button>
+<button class="btn btn-light btn-small" id="selectValidReceiptItemsButton" type="button">Usar solo válidos</button>
+<button class="btn btn-light btn-small" id="focusReceiptIssuesButton" type="button">Ver productos a revisar</button>
+<span id="receiptReviewHintOutput">Edita nombre, cantidad o monto antes de agregar.</span>
+</div>
 <div class="receipt-audit-warning hidden" id="receiptAuditWarning" role="alert">
 <div>
 <strong>Revisar boleta antes de agregar</strong>
@@ -1255,8 +1281,8 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="shared-utils.js?v=13.10"></script>
-<script src="supabase-config.js?v=13.10"></script>
-<script src="script.js?v=13.10"></script>
+<script src="shared-utils.js?v=13.11"></script>
+<script src="supabase-config.js?v=13.11"></script>
+<script src="script.js?v=13.11"></script>
 </body>
 </html>

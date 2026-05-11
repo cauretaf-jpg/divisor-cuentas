@@ -8970,7 +8970,7 @@ button.template-example-chip:hover {
 .guided-choice { position: relative; }
 
 
-/* V13.10 - recurrentes con deuda acumulada */
+/* V13.11 - recurrentes con deuda acumulada */
 .recurring-separated-carryover-list {
   display: grid;
   gap: 0.55rem;
@@ -9012,7 +9012,7 @@ body.dark .recurring-separated-carryover-list {
   }
 }
 
-/* V13.10 - Cuentas compartidas, permisos e invitados */
+/* V13.11 - Cuentas compartidas, permisos e invitados */
 .shared-access-dashboard {
   display: grid;
   gap: 10px;
@@ -9204,7 +9204,7 @@ body.shared-readonly-mode .mobile-action-bar #mobileAddProductButton {
   }
 }
 
-/* V13.10 - Diseño premium y experiencia simple */
+/* V13.11 - Diseño premium y experiencia simple */
 :root {
   --premium-glow: 0 22px 70px rgba(15, 118, 110, 0.18);
   --premium-card-border: color-mix(in srgb, var(--primary) 18%, var(--border));
@@ -9551,7 +9551,7 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
   }
 }
 
-/* V13.10 - Respaldo y seguridad minima */
+/* V13.11 - Respaldo y seguridad minima */
 .backup-security-panel {
   margin-top: 16px;
   padding: 16px;
@@ -9668,5 +9668,104 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
 @media (max-width: 560px) {
   .diagnostic-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* V13.11 - Pruebas reales y experiencia guiada */
+.first-use-progress {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(15, 118, 110, 0.14);
+  border-radius: 1rem;
+  background: rgba(15, 118, 110, 0.06);
+}
+
+.first-use-progress span {
+  color: var(--muted-text, #64748b);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.first-use-progress strong {
+  color: var(--text, #0f172a);
+  font-size: 0.95rem;
+}
+
+.demo-data-card {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid rgba(20, 184, 166, 0.16);
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.08), rgba(255, 255, 255, 0.82));
+}
+
+.demo-data-card.has-demo-data {
+  border-color: rgba(245, 158, 11, 0.28);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(255, 255, 255, 0.86));
+}
+
+.demo-data-status {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.4rem 0.7rem;
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--muted-text, #64748b);
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+.demo-data-actions,
+.receipt-review-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.receipt-review-toolbar {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid rgba(15, 118, 110, 0.12);
+  border-radius: 0.95rem;
+  background: rgba(248, 250, 252, 0.92);
+}
+
+.receipt-review-toolbar span {
+  color: var(--muted-text, #64748b);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.payment-action-toolbar select {
+  min-width: min(100%, 230px);
+}
+
+@media (max-width: 760px) {
+  .demo-data-card,
+  .first-use-progress {
+    border-radius: 1.15rem;
+  }
+
+  .demo-data-actions,
+  .receipt-review-toolbar,
+  .payment-action-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .demo-data-actions .btn,
+  .receipt-review-toolbar .btn,
+  .payment-action-toolbar .btn,
+  .payment-action-toolbar select {
+    width: 100%;
+  }
+
+  .receipt-review-toolbar span {
+    display: block;
+    width: 100%;
   }
 }
