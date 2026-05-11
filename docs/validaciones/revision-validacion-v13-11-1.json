@@ -1,0 +1,16 @@
+{
+  "version": "13.11.1",
+  "nombre": "Cuenta Clara v13.11.1 - correccion menu movil",
+  "validaciones": {
+    "script_js": "OK",
+    "profile_js": "OK",
+    "shared_utils_js": "OK",
+    "css_llaves": "OK",
+    "service_worker_cache": "cuenta-clara-v13.11.1",
+    "index_html_ids": "OK",
+    "perfil_html_ids": "OK",
+    "privacidad_html_ids": "OK"
+  },
+  "requiere_sql_nuevo": false,
+  "dependencias_nuevas": false
+}

@@ -1,4 +1,4 @@
-# Cuenta Clara V13.11
+# Cuenta Clara V13.11.2
 
 Version enfocada en pruebas reales, experiencia guiada y uso diario. Mantiene la base estable de V13.10 y agrega mejoras pequeñas para probar la app con casos reales sin tocar base de datos.
 
@@ -22,7 +22,7 @@ Version enfocada en pruebas reales, experiencia guiada y uso diario. Mantiene la
   - Atrasadas o por vencer;
   - Arrastre anterior.
 - Progreso guiado actualizado a 5 pasos: Crear, Personas, Gastos, Revisar y Compartir.
-- Service worker actualizado a `cuenta-clara-v13.11`.
+- Service worker actualizado a `cuenta-clara-v13.11.2`.
 
 ## Compatibilidad
 

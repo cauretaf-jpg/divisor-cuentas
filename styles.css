@@ -9769,3 +9769,433 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
     width: 100%;
   }
 }
+
+
+/* V13.11.1 - Correccion rapida del menu en modo simple
+   Evita que los accesos principales se compriman en columnas angostas. */
+body.simple-mode .section-nav-list {
+  grid-template-columns: 1fr !important;
+}
+
+body.simple-mode .section-nav-button {
+  min-width: 0;
+  width: 100%;
+  min-height: 58px;
+  white-space: normal;
+  overflow: visible;
+}
+
+body.simple-mode .section-nav-button strong,
+body.simple-mode .section-nav-button span,
+.section-nav-title p,
+.section-nav-footer,
+.section-nav-footer small {
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+body.simple-mode .section-nav-button span {
+  display: block;
+}
+
+@media (max-width: 1040px) {
+  body.simple-mode .section-nav-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body.simple-mode .section-nav-card {
+    width: 100%;
+  }
+
+  body.simple-mode .section-nav-button {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 430px) {
+  body.simple-mode .section-nav-list {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* V13.11.2 - Revision visual movil completa
+   Blindaje responsive para evitar tarjetas angostas, botones comprimidos y cortes de texto. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img,
+svg,
+canvas,
+video {
+  max-width: 100%;
+}
+
+.card,
+.workspace,
+.app-section,
+.section-workspace,
+.section-nav-card,
+.mobile-home-dashboard,
+.section-page-heading,
+.profile-page-section,
+.payment-action-center,
+.account-review-card,
+.shared-access-dashboard,
+.recurring-dashboard,
+.backup-security-panel,
+.demo-data-card,
+.receipt-summary-card {
+  min-width: 0;
+}
+
+.card,
+.section-nav-card,
+.mobile-home-dashboard,
+.section-page-heading,
+.profile-page-section,
+.payment-action-center,
+.account-review-card,
+.shared-access-dashboard,
+.recurring-dashboard,
+.backup-security-panel,
+.demo-data-card,
+.receipt-summary-card {
+  overflow-wrap: break-word;
+}
+
+.btn,
+.chip,
+.method-card,
+.mode-choice-card,
+.guided-choice,
+.section-nav-button,
+.home-premium-shortcuts button,
+.home-premium-shortcuts a,
+.mobile-bottom-nav-button {
+  min-width: 0;
+}
+
+.btn,
+.chip,
+.method-card,
+.mode-choice-card,
+.guided-choice,
+.home-premium-shortcuts button,
+.home-premium-shortcuts a {
+  white-space: normal;
+}
+
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+@media (min-width: 1041px) {
+  .section-nav .section-nav-list,
+  body.simple-mode .section-nav .section-nav-list {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    overflow: visible !important;
+  }
+
+  .section-nav .section-nav-button,
+  body.simple-mode .section-nav .section-nav-button {
+    min-width: 0 !important;
+    width: 100% !important;
+    white-space: normal !important;
+  }
+
+  .section-nav .section-nav-title,
+  .section-nav .section-nav-footer {
+    display: block;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1040px) {
+  .section-nav .section-nav-list,
+  body.simple-mode .section-nav .section-nav-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(170px, 1fr)) !important;
+    gap: 10px !important;
+    overflow: visible !important;
+  }
+
+  .section-nav .section-nav-button,
+  body.simple-mode .section-nav .section-nav-button {
+    min-width: 0 !important;
+    width: 100% !important;
+    min-height: 62px;
+    white-space: normal !important;
+  }
+
+  .section-nav .section-nav-button span {
+    display: block;
+  }
+}
+
+@media (max-width: 760px) {
+  .container {
+    width: min(100% - 16px, 1260px) !important;
+  }
+
+  .section-nav {
+    display: none !important;
+  }
+
+  .app-layout,
+  .sectioned-layout {
+    display: block;
+    min-width: 0;
+    padding-top: 12px;
+  }
+
+  .workspace,
+  .section-workspace,
+  .app-section.is-active {
+    width: 100%;
+    min-width: 0;
+    gap: 14px;
+  }
+
+  .card,
+  .section-page-heading.card,
+  .mobile-home-dashboard,
+  .guide-card,
+  .demo-data-card,
+  .backup-security-panel,
+  .payment-action-center,
+  .account-review-card,
+  .shared-access-dashboard,
+  .recurring-dashboard,
+  .receipt-summary-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 16px;
+    border-radius: 22px;
+  }
+
+  .header-grid {
+    min-width: 0;
+    gap: 10px;
+  }
+
+  .header-actions {
+    min-width: 0;
+    justify-content: flex-end;
+    gap: 7px;
+  }
+
+  .header-actions .btn,
+  .header-profile-badge,
+  .header-more-trigger {
+    min-height: 38px;
+    padding-inline: 10px;
+  }
+
+  .section-title,
+  .section-title.compact,
+  .backup-security-header,
+  .home-dashboard-top,
+  .home-active-card,
+  .diagnostic-row,
+  .profile-dashboard-hero,
+  .shared-access-row,
+  .recurring-row,
+  .payment-action-row {
+    min-width: 0;
+  }
+
+  .section-title,
+  .section-title.compact,
+  .backup-security-header,
+  .profile-dashboard-hero {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .mode-choice-grid,
+  .method-grid,
+  .add-methods,
+  #addMethods,
+  .guided-choice-grid,
+  .template-grid,
+  .home-kpi-grid,
+  .home-primary-actions,
+  .home-premium-shortcuts,
+  .payment-overview-grid,
+  .receipt-summary-grid,
+  .diagnostic-grid,
+  .receipt-audit-panel,
+  .profile-money-grid,
+  .profile-dashboard-grid.two-columns,
+  .stats-detail-grid.two-columns.profile-dashboard-grid,
+  .shared-access-stats,
+  .shared-access-grid,
+  .recurring-dashboard-grid,
+  .account-review-grid,
+  .stats-detail-grid,
+  .profile-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .home-premium-shortcuts button,
+  .home-premium-shortcuts a,
+  .method-card,
+  .mode-choice-card,
+  .guided-choice {
+    width: 100%;
+    min-height: 60px;
+  }
+
+  .bulk-actions,
+  .account-actions,
+  .backup-actions,
+  .diagnostic-actions,
+  .demo-data-actions,
+  .receipt-review-toolbar,
+  .payment-action-toolbar,
+  .receipt-audit-actions,
+  .receipt-action-buttons,
+  .summary-actions,
+  .hero-actions,
+  .modal-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    align-items: stretch !important;
+  }
+
+  .bulk-actions .btn,
+  .account-actions .btn,
+  .backup-actions .btn,
+  .diagnostic-actions .btn,
+  .demo-data-actions .btn,
+  .receipt-review-toolbar .btn,
+  .payment-action-toolbar .btn,
+  .payment-action-toolbar select,
+  .receipt-audit-actions .btn,
+  .receipt-action-buttons .btn,
+  .summary-actions .btn,
+  .hero-actions .btn,
+  .modal-actions .btn {
+    width: 100%;
+  }
+
+  .people-list,
+  .products-list,
+  .summary-list,
+  .payment-action-list,
+  .history-list,
+  .recurring-list,
+  .shared-list,
+  .profile-debt-list,
+  .receipt-table-wrap,
+  .table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .mobile-bottom-nav {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    max-width: 640px;
+  }
+
+  .mobile-bottom-nav-button strong {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    width: min(100% - 12px, 1260px) !important;
+  }
+
+  .card,
+  .section-page-heading.card,
+  .mobile-home-dashboard,
+  .guide-card,
+  .demo-data-card,
+  .backup-security-panel,
+  .payment-action-center,
+  .account-review-card,
+  .shared-access-dashboard,
+  .recurring-dashboard,
+  .receipt-summary-card {
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .brand strong {
+    font-size: 1rem;
+  }
+
+  .header-actions .btn:not(#newBillButton),
+  .header-profile-badge {
+    display: none;
+  }
+
+  .mobile-screen-header {
+    border-radius: 18px;
+    padding: 10px 12px;
+  }
+
+  .mobile-screen-actions {
+    gap: 6px;
+  }
+
+  .mobile-screen-actions .btn {
+    padding-inline: 9px;
+  }
+
+  .mobile-bottom-nav {
+    left: 6px !important;
+    right: 6px !important;
+    gap: 3px !important;
+    padding: 6px !important;
+    border-radius: 22px !important;
+  }
+
+  .mobile-bottom-nav-button {
+    min-height: 52px;
+    border-radius: 16px;
+  }
+
+  .mobile-bottom-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 11px;
+  }
+
+  .mobile-bottom-nav-button strong {
+    font-size: 0.62rem !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .home-sync-pill,
+  .profile-dashboard-badge,
+  .security-status-pill,
+  .receipt-selection-summary {
+    width: 100%;
+    white-space: normal;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .mobile-bottom-nav-button strong {
+    font-size: 0.58rem !important;
+  }
+}
+
+[data-theme="dark"] .demo-data-card,
+[data-theme="dark"] .receipt-review-toolbar,
+[data-theme="dark"] .backup-security-panel {
+  background: color-mix(in srgb, var(--surface) 90%, var(--primary) 4%);
+}

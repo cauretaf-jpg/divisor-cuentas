@@ -1,0 +1,19 @@
+REVISION TECNICA - CUENTA CLARA V13.11.2
+
+Objetivo
+- Revision visual movil completa posterior a la correccion del menu comprimido.
+
+Cambios aplicados
+- Blindaje responsive global para tarjetas, botones, grillas y contenedores.
+- Navegacion lateral corregida para escritorio: una columna legible dentro del sidebar.
+- Navegacion en tablet corregida: grilla amplia de dos columnas cuando corresponda.
+- Navegacion movil inferior reforzada en cinco accesos principales.
+- Botones de acciones, OCR, pagos, respaldo y modales pasan a ancho completo en celular.
+- Grillas de Inicio, Pagos, Perfil, Respaldo, Recurrentes y Compartidas pasan a una columna en movil.
+- Se agrego proteccion contra desbordes horizontales y textos cortados.
+- Se reforzo consistencia visual en modo oscuro para tarjetas recientes.
+
+Alcance
+- No se modifico la logica de cuentas, OCR, pagos, recurrentes, compartidas ni perfil.
+- No requiere SQL nuevo.
+- No agrega dependencias nuevas.

@@ -1,6 +1,6 @@
-CUENTA CLARA V13.11 - PRUEBAS REALES Y EXPERIENCIA GUIADA
+CUENTA CLARA V13.11.2 - REVISION VISUAL MOVIL COMPLETA
 
-NUEVO EN V13.11
+NUEVO EN V13.11.2
 - Flujo de primer uso con progreso Paso 1 de 5.
 - Nueva tarjeta Modo demo en Inicio.
 - Datos demo para probar restaurante, streaming y hogar sin usar cuentas reales.
@@ -30,5 +30,5 @@ PUBLICACION SUGERIDA
 3. Exportar respaldo antes de subir.
 4. Ejecutar:
    git add .
-   git commit -m "Publica Cuenta Clara v13.11"
+   git commit -m "Publica Cuenta Clara v13.11.2"
    git push
