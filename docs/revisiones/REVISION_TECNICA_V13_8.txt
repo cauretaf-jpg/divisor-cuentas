@@ -1,0 +1,29 @@
+REVISION TECNICA - CUENTA CLARA V13.8
+
+Objetivo:
+Mejorar la experiencia de cuentas compartidas, permisos e invitados sin agregar SQL nuevo ni dependencias.
+
+Cambios aplicados:
+- Se actualizo la version visible a V13.8.
+- Se agrego un panel de acceso para la cuenta actual en Compartidas.
+- Se agrego resumen visual de rol, vinculados, manuales e invitaciones pendientes.
+- Se agrego seccion de participantes para diferenciar perfil propio, usuarios registrados, correos guardados y personas manuales.
+- Se agregaron chips de permisos para Dueño, Editor y Lector.
+- Se reforzo el modo solo lectura para participantes con rol Lector.
+- Se mejoraron textos visibles para evitar mensajes tecnicos al usuario comun.
+- Se mantuvo compatibilidad con la estructura anterior de shared_accounts y shared_account_members.
+
+Validaciones:
+- shared-utils.js: OK.
+- script.js: OK.
+- profile.js: OK.
+- index.html: sin IDs duplicados.
+- perfil.html: sin IDs duplicados.
+- privacidad.html: OK.
+- styles.css: llaves balanceadas.
+- Service worker actualizado a cuenta-clara-v13.8.
+
+Notas:
+- No se agrego SQL nuevo.
+- No se agregaron dependencias nuevas.
+- Los cambios son de UI, permisos visibles y control de experiencia.

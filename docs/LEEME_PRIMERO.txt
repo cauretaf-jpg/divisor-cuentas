@@ -1,30 +1,32 @@
-CUENTA CLARA V13.7 - RECURRENTES CON DEUDA ACUMULADA
+CUENTA CLARA V13.9 - DISENO PREMIUM Y EXPERIENCIA SIMPLE
 
-NUEVO EN V13.7
-- Cuentas recurrentes mas claras para hogar, streaming y gastos mensuales.
-- Boton Crear siguiente mes con tratamiento de deuda pendiente.
-- Opciones para deuda anterior:
-  1) sumar al nuevo mes;
-  2) dejar visible pero separada del total;
-  3) marcar pagada en el mes anterior;
-  4) ignorar esta vez.
-- Historial mensual conectado por carpeta recurrente.
-- Resumen de deuda acumulada por persona.
-- Mensajes de WhatsApp con deuda anterior, mes actual y total acumulado.
-- Plantillas recurrentes ampliadas para Streaming y Hogar.
+NUEVO EN V13.9
+- Inicio mas limpio y visual, con enfoque de panel financiero.
+- Accesos rapidos premium para Personas, Gastos, Resumen y Perfil.
+- Navegacion movil inferior mas simple: Inicio, Gastos, Resumen, Pagos y Perfil.
+- Menu superior con acceso directo a Mi perfil.
+- Comprobante premium con fecha visible, estado, total, personas, pagadas y pendiente.
+- Mensaje de WhatsApp del comprobante con fecha y estado de la cuenta.
+- Botones, tarjetas y estados con microinteracciones visuales suaves.
+- Modo Simple mas enfocado para no saturar a usuarios nuevos.
+- Ajustes responsive para mejorar pantallas pequenas.
 
 COMO PROBAR
 1. Abre index.html.
-2. Crea una cuenta tipo Streaming u Hogar.
-3. Agrega personas y gastos.
-4. Marca al menos una persona como pendiente.
-5. Activa la carpeta recurrente desde Hogar.
-6. Usa Crear siguiente mes.
-7. Prueba las opciones de deuda acumulada.
+2. Revisa Inicio en pantalla grande y celular.
+3. Presiona los accesos rapidos: Personas, Gastos, Resumen y Perfil.
+4. Crea una cuenta guiada.
+5. Agrega personas, pagador y gastos.
+6. Revisa el comprobante premium en Resumen.
+7. Copia y envia el comprobante por WhatsApp.
+8. Cambia entre modo Simple y Avanzado.
+9. Entra a Pagos y marca una persona como pagada.
+10. Revisa modo oscuro.
 
 IMPORTANTE
 - No requiere SQL nuevo.
 - No agrega dependencias nuevas.
+- Mantiene las funciones de v13.8.
 - Si el navegador conserva una version anterior, limpiar cache del sitio o abrir en ventana privada.
 
 PUBLICACION SUGERIDA
@@ -32,5 +34,5 @@ PUBLICACION SUGERIDA
 2. Probar localmente.
 3. Ejecutar:
    git add .
-   git commit -m "Publica Cuenta Clara v13.7"
+   git commit -m "Publica Cuenta Clara v13.9"
    git push

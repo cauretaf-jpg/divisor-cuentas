@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=13.7" rel="stylesheet"/>
+<link href="styles.css?v=13.9" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -31,6 +31,7 @@
 <details class="header-more-menu" id="headerMoreMenu">
 <summary class="btn btn-light header-more-trigger">Más opciones</summary>
 <div aria-label="Opciones secundarias" class="header-more-panel" id="headerMorePanel" role="menu">
+<a class="btn btn-light header-menu-item" href="perfil.html" role="menuitem">Mi perfil</a>
 <a class="btn btn-light header-menu-item" href="privacidad.html" role="menuitem">Privacidad</a>
 <button class="btn btn-light header-menu-item" id="installAppButton" type="button">Instalar App</button>
 <button class="btn btn-light header-menu-item" id="themeToggle" type="button">Modo oscuro</button>
@@ -114,6 +115,12 @@
 <button class="btn btn-primary" id="homeNewBillButton" type="button">Nueva cuenta guiada</button>
 <button class="btn btn-light" data-app-section="history" type="button">Ver historial</button>
 <button class="btn btn-light" data-app-section="shared" type="button">Compartidas</button>
+</div>
+<div class="home-premium-shortcuts" aria-label="Accesos rápidos premium">
+<button type="button" data-app-section="people"><span>1</span><strong>Personas</strong><small>Participantes y pagador</small></button>
+<button type="button" data-app-section="expenses"><span>2</span><strong>Gastos</strong><small>Boleta, productos o total</small></button>
+<button type="button" data-app-section="summary"><span>3</span><strong>Resumen</strong><small>Revisión antes de compartir</small></button>
+<a href="perfil.html"><span>★</span><strong>Perfil</strong><small>Dashboard financiero</small></a>
 </div>
 <div class="home-recent-block">
 <div class="home-recent-title"><strong>Últimas cuentas</strong><button class="btn btn-light btn-small" data-app-section="history" type="button">Ver todas</button></div>
@@ -582,9 +589,9 @@
 <section class="card receipt-summary-card" id="receiptSummaryCard">
 <div class="receipt-summary-header">
 <div>
-<p class="eyebrow">Comprobante</p>
+<p class="eyebrow">Comprobante premium</p>
 <h2>Resumen listo para compartir</h2>
-<p class="section-helper">Vista limpia para revisar la cuenta antes de copiar, enviar por WhatsApp o pasar a pagos.</p>
+<p class="section-helper">Vista limpia con total, fecha, estado y pendientes para copiar, enviar por WhatsApp o convertir en imagen.</p>
 </div>
 <span class="receipt-summary-state" id="receiptSummaryState">Pendiente</span>
 </div>
@@ -598,6 +605,7 @@
 <div><span>Personas</span><strong id="receiptPeopleOutput">0</strong></div>
 <div><span>Pagadas</span><strong id="receiptPaidPeopleOutput">0</strong></div>
 <div><span>Pendiente</span><strong id="receiptPendingOutput">$0</strong></div>
+<div><span>Fecha</span><strong id="receiptDateOutput">Hoy</strong></div>
 </div>
 <p class="receipt-next-step" id="receiptNextStepOutput">Agrega personas y gastos para generar un comprobante útil.</p>
 <div class="receipt-transfer-preview" id="receiptTransferPreviewList" aria-live="polite"></div>
@@ -859,10 +867,39 @@
 <button class="btn btn-light btn-small" id="refreshSharedAccountsButton" type="button">Actualizar</button>
 </div>
 <div class="shared-status" id="sharedAccountStatus"></div>
+<section class="shared-access-dashboard" id="sharedAccessDashboard" aria-live="polite"></section>
 <div class="shared-list" id="sharedInvitesList"></div>
 <div class="shared-list" id="sharedAccountsList"></div>
+<section class="shared-panel-block" aria-labelledby="sharedParticipantsTitle">
+<div class="shared-panel-heading">
+<div>
+<p class="eyebrow">Acceso</p>
+<h3 id="sharedParticipantsTitle">Participantes de la cuenta</h3>
+</div>
+<small>Identifica usuarios registrados, manuales y roles.</small>
+</div>
+<div class="shared-list shared-participant-map" id="sharedParticipantMapList"></div>
+</section>
+<section class="shared-panel-block" aria-labelledby="sharedMembersTitle">
+<div class="shared-panel-heading">
+<div>
+<p class="eyebrow">Permisos</p>
+<h3 id="sharedMembersTitle">Miembros e invitaciones</h3>
+</div>
+<small>Controla quién puede editar o solo revisar.</small>
+</div>
 <div class="shared-list shared-members-list" id="sharedMembersList"></div>
+</section>
+<section class="shared-panel-block" aria-labelledby="sharedActivityTitle">
+<div class="shared-panel-heading">
+<div>
+<p class="eyebrow">Actividad</p>
+<h3 id="sharedActivityTitle">Cambios recientes</h3>
+</div>
+<small>Registro local de acciones importantes.</small>
+</div>
 <div class="shared-list shared-activity-list" id="sharedActivityList"></div>
+</section>
 </details></section></section></main>
 <div class="mobile-action-bar" aria-hidden="true">
 <div>
@@ -874,11 +911,10 @@
 </div>
 <nav class="mobile-bottom-nav ad-protected-zone" aria-label="Acciones principales">
 <button class="mobile-bottom-nav-button" data-app-section="home" type="button"><span class="mobile-bottom-icon">⌂</span><strong>Inicio</strong></button>
-<button class="mobile-bottom-nav-button" data-app-section="people" type="button"><span class="mobile-bottom-icon">👥</span><strong>Personas</strong></button>
 <button class="mobile-bottom-nav-button" data-app-section="expenses" type="button"><span class="mobile-bottom-icon">＋</span><strong>Gastos</strong></button>
 <button class="mobile-bottom-nav-button" data-app-section="summary" type="button"><span class="mobile-bottom-icon">Σ</span><strong>Resumen</strong></button>
 <button class="mobile-bottom-nav-button" data-app-section="payments" type="button"><span class="mobile-bottom-icon">$</span><strong>Pagos</strong></button>
-<button class="mobile-bottom-nav-button" data-app-section="shared" type="button"><span class="mobile-bottom-icon">↔</span><strong>Compart.</strong></button>
+<a class="mobile-bottom-nav-button" href="perfil.html"><span class="mobile-bottom-icon">◎</span><strong>Perfil</strong></a>
 </nav>
 <div aria-labelledby="friendsPickerTitle" aria-modal="true" class="modal-backdrop hidden" id="friendsPickerModal" role="dialog">
 <section class="modal-card friends-picker-card">
@@ -1202,8 +1238,8 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="shared-utils.js?v=13.7"></script>
-<script src="supabase-config.js?v=13.7"></script>
-<script src="script.js?v=13.7"></script>
+<script src="shared-utils.js?v=13.9"></script>
+<script src="supabase-config.js?v=13.9"></script>
+<script src="script.js?v=13.9"></script>
 </body>
 </html>

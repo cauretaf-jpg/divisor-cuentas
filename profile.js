@@ -1,4 +1,4 @@
-console.info('Cuenta Clara Perfil V13.7 cargado');
+console.info('Cuenta Clara Perfil V13.9 cargado');
 
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 let cloudSyncErrorNotified = false;
@@ -1245,7 +1245,7 @@ async function renderFriendRequests() {
 
     if (error) {
       console.error(error);
-      const message = 'Ejecuta el archivo sql/02-supabase-social.sql para activar amigos entre usuarios.';
+      const message = 'La búsqueda de usuarios registrados todavía no está disponible en este momento.';
       renderSocialMessage(dom.incomingRequestsList, message);
       renderSocialMessage(dom.outgoingRequestsList, message);
       renderSocialMessage(dom.registeredFriendsList, message);

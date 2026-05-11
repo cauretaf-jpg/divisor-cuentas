@@ -1,10 +1,10 @@
 {
-  "version": "13.7",
-  "nombre": "Cuenta Clara v13.7 - recurrentes con deuda acumulada",
+  "version": "13.8",
+  "nombre": "Cuenta Clara v13.8 - cuentas compartidas y permisos",
   "validaciones": {
+    "shared_utils_js_sintaxis": "OK",
     "script_js_sintaxis": "OK",
     "profile_js_sintaxis": "OK",
-    "shared_utils_js_sintaxis": "OK",
     "ids_index_html": "OK",
     "ids_perfil_html": "OK",
     "ids_privacidad_html": "OK",
@@ -14,5 +14,5 @@
   },
   "sql_nuevo": false,
   "dependencias_nuevas": false,
-  "service_worker_cache": "cuenta-clara-v13.7"
+  "service_worker_cache": "cuenta-clara-v13.8"
 }

@@ -1,7 +1,7 @@
 REVISION TECNICA - CUENTA CLARA V13.7
 
 Objetivo
-- Fortalecer cuentas recurrentes con deuda acumulada, historial mensual y mensajes de cobro más claros.
+- Fortalecer cuentas recurrentes con deuda acumulada, historial mensual y mensajes de cobro mas claros.
 
 Cambios principales
 - Version actualizada a V13.7.

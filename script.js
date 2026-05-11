@@ -1,4 +1,4 @@
-console.info('Cuenta Clara V13.7 cargada');
+console.info('Cuenta Clara V13.9 cargada');
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 const AUTH_SESSION_KEY = 'cuenta-clara-auth-session';
 const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
@@ -210,6 +210,8 @@ const dom = {
   sharedInviteSearchInput: document.querySelector('#sharedInviteSearchInput'),
   sharedInviteRoleSelect: document.querySelector('#sharedInviteRoleSelect'),
   sharedAccountStatus: document.querySelector('#sharedAccountStatus'),
+  sharedAccessDashboard: document.querySelector('#sharedAccessDashboard'),
+  sharedParticipantMapList: document.querySelector('#sharedParticipantMapList'),
   sharedInvitesList: document.querySelector('#sharedInvitesList'),
   sharedAccountsList: document.querySelector('#sharedAccountsList'),
   sharedMembersList: document.querySelector('#sharedMembersList'),
@@ -313,6 +315,7 @@ const dom = {
   receiptPeopleOutput: document.querySelector('#receiptPeopleOutput'),
   receiptPaidPeopleOutput: document.querySelector('#receiptPaidPeopleOutput'),
   receiptPendingOutput: document.querySelector('#receiptPendingOutput'),
+  receiptDateOutput: document.querySelector('#receiptDateOutput'),
   receiptNextStepOutput: document.querySelector('#receiptNextStepOutput'),
   receiptTransferPreviewList: document.querySelector('#receiptTransferPreviewList'),
   copyReceiptSummaryButton: document.querySelector('#copyReceiptSummaryButton'),
@@ -6083,6 +6086,161 @@ function getSharedInviteHelpText(role) {
   return 'Te invitaron como Editor. Podrás modificar personas, gastos y pagos de esta cuenta.';
 }
 
+
+function getSharedPermissionBullets(role, isOwner = false) {
+  if (isOwner || role === 'owner') {
+    return ['Editar todo', 'Invitar personas', 'Cambiar roles', 'Cerrar o actualizar la cuenta'];
+  }
+  if (role === 'viewer') {
+    return ['Revisar montos', 'Copiar comprobante desde Resumen', 'Sin editar personas', 'Sin modificar pagos'];
+  }
+  return ['Agregar gastos', 'Editar participantes', 'Marcar pagos', 'Actualizar la cuenta'];
+}
+
+function getSharedParticipantType(person) {
+  if (personMatchesSelf(person)) {
+    return {
+      label: 'Tú',
+      className: 'self',
+      detail: 'Vinculado a tu perfil real',
+    };
+  }
+
+  if (String(person.userId || '').trim()) {
+    return {
+      label: 'Usuario registrado',
+      className: 'registered',
+      detail: 'Participante vinculado a una cuenta registrada',
+    };
+  }
+
+  if (normalizeEmail(person.email || '')) {
+    return {
+      label: 'Correo guardado',
+      className: 'email',
+      detail: 'Tiene correo, pero no está vinculado a usuario registrado',
+    };
+  }
+
+  return {
+    label: 'Manual',
+    className: 'manual',
+    detail: 'Persona escrita manualmente en esta cuenta',
+  };
+}
+
+function getSharedMemberForPerson(person, bill = getActiveBill()) {
+  if (!person?.userId || !bill?.sharedAccountId) return null;
+  return sharedMembersCache.find((member) => (
+    member.account_id === bill.sharedAccountId
+    && member.user_id === person.userId
+  )) || null;
+}
+
+function getActiveSharedAccessSummary() {
+  const bill = getActiveBill();
+  const isShared = Boolean(bill.sharedAccountId);
+  const isOwner = isShared && bill.sharedOwnerId === currentSession.userId;
+  const role = isShared ? (isOwner ? 'owner' : bill.sharedRole || 'editor') : 'private';
+  const members = isShared
+    ? sharedMembersCache.filter((member) => member.account_id === bill.sharedAccountId)
+    : [];
+  const accepted = members.filter((member) => member.status === 'accepted');
+  const pending = members.filter((member) => member.status === 'pending');
+  const rejected = members.filter((member) => member.status === 'rejected');
+  const linkedPeople = bill.people.filter((person) => String(person.userId || '').trim()).length;
+  const manualPeople = Math.max(0, bill.people.length - linkedPeople);
+
+  return {
+    bill,
+    isShared,
+    isOwner,
+    role,
+    members,
+    accepted,
+    pending,
+    rejected,
+    linkedPeople,
+    manualPeople,
+    readOnly: isActiveSharedReadOnly(),
+  };
+}
+
+function renderSharedAccessDashboard() {
+  if (!dom.sharedAccessDashboard) return;
+
+  const summary = getActiveSharedAccessSummary();
+  const roleLabel = summary.isShared
+    ? getSharedRoleLabel(summary.role, summary.isOwner)
+    : 'Privada';
+  const permissionItems = summary.isShared
+    ? getSharedPermissionBullets(summary.role, summary.isOwner)
+    : ['Solo tú puedes editarla', 'No tiene invitados', 'Puedes compartirla cuando quieras'];
+  const ownerText = summary.isShared
+    ? (summary.isOwner ? 'Eres dueño de esta cuenta.' : 'Estás participando como invitado registrado.')
+    : 'Esta cuenta todavía no está publicada como compartida.';
+
+  dom.sharedAccessDashboard.innerHTML = `
+    <div class="shared-access-card ${summary.readOnly ? 'is-readonly' : ''}">
+      <div class="shared-access-main">
+        <p class="eyebrow">Acceso de la cuenta actual</p>
+        <h3>${escapeHtml(roleLabel)}</h3>
+        <p>${escapeHtml(ownerText)}</p>
+      </div>
+      <div class="shared-access-stats">
+        <span><b>${summary.linkedPeople}</b><small>Vinculados</small></span>
+        <span><b>${summary.manualPeople}</b><small>Manuales</small></span>
+        <span><b>${summary.pending.length}</b><small>Pendientes</small></span>
+      </div>
+      <ul class="shared-permission-chips">
+        ${permissionItems.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}
+      </ul>
+    </div>
+  `;
+}
+
+function renderSharedParticipantMap() {
+  if (!dom.sharedParticipantMapList) return;
+
+  const summary = getActiveSharedAccessSummary();
+  const { bill } = summary;
+  dom.sharedParticipantMapList.innerHTML = '';
+
+  if (!bill.people.length) {
+    dom.sharedParticipantMapList.appendChild(emptyMessage('Agrega personas para revisar si son manuales, registradas o vinculadas a tu perfil.'));
+    return;
+  }
+
+  for (const person of bill.people) {
+    const type = getSharedParticipantType(person);
+    const member = getSharedMemberForPerson(person, bill);
+    const memberStatus = member ? getSharedStatusLabel(member.status) : '';
+    const memberRole = member ? getSharedRoleLabel(member.role) : '';
+    const canLinkSelf = !personMatchesSelf(person) && getPotentialSelfNameMatches(bill).some((candidate) => candidate.id === person.id);
+    const row = document.createElement('article');
+    row.className = `shared-row shared-participant-card participant-${type.className}`;
+    row.innerHTML = `
+      <div>
+        <strong>${escapeHtml(person.name)} <span class="person-source-badge ${type.className}">${escapeHtml(type.label)}</span></strong>
+        <small>${escapeHtml(type.detail)}${member ? ` · ${escapeHtml(memberRole)} · ${escapeHtml(memberStatus)}` : ''}</small>
+      </div>
+      <div class="shared-row-actions">
+        ${canLinkSelf ? '<button class="btn btn-light btn-small" type="button" data-action="link-self">Vincular como Yo</button>' : ''}
+        ${person.userId && !member && summary.isShared && summary.isOwner ? '<span class="shared-status-badge muted">Sin invitación</span>' : ''}
+      </div>
+    `;
+
+    row.querySelector('[data-action="link-self"]')?.addEventListener('click', () => {
+      updatePersonWithSelfProfile(person);
+      addBillActivity(`${person.name} fue vinculado al perfil del usuario actual.`, 'profile', bill);
+      persistAndRender();
+      showToast('Participante vinculado a tu perfil.');
+    });
+
+    dom.sharedParticipantMapList.appendChild(row);
+  }
+}
+
 function createSharedSectionTitle(text, count = null) {
   const title = document.createElement('strong');
   title.className = 'shared-list-title';
@@ -6240,6 +6398,8 @@ function renderSharedPanel() {
     dom.sharedAccountStatus.innerHTML = '<p class="helper-text compact-text">Inicia sesión para compartir cuentas.</p>';
     dom.sharedAccountsList.innerHTML = '';
     dom.sharedInvitesList.innerHTML = '';
+    if (dom.sharedAccessDashboard) dom.sharedAccessDashboard.innerHTML = '';
+    if (dom.sharedParticipantMapList) dom.sharedParticipantMapList.innerHTML = '';
     if (dom.sharedMembersList) dom.sharedMembersList.innerHTML = '';
     if (dom.sharedActivityList) dom.sharedActivityList.innerHTML = '';
     return;
@@ -6299,6 +6459,9 @@ function renderSharedPanel() {
     </div>
   `;
 
+  renderSharedAccessDashboard();
+  renderSharedParticipantMap();
+
   dom.sharedInvitesList.innerHTML = '';
 
   if (pending.length) {
@@ -6333,6 +6496,7 @@ function renderSharedPanel() {
       : 'No hay cuentas compartidas cargadas.';
     dom.sharedAccountsList.appendChild(empty);
     renderSharedMembersList();
+    renderSharedActivityList();
     return;
   }
 
@@ -6351,6 +6515,7 @@ function renderSharedPanel() {
   }
 
   renderSharedMembersList();
+  renderSharedActivityList();
 }
 
 function isMissingSharedSqlError(error) {
@@ -6560,7 +6725,7 @@ async function publishActiveBillAsShared() {
     showToast('Cuenta compartida actualizada.');
   } catch (error) {
     console.error(error);
-    showNotice('No se pudo compartir', error.message || 'Ejecuta sql/03-supabase-shared-accounts.sql y vuelve a intentar.');
+    showNotice('No se pudo compartir', 'La colaboración todavía no está disponible o la conexión falló. Intenta nuevamente más tarde.');
   }
 }
 
@@ -7543,12 +7708,13 @@ function renderPeople() {
 
   for (const person of bill.people) {
     const hasPhone = Boolean(normalizePhoneNumber(person.phone));
+    const participantType = getSharedParticipantType(person);
     const row = document.createElement('div');
-    row.className = 'person-row';
+    row.className = `person-row person-${participantType.className}`;
     row.innerHTML = `
       <div class="person-info">
-        <strong title="${escapeHtml(person.name)}">${escapeHtml(person.name)}${personMatchesSelf(person) ? ' <span class="self-person-badge">Yo</span>' : ''}</strong>
-        <small>${hasPhone ? escapeHtml(formatPhoneForDisplay(person.phone)) : 'Sin teléfono'}${Number(person.previousDebt || 0) > 0 ? ` · Arrastre ${formatCurrency(person.previousDebt)}` : ''}</small>
+        <strong title="${escapeHtml(person.name)}">${escapeHtml(person.name)} <span class="person-source-badge ${participantType.className}">${escapeHtml(participantType.label)}</span></strong>
+        <small>${hasPhone ? escapeHtml(formatPhoneForDisplay(person.phone)) : 'Sin teléfono'} · ${escapeHtml(participantType.detail)}${Number(person.previousDebt || 0) > 0 ? ` · Arrastre ${formatCurrency(person.previousDebt)}` : ''}</small>
       </div>
       <button class="icon-button whatsapp ${hasPhone ? '' : 'muted'}" type="button" aria-label="Enviar WhatsApp a ${escapeHtml(person.name)}">WA</button>
       <button class="icon-button edit" type="button" aria-label="Editar ${escapeHtml(person.name)}">✎</button>
@@ -8013,12 +8179,17 @@ function getReceiptSummaryText() {
   const bill = getActiveBill();
   const calculation = calculateBill(bill);
   const payer = bill.people.find((person) => person.id === bill.payerId);
+  const generatedAt = new Date().toLocaleDateString('es-CL');
+  const statusLabel = calculation.isPaid && bill.people.length > 0 ? 'Pagada' : 'Pendiente';
+
   const lines = [
     `*Comprobante Cuenta Clara*`,
     `Cuenta: *${bill.name || 'Cuenta sin nombre'}*`,
+    `Fecha: *${generatedAt}*`,
     bill.mode === 'home' ? `Mes: *${bill.homeMonth || getCurrentMonthValue()}*` : '',
     '',
     `Total: *${formatCurrency(calculation.grandTotal)}*`,
+    `Estado: *${statusLabel}*`,
     `Pagador principal: *${payer ? payer.name : 'Sin definir'}*`,
     `Personas: *${bill.people.length}*`,
     `Pagadas: *${calculation.paidPeople}/${calculation.totalPeople}*`,
@@ -8054,6 +8225,9 @@ function renderReceiptSummary() {
   dom.receiptPeopleOutput.textContent = String(bill.people.length);
   dom.receiptPaidPeopleOutput.textContent = `${calculation.paidPeople}/${calculation.totalPeople}`;
   dom.receiptPendingOutput.textContent = formatCurrency(calculation.pendingTotal);
+  if (dom.receiptDateOutput) {
+    dom.receiptDateOutput.textContent = new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'short' });
+  }
   dom.receiptSummaryState.textContent = calculation.isPaid && hasMinimumData ? 'Pagada' : 'Pendiente';
   dom.receiptSummaryState.classList.toggle('is-paid', calculation.isPaid && hasMinimumData);
   dom.receiptSummaryState.classList.toggle('is-pending', !calculation.isPaid || !hasMinimumData);
