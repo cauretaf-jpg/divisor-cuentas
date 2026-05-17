@@ -1,38 +1,31 @@
-CUENTA CLARA V13.14 - SOLICITUDES DE CUENTAS COMPARTIDAS
+CUENTA CLARA V13.16 - BUSCADOR DE AMIGOS Y WHATSAPP CONTROLADO
 
-NUEVO EN V13.14
+NUEVO EN V13.16
 
-1. Solicitudes reales entre amigos registrados
-   - Al agregar un amigo registrado desde Personas, la app lo agrega como participante vinculado.
-   - Si la sesión está iniciada, Cuenta Clara prepara la cuenta como compartida y envía una solicitud al amigo.
-   - El amigo puede aceptar o rechazar la solicitud desde Compartidas o desde Mi Perfil.
+1. Buscador al agregar amigos
+   - En Personas > Agregar desde amigos ahora existe un buscador.
+   - Permite filtrar por nombre, correo o teléfono.
+   - Muestra cuántos amigos están visibles y cuántos fueron seleccionados.
 
-2. Perfil conectado a cuentas compartidas
-   - En Mi Perfil > Amigos ahora aparecen:
-     - Solicitudes de cuentas.
-     - Cuentas compartidas aceptadas.
-   - Al aceptar una cuenta compartida, se guarda una copia local vinculada para que impacte el perfil financiero.
+2. Personas frecuentes ocultas
+   - La sección Personas frecuentes ya no queda abierta de entrada.
+   - Se abre con el botón Ver personas frecuentes.
+   - En estadísticas también queda colapsada para reducir carga visual.
 
-3. Participantes más claros
-   - La sección Compartidas distingue mejor:
-     - Tú.
-     - Usuario registrado.
-     - Persona manual.
-     - Invitación pendiente.
-     - Invitación aceptada.
-   - Si una persona registrada está en la cuenta pero todavía no fue invitada, aparece el botón Enviar solicitud.
+3. Notificaciones WhatsApp controladas
+   - En Pagos se agregó un bloque para activar recordatorios WhatsApp.
+   - La app puede preparar mensajes y abrir WhatsApp.
+   - WhatsApp siempre exige que el usuario confirme el envío.
+   - El envío automático real requeriría WhatsApp Business API.
 
-4. Vista móvil compacta
-   - Tarjetas de solicitudes más pequeñas.
-   - Botones más compactos pero tocables.
-   - Listas de cuentas compartidas más cómodas en celular.
-   - Menos saturación visual en Compartidas y Perfil.
+4. Ajuste móvil
+   - Buscador, listas de amigos y botones se ajustan mejor en celular.
+   - Las tarjetas quedan más compactas y cómodas.
 
 REQUISITOS
 
-- No requiere SQL nuevo si ya ejecutaste el script de cuentas compartidas usado en versiones anteriores.
-- Si nunca configuraste compartidas, ejecuta:
-  sql/03-supabase-shared-accounts.sql
+- No requiere SQL nuevo.
+- No agrega dependencias nuevas.
 
 VALIDACION
 
@@ -47,5 +40,5 @@ VALIDACION
 PUBLICACION SUGERIDA
 
 git add .
-git commit -m "Publica Cuenta Clara v13.14"
+git commit -m "Publica Cuenta Clara v13.16"
 git push

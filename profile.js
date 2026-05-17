@@ -1,4 +1,4 @@
-console.info('Cuenta Clara Perfil V13.14 cargado');
+console.info('Cuenta Clara Perfil V13.16 cargado');
 
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 let cloudSyncErrorNotified = false;
@@ -7,6 +7,7 @@ let state = null;
 let editingFriendId = null;
 let activeProfileSection = 'perfil';
 let activeStatsPanel = 'dashboard';
+const PROFILE_NOTIFICATION_SEEN_KEY_PREFIX = 'cuenta-clara-seen-notifications';
 
 const dom = {
   pageAvatar: document.querySelector('#pageAvatar'),
@@ -47,6 +48,13 @@ const dom = {
   sharedAccountRequestsList: document.querySelector('#sharedAccountRequestsList'),
   sharedAcceptedAccountsCount: document.querySelector('#sharedAcceptedAccountsCount'),
   sharedAcceptedAccountsList: document.querySelector('#sharedAcceptedAccountsList'),
+  profileFriendsTabBadge: document.querySelector('#profileFriendsTabBadge'),
+  profileNotificationCenter: document.querySelector('#profileNotificationCenter'),
+  profileNotificationTitle: document.querySelector('#profileNotificationTitle'),
+  profileNotificationText: document.querySelector('#profileNotificationText'),
+  profileNotificationCount: document.querySelector('#profileNotificationCount'),
+  profileNotificationList: document.querySelector('#profileNotificationList'),
+  profileNotificationMarkReadButton: document.querySelector('#profileNotificationMarkReadButton'),
   friendsList: document.querySelector('#friendsPageList'),
   statTotalBills: document.querySelector('#pageStatTotalBills'),
   statActiveBills: document.querySelector('#pageStatActiveBills'),
@@ -1265,6 +1273,125 @@ function renderSharedProfileMessage(node, text) {
 }
 
 
+function getProfileNotificationStorageKey() {
+  const userKey = currentUser?.id || currentUser?.email || 'guest';
+  return `${PROFILE_NOTIFICATION_SEEN_KEY_PREFIX}:${userKey}`;
+}
+
+function loadProfileSeenNotificationIds() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(getProfileNotificationStorageKey()) || '[]');
+    return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveProfileSeenNotificationIds(ids) {
+  try {
+    localStorage.setItem(getProfileNotificationStorageKey(), JSON.stringify([...ids].slice(-200)));
+  } catch {
+    // Las notificaciones siguen funcionando visualmente aunque no se pueda persistir el visto.
+  }
+}
+
+function markProfileNotificationSeen(notificationId, options = {}) {
+  if (!notificationId) return;
+  const seen = loadProfileSeenNotificationIds();
+  seen.add(String(notificationId));
+  saveProfileSeenNotificationIds(seen);
+  if (!options.silent) showToast('Solicitud marcada como vista.');
+}
+
+function markAllProfileNotificationsSeen() {
+  const seen = loadProfileSeenNotificationIds();
+  dom.profileNotificationList?.querySelectorAll('[data-notification-id]').forEach((row) => {
+    seen.add(row.dataset.notificationId);
+  });
+  saveProfileSeenNotificationIds(seen);
+  showToast('Solicitudes marcadas como vistas.');
+  renderProfileSharedAccounts();
+}
+
+function setProfileBadge(element, count) {
+  if (!element) return;
+  element.textContent = String(count);
+  element.classList.toggle('hidden', count <= 0);
+}
+
+function buildProfileSharedNotifications(pendingMemberships = [], accountById = new Map()) {
+  return pendingMemberships
+    .map((membership) => {
+      const account = accountById.get(membership.account_id);
+      if (!account) return null;
+      const bill = account.account_state || {};
+      const title = account.title || bill.name || 'Cuenta compartida';
+      const owner = account.ownerProfile?.nick || account.ownerProfile?.nombre || account.ownerProfile?.email || 'Usuario';
+      return {
+        id: `shared-invite:${membership.account_id}`,
+        accountId: membership.account_id,
+        title,
+        owner,
+        role: membership.role || 'viewer',
+        text: `${owner} te invitó a esta cuenta.`,
+      };
+    })
+    .filter(Boolean);
+}
+
+function renderProfileNotificationCenter(pendingMemberships = [], accountById = new Map()) {
+  const notifications = buildProfileSharedNotifications(pendingMemberships, accountById);
+  const seen = loadProfileSeenNotificationIds();
+  const unread = notifications.filter((item) => !seen.has(item.id));
+  const unreadCount = unread.length;
+
+  setProfileBadge(dom.profileFriendsTabBadge, unreadCount);
+
+  if (!dom.profileNotificationCenter || !dom.profileNotificationList) return;
+
+  dom.profileNotificationCenter.classList.toggle('hidden', notifications.length === 0);
+  if (dom.profileNotificationTitle) {
+    dom.profileNotificationTitle.textContent = unreadCount > 0
+      ? `${unreadCount} solicitud${unreadCount === 1 ? '' : 'es'} nueva${unreadCount === 1 ? '' : 's'}`
+      : `${notifications.length} solicitud${notifications.length === 1 ? '' : 'es'} pendiente${notifications.length === 1 ? '' : 's'}`;
+  }
+  if (dom.profileNotificationText) {
+    dom.profileNotificationText.textContent = 'Acepta para que aparezca en tu app, historial y perfil financiero.';
+  }
+  if (dom.profileNotificationCount) dom.profileNotificationCount.textContent = String(unreadCount || notifications.length);
+
+  dom.profileNotificationList.innerHTML = '';
+  if (!notifications.length) return;
+
+  for (const item of notifications) {
+    const row = document.createElement('div');
+    const isUnread = !seen.has(item.id);
+    row.className = `notification-row ${isUnread ? 'is-unread' : 'is-seen'}`;
+    row.dataset.notificationId = item.id;
+    row.innerHTML = `
+      <div class="notification-dot" aria-hidden="true"></div>
+      <div class="notification-body">
+        <strong>${escapeHtml(item.title)}</strong>
+        <span>${escapeHtml(item.text)}</span>
+        <small>${escapeHtml(getSharedRoleLabel(item.role))}</small>
+      </div>
+      <div class="notification-actions">
+        <button class="btn btn-primary btn-small" type="button" data-action="accept">Aceptar</button>
+        <button class="btn btn-light btn-small" type="button" data-action="reject">Rechazar</button>
+        ${isUnread ? '<button class="btn btn-light btn-small" type="button" data-action="seen">Visto</button>' : ''}
+      </div>
+    `;
+    row.querySelector('[data-action="accept"]')?.addEventListener('click', () => updateSharedAccountInviteStatus(item.accountId, 'accepted'));
+    row.querySelector('[data-action="reject"]')?.addEventListener('click', () => updateSharedAccountInviteStatus(item.accountId, 'rejected'));
+    row.querySelector('[data-action="seen"]')?.addEventListener('click', () => {
+      markProfileNotificationSeen(item.id);
+      renderProfileNotificationCenter(pendingMemberships, accountById);
+    });
+    dom.profileNotificationList.appendChild(row);
+  }
+}
+
+
 async function syncAcceptedSharedAccountToProfileState(accountId) {
   if (!currentUser || !accountId || !state) return;
 
@@ -1316,6 +1443,7 @@ async function syncAcceptedSharedAccountToProfileState(accountId) {
 async function updateSharedAccountInviteStatus(accountId, status) {
   if (!currentUser || !accountId) return;
 
+  const notificationId = `shared-invite:${accountId}`;
   const rpcName = status === 'accepted' ? 'accept_shared_invite_safe' : 'reject_shared_invite_safe';
   try {
     const { error } = await supabaseClient.rpc(rpcName, { p_account_id: accountId });
@@ -1332,6 +1460,8 @@ async function updateSharedAccountInviteStatus(accountId, status) {
         .eq('user_id', currentUser.id);
       if (fallbackError) throw fallbackError;
     }
+
+    markProfileNotificationSeen(notificationId, { silent: true });
 
     if (status === 'accepted') {
       await syncAcceptedSharedAccountToProfileState(accountId);
@@ -1428,6 +1558,8 @@ async function renderProfileSharedAccounts() {
     const pending = (memberships || []).filter((item) => item.status === 'pending' && accountById.has(item.account_id));
     const accepted = (memberships || []).filter((item) => item.status === 'accepted' && accountById.has(item.account_id));
 
+    renderProfileNotificationCenter(pending, accountById);
+
     dom.sharedAccountRequestsCount.textContent = pending.length;
     dom.sharedAcceptedAccountsCount.textContent = accepted.length;
     dom.sharedAccountRequestsList.innerHTML = '';
@@ -1452,6 +1584,7 @@ async function renderProfileSharedAccounts() {
     console.error(error);
     renderSharedProfileMessage(dom.sharedAccountRequestsList, 'No pude cargar solicitudes de cuentas en este momento.');
     renderSharedProfileMessage(dom.sharedAcceptedAccountsList, 'No pude cargar cuentas compartidas en este momento.');
+    renderProfileNotificationCenter([], new Map());
   }
 }
 
@@ -1621,6 +1754,8 @@ function render() {
     dom.title.textContent = 'Perfil no disponible';
     dom.subtitle.textContent = 'Inicia sesión desde Cuenta Clara para administrar tu perfil.';
     dom.pageAvatar.textContent = 'CC';
+    setProfileBadge(dom.profileFriendsTabBadge, 0);
+    dom.profileNotificationCenter?.classList.add('hidden');
     return;
   }
 
@@ -1800,6 +1935,7 @@ dom.userSearchInput.addEventListener('keydown', (event) => {
   }
 });
 dom.cancelFriendEdit.addEventListener('click', resetFriendForm);
+dom.profileNotificationMarkReadButton?.addEventListener('click', markAllProfileNotificationsSeen);
 
 supabaseClient.auth.onAuthStateChange((event, session) => {
   if (event === 'SIGNED_OUT') {

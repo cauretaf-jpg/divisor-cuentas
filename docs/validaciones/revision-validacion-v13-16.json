@@ -1,0 +1,23 @@
+{
+  "version": "13.16",
+  "name": "Centro de notificaciones interno",
+  "requiresSql": false,
+  "addsDependencies": false,
+  "pushSystemNotifications": false,
+  "checks": {
+    "scriptJsSyntax": "OK",
+    "profileJsSyntax": "OK",
+    "sharedUtilsSyntax": "OK",
+    "indexDuplicateIds": "OK",
+    "perfilDuplicateIds": "OK",
+    "privacidadDuplicateIds": "OK",
+    "cssBalancedBraces": "OK",
+    "serviceWorkerCache": "cuenta-clara-v13.16"
+  },
+  "notes": [
+    {
+      "type": "scope",
+      "message": "Notificaciones internas: visibles cuando el usuario abre Cuenta Clara. No son push del sistema todavía."
+    }
+  ]
+}

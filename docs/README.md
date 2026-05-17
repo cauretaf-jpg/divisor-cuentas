@@ -1,28 +1,27 @@
-# Cuenta Clara V13.14
+# Cuenta Clara V13.16
 
-Versión enfocada en **solicitudes de cuentas compartidas entre amigos registrados** y vista móvil más compacta.
+Versión enfocada en mejorar el uso real cuando hay muchos amigos, reducir ruido visual y preparar recordatorios por WhatsApp de manera controlada.
 
-## Nuevo en V13.14
+## Nuevo en V13.16
 
-- Al agregar un amigo registrado desde Personas, la app puede enviarle una solicitud real de cuenta compartida.
-- El amigo invitado puede aceptar o rechazar desde **Compartidas** o desde **Mi Perfil > Amigos**.
-- Al aceptar, la cuenta queda visible como compartida y se guarda localmente vinculada para impactar el perfil financiero.
-- La sección Compartidas muestra mejor participantes manuales, usuarios registrados, pendientes y aceptados.
-- Se agregó botón **Enviar solicitud** para participantes registrados que aún no tienen invitación.
-- Se agregaron bloques en Perfil:
-  - Solicitudes de cuentas.
-  - Cuentas compartidas aceptadas.
-- Vista móvil compacta para solicitudes, tarjetas, botones y listas de compartidas.
+- Buscador en **Agregar personas desde amigos**.
+- Filtro por nombre, correo o teléfono.
+- Contador de amigos visibles y seleccionados.
+- **Personas frecuentes** queda oculto por defecto y se abre solo con botón.
+- En estadísticas, **Personas frecuentes** queda colapsado para reducir lectura.
+- Nueva sección de **Notificaciones WhatsApp** en Pagos.
+- Activación manual de recordatorios WhatsApp.
+- Botón para preparar pendientes por WhatsApp.
+- Mensaje claro: WhatsApp siempre requiere confirmación del usuario; la app no envía mensajes automáticamente.
+- Ajustes móviles compactos para buscador, tarjetas y botones.
+
+## Importante sobre WhatsApp
+
+Desde una app web normal, Cuenta Clara puede preparar mensajes y abrir WhatsApp, pero no puede enviarlos automáticamente sin confirmación. El envío automático real requeriría integración backend con WhatsApp Business API.
 
 ## Base de datos
 
-No requiere SQL nuevo si ya están configuradas las tablas de compartidas.
-
-Si nunca se configuró esta parte, ejecutar:
-
-```txt
-sql/03-supabase-shared-accounts.sql
-```
+No requiere SQL nuevo.
 
 ## Validación
 
@@ -33,7 +32,7 @@ sql/03-supabase-shared-accounts.sql
 - `perfil.html`: sin IDs duplicados.
 - `privacidad.html`: sin IDs duplicados.
 - `styles.css`: llaves balanceadas.
-- Service worker: `cuenta-clara-v13.14`.
+- Service worker: `cuenta-clara-v13.16`.
 
 ## Instalación
 

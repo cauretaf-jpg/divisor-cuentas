@@ -1,0 +1,29 @@
+REVISION TECNICA - CUENTA CLARA V13.16
+
+Objetivo
+- Agregar un centro de notificaciones interno para solicitudes de cuentas compartidas.
+- Mantener el alcance acotado: sin push real del sistema, sin SQL nuevo y sin dependencias nuevas.
+
+Cambios implementados
+1. Badge de solicitudes nuevas en la cabecera de la app.
+2. Badge compacto en la navegación móvil inferior, asociado a Inicio.
+3. Tarjeta de solicitudes en Inicio, visible solo cuando existen invitaciones pendientes.
+4. Resumen de solicitudes en Compartidas, con acciones Aceptar, Rechazar y Marcar visto.
+5. Centro de notificaciones en Mi Perfil > Amigos.
+6. Badge en la pestaña Amigos del perfil.
+7. Estado visto/no visto guardado localmente por usuario.
+8. Al aceptar o rechazar una solicitud, se marca como vista.
+9. La app respeta enlaces directos como index.html#shared para abrir Compartidas desde Perfil.
+10. Ajustes móviles compactos para tarjetas, botones y listas de solicitudes.
+
+Alcance
+- Esta versión implementa notificaciones internas dentro de Cuenta Clara.
+- No envía notificaciones push reales cuando la app está cerrada. Para eso se requiere una fase posterior con backend/función de envío push y suscripciones por dispositivo.
+
+Validaciones
+- script.js validado con node --check.
+- profile.js validado con node --check.
+- shared-utils.js validado con node --check.
+- HTML revisado sin IDs duplicados.
+- CSS revisado con llaves balanceadas.
+- Service worker actualizado a cuenta-clara-v13.16.

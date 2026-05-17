@@ -10,7 +10,7 @@
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=13.14" rel="stylesheet"/>
+<link href="styles.css?v=13.16" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -27,6 +27,7 @@
 <div class="header-actions">
 <button class="btn btn-light" id="authButton" type="button">Ingresar</button>
 <button class="auth-badge header-profile-badge" id="authStatusBadge" type="button">Invitado</button>
+<button class="btn btn-light notification-header-button hidden" id="notificationCenterButton" type="button">Solicitudes <span class="notification-badge hidden" id="notificationHeaderBadge">0</span></button>
 <button class="btn btn-primary" id="newBillButton" type="button">Nueva cuenta</button>
 <details class="header-more-menu" id="headerMoreMenu">
 <summary class="btn btn-light header-more-trigger">Más opciones</summary>
@@ -106,6 +107,21 @@
 <button class="btn btn-primary btn-small" id="homeActionOpenPaymentsButton" type="button">Ver pagos</button>
 <button class="btn btn-light btn-small" data-app-section="summary" type="button">Revisar cuenta</button>
 </div>
+</section>
+<section aria-live="polite" class="home-notification-panel hidden" id="homeNotificationPanel">
+  <div class="home-notification-head">
+    <div>
+      <span class="home-action-kicker">Solicitudes</span>
+      <strong id="homeNotificationTitle">Sin solicitudes nuevas</strong>
+      <small id="homeNotificationText">Las invitaciones de amigos aparecerán aquí.</small>
+    </div>
+    <span class="notification-pill" id="homeNotificationBadge">0</span>
+  </div>
+  <div class="notification-list compact" id="homeNotificationList"></div>
+  <div class="home-notification-actions">
+    <button class="btn btn-primary btn-small" id="homeNotificationOpenButton" type="button">Ver solicitudes</button>
+    <button class="btn btn-light btn-small" id="homeNotificationMarkReadButton" type="button">Marcar vistas</button>
+  </div>
 </section>
 
 <div class="home-primary-actions"><button class="btn btn-primary" id="homeNewBillButton" type="button">Nueva cuenta</button><button class="btn btn-light" data-app-section="expenses" type="button">Agregar gasto</button><button class="btn btn-light" data-app-section="tools" type="button">Herramientas</button></div>
@@ -307,6 +323,7 @@
 </div>
 <button class="btn btn-primary btn-small" id="addMePersonButton" type="button">+ Yo</button>
 </div>
+<button class="btn btn-light btn-small frequent-people-toggle hidden" id="toggleFrequentPeopleButton" type="button" aria-expanded="false">Ver personas frecuentes</button>
 <div class="frequent-people-panel hidden" id="frequentPeoplePanel">
 <div class="frequent-people-header">
 <strong>Personas frecuentes</strong>
@@ -691,6 +708,20 @@
 <button class="btn btn-light btn-small" id="clearPaymentDueDateButton" type="button">Quitar</button>
 </div>
 </div>
+<div class="whatsapp-notification-panel" id="whatsappNotificationPanel">
+<div>
+<span>Notificaciones WhatsApp</span>
+<strong id="whatsappNotificationStatusOutput">Desactivadas</strong>
+<small id="whatsappNotificationHelpOutput">Puedes preparar recordatorios por WhatsApp. El envío automático requiere confirmación desde WhatsApp.</small>
+</div>
+<div class="whatsapp-notification-actions">
+<label class="compact-switch">
+<input id="whatsappNotificationsToggle" type="checkbox"/>
+<span>Activar</span>
+</label>
+<button class="btn btn-light btn-small" id="prepareWhatsappNotificationsButton" type="button">Preparar pendientes</button>
+</div>
+</div>
 <div class="profile-payer-summary hidden" id="profilePayerSummary">
 <div class="profile-payer-heading">
 <div>
@@ -889,7 +920,14 @@
 </div>
 <div class="recurring-month-history" id="recurringMonthHistoryList"></div>
 </section>
-</section></section><section class="app-section" data-app-section-panel="shared" id="appSection-shared"><section class="section-page-heading card"><div><p class="eyebrow">Colaboración</p><h2>Compartidas</h2><p class="section-helper">Solicitudes, roles y permisos entre amigos registrados.</p></div></section><details class="card sidebar-shared-card" id="sharedSidebarPanel" open="">
+</section></section><section class="app-section" data-app-section-panel="shared" id="appSection-shared"><section class="section-page-heading card"><div><p class="eyebrow">Colaboración</p><h2>Compartidas</h2><p class="section-helper">Solicitudes, roles y permisos entre amigos registrados.</p></div></section><section aria-live="polite" class="card shared-notification-summary hidden" id="sharedNotificationSummary">
+<div>
+<p class="eyebrow">Solicitudes nuevas</p>
+<h3 id="sharedNotificationTitle">Sin solicitudes pendientes</h3>
+<p class="section-helper" id="sharedNotificationText">Cuando un amigo te invite a una cuenta, aparecerá aquí.</p>
+</div>
+<div class="notification-list" id="sharedNotificationList"></div>
+</section><details class="card sidebar-shared-card" id="sharedSidebarPanel" open="">
 <summary class="sidebar-details-summary">
 <div>
 <p class="eyebrow">Colaboración</p>
@@ -954,7 +992,7 @@
 <button class="btn btn-primary btn-small" id="mobileShareButton" type="button">Compartir</button>
 </div>
 <nav aria-label="Acciones principales" class="mobile-bottom-nav ad-protected-zone">
-<button class="mobile-bottom-nav-button" data-app-section="home" type="button"><span class="mobile-bottom-icon">⌂</span><strong>Inicio</strong></button>
+<button class="mobile-bottom-nav-button" data-app-section="home" type="button"><span class="mobile-bottom-icon">⌂</span><strong>Inicio</strong><span class="mobile-nav-badge hidden" id="mobileNotificationBadge">0</span></button>
 <button class="mobile-bottom-nav-button" data-app-section="expenses" type="button"><span class="mobile-bottom-icon">＋</span><strong>Gastos</strong></button>
 <button class="mobile-bottom-nav-button" data-app-section="summary" type="button"><span class="mobile-bottom-icon">Σ</span><strong>Resumen</strong></button>
 <button class="mobile-bottom-nav-button" data-app-section="payments" type="button"><span class="mobile-bottom-icon">$</span><strong>Pagos</strong></button>
@@ -969,9 +1007,14 @@
 </div>
 <button aria-label="Cerrar" class="icon-button" id="closeFriendsPickerButton" type="button">×</button>
 </div>
-<p class="helper-text">
-        Selecciona amigos. Si son usuarios registrados, Cuenta Clara les enviará una solicitud para aceptar la cuenta y verla en su perfil.
+<p class="helper-text compact-text">
+        Busca y selecciona amigos. Si son usuarios registrados, recibirán una solicitud para aceptar la cuenta.
       </p>
+<div class="friends-picker-search">
+<input autocomplete="off" id="friendsPickerSearchInput" placeholder="Buscar por nombre, correo o teléfono" type="search"/>
+<button class="btn btn-light btn-small" id="clearFriendsPickerSearchButton" type="button">Limpiar</button>
+</div>
+<div class="friends-picker-count" id="friendsPickerCountOutput">0 amigos disponibles</div>
 <div class="friends-picker-list" id="friendsPickerList"></div>
 <div class="auth-actions-row">
 <a class="btn btn-light" href="perfil.html">Administrar amigos</a>
@@ -1134,10 +1177,10 @@
 <strong>Categorías más usadas</strong>
 <div class="mini-ranking" id="statTopCategories"></div>
 </div>
-<div class="stats-box">
-<strong>Personas frecuentes</strong>
+<details class="stats-box stats-collapsible" id="topPeopleStatsDetails">
+<summary><strong>Personas frecuentes</strong><span>Ver</span></summary>
 <div class="mini-ranking" id="statTopPeople"></div>
-</div>
+</details>
 <div class="stats-box">
 <strong>Pendientes por persona</strong>
 <div class="mini-ranking actionable-list" id="statPendingPeople"></div>
@@ -1288,8 +1331,8 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="shared-utils.js?v=13.14"></script>
-<script src="supabase-config.js?v=13.14"></script>
-<script src="script.js?v=13.14"></script>
+<script src="shared-utils.js?v=13.16"></script>
+<script src="supabase-config.js?v=13.16"></script>
+<script src="script.js?v=13.16"></script>
 </body>
 </html>

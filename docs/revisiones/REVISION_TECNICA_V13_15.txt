@@ -1,0 +1,23 @@
+REVISION TECNICA - CUENTA CLARA V13.15
+
+Objetivo:
+Reducir fricción al agregar amigos, ocultar información secundaria y preparar recordatorios WhatsApp de forma segura.
+
+Cambios:
+1. Se agregó buscador en el modal Agregar personas desde amigos.
+2. Se agregó contador de amigos visibles y seleccionados.
+3. Personas frecuentes en Personas queda colapsado por defecto.
+4. Personas frecuentes en estadísticas queda dentro de un bloque desplegable.
+5. Se agregó appSettings para guardar activación de recordatorios WhatsApp.
+6. Se agregó panel de Notificaciones WhatsApp en Pagos.
+7. Se agregó preparación de recordatorios pendientes por WhatsApp.
+8. Se documentó la limitación: desde navegador no se puede enviar automáticamente sin confirmación.
+9. Se actualizó service worker a cuenta-clara-v13.15.
+10. No requiere SQL nuevo.
+
+Validaciones:
+- script.js: OK.
+- profile.js: OK.
+- shared-utils.js: OK.
+- HTML sin IDs duplicados.
+- CSS con llaves balanceadas.

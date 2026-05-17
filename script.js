@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.14 cargada');
-const APP_VERSION = '13.14';
+console.info('Cuenta Clara V13.16 cargada');
+const APP_VERSION = '13.16';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -8,6 +8,7 @@ const EXPERIENCE_MODE_KEY = 'cuenta-clara-experience-mode';
 const APP_SECTION_KEY = 'cuenta-clara-active-section';
 const ONBOARDING_DISMISSED_KEY = 'cuenta-clara-onboarding-dismissed';
 const DEMO_BILL_IDS_KEY = 'cuenta-clara-demo-bill-ids';
+const NOTIFICATION_SEEN_KEY_PREFIX = 'cuenta-clara-seen-notifications';
 let activeStorageKey = GUEST_STORAGE_KEY;
 let currentSession = { mode: 'guest', email: '', name: '', userId: '' };
 let cloudSaveTimer = null;
@@ -142,6 +143,20 @@ const dom = {
   homeActionAmountOutput: document.querySelector('#homeActionAmountOutput'),
   homeActionList: document.querySelector('#homeActionList'),
   homeActionOpenPaymentsButton: document.querySelector('#homeActionOpenPaymentsButton'),
+  notificationCenterButton: document.querySelector('#notificationCenterButton'),
+  notificationHeaderBadge: document.querySelector('#notificationHeaderBadge'),
+  homeNotificationPanel: document.querySelector('#homeNotificationPanel'),
+  homeNotificationTitle: document.querySelector('#homeNotificationTitle'),
+  homeNotificationText: document.querySelector('#homeNotificationText'),
+  homeNotificationBadge: document.querySelector('#homeNotificationBadge'),
+  homeNotificationList: document.querySelector('#homeNotificationList'),
+  homeNotificationOpenButton: document.querySelector('#homeNotificationOpenButton'),
+  homeNotificationMarkReadButton: document.querySelector('#homeNotificationMarkReadButton'),
+  sharedNotificationSummary: document.querySelector('#sharedNotificationSummary'),
+  sharedNotificationTitle: document.querySelector('#sharedNotificationTitle'),
+  sharedNotificationText: document.querySelector('#sharedNotificationText'),
+  sharedNotificationList: document.querySelector('#sharedNotificationList'),
+  mobileNotificationBadge: document.querySelector('#mobileNotificationBadge'),
   guidedFlowPanel: document.querySelector('#guidedFlowPanel'),
   guidedFlowStatus: document.querySelector('#guidedFlowStatus'),
   guidedFlowStatusText: document.querySelector('#guidedFlowStatusText'),
@@ -192,11 +207,15 @@ const dom = {
   addMePersonQuickButton: document.querySelector('#addMePersonQuickButton'),
   frequentPeoplePanel: document.querySelector('#frequentPeoplePanel'),
   frequentPeopleChips: document.querySelector('#frequentPeopleChips'),
+  toggleFrequentPeopleButton: document.querySelector('#toggleFrequentPeopleButton'),
   markAllPaidButton: document.querySelector('#markAllPaidButton'),
   markAllPendingButton: document.querySelector('#markAllPendingButton'),
   openFriendsPickerButton: document.querySelector('#openFriendsPickerButton'),
   friendsPickerModal: document.querySelector('#friendsPickerModal'),
   closeFriendsPickerButton: document.querySelector('#closeFriendsPickerButton'),
+  friendsPickerSearchInput: document.querySelector('#friendsPickerSearchInput'),
+  clearFriendsPickerSearchButton: document.querySelector('#clearFriendsPickerSearchButton'),
+  friendsPickerCountOutput: document.querySelector('#friendsPickerCountOutput'),
   friendsPickerList: document.querySelector('#friendsPickerList'),
   addSelectedFriendsButton: document.querySelector('#addSelectedFriendsButton'),
 
@@ -375,6 +394,10 @@ const dom = {
   paymentDueDateInput: document.querySelector('#paymentDueDateInput'),
   setPaymentDueDateButton: document.querySelector('#setPaymentDueDateButton'),
   clearPaymentDueDateButton: document.querySelector('#clearPaymentDueDateButton'),
+  whatsappNotificationsToggle: document.querySelector('#whatsappNotificationsToggle'),
+  whatsappNotificationStatusOutput: document.querySelector('#whatsappNotificationStatusOutput'),
+  whatsappNotificationHelpOutput: document.querySelector('#whatsappNotificationHelpOutput'),
+  prepareWhatsappNotificationsButton: document.querySelector('#prepareWhatsappNotificationsButton'),
   transferList: document.querySelector('#transferList'),
   transferCard: document.querySelector('#transferCard'),
 
@@ -463,6 +486,7 @@ let state = {
   activeBillId: null,
   quickProducts: [],
   profile: {},
+  appSettings: {},
 };
 
 let editingProductId = null;
@@ -471,6 +495,7 @@ let receiptDetectedItems = [];
 let receiptDetectedMeta = { receiptTotal: 0, tip: 0, grandTotal: 0, hasLineTotalColumns: false };
 let receiptMismatchAccepted = false;
 let friendsPickerItems = [];
+let frequentPeopleExpanded = false;
 let toastTimer = null;
 let noticeTimer = null;
 let deferredInstallPrompt = null;
@@ -486,6 +511,14 @@ function nowIso() {
 
 function formatCurrency(value) {
   return window.CuentaClaraUtils.formatCurrency(value);
+}
+
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
 }
 
 function formatDate(iso) {
@@ -3561,6 +3594,13 @@ function normalizeRecurringGroups(input = []) {
     .filter((group) => group.name);
 }
 
+function normalizeAppSettings(input = {}) {
+  return {
+    whatsappNotificationsEnabled: Boolean(input?.whatsappNotificationsEnabled),
+    whatsappNotificationsActivatedAt: input?.whatsappNotificationsActivatedAt || '',
+  };
+}
+
 function createStatePayload(bills, activeBillId, input = {}) {
   return {
     bills,
@@ -3569,6 +3609,7 @@ function createStatePayload(bills, activeBillId, input = {}) {
     profile: makeDefaultProfile(input?.profile || {}),
     friends: normalizeFriends(input?.friends || []),
     recurringGroups: normalizeRecurringGroups(input?.recurringGroups || []),
+    appSettings: normalizeAppSettings(input?.appSettings || {}),
   };
 }
 
@@ -4231,6 +4272,11 @@ function normalizeAppSection(section) {
 }
 
 function getStoredAppSection() {
+  const hashSection = String(location.hash || '').replace('#', '').trim();
+  if (hashSection) {
+    return normalizeAppSection(hashSection);
+  }
+
   try {
     return normalizeAppSection(localStorage.getItem(APP_SECTION_KEY));
   } catch {
@@ -4324,6 +4370,13 @@ function revealSectionForElement(element) {
 function initAppSections() {
   setAppSection(getStoredAppSection(), { scroll: false, instant: true });
 }
+
+window.addEventListener('hashchange', () => {
+  const hashSection = String(location.hash || '').replace('#', '').trim();
+  if (hashSection) {
+    setAppSection(hashSection, { instant: true });
+  }
+});
 
 function scrollToGuideTarget(element) {
   if (!element) return;
@@ -6871,6 +6924,7 @@ function renderSharedPanel() {
     if (dom.sharedParticipantMapList) dom.sharedParticipantMapList.innerHTML = '';
     if (dom.sharedMembersList) dom.sharedMembersList.innerHTML = '';
     if (dom.sharedActivityList) dom.sharedActivityList.innerHTML = '';
+    renderNotificationCenter();
     return;
   }
 
@@ -6966,6 +7020,7 @@ function renderSharedPanel() {
     dom.sharedAccountsList.appendChild(empty);
     renderSharedMembersList();
     renderSharedActivityList();
+    renderNotificationCenter();
     return;
   }
 
@@ -6985,6 +7040,211 @@ function renderSharedPanel() {
 
   renderSharedMembersList();
   renderSharedActivityList();
+  renderNotificationCenter();
+}
+
+
+function getNotificationStorageKey() {
+  const userKey = currentSession.userId || currentSession.email || 'guest';
+  return `${NOTIFICATION_SEEN_KEY_PREFIX}:${userKey}`;
+}
+
+function loadSeenNotificationIds() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(getNotificationStorageKey()) || '[]');
+    return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveSeenNotificationIds(ids) {
+  try {
+    localStorage.setItem(getNotificationStorageKey(), JSON.stringify([...ids].slice(-200)));
+  } catch {
+    // Si localStorage no está disponible, las notificaciones siguen visibles durante la sesión.
+  }
+}
+
+function getSharedInviteNotification(invite = {}) {
+  const accountId = invite.accountId || invite.account_id || invite.id || '';
+  const title = invite.title || invite.account_state?.name || 'Cuenta compartida';
+  return {
+    id: `shared-invite:${accountId}`,
+    type: 'shared-invite',
+    accountId,
+    title,
+    role: invite.role || 'viewer',
+    status: invite.status || 'pending',
+    text: `Tienes una solicitud para ver ${title}.`,
+    actionLabel: 'Revisar',
+  };
+}
+
+function getInternalNotifications() {
+  if (currentSession.mode !== 'user') return [];
+  return sharedInvitesCache
+    .filter((invite) => invite.status === 'pending' && invite.accountId)
+    .map(getSharedInviteNotification);
+}
+
+function getUnreadInternalNotifications() {
+  const seen = loadSeenNotificationIds();
+  return getInternalNotifications().filter((item) => !seen.has(item.id));
+}
+
+function markNotificationSeen(notificationId) {
+  if (!notificationId) return;
+  const seen = loadSeenNotificationIds();
+  seen.add(String(notificationId));
+  saveSeenNotificationIds(seen);
+  renderNotificationCenter();
+}
+
+function markAllNotificationsSeen() {
+  const seen = loadSeenNotificationIds();
+  for (const item of getInternalNotifications()) seen.add(item.id);
+  saveSeenNotificationIds(seen);
+  renderNotificationCenter();
+  showToast('Solicitudes marcadas como vistas.');
+}
+
+function setNotificationBadge(element, count) {
+  if (!element) return;
+  element.textContent = String(count);
+  element.classList.toggle('hidden', count <= 0);
+  element.setAttribute('aria-label', count > 0 ? `${count} solicitud${count === 1 ? '' : 'es'} nueva${count === 1 ? '' : 's'}` : 'Sin solicitudes nuevas');
+}
+
+function openNotificationCenter() {
+  setAppSection('shared');
+  setTimeout(() => {
+    dom.sharedNotificationSummary?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 80);
+}
+
+function createNotificationRow(notification, options = {}) {
+  const seen = loadSeenNotificationIds();
+  const unread = !seen.has(notification.id);
+  const row = document.createElement('div');
+  row.className = `notification-row ${unread ? 'is-unread' : 'is-seen'}`;
+  row.innerHTML = `
+    <div class="notification-dot" aria-hidden="true"></div>
+    <div class="notification-body">
+      <strong>${escapeHtml(notification.title)}</strong>
+      <span>${escapeHtml(notification.text || 'Solicitud pendiente.')}</span>
+      <small>${escapeHtml(getSharedInviteHelpText(notification.role))}</small>
+    </div>
+    <div class="notification-actions"></div>
+  `;
+
+  const actions = row.querySelector('.notification-actions');
+  const sourceInvite = sharedInvitesCache.find((invite) => invite.accountId === notification.accountId) || notification;
+
+  if (options.compact) {
+    const open = document.createElement('button');
+    open.className = 'btn btn-primary btn-small';
+    open.type = 'button';
+    open.textContent = 'Ver';
+    open.addEventListener('click', () => {
+      markNotificationSeen(notification.id);
+      openNotificationCenter();
+    });
+    actions.appendChild(open);
+    return row;
+  }
+
+  const accept = document.createElement('button');
+  accept.className = 'btn btn-primary btn-small';
+  accept.type = 'button';
+  accept.textContent = 'Aceptar';
+  accept.addEventListener('click', () => {
+    markNotificationSeen(notification.id);
+    acceptSharedInvite(sourceInvite);
+  });
+  actions.appendChild(accept);
+
+  const reject = document.createElement('button');
+  reject.className = 'btn btn-light btn-small';
+  reject.type = 'button';
+  reject.textContent = 'Rechazar';
+  reject.addEventListener('click', () => {
+    markNotificationSeen(notification.id);
+    rejectSharedInvite(sourceInvite);
+  });
+  actions.appendChild(reject);
+
+  if (unread) {
+    const mark = document.createElement('button');
+    mark.className = 'btn btn-light btn-small';
+    mark.type = 'button';
+    mark.textContent = 'Visto';
+    mark.addEventListener('click', () => markNotificationSeen(notification.id));
+    actions.appendChild(mark);
+  }
+
+  return row;
+}
+
+function renderNotificationList(target, notifications, options = {}) {
+  if (!target) return;
+  target.innerHTML = '';
+
+  if (!notifications.length) {
+    const empty = document.createElement('p');
+    empty.className = 'helper-text compact-text';
+    empty.textContent = 'No hay solicitudes pendientes.';
+    target.appendChild(empty);
+    return;
+  }
+
+  for (const notification of notifications.slice(0, options.limit || notifications.length)) {
+    target.appendChild(createNotificationRow(notification, options));
+  }
+}
+
+function renderNotificationCenter() {
+  const notifications = getInternalNotifications();
+  const unread = getUnreadInternalNotifications();
+  const unreadCount = unread.length;
+  const totalCount = notifications.length;
+
+  setNotificationBadge(dom.notificationHeaderBadge, unreadCount);
+  setNotificationBadge(dom.mobileNotificationBadge, unreadCount);
+
+  if (dom.notificationCenterButton) {
+    dom.notificationCenterButton.classList.toggle('hidden', currentSession.mode !== 'user');
+    dom.notificationCenterButton.classList.toggle('has-notifications', unreadCount > 0);
+  }
+
+  if (dom.homeNotificationPanel) {
+    dom.homeNotificationPanel.classList.toggle('hidden', totalCount === 0 || currentSession.mode !== 'user');
+    if (dom.homeNotificationTitle) {
+      dom.homeNotificationTitle.textContent = unreadCount > 0
+        ? `${unreadCount} solicitud${unreadCount === 1 ? '' : 'es'} nueva${unreadCount === 1 ? '' : 's'}`
+        : `${totalCount} solicitud${totalCount === 1 ? '' : 'es'} pendiente${totalCount === 1 ? '' : 's'}`;
+    }
+    if (dom.homeNotificationText) {
+      dom.homeNotificationText.textContent = unreadCount > 0
+        ? 'Revisa quién te invitó y acepta o rechaza.'
+        : 'No hay solicitudes nuevas, pero aún quedan invitaciones pendientes.';
+    }
+    if (dom.homeNotificationBadge) dom.homeNotificationBadge.textContent = String(unreadCount || totalCount);
+    renderNotificationList(dom.homeNotificationList, unread.length ? unread : notifications, { compact: true, limit: 2 });
+  }
+
+  if (dom.sharedNotificationSummary) {
+    dom.sharedNotificationSummary.classList.toggle('hidden', totalCount === 0 || currentSession.mode !== 'user');
+    if (dom.sharedNotificationTitle) {
+      dom.sharedNotificationTitle.textContent = unreadCount > 0
+        ? `${unreadCount} solicitud${unreadCount === 1 ? '' : 'es'} nueva${unreadCount === 1 ? '' : 's'}`
+        : `${totalCount} solicitud${totalCount === 1 ? '' : 'es'} pendiente${totalCount === 1 ? '' : 's'}`;
+    }
+    if (dom.sharedNotificationText) {
+      dom.sharedNotificationText.textContent = 'Acepta para que la cuenta aparezca en tu app y perfil financiero.';
+    }
+    renderNotificationList(dom.sharedNotificationList, notifications);
+  }
 }
 
 function isMissingSharedSqlError(error) {
@@ -7446,6 +7706,7 @@ async function callSharedRpcOrFallback(rpcName, rpcArgs, fallbackAction) {
 
 async function acceptSharedInvite(invite) {
   if (!canUseSharedAccounts() || !invite?.accountId) return;
+  markNotificationSeen(`shared-invite:${invite.accountId}`);
 
   try {
     await callSharedRpcOrFallback('accept_shared_invite_safe', { p_account_id: invite.accountId }, async () => {
@@ -7471,6 +7732,7 @@ async function rejectSharedInvite(invite) {
 
   const confirmed = confirm(`¿Rechazar la invitación a "${invite.title || 'Cuenta compartida'}"?`);
   if (!confirmed) return;
+  markNotificationSeen(`shared-invite:${invite.accountId}`);
 
   try {
     await callSharedRpcOrFallback('reject_shared_invite_safe', { p_account_id: invite.accountId }, async () => {
@@ -8083,10 +8345,23 @@ function closeFriendsPicker() {
 function renderFriendsPicker() {
   const bill = getActiveBill();
   const existingNames = new Set(bill.people.map((person) => person.name.toLowerCase()));
+  const query = normalizeText(dom.friendsPickerSearchInput?.value || '');
+  const visibleFriends = friendsPickerItems.filter((friend) => {
+    if (!query) return true;
+    return [friend.name, friend.email, friend.phone]
+      .filter(Boolean)
+      .some((value) => normalizeText(value).includes(query));
+  });
 
   dom.friendsPickerList.innerHTML = '';
 
-  for (const friend of friendsPickerItems) {
+  if (visibleFriends.length === 0) {
+    renderFriendsPickerCount(0);
+    dom.friendsPickerList.appendChild(emptyMessage('No encontré amigos con esa búsqueda.'));
+    return;
+  }
+
+  for (const friend of visibleFriends) {
     const alreadyInBill = existingNames.has(friend.name.toLowerCase());
     const row = document.createElement('label');
     row.className = `friend-picker-row ${alreadyInBill ? 'is-disabled' : ''}`;
@@ -8099,8 +8374,30 @@ function renderFriendsPicker() {
       </div>
     `;
 
+    row.querySelector('input')?.addEventListener('change', () => renderFriendsPickerCount());
     dom.friendsPickerList.appendChild(row);
   }
+
+  renderFriendsPickerCount(visibleFriends.length);
+}
+
+function getVisibleFriendsPickerCount() {
+  const query = normalizeText(dom.friendsPickerSearchInput?.value || '');
+  return friendsPickerItems.filter((friend) => {
+    if (!query) return true;
+    return [friend.name, friend.email, friend.phone].filter(Boolean).some((value) => normalizeText(value).includes(query));
+  }).length;
+}
+
+function renderFriendsPickerCount(visibleCount = getVisibleFriendsPickerCount()) {
+  if (!dom.friendsPickerCountOutput) return;
+  const selectedCount = dom.friendsPickerList?.querySelectorAll('input[type="checkbox"]:checked').length || 0;
+  dom.friendsPickerCountOutput.textContent = `${visibleCount} de ${friendsPickerItems.length} amigos visibles${selectedCount ? ` · ${selectedCount} seleccionados` : ''}`;
+}
+
+function clearFriendsPickerSearch() {
+  if (dom.friendsPickerSearchInput) dom.friendsPickerSearchInput.value = '';
+  renderFriendsPicker();
 }
 
 async function addSelectedFriendsToBill() {
@@ -9030,6 +9327,92 @@ function clearPaymentDueDate() {
   showToast('Fecha límite eliminada.');
 }
 
+function getActiveWhatsappNotificationQueue() {
+  const bill = getActiveBill();
+  const payer = bill.people.find((person) => person.id === bill.payerId);
+  if (!payer) return [];
+
+  const calculation = calculateBill(bill);
+  return bill.people
+    .filter((person) => person.id !== payer.id && !person.paid)
+    .map((person) => ({
+      person,
+      payer,
+      bill,
+      amount: calculation.finalTotals[person.id] || 0,
+      phone: normalizePhoneNumber(person.phone),
+    }))
+    .filter((item) => item.amount > 0);
+}
+
+function renderWhatsappNotificationSettings() {
+  if (!dom.whatsappNotificationsToggle && !dom.whatsappNotificationStatusOutput) return;
+
+  state.appSettings = normalizeAppSettings(state.appSettings || {});
+  const enabled = Boolean(state.appSettings.whatsappNotificationsEnabled);
+  const queue = getActiveWhatsappNotificationQueue();
+  const withPhone = queue.filter((item) => item.phone).length;
+
+  if (dom.whatsappNotificationsToggle) {
+    dom.whatsappNotificationsToggle.checked = enabled;
+  }
+
+  if (dom.whatsappNotificationStatusOutput) {
+    dom.whatsappNotificationStatusOutput.textContent = enabled
+      ? `${withPhone}/${queue.length} listos`
+      : 'Desactivadas';
+  }
+
+  if (dom.whatsappNotificationHelpOutput) {
+    dom.whatsappNotificationHelpOutput.textContent = enabled
+      ? 'Cuenta Clara puede preparar mensajes. WhatsApp siempre pedirá confirmar el envío.'
+      : 'Activa esta opción para preparar recordatorios directos desde los pagos pendientes.';
+  }
+}
+
+function toggleWhatsappNotifications() {
+  state.appSettings = normalizeAppSettings(state.appSettings || {});
+  state.appSettings.whatsappNotificationsEnabled = Boolean(dom.whatsappNotificationsToggle?.checked);
+  if (state.appSettings.whatsappNotificationsEnabled && !state.appSettings.whatsappNotificationsActivatedAt) {
+    state.appSettings.whatsappNotificationsActivatedAt = nowIso();
+  }
+  saveState();
+  renderWhatsappNotificationSettings();
+  showToast(state.appSettings.whatsappNotificationsEnabled ? 'Recordatorios WhatsApp activados.' : 'Recordatorios WhatsApp desactivados.');
+}
+
+async function prepareWhatsappNotifications() {
+  state.appSettings = normalizeAppSettings(state.appSettings || {});
+  if (!state.appSettings.whatsappNotificationsEnabled) {
+    showNotice('Activa recordatorios', 'Primero activa las notificaciones WhatsApp. El envío automático no está permitido desde el navegador; la app prepara el mensaje y tú confirmas en WhatsApp.');
+    return;
+  }
+
+  const queue = getActiveWhatsappNotificationQueue();
+  if (queue.length === 0) {
+    showNotice('Sin pendientes', 'Esta cuenta no tiene pagos pendientes para preparar por WhatsApp.');
+    return;
+  }
+
+  const ready = queue.filter((item) => item.phone);
+  if (ready.length === 0) {
+    showNotice('Faltan teléfonos', 'Agrega WhatsApp a las personas pendientes para preparar mensajes directos.');
+    return;
+  }
+
+  const first = ready[0];
+  const message = buildPaymentReminderMessage(first.person, first.payer, first.amount, first.bill);
+  try {
+    await navigator.clipboard.writeText(ready.map((item) => buildPaymentReminderMessage(item.person, item.payer, item.amount, item.bill)).join('\n\n---\n\n'));
+  } catch {
+    // El copiado es una ayuda. Si falla, igual abrimos WhatsApp para el primer pendiente.
+  }
+  window.open(`https://wa.me/${first.phone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+  showNotice('Recordatorio preparado', ready.length > 1
+    ? `Abrí WhatsApp para ${first.person.name}. También intenté copiar ${ready.length} recordatorios para enviarlos uno a uno.`
+    : `Abrí WhatsApp para ${first.person.name}. Revisa y confirma el envío.`);
+}
+
 function renderProfilePayerSummary() {
   if (!dom.profilePayerSummary || !dom.profilePayerDebtorsList) return;
 
@@ -9155,9 +9538,11 @@ function render() {
   renderNetworkStatus();
   renderProfilePayerSummary();
   renderPaymentReminderPanel();
+  renderWhatsappNotificationSettings();
   renderPaymentActionCenter();
   renderTransfers();
   renderBackupDiagnostics();
+  renderNotificationCenter();
   try {
     renderGuidedExperience();
     renderGuidedFlowPanel();
@@ -9541,7 +9926,17 @@ function renderFrequentPeopleSuggestions() {
   if (!dom.frequentPeoplePanel || !dom.frequentPeopleChips) return;
 
   const suggestions = getFrequentPeopleSuggestions();
-  dom.frequentPeoplePanel.classList.toggle('hidden', suggestions.length === 0);
+  const hasSuggestions = suggestions.length > 0;
+  dom.toggleFrequentPeopleButton?.classList.toggle('hidden', !hasSuggestions);
+  dom.frequentPeoplePanel.classList.toggle('hidden', !hasSuggestions || !frequentPeopleExpanded);
+
+  if (dom.toggleFrequentPeopleButton) {
+    dom.toggleFrequentPeopleButton.setAttribute('aria-expanded', String(frequentPeopleExpanded && hasSuggestions));
+    dom.toggleFrequentPeopleButton.textContent = frequentPeopleExpanded
+      ? 'Ocultar personas frecuentes'
+      : `Ver personas frecuentes (${suggestions.length})`;
+  }
+
   dom.frequentPeopleChips.innerHTML = '';
 
   for (const person of suggestions) {
@@ -9552,6 +9947,11 @@ function renderFrequentPeopleSuggestions() {
     button.addEventListener('click', () => addPerson(person.name, person.phone));
     dom.frequentPeopleChips.appendChild(button);
   }
+}
+
+function toggleFrequentPeoplePanel() {
+  frequentPeopleExpanded = !frequentPeopleExpanded;
+  renderFrequentPeopleSuggestions();
 }
 
 function addPerson(name, phone = '') {
@@ -11900,6 +12300,15 @@ if (dom.inviteSharedUserButton) {
 if (dom.refreshSharedAccountsButton) {
   dom.refreshSharedAccountsButton.addEventListener('click', fetchSharedAccounts);
 }
+if (dom.notificationCenterButton) {
+  dom.notificationCenterButton.addEventListener('click', openNotificationCenter);
+}
+if (dom.homeNotificationOpenButton) {
+  dom.homeNotificationOpenButton.addEventListener('click', openNotificationCenter);
+}
+if (dom.homeNotificationMarkReadButton) {
+  dom.homeNotificationMarkReadButton.addEventListener('click', markAllNotificationsSeen);
+}
 if (dom.setPaymentDueDateButton) {
   dom.setPaymentDueDateButton.addEventListener('click', setPaymentDueDateFromInput);
 }
@@ -11962,6 +12371,11 @@ if (dom.friendsPickerModal) {
 if (dom.addSelectedFriendsButton) {
   dom.addSelectedFriendsButton.addEventListener('click', addSelectedFriendsToBill);
 }
+dom.friendsPickerSearchInput?.addEventListener('input', renderFriendsPicker);
+dom.clearFriendsPickerSearchButton?.addEventListener('click', clearFriendsPickerSearch);
+dom.toggleFrequentPeopleButton?.addEventListener('click', toggleFrequentPeoplePanel);
+dom.whatsappNotificationsToggle?.addEventListener('change', toggleWhatsappNotifications);
+dom.prepareWhatsappNotificationsButton?.addEventListener('click', prepareWhatsappNotifications);
 
 
 

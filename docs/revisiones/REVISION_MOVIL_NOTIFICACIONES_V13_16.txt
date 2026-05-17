@@ -1,0 +1,11 @@
+REVISION MOVIL - NOTIFICACIONES V13.16
+
+Criterios aplicados
+- Las notificaciones no saturan Inicio: la tarjeta aparece solo si hay solicitudes pendientes.
+- En celular, las filas de solicitud bajan a formato compacto.
+- Los botones Aceptar/Rechazar/Visto ocupan ancho cómodo para tocar.
+- La cabecera oculta el botón de notificaciones en pantallas pequeñas y usa badge en la barra inferior.
+- Mi Perfil > Amigos muestra el centro de notificaciones antes de las listas sociales para que sea fácil responder.
+
+Pendiente futuro
+- Push real del sistema operativo: requiere permisos, service worker con push event, almacenamiento de suscripciones y función backend para enviar notificaciones.
