@@ -1,4 +1,4 @@
-console.info('Cuenta Clara Perfil V13.17 cargado');
+console.info('Cuenta Clara Perfil V13.18 cargado');
 
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 let cloudSyncErrorNotified = false;
@@ -780,7 +780,7 @@ function openBillInApp(billId) {
   state.activeBillId = bill.id;
   localStorage.setItem(getUserStorageKey(currentUser.id), JSON.stringify(state));
   localStorage.setItem('cuenta-clara-active-section', 'payments');
-  window.location.href = 'index.html';
+  window.location.href = 'app.html';
 }
 
 function renderDebtActionRows(container, items, emptyText) {
@@ -1512,7 +1512,7 @@ function renderSharedAccountCard(account, membership, options = {}) {
   } else {
     const open = document.createElement('a');
     open.className = 'btn btn-light btn-small';
-    open.href = 'index.html#shared';
+    open.href = 'app.html#shared';
     open.textContent = 'Abrir';
     actions.appendChild(open);
   }
@@ -1917,7 +1917,7 @@ dom.save.addEventListener('click', saveProfileFromForm);
 dom.sync.addEventListener('click', () => saveState().then(render));
 dom.logout.addEventListener('click', async () => {
   await supabaseClient.auth.signOut();
-  location.href = 'index.html';
+  location.href = 'app.html';
 });
 dom.themeToggle.addEventListener('click', toggleTheme);
 dom.avatarFile.addEventListener('change', handleAvatarChange);

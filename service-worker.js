@@ -1,16 +1,22 @@
-const CACHE_NAME = 'cuenta-clara-v13.17';
+const CACHE_NAME = 'cuenta-clara-v13.18';
 
 const ASSETS = [
   './',
   './index.html',
-  './styles.css?v=13.17',
-  './shared-utils.js?v=13.17',
-  './script.js?v=13.17',
-  './supabase-config.js?v=13.17',
-  './manifest.json',
+  './app.html',
+  './como-funciona.html',
+  './funciones.html',
+  './preguntas-frecuentes.html',
   './privacidad.html',
+  './terminos.html',
+  './contacto.html',
+  './styles.css?v=13.18',
+  './shared-utils.js?v=13.18',
+  './script.js?v=13.18',
+  './supabase-config.js?v=13.18',
+  './manifest.json',
   './perfil.html',
-  './profile.js?v=13.17',
+  './profile.js?v=13.18',
   './ads.txt',
   './assets/logo.svg',
 ];
@@ -74,7 +80,7 @@ self.addEventListener('push', (event) => {
     tag: payload.tag || payload.notificationId || 'cuenta-clara-push',
     renotify: true,
     data: {
-      url: payload.url || './index.html#shared',
+      url: payload.url || './app.html#shared',
       accountId: payload.accountId || '',
       notificationId: payload.notificationId || '',
     },
@@ -85,7 +91,7 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = new URL(event.notification?.data?.url || './index.html#shared', self.location.origin).href;
+  const targetUrl = new URL(event.notification?.data?.url || './app.html#shared', self.location.origin).href;
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {

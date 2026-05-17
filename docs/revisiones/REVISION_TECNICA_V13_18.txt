@@ -1,0 +1,21 @@
+REVISION TECNICA - CUENTA CLARA V13.18
+
+Objetivo:
+- Separar el sitio informativo publico de la app principal.
+- Mejorar estructura visual, paginas legales e informacion para revision publica.
+- Mantener la app funcional en app.html.
+
+Cambios principales:
+1. Nueva landing publica en index.html.
+2. App principal movida a app.html.
+3. Nuevas paginas: como-funciona.html, funciones.html, preguntas-frecuentes.html, terminos.html y contacto.html.
+4. privacidad.html renovada como pagina publica/legal.
+5. Footer legal visible en sitio publico y footer compacto en app.
+6. ads.txt conservado y enlazado desde footer.
+7. Anuncios separados del flujo principal: el script de AdSense queda en paginas informativas, no dentro de app.html.
+8. El aviso de vista simple/avanzada se movio al final del menu lateral.
+9. Manifest actualizado para abrir la app en app.html.
+10. Service worker actualizado a cuenta-clara-v13.18 y cache de paginas publicas.
+
+No requiere SQL nuevo.
+No agrega dependencias nuevas.

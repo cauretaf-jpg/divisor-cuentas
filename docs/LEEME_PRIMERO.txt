@@ -1,46 +1,19 @@
-CUENTA CLARA V13.17 - NOTIFICACIONES PUSH Y ESTADO DE CONEXION
+CUENTA CLARA V13.18 - SITIO PUBLICO Y APP SEPARADA
 
-NUEVO EN V13.17
+CAMBIO PRINCIPAL
+- index.html: landing publica.
+- app.html: aplicacion principal.
 
-1. Estado de conexion
-   - Nueva tarjeta en Herramientas.
-   - Muestra sesion, sincronizacion, solicitudes y notificaciones del celular.
-
-2. Activar notificaciones
-   - Permite pedir permiso al navegador/celular.
-   - Incluye boton Probar aviso.
-   - Si el permiso queda activo, Cuenta Clara puede mostrar avisos del sistema cuando detecta solicitudes nuevas.
-
-3. Service worker preparado
-   - Se agregaron eventos push y notificationclick.
-   - Al tocar una notificacion, abre Cuenta Clara en Compartidas.
-
-4. Push real opcional
-   - Se incluye SQL 04 para guardar dispositivos.
-   - Se incluye Edge Function de ejemplo para enviar push.
-   - Si no configuras backend push, la app sigue funcionando con notificaciones internas.
+PAGINAS NUEVAS
+- como-funciona.html
+- funciones.html
+- preguntas-frecuentes.html
+- privacidad.html
+- terminos.html
+- contacto.html
 
 IMPORTANTE
-
-- Las solicitudes dentro de la app no requieren SQL nuevo.
-- El push real con la app cerrada SI requiere configurar:
-  - sql/04-supabase-push-subscriptions.sql
-  - VAPID keys
-  - supabase/functions/send-shared-invite-push
-
-VALIDACION
-
-- script.js OK.
-- profile.js OK.
-- shared-utils.js OK.
-- service-worker.js OK.
-- index.html sin IDs duplicados.
-- perfil.html sin IDs duplicados.
-- privacidad.html sin IDs duplicados.
-- styles.css con llaves balanceadas.
-
-PUBLICACION SUGERIDA
-
-git add .
-git commit -m "Publica Cuenta Clara v13.17"
-git push
+- ads.txt se mantiene en la raiz.
+- No requiere SQL nuevo.
+- No agrega dependencias nuevas.
+- El service worker queda en cuenta-clara-v13.18.

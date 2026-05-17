@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.17 cargada');
-const APP_VERSION = '13.17';
+console.info('Cuenta Clara V13.18 cargada');
+const APP_VERSION = '13.18';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -7504,7 +7504,7 @@ async function showCuentaClaraNotification(title, options = {}) {
     badge: './assets/logo.svg',
     tag: options.tag || 'cuenta-clara',
     renotify: true,
-    data: options.data || { url: './index.html#shared' },
+    data: options.data || { url: './app.html#shared' },
   };
 
   try {
@@ -7529,7 +7529,7 @@ async function testSystemNotification() {
   const shown = await showCuentaClaraNotification('Cuenta Clara', {
     body: 'Las notificaciones están activas en este dispositivo.',
     tag: 'cuenta-clara-test',
-    data: { url: './index.html#shared' },
+    data: { url: './app.html#shared' },
   });
 
   if (shown) showToast('Aviso de prueba enviado.');
@@ -7550,7 +7550,7 @@ function notifyUnreadInvitesWithSystemNotification() {
   showCuentaClaraNotification('Nueva solicitud de Cuenta Clara', {
     body: `${next.title} · ${next.text || 'Tienes una solicitud pendiente.'}`,
     tag: next.id,
-    data: { url: './index.html#shared', accountId: next.accountId, notificationId: next.id },
+    data: { url: './app.html#shared', accountId: next.accountId, notificationId: next.id },
   });
 }
 
