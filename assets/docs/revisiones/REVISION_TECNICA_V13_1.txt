@@ -1,0 +1,8 @@
+Cuenta Clara v13.1 - Recordatorios y dashboard de pendientes
+
+Cambios principales:
+- Se agrega panel de Recordatorios en Inicio con pagos pendientes globales.
+- Se muestran pagos vencidos, por vencer y monto pendiente total.
+- Cada recordatorio permite abrir Pagos, copiar mensaje o enviar WhatsApp si la persona tiene teléfono.
+- El panel ordena pendientes por urgencia: vencidos, vence hoy, próximos y sin fecha.
+- No requiere cambios SQL.

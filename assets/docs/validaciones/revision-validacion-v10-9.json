@@ -1,0 +1,19 @@
+{
+  "version": "10.9",
+  "objetivo": "Sincronización completa del estado de Cuenta Clara con Supabase app_states",
+  "archivos_revisados": [
+    "script.js",
+    "profile.js",
+    "sql/01-supabase-app-state.sql",
+    "service-worker.js",
+    "docs/LEEME_PRIMERO.txt",
+    "docs/README.md"
+  ],
+  "validaciones": {
+    "guardado_app_states": "saveCloudStateNow devuelve resultado booleano y permite guardado forzado",
+    "carga_inicial": "loadCloudState crea respaldo inicial cuando no existe fila app_states",
+    "errores_supabase": "Mensajes diferenciados para tabla faltante, RLS y sesión",
+    "perfil": "profile.js conserva campos del estado completo al guardar",
+    "service_worker": "v10.9.0"
+  }
+}

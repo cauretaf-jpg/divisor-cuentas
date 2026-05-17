@@ -1,0 +1,13 @@
+REVISION VISUAL - MENU V13.16.1
+
+Revisado:
+- Menu lateral en modo simple.
+- Menu lateral en vista avanzada.
+- Diferencia de estado entre navegadores.
+- Herramientas como agrupador de funciones avanzadas.
+- Botones compactos para vista movil.
+
+Resultado:
+- El usuario puede identificar rapidamente si esta usando modo simple o vista avanzada.
+- Chrome y Edge pueden seguir recordando estados distintos, pero la interfaz ahora lo informa claramente.
+- El boton Restaurar vista recomendada permite volver a Inicio + Modo simple sin limpiar datos.

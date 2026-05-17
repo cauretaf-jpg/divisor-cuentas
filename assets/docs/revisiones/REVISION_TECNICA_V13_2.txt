@@ -1,0 +1,22 @@
+Cuenta Clara V13.2 - Revisión técnica
+
+Alcance:
+- Perfil dashboard financiero.
+- Indicadores mensuales y globales de pagos pendientes.
+- Accesos accionables a cuentas desde Perfil.
+
+Archivos modificados:
+- perfil.html
+- profile.js
+- styles.css
+- service-worker.js
+- index.html
+- docs/README.md
+
+Validaciones:
+- node --check script.js
+- node --check profile.js
+- Revisión de IDs duplicados en index.html y perfil.html
+
+SQL:
+- No requiere SQL nuevo.

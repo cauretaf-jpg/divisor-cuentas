@@ -1,0 +1,13 @@
+{
+  "version": "10.1",
+  "name": "Cuenta Clara V10.1 - Historial y navegación más limpia",
+  "checks": [
+    "script.js syntax ok",
+    "profile.js syntax ok",
+    "index.html duplicate ids ok",
+    "perfil.html duplicate ids ok",
+    "privacidad.html duplicate ids ok",
+    "section navigation links ok"
+  ],
+  "service_worker_cache": "cuenta-clara-v10.1.0"
+}

@@ -1,0 +1,9 @@
+{
+  "version": "9.0",
+  "scriptSyntax": "ok",
+  "profileSyntax": "ok",
+  "indexDuplicateIds": [],
+  "profileDuplicateIds": [],
+  "missingScriptSelectors": [],
+  "newSql": "supabase-shared-accounts.sql"
+}

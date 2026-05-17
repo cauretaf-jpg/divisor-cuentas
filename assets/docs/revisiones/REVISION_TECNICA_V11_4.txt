@@ -1,0 +1,9 @@
+Cuenta Clara V11.4 - Navegación móvil tipo app
+
+Cambios:
+- Se agregó barra inferior fija en celular con accesos Personas, Gastos, Resumen y Pagos.
+- Se ocultó el menú de secciones superior/lateral en celular para reducir ruido visual.
+- Se agregó encabezado móvil por pantalla con botón Atrás.
+- Se ocultó la barra móvil antigua de total/agregar/compartir para evitar doble navegación inferior.
+- Se mantiene la experiencia de escritorio sin cambios relevantes.
+- Cache/service worker actualizado a v11.4.

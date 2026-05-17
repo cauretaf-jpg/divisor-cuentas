@@ -1,0 +1,22 @@
+CUENTA CLARA V10.0 - REVISIÓN TÉCNICA
+
+Objetivo:
+- Reducir ruido visual en la pantalla principal usando navegación por secciones, sin cambiar la lógica de cálculo, Supabase ni SQL.
+
+Cambios aplicados:
+- Nueva barra lateral de navegación principal.
+- Secciones independientes: Inicio, Personas, Gastos, Resumen, Pagos, Historial, Hogar, Compartidas y Configuración.
+- Reubicación visual de paneles existentes sin duplicar IDs.
+- El botón inteligente ahora revela la sección del campo objetivo antes de enfocar.
+- La navegación activa se guarda en localStorage con tolerancia si el navegador lo bloquea.
+- Vista móvil adaptada: menú horizontal superior.
+- Cache PWA actualizado a cuenta-clara-v10.0.0.
+
+SQL:
+- Sin cambios. No requiere ejecutar scripts SQL nuevos si V9.7/V9.6 ya funcionaba.
+
+Validación recomendada:
+- Probar Inicio > Personas > Gastos > Resumen > Pagos.
+- Probar modo rápido: Inicio > Cuenta rápida debe llevar a Configuración para ingresar total.
+- Probar Hogar/Recurrentes y Compartidas.
+- Recargar con Ctrl + F5 por cambio de service worker/cache.

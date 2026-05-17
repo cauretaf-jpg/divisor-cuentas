@@ -1,0 +1,16 @@
+{
+  "version": "11.1",
+  "fecha": "2026-05-03",
+  "cambios": [
+    "Configuración retirada del menú principal",
+    "Editar desde Historial abre Gastos",
+    "Monto rápido movido a Gastos",
+    "Mes hogar movido a Hogar",
+    "Cache actualizado a v11.1"
+  ],
+  "validaciones": {
+    "script": "node --check script.js",
+    "profile": "node --check profile.js",
+    "html": "Inputs críticos conservados: quickTotalInput, homeMonthInput, duplicateHomeMonthButton"
+  }
+}

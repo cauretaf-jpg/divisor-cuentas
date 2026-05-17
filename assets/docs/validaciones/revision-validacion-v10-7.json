@@ -1,0 +1,13 @@
+{
+  "version": "10.7",
+  "objetivo": "Corrección responsiva móvil sobre V10.6",
+  "checks": {
+    "script_js_syntax": "ok",
+    "profile_js_syntax": "ok",
+    "index_html_duplicate_ids": [],
+    "perfil_html_duplicate_ids": [],
+    "privacidad_html_duplicate_ids": [],
+    "sql_modificado": false,
+    "service_worker": "v10.7.0"
+  }
+}

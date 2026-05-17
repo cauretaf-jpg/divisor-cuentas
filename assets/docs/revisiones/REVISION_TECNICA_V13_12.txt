@@ -1,0 +1,40 @@
+REVISION TECNICA - CUENTA CLARA V13.12
+
+Objetivo:
+Reducir la sobrecarga visual del Inicio y mover herramientas avanzadas a una sección independiente.
+
+Cambios principales:
+- Se agregó la sección app `tools` / Más herramientas.
+- Se agregó botón de navegación lateral para Más herramientas.
+- Se actualizó normalizeAppSection para reconocer `tools`.
+- Se actualizó la cabecera móvil para la nueva sección.
+- Se movieron fuera de Inicio:
+  - Guía rápida extendida.
+  - Modo demo.
+  - Nueva cuenta guiada / plantillas.
+  - Progreso guiado avanzado.
+  - Recordatorios completos.
+  - Panel recurrente.
+  - Detalle avanzado de cuenta.
+- Inicio mantiene:
+  - Cuenta activa.
+  - Indicadores principales.
+  - Pendiente ahora.
+  - Accesos rápidos básicos.
+  - Recientes reducidos.
+- CSS agregado para `tools-hub-card`, `tools-hub-grid`, `tool-hub-button` y tarjeta de acceso a herramientas.
+
+Validaciones:
+- script.js: sintaxis OK.
+- profile.js: sintaxis OK.
+- shared-utils.js: sintaxis OK.
+- index.html: sin IDs duplicados.
+- perfil.html: sin IDs duplicados.
+- privacidad.html: sin IDs duplicados.
+- styles.css: llaves balanceadas.
+- Service worker actualizado a cuenta-clara-v13.12.
+
+Notas:
+- No requiere SQL nuevo.
+- No agrega dependencias nuevas.
+- Cambio orientado a experiencia visual y navegación, no a modificar cálculos.

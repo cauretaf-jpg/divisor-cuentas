@@ -1,0 +1,14 @@
+Cuenta Clara v12.8.5 - Cambio de tipo de cuenta desde Gastos
+
+Cambios aplicados:
+- Se agregó una tarjeta visible en Gastos para cambiar el tipo de cuenta.
+- Ahora se puede volver entre Detallada, Rápida y Hogar sin crear otra cuenta.
+- Al cambiar desde Cuenta rápida a Detallada/Hogar, si existe monto rápido, se ofrece convertirlo en gasto.
+- Al cambiar desde Detallada/Hogar a Cuenta rápida, los productos quedan guardados y se sugiere usar el total actual como monto rápido.
+- Se agregó opción de Deshacer después de cambiar el tipo de cuenta.
+- Se mantiene resguardo de datos para evitar pérdida accidental de productos o monto rápido.
+
+Validaciones:
+- script.js sin errores de sintaxis.
+- profile.js sin errores de sintaxis.
+- Service worker actualizado a v12.8.5.

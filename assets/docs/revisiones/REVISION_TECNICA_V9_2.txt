@@ -1,0 +1,14 @@
+Cuenta Clara V9.2 - Corrección RLS cuentas compartidas
+
+Problema corregido:
+- Supabase podía devolver: new row violates row-level security policy for table "shared_accounts" al compartir una cuenta.
+
+Corrección aplicada:
+- La creación de cuentas compartidas ahora usa RPC create_shared_account_safe().
+- La actualización/sincronización de cuentas compartidas ahora usa RPC update_shared_account_safe().
+- owner_id ya no se envía desde el cliente al insertar; se toma desde auth.uid() dentro de Supabase.
+- El SQL supabase-shared-accounts.sql incluye grants y reload schema.
+
+Validación:
+- script.js sin errores de sintaxis.
+- profile.js sin errores de sintaxis.

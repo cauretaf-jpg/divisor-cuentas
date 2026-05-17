@@ -1,0 +1,21 @@
+CUENTA CLARA V10.2 - REVISIÓN TÉCNICA
+
+Objetivo:
+- Recuperar barra lateral descriptiva sin scroll interno.
+- Ajustar Inicio rápido para que las opciones principales creen una cuenta nueva.
+- Mantener Historial como acceso a cuentas anteriores sin crear cuenta nueva.
+- Enviar cuentas nuevas directamente a Configuración para revisar pagador principal y propina.
+
+Cambios aplicados:
+- Barra lateral vuelve a mostrar descripción pequeña de cada pestaña.
+- La barra lateral ya no usa max-height ni overflow interno en escritorio; si necesita espacio, baja con la página.
+- “Dividir una salida”, “Cuentas del hogar” y “Cuenta rápida” crean una cuenta nueva.
+- “Ver mis cuentas anteriores” abre Historial sin crear cuenta.
+- Cuentas nuevas abren Configuración con Editar cuenta desplegado.
+- Cache PWA actualizado a cuenta-clara-v10.2.0.
+
+Validación:
+- script.js sin errores de sintaxis.
+- profile.js sin errores de sintaxis.
+- index.html, perfil.html y privacidad.html sin IDs duplicados.
+- Referencias estáticas principales de JavaScript a IDs existentes revisadas.

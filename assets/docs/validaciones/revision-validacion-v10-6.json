@@ -1,0 +1,19 @@
+{
+  "version": "10.6",
+  "syntax": {
+    "script.js": "ok",
+    "profile.js": "ok"
+  },
+  "html_ids": {
+    "index.html": "sin duplicados",
+    "perfil.html": "sin duplicados",
+    "privacidad.html": "sin duplicados"
+  },
+  "sql": "sin cambios",
+  "service_worker": "v10.6.0",
+  "changes": [
+    "bloque de cobros cuando Yo es pagador",
+    "estadisticas acumuladas de pagador principal",
+    "ranking de quien te debe cuando tu pagas"
+  ]
+}

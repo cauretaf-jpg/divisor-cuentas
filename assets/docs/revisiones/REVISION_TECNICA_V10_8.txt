@@ -1,0 +1,23 @@
+REVISION TECNICA - CUENTA CLARA V10.8
+
+Objetivo
+- Pulido visual final sobre la base V10.7.
+- No se modifican tablas SQL ni lógica principal de cálculos/Supabase.
+
+Cambios estéticos
+- Sistema visual más uniforme para tarjetas, botones, chips e insignias.
+- Inicio rápido con tarjetas de acción más claras y con mayor jerarquía.
+- Barra lateral descriptiva con mejor estado activo y microinteracciones.
+- Estados vacíos más visibles y menos técnicos.
+- Formularios con mejor foco, spacing y terminación visual.
+- Perfil y estadísticas con tarjetas más premium.
+- Modo oscuro reforzado.
+
+Validaciones
+- script.js: sin errores de sintaxis.
+- profile.js: sin errores de sintaxis.
+- index.html: sin IDs duplicados.
+- perfil.html: sin IDs duplicados.
+- privacidad.html: sin IDs duplicados.
+- CSS: llaves balanceadas.
+- Service worker actualizado a v10.8.0.

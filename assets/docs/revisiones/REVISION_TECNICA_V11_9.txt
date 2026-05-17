@@ -1,0 +1,14 @@
+Cuenta Clara v11.9 - Cuentas recurrentes hogar/streaming
+
+Cambios aplicados:
+- Se agregó un panel de recurrentes en Inicio para acceder rápido a carpetas mensuales.
+- Las cuentas tipo Hogar/Streaming pueden activarse como recurrentes desde Inicio u Hogar.
+- Crear siguiente mes reutiliza personas y gastos recurrentes, y arrastra deudas pendientes.
+- Duplicar mes hogar ahora confirma el arrastre de pendientes y copia gastos recurrentes o todos si no hay marcados.
+- La barra inferior móvil ahora incluye Inicio para volver al panel principal.
+- Se mejoraron textos de plantillas Streaming/Hogar/Supermercado para orientar hacia cuentas recurrentes.
+- Se actualizó cache/service worker a v11.9.
+
+Validaciones:
+- node --check script.js
+- node --check profile.js

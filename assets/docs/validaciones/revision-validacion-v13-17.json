@@ -1,0 +1,24 @@
+{
+  "version": "13.17",
+  "nombre": "notificaciones push y estado de conexion",
+  "validaciones": {
+    "script_js": "OK",
+    "profile_js": "OK",
+    "shared_utils_js": "OK",
+    "service_worker_js": "OK",
+    "index_html_ids_duplicados": "OK",
+    "perfil_html_ids_duplicados": "OK",
+    "privacidad_html_ids_duplicados": "OK",
+    "styles_css_llaves": "OK",
+    "serviceWorkerCache": "cuenta-clara-v13.17"
+  },
+  "requiere_sql_nuevo_para_funciones_basicas": false,
+  "requiere_sql_para_push_real": true,
+  "sql_opcional": "sql/04-supabase-push-subscriptions.sql",
+  "edge_function_opcional": "supabase/functions/send-shared-invite-push/index.ts",
+  "notas": [
+    "Las notificaciones internas funcionan sin SQL nuevo.",
+    "El push real con app cerrada requiere VAPID y Edge Function.",
+    "Si el backend no esta configurado, la app no rompe el flujo de invitaciones."
+  ]
+}

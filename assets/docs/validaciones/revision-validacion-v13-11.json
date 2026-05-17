@@ -1,0 +1,22 @@
+{
+  "version": "13.11",
+  "nombre": "Cuenta Clara v13.11 - pruebas reales y experiencia guiada",
+  "validaciones": {
+    "script_js": "OK",
+    "profile_js": "OK",
+    "shared_utils_js": "OK",
+    "index_html_ids_duplicados": false,
+    "perfil_html_ids_duplicados": false,
+    "privacidad_html_ids_duplicados": false,
+    "styles_css_llaves_balanceadas": true,
+    "service_worker_cache": "cuenta-clara-v13.11",
+    "sql_nuevo": false,
+    "dependencias_nuevas": false
+  },
+  "cambios_clave": [
+    "modo demo con cuentas simuladas",
+    "flujo guiado de 5 pasos",
+    "OCR con ajuste manual de total y seleccion de validos",
+    "filtros de pagos por direccion, vencimiento y arrastre"
+  ]
+}

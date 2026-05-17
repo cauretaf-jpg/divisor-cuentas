@@ -1,0 +1,16 @@
+REVISION TECNICA - CUENTA CLARA V11.0
+
+Objetivo:
+- Corregir detalles detectados en uso móvil.
+
+Cambios aplicados:
+- El botón principal "Nueva cuenta" ahora solicita nombre antes de crear la cuenta, igual que el inicio guiado.
+- Si el usuario cancela el nombre, no se crea una cuenta vacía accidentalmente.
+- Al crear la cuenta desde el botón principal, la app abre Personas para continuar con participantes y pagador principal.
+- El lector de boletas ya no fuerza solo cámara en celular.
+- El selector de imagen acepta cámara, galería o archivos según las opciones del dispositivo.
+- Se actualizaron referencias de cache a V11.0 para evitar que el celular mantenga archivos antiguos.
+
+Validación:
+- script.js revisado con node --check.
+- service-worker.js actualizado a cuenta-clara-v11.0.0.

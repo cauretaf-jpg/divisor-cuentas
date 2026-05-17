@@ -1,0 +1,14 @@
+{
+  "version": "13.16.1",
+  "nombre": "menu consistente entre navegadores",
+  "validaciones": {
+    "script": "OK",
+    "profile": "OK",
+    "sharedUtils": "OK",
+    "htmlIdsDuplicados": false,
+    "cssLlavesBalanceadas": true,
+    "requiereSqlNuevo": false,
+    "dependenciasNuevas": false,
+    "serviceWorkerCache": "cuenta-clara-v13.16.1"
+  }
+}

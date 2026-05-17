@@ -1,0 +1,47 @@
+CUENTA CLARA - REVISION TECNICA V12.0
+Fecha: 2026-05-08
+
+Objetivo:
+- Convertir la base de cuentas compartidas en una función más clara para usuarios registrados.
+- Agregar roles/permisos al invitar personas.
+- Mejorar visibilidad de colaboración desde Inicio.
+- Preparar un flujo más seguro para aceptar/rechazar invitaciones y administrar miembros.
+
+Cambios aplicados:
+1. Compartidas
+   - Se agregó acceso directo a Compartidas desde Inicio.
+   - Se agregó selector de rol al invitar: Editor o Lector.
+   - Se agregó panel de miembros y permisos para la cuenta compartida activa.
+   - El dueño puede cambiar rol o quitar acceso desde la app.
+
+2. Invitaciones
+   - Se mantiene aceptación y rechazo de invitaciones.
+   - Se agregaron funciones RPC seguras en SQL para aceptar/rechazar invitaciones.
+   - Se conserva fallback para instalaciones que aún no ejecutan el SQL nuevo.
+
+3. Permisos
+   - Editor: puede modificar personas, gastos y pagos.
+   - Lector: puede revisar la cuenta, pero queda en modo visual de solo lectura.
+   - Dueño: puede administrar la cuenta, invitar personas y cambiar permisos.
+
+4. Seguridad Supabase
+   - Se actualizó sql/03-supabase-shared-accounts.sql con funciones seguras:
+     accept_shared_invite_safe
+     reject_shared_invite_safe
+     set_shared_member_role_safe
+     remove_shared_member_safe
+   - Se ajustó política de actualización de miembros para reducir cambios directos por invitados.
+
+5. Experiencia móvil
+   - Se corrigió la grilla de la barra inferior móvil para 5 accesos.
+   - Se agregó banner de cuenta compartida/solo lectura cuando corresponde.
+
+Validaciones:
+- script.js validado con node --check.
+- profile.js validado con node --check.
+- Versión de cache actualizada a v12.0.
+
+Pendiente recomendado:
+- Ejecutar nuevamente sql/03-supabase-shared-accounts.sql en Supabase.
+- Probar con dos usuarios registrados reales: dueño e invitado.
+- Probar rol Lector para confirmar que no edite desde móvil.

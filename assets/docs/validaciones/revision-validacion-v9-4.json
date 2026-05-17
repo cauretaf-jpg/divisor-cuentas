@@ -1,0 +1,12 @@
+{
+  "version": "9.4",
+  "objetivo": "Compartidas más claras: invitaciones pendientes, creadas por mí, compartidas conmigo y rechazo de invitaciones.",
+  "validaciones": [
+    "script.js sin errores de sintaxis",
+    "profile.js sin errores de sintaxis",
+    "index.html sin IDs duplicados",
+    "perfil.html sin IDs duplicados",
+    "privacidad.html sin IDs duplicados"
+  ],
+  "sql": "No requiere ejecutar SQL nuevamente si V9.3/V9.2 ya estaba funcionando."
+}

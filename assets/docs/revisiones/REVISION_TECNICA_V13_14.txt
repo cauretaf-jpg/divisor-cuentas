@@ -1,0 +1,48 @@
+REVISION TECNICA - CUENTA CLARA V13.14
+
+Objetivo
+- Implementar solicitudes de cuentas compartidas entre amigos registrados, sin agregar SQL nuevo.
+- Mantener compatibilidad con la estructura existente de shared_accounts y shared_account_members.
+- Mejorar vista móvil de solicitudes, participantes y cuentas compartidas.
+
+Cambios principales
+1. script.js
+   - Se agregó ensureActiveBillSharedForInvites().
+   - Se agregó inviteRegisteredPersonToActiveAccount().
+   - Se agregó inviteRegisteredPeopleToActiveAccount().
+   - Se agregó invitePersonToSharedAccount().
+   - Agregar amigos desde el selector ahora envía solicitud automática si el amigo es usuario registrado.
+   - El panel Compartidas permite enviar solicitud directa a participantes registrados sin invitación.
+   - publishActiveBillAsShared() ahora retorna boolean y acepta opción skipEmptyConfirm para flujos automáticos.
+   - inviteUserToSharedAccount() reutiliza el nuevo flujo común de invitaciones.
+
+2. perfil.html / profile.js
+   - Se agregaron listas de Solicitudes de cuentas y Cuentas compartidas en Mi Perfil > Amigos.
+   - El usuario puede aceptar o rechazar solicitudes de cuentas desde el perfil.
+   - Al aceptar, la cuenta compartida se sincroniza como copia local vinculada para que impacte el perfil financiero.
+
+3. styles.css
+   - Se agregó capa V13.14 para tarjetas compactas de solicitudes.
+   - Se reforzó responsive móvil en Compartidas, Perfil y selector de amigos.
+
+4. service-worker.js
+   - Cache actualizado a cuenta-clara-v13.14.
+
+Base de datos
+- No se agregó script SQL nuevo.
+- La versión usa las tablas ya existentes:
+  - shared_accounts
+  - shared_account_members
+  - friend_requests
+  - public_profiles
+- Si el entorno no tiene compartidas configuradas, se debe ejecutar sql/03-supabase-shared-accounts.sql.
+
+Validaciones realizadas
+- node --check script.js: OK.
+- node --check profile.js: OK.
+- node --check shared-utils.js: OK.
+- index.html sin IDs duplicados.
+- perfil.html sin IDs duplicados.
+- privacidad.html sin IDs duplicados.
+- styles.css con llaves balanceadas.
+- ZIP generado correctamente.

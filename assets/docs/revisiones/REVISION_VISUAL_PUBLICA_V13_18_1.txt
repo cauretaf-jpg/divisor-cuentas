@@ -1,0 +1,21 @@
+REVISION VISUAL PUBLICA - CUENTA CLARA V13.18.2
+
+Criterio visual:
+- La landing debe vender claridad y utilidad, no explicar la ubicacion de anuncios.
+- La informacion legal visible debe mantenerse breve.
+- ads.txt queda disponible en raiz, pero no como elemento de navegacion para el usuario comun.
+
+Pantallas revisadas:
+- index.html
+- privacidad.html
+- terminos.html
+- contacto.html
+- como-funciona.html
+- funciones.html
+- preguntas-frecuentes.html
+- app.html
+
+Resultado:
+- Menos ruido visual.
+- Footer mas limpio.
+- Sitio publico mantiene apariencia moderna y minimalista.

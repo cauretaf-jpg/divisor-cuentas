@@ -1,0 +1,20 @@
+Cuenta Clara v12.5 - Pulido móvil, boletas y comprobante
+
+Cambios realizados:
+- Se refuerza el comportamiento móvil para que al cambiar de sección la pantalla vuelva al inicio de la vista activa.
+- Se mantiene la barra inferior móvil fija, con mayor protección de espacio inferior y área segura.
+- Se mejora la sección Gastos con cuatro acciones visibles: Agregar manual, Escanear boleta, Productos rápidos y Monto rápido.
+- Se agrega acceso directo a Monto rápido desde Gastos, con advertencia si la cuenta ya tiene productos detallados.
+- Se mejora el modal de boletas con panel de revisión: total detectado, total seleccionado y alerta de montos en $0.
+- Se agrega acción para ignorar productos detectados con monto $0.
+- Se marcan visualmente las filas de boleta que requieren revisión.
+- Se mejora el comprobante con una vista previa de transferencias pendientes.
+- Se actualiza cache/service worker a v12.5.
+
+Validaciones:
+- script.js validado con node --check.
+- profile.js validado con node --check.
+- index.html revisado sin IDs duplicados.
+- Secciones principales revisadas: Inicio, Personas, Gastos, Resumen, Pagos, Historial, Hogar y Compartidas.
+
+No requiere SQL nuevo.

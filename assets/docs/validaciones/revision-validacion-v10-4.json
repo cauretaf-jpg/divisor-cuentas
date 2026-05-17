@@ -1,0 +1,17 @@
+{
+  "version": "10.4",
+  "nombre": "Estadisticas de perfil ampliadas",
+  "validaciones": {
+    "script_js_sintaxis": true,
+    "profile_js_sintaxis": true,
+    "index_html_ids_duplicados": false,
+    "perfil_html_ids_duplicados": false,
+    "privacidad_html_ids_duplicados": false,
+    "selectores_profile_en_perfil": true,
+    "sql_modificado": false
+  },
+  "notas": [
+    "No requiere ejecutar SQL nuevamente.",
+    "La mejora se concentra en la vista Estadisticas del Perfil."
+  ]
+}

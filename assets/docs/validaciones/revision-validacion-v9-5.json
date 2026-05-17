@@ -1,0 +1,21 @@
+{
+  "version": "9.5",
+  "name": "Cuenta Clara V9.5 - Recurrentes claros",
+  "date": "2026-05-03",
+  "checks": {
+    "script_js_syntax": "ok",
+    "profile_js_syntax": "ok",
+    "index_duplicate_ids": "none",
+    "perfil_duplicate_ids": "none",
+    "privacidad_duplicate_ids": "none",
+    "sql_changes": "none",
+    "service_worker_cache": "cuenta-clara-v9.5.0"
+  },
+  "changes": [
+    "Panel recurrente separado en Mes actual, Deuda acumulada e Historial mensual",
+    "Acciones para marcar pagos como pagados o pendientes desde el panel recurrente",
+    "Historial mensual navegable dentro de la carpeta recurrente",
+    "Confirmación guiada al crear el siguiente mes con monto de arrastre",
+    "Pendiente vigente basado en el último mes conectado"
+  ]
+}

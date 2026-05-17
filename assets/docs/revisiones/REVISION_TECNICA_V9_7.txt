@@ -1,0 +1,27 @@
+CUENTA CLARA V9.7 - REVISION TECNICA
+
+Objetivo:
+- Pulir visualmente las secciones Agregar gasto y Personas, sin cambiar la logica de calculo, Supabase, recurrentes ni compartidas.
+
+Cambios aplicados:
+- Personas usa todo el ancho disponible de la zona principal.
+- Las tarjetas de participantes son mas compactas y legibles.
+- Se redujo el peso visual de botones masivos y acciones de personas.
+- El campo de telefono queda como WhatsApp opcional.
+- El boton de alta queda como Agregar persona.
+- Las opciones Escribir, Escanear boleta y Productos rapidos pasan a formato compacto.
+- Productos rapidos queda menos protagonista.
+- El formulario de gasto queda mejor distribuido.
+- El selector Como se divide este gasto tiene mas ancho.
+- Gasto recurrente se muestra como opcion compacta.
+
+SQL:
+- No se modifico SQL.
+- No requiere ejecutar scripts nuevos si V9.6/V9.5 ya funcionaba.
+
+Validaciones:
+- script.js sin errores de sintaxis.
+- profile.js sin errores de sintaxis.
+- index.html sin IDs duplicados.
+- perfil.html sin IDs duplicados.
+- privacidad.html sin IDs duplicados.

@@ -1,0 +1,22 @@
+REVISION TECNICA - CUENTA CLARA V13.14
+
+Objetivo:
+- Reducir lectura para usuarios nuevos.
+- Agregar flujo guiado visual con acciones directas.
+- Modernizar colores y estética con un enfoque minimalista.
+- Revisar compatibilidad sin SQL ni dependencias nuevas.
+
+Cambios principales:
+1. Nuevo panel fijo/visible de progreso: Personas -> Gastos -> Revisar -> Compartir.
+2. Estados visuales de cuenta: Borrador, En progreso, Revisar, Corregir, Lista.
+3. Lista breve de pendientes con botón Resolver.
+4. Textos largos reducidos en Inicio, guías, menú y secciones principales.
+5. Modo simple más limpio: oculta guías no relevantes.
+6. Paleta visual actualizada: azul moderno como acción principal, acentos suaves y tarjetas minimalistas.
+7. CSS agregado como capa V13.14 para no romper reglas históricas existentes.
+8. Service worker actualizado a cuenta-clara-v13.14.
+
+Resultado esperado:
+- Usuarios nuevos leen menos.
+- La app indica qué falta y dónde tocar.
+- Inicio y pantallas principales se sienten más modernas y ligeras.

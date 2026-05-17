@@ -1,0 +1,24 @@
+CHECKLIST VISUAL MOVIL - CUENTA CLARA V13.11.2
+
+Pantallas protegidas por CSS responsive:
+- Inicio y panel principal.
+- Menu “Que quieres hacer?”.
+- Personas.
+- Gastos y selector de plantilla.
+- OCR / revision de boleta.
+- Resumen y comprobante.
+- Pagos y filtros.
+- Historial, respaldo y diagnostico.
+- Recurrentes.
+- Compartidas y permisos.
+- Perfil financiero.
+- Modo simple.
+- Modo oscuro.
+
+Reglas aplicadas:
+- Ningun boton principal debe quedar como columna angosta.
+- Las grillas bajan a una columna en celular.
+- Las acciones importantes usan ancho completo en pantallas pequenas.
+- La navegacion lateral queda oculta en movil y legible en escritorio/tablet.
+- El menu inferior no debe tapar contenido relevante.
+- Textos largos deben ajustar linea sin romper palabras de forma extrana.

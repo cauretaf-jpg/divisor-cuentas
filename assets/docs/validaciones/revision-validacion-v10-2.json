@@ -1,0 +1,13 @@
+{
+  "version": "10.2",
+  "name": "Cuenta Clara V10.2 - Flujo de cuenta nueva y barra descriptiva",
+  "checks": {
+    "script_js_syntax": true,
+    "profile_js_syntax": true,
+    "duplicate_ids_index": false,
+    "duplicate_ids_perfil": false,
+    "duplicate_ids_privacidad": false,
+    "static_id_references_missing": 0,
+    "service_worker_cache": "cuenta-clara-v10.2.0"
+  }
+}

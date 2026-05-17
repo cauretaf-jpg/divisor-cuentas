@@ -1,0 +1,19 @@
+{
+  "version": "11.8",
+  "nombre": "Modo usuario nuevo y plantillas",
+  "validaciones": {
+    "script_js_sintaxis": "ok",
+    "profile_js_sintaxis": "ok",
+    "ids_html_duplicados": "ok",
+    "service_worker_cache": "v11.8.0"
+  },
+  "cambios": [
+    "Tarjeta de primer uso",
+    "Botón Crear mi primera cuenta",
+    "Botón Probar con ejemplo",
+    "Botón Entendido",
+    "Plantillas de cuenta",
+    "Presets por tipo de cuenta",
+    "Actualización de cache a v11.8"
+  ]
+}

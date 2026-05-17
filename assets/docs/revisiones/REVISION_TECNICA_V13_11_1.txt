@@ -1,0 +1,16 @@
+REVISION TECNICA - CUENTA CLARA V13.11.1
+
+Objetivo
+- Correccion rapida del menu principal en modo simple.
+
+Cambios aplicados
+- Se corrigio el grid del menu lateral/principal en modo simple.
+- Se evito que los botones del menu se comprimieran en columnas demasiado angostas.
+- Se corrigio el corte visual de textos como Inicio y el consejo del menu.
+- Se mantuvo la compatibilidad con la navegacion movil inferior.
+- Cache del service worker actualizado a cuenta-clara-v13.11.1.
+
+Impacto
+- No requiere SQL nuevo.
+- No agrega dependencias.
+- No modifica la logica de cuentas, pagos, OCR, recurrentes ni perfil.

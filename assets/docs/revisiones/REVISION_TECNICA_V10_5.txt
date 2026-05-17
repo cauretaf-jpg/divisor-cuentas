@@ -1,0 +1,26 @@
+REVISION TECNICA - CUENTA CLARA V10.5
+
+Objetivo:
+- Agregar participante “Yo” vinculado al perfil registrado.
+- Permitir que la participación del usuario autenticado impacte con mayor precisión en Estadísticas del Perfil.
+
+Cambios aplicados:
+- Se agregó tarjeta “Agregarme a esta lista” en Personas.
+- Se agregó botón “+ Yo” para usuarios con sesión iniciada.
+- Si el usuario ya está en la lista por userId/email, se muestra como ya agregado.
+- Si existe una persona con el mismo nombre, la app permite vincularla al perfil para evitar duplicados.
+- Las personas vinculadas al usuario muestran una insignia “Yo”.
+- Se conserva userId/email/phone al duplicar cuentas o crear meses recurrentes porque esos datos ya forman parte de las personas.
+- Las estadísticas del perfil ya reconocen userId/email/nombre, por lo que el nuevo vínculo hace más confiables los totales personales.
+
+Validaciones:
+- script.js sin errores de sintaxis.
+- profile.js sin errores de sintaxis.
+- index.html sin IDs duplicados.
+- perfil.html sin IDs duplicados.
+- privacidad.html sin IDs duplicados.
+- Service worker actualizado a v10.5.0.
+- Referencias de estilos/scripts actualizadas a v=10.5.
+
+SQL:
+- No se modificó SQL.

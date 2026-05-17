@@ -1,0 +1,53 @@
+REVISION TECNICA - CUENTA CLARA V13.5
+Version: Limpieza tecnica y estabilidad
+Fecha: 2026-05-10
+
+Objetivo
+- Reducir acumulacion tecnica antes de sumar funciones grandes.
+- Centralizar utilidades repetidas entre la app principal y el perfil.
+- Corregir residuos de versiones anteriores que ya no existian en el HTML.
+- Mantener compatibilidad con la estructura de datos actual, sin SQL nuevo.
+
+Cambios aplicados
+1. Nueva capa comun
+- Se agrego shared-utils.js.
+- Centraliza funciones compartidas: formato de moneda, fechas ISO, telefonos, iniciales, llaves de almacenamiento, perfil base, amigos, escape HTML, etiquetas de modo y tema claro/oscuro.
+- script.js y profile.js mantienen sus funciones publicas, pero ahora delegan la logica repetida a shared-utils.js.
+
+2. Correccion de plantilla
+- Se conecto el boton Aplicar plantilla con changeActiveBillTemplate().
+- El selector de plantilla ahora permite aplicar el cambio desde la interfaz.
+
+3. Limpieza de referencias antiguas
+- Se eliminaron referencias antiguas a accountSettingsPanel y accountSettingsSummaryText.
+- Se elimino la referencia legacy receiptButton, porque la app usa receiptMethodButton.
+- Se removio logica asociada a un panel de configuracion antiguo que ya no existe en index.html.
+
+4. Mensajes visibles mas profesionales
+- Se reemplazo el mensaje tecnico que mencionaba SQL social por un mensaje de usuario:
+  "No se pudo buscar usuarios registrados en este momento. Intenta nuevamente mas tarde."
+
+5. CSS
+- Se removieron reglas CSS de componentes antiguos no utilizados, especialmente account-settings, inline-form, radio-pill y otros bloques sin referencia actual.
+- Se mantuvieron duplicaciones responsivas o de overrides historicos cuando eliminarlas podia afectar la vista movil.
+
+6. Versionado y cache
+- Version actualizada a V13.5.
+- index.html, perfil.html, privacidad.html, service-worker.js, script.js, profile.js y documentacion actualizados.
+- Service worker actualizado a cuenta-clara-v13.5.
+- shared-utils.js agregado al cache del service worker.
+
+Validaciones realizadas
+- node --check shared-utils.js: OK.
+- node --check script.js: OK.
+- node --check profile.js: OK.
+- index.html: sin IDs duplicados.
+- perfil.html: sin IDs duplicados.
+- privacidad.html: sin IDs duplicados.
+- styles.css: llaves balanceadas.
+- Sin referencias activas a accountSettingsPanel, accountSettingsSummaryText, receiptButton ni SQL social.
+- No requiere SQL nuevo.
+- No agrega dependencias nuevas.
+
+Nota tecnica
+- Esta version no intenta reescribir completamente styles.css ni script.js porque ambos archivos tienen muchas capas historicas de estilos y comportamiento movil. Se hizo una limpieza segura y focalizada para bajar riesgo. La siguiente limpieza profunda recomendada seria separar styles.css por modulos o secciones y dividir script.js por dominios: OCR, pagos, perfil, recurrentes, compartidas e historial.

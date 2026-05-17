@@ -1,0 +1,24 @@
+REVISION TECNICA - CUENTA CLARA V13.3
+
+Objetivo de la versión:
+Pulir la experiencia móvil, fortalecer el flujo OCR y mantener la estabilidad del dashboard financiero del perfil.
+
+Cambios aplicados:
+- Bump de versión a V13.3 en index.html, perfil.html, service-worker.js, script.js y profile.js.
+- Cache name actualizado a cuenta-clara-v13.3.
+- Refuerzo del control OCR cuando el total detectado no coincide con el total impreso.
+- Botón explícito “Guardar igual” para aceptar manualmente una diferencia OCR.
+- Botón “Agregar diferencia” con monto calculado cuando faltan productos.
+- Textos de estado más simples y profesionales.
+- CSS de pulido móvil para Inicio, OCR y Perfil.
+
+Validaciones:
+- node --check script.js: OK.
+- node --check profile.js: OK.
+- index.html: sin IDs duplicados.
+- perfil.html: sin IDs duplicados.
+- No se agregaron dependencias.
+- No se modificó SQL.
+
+Notas:
+Esta versión es segura para subir sobre V13.2. Se recomienda probar OCR con una boleta que cuadre y otra que no cuadre, para confirmar el bloqueo preventivo antes de guardar.

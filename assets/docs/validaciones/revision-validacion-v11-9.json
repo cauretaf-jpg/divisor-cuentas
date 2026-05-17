@@ -1,0 +1,16 @@
+{
+  "version": "11.9",
+  "estado": "validado",
+  "validaciones": {
+    "script_js": "node --check script.js sin errores",
+    "profile_js": "node --check profile.js sin errores",
+    "service_worker_cache": "v11.9.0",
+    "assets": "index.html y perfil.html actualizados a v=11.9"
+  },
+  "cambios_clave": [
+    "Panel de recurrentes en Inicio",
+    "Cuentas hogar/streaming preparadas para carpetas mensuales",
+    "Arrastre de deuda pendiente al siguiente mes",
+    "Barra móvil con botón Inicio"
+  ]
+}

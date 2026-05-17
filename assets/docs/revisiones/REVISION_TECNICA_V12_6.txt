@@ -1,0 +1,11 @@
+Cuenta Clara v12.6 - Estabilidad, deshacer y confianza
+
+Cambios aplicados:
+- Modo sin conexión más claro y mensajes de recuperación de conexión.
+- Estado de guardado local más explícito cuando falla la sincronización.
+- Botón Deshacer para acciones críticas: eliminar cuenta, eliminar persona, eliminar gasto, limpiar gastos, reiniciar cuenta, cerrar/reabrir, archivar/desarchivar y marcar pagos.
+- Confirmaciones más humanas antes de eliminar o reiniciar datos importantes.
+- Barra/toast móvil ajustada para no competir con navegación inferior.
+- Cache/service worker actualizado a v12.6.
+
+No requiere SQL nuevo.

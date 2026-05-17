@@ -1,0 +1,20 @@
+REVISIÓN TÉCNICA V9.0
+
+Validaciones realizadas:
+- script.js revisado con node --check: sin errores de sintaxis.
+- profile.js revisado con node --check: sin errores de sintaxis.
+- index.html: sin IDs duplicados.
+- perfil.html: sin IDs duplicados.
+- Selectores principales de script.js encontrados en index.html.
+
+Cambios funcionales incorporados:
+- Cuentas recurrentes del hogar mediante carpetas/repositorios mensuales.
+- Creación de siguiente mes conectado con deuda anterior acumulada.
+- Deuda anterior integrada al cálculo de totales por persona.
+- Publicación de cuenta compartida en Supabase.
+- Invitación de usuarios registrados por correo/nick.
+- Apertura y edición de cuentas compartidas aceptadas.
+- Nuevo SQL: supabase-shared-accounts.sql.
+
+Nota:
+La colaboración requiere ejecutar supabase-shared-accounts.sql en Supabase y usar usuarios registrados.

@@ -1,0 +1,17 @@
+REVISION TECNICA V12.4
+
+Cambios aplicados:
+- Historial avanzado con busqueda, filtro por estado, filtro por tipo y orden.
+- Estado formal de cuenta cerrada con boton Cerrar/Reabrir.
+- Perfil con indicadores Por pagar, Por cobrar y Cerradas/Archivadas.
+- Barra inferior movil reforzada para mantenerse fija y visible.
+- Estilos agregados para cuentas cerradas y filtros moviles.
+
+Validaciones:
+- script.js validado con node --check.
+- profile.js validado con node --check.
+- index.html revisado para ids criticos agregados.
+- Cache actualizado a v12.4.
+
+SQL:
+- No requiere SQL nuevo.

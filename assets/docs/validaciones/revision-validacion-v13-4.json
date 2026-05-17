@@ -1,0 +1,23 @@
+{
+  "version": "13.4",
+  "fecha": "2026-05-10",
+  "objetivo": "Centro financiero, acciones pendientes y revision previa antes de compartir",
+  "validaciones": {
+    "script_js_node_check": "OK",
+    "profile_js_node_check": "OK",
+    "index_html_ids_duplicados": 0,
+    "perfil_html_ids_duplicados": 0,
+    "service_worker_cache": "cuenta-clara-v13.4",
+    "sql_nuevo_requerido": false,
+    "dependencias_nuevas": false
+  },
+  "cambios_clave": [
+    "Panel Pendiente ahora en Inicio",
+    "Centro financiero en Pagos",
+    "Filtros de pagos por cuenta actual, todas las cuentas y mi perfil",
+    "Acciones Ver cuenta, Copiar, WhatsApp y Marcar pagado",
+    "Perfil financiero con deudas accionables",
+    "Revision previa antes de compartir",
+    "CSS responsivo para las nuevas tarjetas"
+  ]
+}

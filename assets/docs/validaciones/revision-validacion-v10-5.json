@@ -1,0 +1,20 @@
+{
+  "version": "10.5",
+  "fecha": "2026-05-03",
+  "estado": "validado",
+  "cambios": [
+    "Participante Yo vinculado al perfil registrado",
+    "Evita duplicados por userId/email",
+    "Permite vincular coincidencia por nombre existente",
+    "Badge Yo en listado de personas",
+    "Estadísticas del perfil usan vínculo real de usuario"
+  ],
+  "validaciones": {
+    "script_js_sintaxis": true,
+    "profile_js_sintaxis": true,
+    "ids_duplicados_index": false,
+    "ids_duplicados_perfil": false,
+    "ids_duplicados_privacidad": false,
+    "sql_modificado": false
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "version": "12.0",
+  "fecha": "2026-05-08",
+  "validaciones": {
+    "script_js_node_check": true,
+    "profile_js_node_check": true,
+    "cache_actualizado": "cuenta-clara-v12.0.0",
+    "sql_compartidas_actualizado": true,
+    "roles_editor_lector": true,
+    "panel_miembros": true,
+    "banner_solo_lectura": true
+  },
+  "notas": [
+    "Ejecutar sql/03-supabase-shared-accounts.sql en Supabase antes de probar invitaciones avanzadas.",
+    "La función Compartidas requiere usuarios registrados y perfiles públicos existentes.",
+    "El modo Lector se bloquea visualmente en secciones funcionales para evitar ediciones accidentales."
+  ]
+}

@@ -1,0 +1,20 @@
+REVISION MOVIL - COMPARTIDAS V13.14
+
+Pantallas consideradas
+- Compartidas.
+- Selector de amigos.
+- Perfil > Amigos.
+- Solicitudes de cuentas.
+- Cuentas compartidas aceptadas.
+
+Criterios aplicados
+- Tarjetas más compactas.
+- Botones a ancho seguro en celular.
+- Menos texto visible por tarjeta.
+- Estados claros: pendiente, aceptada, rechazada.
+- Mantener elementos táctiles cómodos.
+
+Resultado
+- La función de solicitudes queda más clara en celular.
+- El usuario invitado puede aceptar desde Perfil sin tener que leer instrucciones largas.
+- Los elementos visuales son más pequeños que en versiones anteriores, pero mantienen legibilidad.

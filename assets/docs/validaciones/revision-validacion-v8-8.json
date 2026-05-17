@@ -1,0 +1,18 @@
+{
+  "version": "8.8",
+  "syntax": {
+    "script_js": "ok",
+    "profile_js": "ok"
+  },
+  "html": {
+    "index_duplicate_ids": 0,
+    "perfil_duplicate_ids": 0,
+    "script_query_selectors_missing_in_index": 0
+  },
+  "scope": [
+    "UX visual",
+    "sidebar sticky",
+    "configuracion compacta",
+    "indicador sincronizacion discreto"
+  ]
+}

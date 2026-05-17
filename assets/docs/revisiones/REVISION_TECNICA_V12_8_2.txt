@@ -1,0 +1,15 @@
+Cuenta Clara v12.8.2 - Validación estricta de boletas
+
+Cambios:
+- El flujo de boletas compara el total de productos detectados con el TOTAL leído en la boleta.
+- Si hay diferencia, se muestra una alerta clara antes de agregar productos.
+- Se agregó botón para crear una fila por diferencia cuando faltan montos/productos.
+- Al agregar productos con diferencia, la app solicita confirmación explícita.
+- Se mejoró la detección de montos escritos con espacios, por ejemplo $95. 680.
+- Se corrigieron expresiones de limpieza que no estaban usando correctamente límites de palabra.
+- Cache actualizado a v12.8.2.
+
+Validación:
+- script.js: node --check OK.
+- profile.js: node --check OK.
+- index.html: versión de assets actualizada.

@@ -1,0 +1,14 @@
+REVISION MOVIL - CUENTA CLARA V13.15
+
+Pantallas consideradas:
+- Personas.
+- Modal Agregar desde amigos.
+- Pagos.
+- Estadísticas.
+
+Ajustes:
+- El buscador de amigos baja a una columna en celular.
+- Botón Limpiar ocupa ancho completo cuando corresponde.
+- Panel WhatsApp baja a una columna.
+- Botones del panel WhatsApp ocupan ancho cómodo.
+- Personas frecuentes queda cerrado para evitar saturación.

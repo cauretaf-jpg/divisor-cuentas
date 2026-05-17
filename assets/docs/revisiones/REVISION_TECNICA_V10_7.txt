@@ -1,0 +1,23 @@
+REVISION TECNICA - CUENTA CLARA V10.7
+
+Objetivo:
+- Corregir responsividad móvil sobre la V10.6.
+
+Cambios principales:
+- Navegación por secciones adaptada para celular, sin scroll interno horizontal obligatorio.
+- Descripciones de secciones visibles también en pantallas pequeñas.
+- Formularios de Personas y Gastos ajustados a una columna en móvil.
+- Resumen de Pagos y cobros del perfil ajustados para evitar cortes y desbordes.
+- Perfil y Estadísticas reforzados para celular.
+- Botonera inferior móvil reorganizada.
+
+SQL:
+- No modificado.
+
+Validación:
+- script.js sin error de sintaxis.
+- profile.js sin error de sintaxis.
+- index.html sin IDs duplicados.
+- perfil.html sin IDs duplicados.
+- privacidad.html sin IDs duplicados.
+- Service worker actualizado a v10.7.0.

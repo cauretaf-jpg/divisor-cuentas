@@ -1,0 +1,34 @@
+REVISION TECNICA - CUENTA CLARA V13.10
+
+Objetivo:
+Version pequena de seguridad antes de avanzar a funciones mayores. Refuerza respaldo, importacion y diagnostico sin modificar SQL ni dependencias.
+
+Cambios aplicados:
+- Version actualizada a V13.10.
+- Cache del service worker actualizado a cuenta-clara-v13.10.
+- Se agrego APP_VERSION y BACKUP_SCHEMA_VERSION en script.js.
+- Exportar respaldo ahora incluye appVersion, version de esquema, diagnostico y estado.
+- El nombre del respaldo incluye v13.10.
+- Importar respaldo ahora valida estructura antes de reemplazar datos.
+- Importar respaldo muestra vista previa: version, fecha, cuentas, cuenta activa, productos rapidos y recurrentes.
+- Antes de importar se guarda una copia local automatica en el navegador.
+- Se agrego restauracion de copia previa.
+- Se agrego diagnostico simple en Historial.
+- Se agrego copia de diagnostico al portapapeles.
+- Se mantuvieron visibles los respaldos en modo Simple.
+- Se agregaron estilos responsive para la tarjeta de seguridad.
+
+Validaciones realizadas:
+- node --check shared-utils.js OK.
+- node --check script.js OK.
+- node --check profile.js OK.
+- index.html sin IDs duplicados.
+- perfil.html sin IDs duplicados.
+- privacidad.html sin IDs duplicados.
+- styles.css con llaves balanceadas.
+- service-worker.js apunta a cache v13.10.
+
+Compatibilidad:
+- No requiere SQL nuevo.
+- No agrega dependencias nuevas.
+- Mantiene respaldo compatible con estados antiguos mientras tengan arreglo bills valido.

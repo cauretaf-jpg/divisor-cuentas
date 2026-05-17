@@ -1,0 +1,23 @@
+REVISION DE DISENO - CUENTA CLARA V13.14
+
+Criterio visual aplicado:
+- Minimalismo funcional: menos párrafos, más estados y acciones.
+- Paleta más moderna: fondo claro neutro, azul como acción principal y verde/cian como color secundario.
+- Contraste más limpio para lectura móvil.
+- Tarjetas con sombra más suave y bordes menos saturados.
+- Botones con jerarquía clara: primario para continuar, secundario para revisar.
+
+Pantallas consideradas:
+- Inicio.
+- Personas.
+- Gastos.
+- Resumen.
+- Pagos.
+- Historial.
+- Hogar/Recurrentes.
+- Compartidas.
+- Modo simple.
+- Modo oscuro.
+
+Decisión de producto:
+Cuenta Clara no debe explicar todo en texto. Debe guiar al usuario con estado + pendiente + botón.

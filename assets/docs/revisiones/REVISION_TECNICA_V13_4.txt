@@ -1,0 +1,26 @@
+REVISION TECNICA - CUENTA CLARA V13.4
+
+Objetivo de la versión:
+Mejorar la claridad financiera de Cuenta Clara con un centro de acciones pendientes, una revisión previa antes de compartir y deudas más accionables desde el perfil.
+
+Cambios aplicados:
+- Bump de versión a V13.4 en index.html, perfil.html, service-worker.js, script.js y profile.js.
+- Cache name actualizado a cuenta-clara-v13.4.
+- Nuevo panel “Pendiente ahora” en Inicio con pagos/cobros pendientes y revisiones críticas.
+- Nuevo “Centro financiero” dentro de Pagos, con filtros por cuenta actual, todas las cuentas y vinculadas a mi perfil.
+- Acciones rápidas por deuda: Ver cuenta, Copiar mensaje, WhatsApp y Marcar pagado.
+- Mejora de “A quién le debo” y “Quién me debe” en el perfil: ahora las filas tienen acciones directas.
+- Nueva revisión previa “Antes de compartir” en Resumen para detectar personas faltantes, gastos faltantes, pagador principal pendiente, gastos sin consumidores, nombres repetidos, pagos pendientes y vencimientos del hogar.
+- Estilos responsivos para que las nuevas tarjetas funcionen bien en celular.
+
+Validaciones:
+- node --check script.js: OK.
+- node --check profile.js: OK.
+- index.html: sin IDs duplicados.
+- perfil.html: sin IDs duplicados.
+- Service worker actualizado a cuenta-clara-v13.4.
+- No se agregaron dependencias.
+- No se modificó SQL.
+
+Notas:
+Esta versión no requiere cambios en Supabase ni migraciones nuevas. Se recomienda probar: una cuenta con pagador principal, deudas pendientes, una cuenta sin pagador, una cuenta con personas sin consumo y el flujo de marcar pagado desde Pagos, Inicio y Perfil.

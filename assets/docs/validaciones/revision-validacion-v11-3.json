@@ -1,0 +1,11 @@
+{
+  "version": "11.3",
+  "objetivo": "Menú superior desplegable para opciones secundarias",
+  "validaciones": [
+    "node --check script.js",
+    "node --check profile.js",
+    "Cache actualizado a v11.3",
+    "Opciones secundarias agrupadas en Más opciones"
+  ],
+  "resultado": "OK"
+}

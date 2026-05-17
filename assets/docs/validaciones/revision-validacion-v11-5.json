@@ -1,0 +1,12 @@
+{
+  "version": "11.5",
+  "validaciones": [
+    "Perfil visible fuera del menú Más opciones",
+    "Botón duplicado de boleta eliminado visualmente",
+    "Listener de receiptButton protegido si el elemento no existe",
+    "Pagos por persona con botón directo pagado/pendiente",
+    "Cobros pendientes filtrados por estado de pago",
+    "index.html actualizado a assets v11.5",
+    "service-worker actualizado a cache v11.5"
+  ]
+}

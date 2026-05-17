@@ -1,0 +1,15 @@
+REVISION VISUAL PUBLICA - CUENTA CLARA V13.18.2
+
+Se aplico una capa visual mas moderna y minimalista para el sitio publico:
+- Landing con hero claro y CTA directo a la app.
+- Tarjetas informativas limpias.
+- Paleta base azul, fondos neutros y bordes suaves.
+- Footer legal visible.
+- Navegacion publica separada de la navegacion interna de la app.
+- Anuncios ubicados en una zona informativa segura.
+- App sin anuncios dentro del flujo principal de crear/revisar cuentas.
+
+Pendiente para prueba manual:
+- Revisar en celular landing, paginas publicas y app.html.
+- Confirmar que Vercel sirva ads.txt en la raiz.
+- Confirmar que el boton Abrir app lleve correctamente a app.html.

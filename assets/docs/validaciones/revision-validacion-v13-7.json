@@ -1,0 +1,18 @@
+{
+  "version": "13.7",
+  "nombre": "Cuenta Clara v13.7 - recurrentes con deuda acumulada",
+  "validaciones": {
+    "script_js_sintaxis": "OK",
+    "profile_js_sintaxis": "OK",
+    "shared_utils_js_sintaxis": "OK",
+    "ids_index_html": "OK",
+    "ids_perfil_html": "OK",
+    "ids_privacidad_html": "OK",
+    "css_llaves": "OK",
+    "service_worker_cache": "OK",
+    "version_refs": "OK"
+  },
+  "sql_nuevo": false,
+  "dependencias_nuevas": false,
+  "service_worker_cache": "cuenta-clara-v13.7"
+}

@@ -1,0 +1,15 @@
+Cuenta Clara v12.8.4 - limpieza de productos detectados en boletas
+
+Cambios aplicados:
+- El OCR de boletas ahora intenta procesar productos solo dentro de la zona real de consumo.
+- Se evita que cabecera, dirección, mesa, RUT, total, propina o datos de pago entren como productos.
+- Se agregaron reglas para filtrar palabras administrativas y errores comunes de OCR.
+- Las filas sospechosas quedan desmarcadas y marcadas para revisión.
+- Se agregó botón "No es consumo" en cada fila detectada para quitar rápidamente datos incorrectos.
+- Se mantiene la validación entre total de productos y total de boleta antes de guardar.
+- Cache actualizado a v12.8.4.
+
+Validación:
+- script.js validado con node --check.
+- profile.js validado con node --check.
+- IDs duplicados revisados en index.html.

@@ -1,0 +1,23 @@
+REVISION TECNICA - CUENTA CLARA V10.6
+
+Objetivo:
+- Agregar indicadores para cuando la persona vinculada al perfil es el pagador principal.
+
+Cambios aplicados:
+- En Pagos se agrega un bloque “Tu cobro” visible solo cuando “Yo” es el pagador principal.
+- El bloque muestra: pagaste por todos, tu parte y pendiente por recibir.
+- Se lista quién te debe dinero, considerando solo participantes pendientes.
+- En Perfil > Estadísticas > Pagos y recurrentes se agregan métricas acumuladas de pagos como pagador principal.
+- Se agrega ranking de personas que te deben cuando tú pagas.
+
+Validaciones:
+- script.js sin errores de sintaxis.
+- profile.js sin errores de sintaxis.
+- index.html sin IDs duplicados.
+- perfil.html sin IDs duplicados.
+- privacidad.html sin IDs duplicados.
+- Service worker actualizado a v10.6.0.
+- Referencias de estilos/scripts actualizadas a v=10.6.
+
+SQL:
+- No requiere SQL nuevo.

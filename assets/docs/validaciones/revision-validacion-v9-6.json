@@ -1,0 +1,24 @@
+{
+  "index.html": {
+    "ids": 215,
+    "duplicates": []
+  },
+  "perfil.html": {
+    "ids": 48,
+    "duplicates": []
+  },
+  "privacidad.html": {
+    "ids": 0,
+    "duplicates": []
+  },
+  "javascript": {
+    "script_check": "ok",
+    "profile_check": "ok"
+  },
+  "selectors": {
+    "total": 249,
+    "missing": [],
+    "missing_count": 0
+  },
+  "version": "9.6"
+}

@@ -1,0 +1,20 @@
+REVISION TECNICA V10.3
+
+Objetivo:
+- Ajustar flujo de creación de listas y ubicar pagador/propina en secciones más naturales.
+
+Cambios:
+- Prompt de nombre al crear lista desde Inicio rápido.
+- Indicador global de lista actual.
+- Pagador principal movido a Personas.
+- Propina movida a Gastos.
+- Configuración enfocada en modo de cuenta y opciones generales.
+- Caché actualizado a v10.3.0.
+
+Validaciones:
+- script.js sin errores de sintaxis.
+- profile.js sin errores de sintaxis.
+- index.html sin IDs duplicados.
+- perfil.html sin IDs duplicados.
+- privacidad.html sin IDs duplicados.
+- Referencias estáticas querySelector(#id) existentes en index.html.

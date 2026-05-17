@@ -1,0 +1,5 @@
+Cuenta Clara V9.1
+- Corrige carga de cuentas compartidas evitando relación embebida shared_account_members -> shared_accounts.
+- Actualiza supabase-shared-accounts.sql con funciones SECURITY DEFINER para evitar recursión o bloqueos RLS.
+- Agrega notify pgrst, 'reload schema' para refrescar caché de Supabase/PostgREST.
+- Mantiene UX V8.9/V9.0 y lógica de recurrentes.

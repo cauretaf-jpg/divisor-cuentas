@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f766e" />
+  <meta name="google-adsense-account" content="ca-pub-4358472434423818" />
+  <title>Mi perfil | Cuenta Clara</title>
+  <link rel="stylesheet" href="styles.css?v=13.18.2" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+</head>
+<body class="profile-page-body">
+  <header class="app-header">
+    <div class="container header-grid">
+      <a href="app.html" class="brand" aria-label="Cuenta Clara">
+        <img src="assets/logo.svg" alt="" class="brand-icon" />
+        <div>
+          <strong>Cuenta Clara</strong>
+          <span>Perfil, estadísticas y amigos</span>
+        </div>
+      </a>
+
+      <div class="header-actions">
+        <a class="btn btn-light" href="app.html">Volver a la app</a>
+        <a class="btn btn-light" href="index.html">Sitio público</a>
+        <a class="btn btn-light" href="privacidad.html">Privacidad</a>
+        <button class="btn btn-light" id="profileThemeToggle" type="button">Modo oscuro</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container profile-page-layout">
+    <section class="card profile-page-hero">
+      <div class="profile-page-avatar" id="pageAvatar">CC</div>
+      <div>
+        <p class="eyebrow">Mi perfil</p>
+        <h1 id="pageProfileTitle">Cuenta Clara</h1>
+        <p class="helper-text" id="pageProfileSubtitle">Carga tu sesión para administrar tu perfil.</p>
+      </div>
+      <div class="profile-page-actions">
+        <button class="btn btn-primary" id="saveFullProfileButton" type="button">Guardar perfil</button>
+        <button class="btn btn-light" id="syncProfileButton" type="button">Guardar ahora</button>
+        <button class="btn btn-danger-light" id="profileLogoutButton" type="button">Cerrar sesión</button>
+      </div>
+    </section>
+
+    <section class="profile-nav card" role="tablist" aria-label="Secciones del perfil">
+      <button class="profile-page-tab active" data-page-profile-tab="perfil" type="button">Perfil</button>
+      <button class="profile-page-tab" data-page-profile-tab="estadisticas" type="button">Estadísticas</button>
+      <button class="profile-page-tab" data-page-profile-tab="amigos" type="button">Amigos <span class="notification-badge profile-tab-badge hidden" id="profileFriendsTabBadge">0</span></button>
+      <button class="profile-page-tab" data-page-profile-tab="configuracion" type="button">Configuración</button>
+    </section>
+
+    <section class="card profile-page-section" id="loginRequiredCard">
+      <p class="eyebrow">Sesión requerida</p>
+      <h2>Inicia sesión desde la app principal</h2>
+      <p class="helper-text">Para editar tu perfil, subir foto y administrar amigos, primero inicia sesión en Cuenta Clara.</p>
+      <a class="btn btn-primary" href="app.html">Ir a Cuenta Clara</a>
+    </section>
+
+    <section class="card profile-page-section hidden" id="perfil">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Identidad</p>
+          <h2>Datos del perfil</h2>
+        </div>
+      </div>
+
+      <div class="profile-form-grid">
+        <label>
+          Nick visible
+          <input id="pageNickInput" type="text" placeholder="Ej: Carloco" />
+        </label>
+        <label>
+          Nombre
+          <input id="pageNameInput" type="text" placeholder="Tu nombre" />
+        </label>
+        <label>
+          Teléfono opcional
+          <input id="pagePhoneInput" type="tel" placeholder="Ej: 56912345678" />
+        </label>
+        <label>
+          Correo
+          <input id="pageEmailInput" type="email" readonly />
+        </label>
+      </div>
+
+      <div class="avatar-upload-box">
+        <div>
+          <strong>Foto de perfil</strong>
+          <p class="helper-text">Se guardará en tu perfil de Cuenta Clara y se sincronizará en la nube.</p>
+        </div>
+        <input id="avatarFileInput" type="file" accept="image/*" />
+        <button class="btn btn-light" id="removeAvatarButton" type="button">Quitar foto</button>
+      </div>
+    </section>
+
+    <section class="card profile-page-section hidden" id="estadisticas">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Uso y comportamiento</p>
+          <h2>Estadísticas</h2>
+          <p class="helper-text">Revisa tus cuentas, gastos, personas frecuentes, pagos y actividad reciente.</p>
+        </div>
+      </div>
+
+      <div class="profile-stats-tabs" role="tablist" aria-label="Vistas de estadísticas">
+        <button class="profile-stats-tab active" data-profile-stats-tab="dashboard" type="button">Dashboard</button>
+        <button class="profile-stats-tab" data-profile-stats-tab="resumen" type="button">Resumen</button>
+        <button class="profile-stats-tab" data-profile-stats-tab="gastos" type="button">Gastos</button>
+        <button class="profile-stats-tab" data-profile-stats-tab="personas" type="button">Personas</button>
+        <button class="profile-stats-tab" data-profile-stats-tab="pagos" type="button">Pagos y recurrentes</button>
+        <button class="profile-stats-tab" data-profile-stats-tab="actividad" type="button">Actividad</button>
+      </div>
+
+      <div class="profile-stats-panel active" data-profile-stats-panel="dashboard">
+        <div class="profile-dashboard-hero">
+          <div>
+            <p class="eyebrow">Dashboard financiero</p>
+            <h3 id="pageDashboardMonthLabel">Este mes</h3>
+            <p class="helper-text" id="pageDashboardMonthComparison">Comparación mensual no disponible.</p>
+          </div>
+          <div class="profile-dashboard-badge" id="pageDashboardHealth">Sin datos</div>
+        </div>
+
+        <div class="profile-money-grid">
+          <div class="profile-money-card is-positive"><span>Por cobrar</span><strong id="pageDashboardReceivable">$0</strong><small>Pendiente global</small></div>
+          <div class="profile-money-card is-warning"><span>Por pagar</span><strong id="pageDashboardPayable">$0</strong><small>Pendiente global</small></div>
+          <div class="profile-money-card"><span>Pagado por mí</span><strong id="pageDashboardPaidByMe">$0</strong><small>Total donde fuiste pagador</small></div>
+          <div class="profile-money-card"><span>Me corresponde</span><strong id="pageDashboardAssigned">$0</strong><small>Tu participación detectada</small></div>
+          <div class="profile-money-card"><span>Cuentas abiertas</span><strong id="pageDashboardOpenBills">0</strong><small>Sin cerrar ni archivar</small></div>
+          <div class="profile-money-card"><span>Cuentas cerradas</span><strong id="pageDashboardClosedBills">0</strong><small>Finalizadas correctamente</small></div>
+        </div>
+
+        <div class="stats-detail-grid two-columns profile-dashboard-grid">
+          <div class="stats-box">
+            <strong>Quién me debe</strong>
+            <p class="helper-text">Cobros pendientes vinculados a tu perfil. Toca una fila para abrir Pagos.</p>
+            <div id="pageDashboardOwedList" class="profile-debt-list"></div>
+          </div>
+          <div class="stats-box">
+            <strong>A quién le debo</strong>
+            <p class="helper-text">Pagos pendientes donde tú no eres el pagador principal.</p>
+            <div id="pageDashboardOweList" class="profile-debt-list"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Comparativa mensual</strong>
+            <div id="pageDashboardMonthlyComparison" class="profile-insight-list"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Actividad del mes</strong>
+            <div id="pageDashboardMonthActivity" class="profile-activity-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-stats-panel" data-profile-stats-panel="resumen">
+        <div class="stats-grid">
+          <div class="stat-card"><span>Cuentas creadas</span><strong id="pageStatTotalBills">0</strong></div>
+          <div class="stat-card"><span>Cuentas activas</span><strong id="pageStatActiveBills">0</strong></div>
+          <div class="stat-card"><span>Total administrado</span><strong id="pageStatHistoricalTotal">$0</strong></div>
+          <div class="stat-card"><span>Promedio por cuenta</span><strong id="pageStatAverageBill">$0</strong></div>
+          <div class="stat-card"><span>Personas distintas</span><strong id="pageStatUniquePeopleCount">0</strong></div>
+          <div class="stat-card"><span>Productos / gastos</span><strong id="pageStatProductCount">0</strong></div>
+          <div class="stat-card"><span>Cuentas compartidas</span><strong id="pageStatSharedBills">0</strong></div>
+          <div class="stat-card"><span>Cierre de pagos</span><strong id="pageStatPaidRate">0%</strong></div>
+        </div>
+
+        <div class="stats-detail-grid two-columns">
+          <div class="stats-box">
+            <strong>Indicadores rápidos</strong>
+            <div id="pageQuickInsights" class="profile-insight-list"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Última actividad</strong>
+            <p id="pageLastActivity" class="helper-text">Sin actividad registrada.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-stats-panel" data-profile-stats-panel="gastos">
+        <div class="stats-grid">
+          <div class="stat-card"><span>Cuentas del hogar</span><strong id="pageStatHomeBills">0</strong></div>
+          <div class="stat-card"><span>Salidas / rápidas</span><strong id="pageStatOutingBills">0</strong></div>
+          <div class="stat-card"><span>Cuenta más alta</span><strong id="pageStatBiggestBill">$0</strong></div>
+          <div class="stat-card"><span>Mes con más movimiento</span><strong id="pageStatTopMonth">-</strong></div>
+        </div>
+
+        <div class="stats-detail-grid">
+          <div class="stats-box">
+            <strong>Categorías más usadas</strong>
+            <div id="pageTopCategories" class="mini-ranking"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Cuentas más altas</strong>
+            <div id="pageTopBills" class="mini-ranking"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Gasto por mes</strong>
+            <div id="pageMonthlyTotals" class="mini-ranking"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-stats-panel" data-profile-stats-panel="personas">
+        <div class="stats-grid">
+          <div class="stat-card"><span>Personas agregadas</span><strong id="pageStatPeopleCount">0</strong></div>
+          <div class="stat-card"><span>Personas distintas</span><strong id="pageStatUniquePeopleMirror">0</strong></div>
+          <div class="stat-card"><span>Participación detectada</span><strong id="pageStatMyAssignedTotal">$0</strong></div>
+          <div class="stat-card"><span>Pendiente asociado a ti</span><strong id="pageStatMyPendingTotal">$0</strong></div>
+        </div>
+
+        <div class="stats-detail-grid">
+          <div class="stats-box">
+            <strong>Personas frecuentes</strong>
+            <div id="pageTopPeople" class="mini-ranking"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Montos por persona</strong>
+            <div id="pageTopPeopleAmounts" class="mini-ranking"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Pendientes por persona</strong>
+            <div id="pagePendingPeople" class="mini-ranking actionable-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-stats-panel" data-profile-stats-panel="pagos">
+        <div class="stats-grid">
+          <div class="stat-card"><span>Cuentas pagadas</span><strong id="pageStatPaidBills">0</strong></div>
+          <div class="stat-card"><span>Cuentas pendientes</span><strong id="pageStatPendingBills">0</strong></div>
+          <div class="stat-card"><span>Total pagado</span><strong id="pageStatPaidTotal">$0</strong></div>
+          <div class="stat-card"><span>Total pendiente</span><strong id="pageStatPendingTotal">$0</strong></div>
+          <div class="stat-card"><span>Pagaste como principal</span><strong id="pageStatMyPaidAsPayerTotal">$0</strong></div>
+          <div class="stat-card"><span>Tu parte cuando pagas</span><strong id="pageStatMyOwnShareAsPayer">$0</strong></div>
+          <div class="stat-card"><span>Te deben por tus pagos</span><strong id="pageStatMyReceivableTotal">$0</strong></div>
+          <div class="stat-card"><span>Carpetas recurrentes</span><strong id="pageStatRecurringGroups">0</strong></div>
+          <div class="stat-card"><span>Meses recurrentes</span><strong id="pageStatRecurringMonths">0</strong></div>
+          <div class="stat-card"><span>Pendiente recurrente</span><strong id="pageStatRecurringPending">$0</strong></div>
+          <div class="stat-card"><span>Deuda anterior registrada</span><strong id="pageStatCarryoverTotal">$0</strong></div>
+        </div>
+
+        <div class="stats-detail-grid two-columns">
+          <div class="stats-box">
+            <strong>Recurrentes activas</strong>
+            <div id="pageRecurringSummary" class="mini-ranking"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Estado de pagos</strong>
+            <div id="pagePaymentSummary" class="profile-insight-list"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Quién te debe cuando tú pagas</strong>
+            <div id="pageMyReceivablePeople" class="mini-ranking"></div>
+          </div>
+          <div class="stats-box">
+            <strong>A quién le debo</strong>
+            <div id="pageOweList" class="profile-debt-list"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Quién me debe</strong>
+            <div id="pageOwedList" class="profile-debt-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-stats-panel" data-profile-stats-panel="actividad">
+        <div class="stats-detail-grid two-columns">
+          <div class="stats-box">
+            <strong>Actividad reciente</strong>
+            <div id="pageRecentActivity" class="profile-activity-list"></div>
+          </div>
+          <div class="stats-box">
+            <strong>Hitos de uso</strong>
+            <div id="pageMilestones" class="profile-insight-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card profile-page-section hidden" id="amigos">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Contactos frecuentes</p>
+          <h2>Amigos</h2>
+        </div>
+      </div>
+
+      <form class="friend-form" id="friendForm">
+        <input id="friendNameInput" type="text" placeholder="Nombre o nick" />
+        <input id="friendPhoneInput" type="tel" placeholder="Teléfono WhatsApp" />
+        <input id="friendEmailInput" type="email" placeholder="Correo opcional" />
+        <input id="friendNotesInput" type="text" placeholder="Notas opcionales" />
+        <button class="btn btn-primary" type="submit">Guardar amigo</button>
+        <button class="btn btn-light hidden" id="cancelFriendEditButton" type="button">Cancelar edición</button>
+      </form>
+
+      
+      <section aria-live="polite" class="profile-notification-center hidden" id="profileNotificationCenter">
+        <div>
+          <p class="eyebrow">Notificaciones</p>
+          <h3 id="profileNotificationTitle">Sin solicitudes nuevas</h3>
+          <p class="helper-text" id="profileNotificationText">Las invitaciones a cuentas compartidas aparecerán aquí.</p>
+        </div>
+        <span class="notification-pill" id="profileNotificationCount">0</span>
+        <div class="notification-list" id="profileNotificationList"></div>
+        <button class="btn btn-light btn-small" id="profileNotificationMarkReadButton" type="button">Marcar vistas</button>
+      </section>
+
+      <div class="social-friends-grid">
+        <div class="social-box">
+          <div class="receipt-results-header">
+            <strong>Buscar usuarios registrados</strong>
+            <span>Por nick, nombre o correo</span>
+          </div>
+          <div class="social-search-row">
+            <input id="userSearchInput" type="search" placeholder="Buscar usuario..." />
+            <button class="btn btn-primary" id="searchUsersButton" type="button">Buscar</button>
+          </div>
+          <div class="social-results-list" id="userSearchResults"></div>
+        </div>
+
+        <div class="social-box">
+          <div class="receipt-results-header">
+            <strong>Solicitudes recibidas</strong>
+            <span id="incomingRequestsCount">0</span>
+          </div>
+          <div class="social-results-list" id="incomingRequestsList"></div>
+        </div>
+
+        <div class="social-box">
+          <div class="receipt-results-header">
+            <strong>Solicitudes enviadas</strong>
+            <span id="outgoingRequestsCount">0</span>
+          </div>
+          <div class="social-results-list" id="outgoingRequestsList"></div>
+        </div>
+
+        <div class="social-box">
+          <div class="receipt-results-header">
+            <strong>Amigos registrados</strong>
+            <span id="registeredFriendsCount">0</span>
+          </div>
+          <div class="social-results-list" id="registeredFriendsList"></div>
+        </div>
+
+        <div class="social-box shared-profile-box">
+          <div class="receipt-results-header">
+            <strong>Solicitudes de cuentas</strong>
+            <span id="sharedAccountRequestsCount">0</span>
+          </div>
+          <div class="social-results-list compact-shared-list" id="sharedAccountRequestsList"></div>
+        </div>
+
+        <div class="social-box shared-profile-box">
+          <div class="receipt-results-header">
+            <strong>Cuentas compartidas</strong>
+            <span id="sharedAcceptedAccountsCount">0</span>
+          </div>
+          <div class="social-results-list compact-shared-list" id="sharedAcceptedAccountsList"></div>
+        </div>
+      </div>
+
+      <div class="friends-page-list" id="friendsPageList"></div>
+    </section>
+
+    <section class="card profile-page-section hidden" id="configuracion">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Preferencias</p>
+          <h2>Configuración</h2>
+        </div>
+      </div>
+
+      <div class="profile-form-grid">
+        <label>
+          Moneda
+          <select id="pageCurrencyInput">
+            <option value="CLP">Peso chileno (CLP)</option>
+          </select>
+        </label>
+        <label>
+          Preferencia visual
+          <select id="pageThemePreferenceInput">
+            <option value="system">Usar preferencia actual</option>
+            <option value="light">Modo claro</option>
+            <option value="dark">Modo oscuro</option>
+          </select>
+        </label>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast hidden" id="profileToast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="shared-utils.js?v=13.18.2"></script>
+<script src="supabase-config.js?v=13.18.2"></script>
+  <script src="profile.js?v=13.18.2"></script>
+</body>
+</html>
