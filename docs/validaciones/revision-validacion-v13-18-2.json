@@ -1,0 +1,21 @@
+{
+  "version": "13.18.3",
+  "objetivo": "Limpiar información técnica visible y evitar publicar carpetas internas en Vercel.",
+  "validaciones": {
+    "script_js": "OK",
+    "profile_js": "OK",
+    "shared_utils_js": "OK",
+    "service_worker_js": "OK",
+    "html_ids_duplicados": "OK",
+    "css_llaves": "OK",
+    "sql_nuevo": false,
+    "dependencias_nuevas": false,
+    "vercelignore": true
+  },
+  "carpetas_excluidas_de_vercel": [
+    "docs/",
+    "sql/",
+    "supabase/",
+    "tools/"
+  ]
+}

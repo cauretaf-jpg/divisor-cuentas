@@ -1,0 +1,15 @@
+REVISION VISUAL Y PRIVACIDAD - CUENTA CLARA V13.18.3
+
+Criterio:
+El usuario común debe ver solo información útil para usar Cuenta Clara.
+La información técnica o de administración debe quedar fuera del flujo público.
+
+Ajustes visibles:
+- No se muestra información sobre anuncios.
+- No se muestran instrucciones de configuración técnica de notificaciones.
+- No se muestran nombres de servicios internos en los mensajes de ayuda.
+- El estado de conexión usa lenguaje simple y profesional.
+- Respaldo se presenta como una función de seguridad, no como diagnóstico técnico.
+
+Ajustes de publicación:
+- .vercelignore evita publicar documentación interna y scripts de configuración en Vercel.

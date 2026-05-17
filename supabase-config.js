@@ -7,8 +7,7 @@ const supabaseClient = window.supabase.createClient(
 );
 
 
-// V13.18 - Notificaciones push opcionales.
-// Para push real con la app cerrada, genera VAPID keys, pega la pública aquí
-// y despliega la Edge Function incluida en supabase/functions/send-shared-invite-push.
+// V13.18.3 - Configuración opcional de avisos del celular.
+// Mantener vacío si solo se usarán avisos dentro de la app.
 window.CUENTA_CLARA_PUBLIC_VAPID_KEY = '';
 window.CUENTA_CLARA_PUSH_FUNCTION_NAME = 'send-shared-invite-push';

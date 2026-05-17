@@ -1,0 +1,13 @@
+{
+  "version": "13.18.3",
+  "focus": "correccion_404_recursos_publicos",
+  "files_added": [
+    "favicon.ico",
+    "assets/icon-192.png",
+    "assets/icon-512.png",
+    "404.html",
+    "vercel.json"
+  ],
+  "sql_required": false,
+  "dependencies_added": false
+}

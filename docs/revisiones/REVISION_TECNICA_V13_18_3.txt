@@ -1,0 +1,16 @@
+Cuenta Clara V13.18.3 - Corrección 404 de recursos públicos
+
+Cambios:
+- Se agregó favicon.ico en raíz para evitar solicitudes 404 del navegador.
+- Se generaron assets/icon-192.png y assets/icon-512.png para PWA e instalación móvil.
+- Se actualizó manifest.json con iconos PNG y SVG.
+- Se normalizaron enlaces de iconos en páginas públicas y app.
+- Se agregó 404.html como página simple de recurso no encontrado.
+- Se agregó vercel.json con rutas limpias opcionales hacia páginas .html.
+- El service worker ahora cachea iconos y evita guardar respuestas 404 en caché.
+- Service worker actualizado a cuenta-clara-v13.18.3.
+
+Validación esperada:
+- /favicon.ico debe responder correctamente en producción.
+- /assets/icon-192.png y /assets/icon-512.png deben responder correctamente.
+- Las rutas /app, /perfil, /privacidad, /funciones, /contacto, /terminos, /como-funciona y /preguntas-frecuentes deben abrir sus páginas correspondientes en Vercel.
