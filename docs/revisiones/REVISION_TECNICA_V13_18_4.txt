@@ -1,0 +1,14 @@
+Cuenta Clara V13.18.4 - Corrección de despliegue raíz en Vercel
+
+Motivo:
+- Se detectó 404 en la raíz del dominio al publicar.
+- Causa probable: archivos publicados dentro de una subcarpeta en vez de quedar en la raíz del proyecto.
+
+Cambios:
+1. ZIP preparado para publicación con archivos directamente en raíz.
+2. vercel.json reforzado con rewrite explícito de / hacia /index.html.
+3. cleanUrls activado para rutas públicas.
+4. Cache del service worker actualizado a cuenta-clara-v13.18.4.
+5. README_PUBLICAR_VERCEL.txt agregado con instrucciones para evitar 404.
+
+No cambia lógica funcional de cuentas, pagos, perfil, OCR, solicitudes ni notificaciones internas.

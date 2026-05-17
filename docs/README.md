@@ -1,8 +1,8 @@
-# Cuenta Clara V13.18.3
+# Cuenta Clara V13.18.4
 
 Versión enfocada en limpieza visual, sitio informativo público y separación entre landing y app.
 
-## Nuevo en V13.18.3
+## Nuevo en V13.18.4
 
 - `index.html` ahora es una landing pública.
 - `app.html` contiene la aplicación principal.
@@ -15,13 +15,13 @@ Versión enfocada en limpieza visual, sitio informativo público y separación e
 Subir todos los archivos a GitHub/Vercel. La app se abre desde `app.html`; la página pública principal queda en `index.html`.
 
 
-## Ajuste V13.18.3
+## Ajuste V13.18.4
 
 - Se elimino informacion visible innecesaria sobre anuncios.
 - ads.txt se conserva en raiz, pero deja de aparecer como enlace publico.
 - No cambia la logica de la app.
 
-## Ajuste V13.18.3 - limpieza técnica visible
+## Ajuste V13.18.4 - limpieza técnica visible
 
 - Se reemplazaron textos visibles sobre configuración técnica de notificaciones por mensajes simples para usuarios.
 - `Estado de conexión` pasa a mostrarse como `Estado de la app`.
