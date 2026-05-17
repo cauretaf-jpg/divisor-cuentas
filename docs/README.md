@@ -1,8 +1,8 @@
-# Cuenta Clara V13.16
+# Cuenta Clara V13.16.1
 
 Versión enfocada en mejorar el uso real cuando hay muchos amigos, reducir ruido visual y preparar recordatorios por WhatsApp de manera controlada.
 
-## Nuevo en V13.16
+## Nuevo en V13.16.1
 
 - Buscador en **Agregar personas desde amigos**.
 - Filtro por nombre, correo o teléfono.
@@ -32,7 +32,7 @@ No requiere SQL nuevo.
 - `perfil.html`: sin IDs duplicados.
 - `privacidad.html`: sin IDs duplicados.
 - `styles.css`: llaves balanceadas.
-- Service worker: `cuenta-clara-v13.16`.
+- Service worker: `cuenta-clara-v13.16.1`.
 
 ## Instalación
 

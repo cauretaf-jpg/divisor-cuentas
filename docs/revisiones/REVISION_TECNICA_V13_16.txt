@@ -1,4 +1,4 @@
-REVISION TECNICA - CUENTA CLARA V13.16
+REVISION TECNICA - CUENTA CLARA V13.16.1
 
 Objetivo
 - Agregar un centro de notificaciones interno para solicitudes de cuentas compartidas.
@@ -26,4 +26,4 @@ Validaciones
 - shared-utils.js validado con node --check.
 - HTML revisado sin IDs duplicados.
 - CSS revisado con llaves balanceadas.
-- Service worker actualizado a cuenta-clara-v13.16.
+- Service worker actualizado a cuenta-clara-v13.16.1.

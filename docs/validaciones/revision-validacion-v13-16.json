@@ -1,5 +1,5 @@
 {
-  "version": "13.16",
+  "version": "13.16.1",
   "name": "Centro de notificaciones interno",
   "requiresSql": false,
   "addsDependencies": false,
@@ -12,7 +12,7 @@
     "perfilDuplicateIds": "OK",
     "privacidadDuplicateIds": "OK",
     "cssBalancedBraces": "OK",
-    "serviceWorkerCache": "cuenta-clara-v13.16"
+    "serviceWorkerCache": "cuenta-clara-v13.16.1"
   },
   "notes": [
     {

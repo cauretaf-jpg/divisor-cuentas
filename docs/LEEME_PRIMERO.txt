@@ -1,6 +1,6 @@
-CUENTA CLARA V13.16 - BUSCADOR DE AMIGOS Y WHATSAPP CONTROLADO
+CUENTA CLARA V13.16.1 - BUSCADOR DE AMIGOS Y WHATSAPP CONTROLADO
 
-NUEVO EN V13.16
+NUEVO EN V13.16.1
 
 1. Buscador al agregar amigos
    - En Personas > Agregar desde amigos ahora existe un buscador.
@@ -40,5 +40,5 @@ VALIDACION
 PUBLICACION SUGERIDA
 
 git add .
-git commit -m "Publica Cuenta Clara v13.16"
+git commit -m "Publica Cuenta Clara v13.16.1"
 git push

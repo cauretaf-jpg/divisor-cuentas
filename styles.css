@@ -10330,7 +10330,7 @@ body.simple-mode .section-nav-button[data-app-section="tools"] {
 }
 
 
-/* V13.16 - Menos texto, flujo guiado y diseño moderno */
+/* V13.16.1 - Menos texto, flujo guiado y diseño moderno */
 :root {
   --bg: #f6f7fb;
   --surface: rgba(255, 255, 255, 0.94);
@@ -10710,7 +10710,7 @@ body.simple-mode .section-page-heading .section-helper {
   }
 }
 
-/* V13.16 - Solicitudes entre amigos y vista móvil compacta */
+/* V13.16.1 - Solicitudes entre amigos y vista móvil compacta */
 .shared-profile-box .receipt-results-header,
 .compact-shared-list .social-user-card {
   align-items: center;
@@ -10842,7 +10842,7 @@ body.simple-mode .section-page-heading .section-helper {
   }
 }
 
-/* V13.16 - Buscador de amigos, frecuentes colapsados y WhatsApp controlado */
+/* V13.16.1 - Buscador de amigos, frecuentes colapsados y WhatsApp controlado */
 .frequent-people-toggle {
   justify-self: start;
   margin: 8px 0 4px;
@@ -10985,7 +10985,7 @@ body.simple-mode .section-page-heading .section-helper {
   }
 }
 
-/* V13.16 - Centro de notificaciones interno */
+/* V13.16.1 - Centro de notificaciones interno */
 .notification-header-button {
   position: relative;
   gap: 0.4rem;
@@ -11218,4 +11218,85 @@ body.dark-mode .notification-row.is-unread {
 [data-theme="dark"] .notification-row.is-unread {
   background: rgba(30, 41, 59, 0.92);
   border-color: rgba(147, 197, 253, 0.32);
+}
+
+
+/* V13.16.1 - Menú consistente entre navegadores y estado de vista claro */
+.section-view-status {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--primary) 16%, var(--border));
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 88%, var(--primary) 6%);
+}
+
+.view-status-pill {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.section-view-status small {
+  color: var(--text-muted);
+  line-height: 1.35;
+  font-weight: 750;
+}
+
+.view-status-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+}
+
+.view-status-actions .btn {
+  width: 100%;
+  justify-content: center;
+  min-height: 36px;
+  padding-block: 8px;
+}
+
+body.simple-mode .section-nav-button[data-app-section="tools"] {
+  order: 6;
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+  background: color-mix(in srgb, var(--primary) 9%, var(--surface));
+}
+
+body.simple-mode .section-nav-button[data-app-section="tools"] span::after {
+  content: " agrupadas";
+}
+
+body.advanced-mode .section-view-status {
+  border-color: color-mix(in srgb, var(--secondary) 28%, var(--border));
+  background: color-mix(in srgb, var(--surface) 86%, var(--secondary) 7%);
+}
+
+body.advanced-mode .view-status-pill {
+  background: color-mix(in srgb, var(--secondary) 14%, var(--surface));
+  color: var(--secondary-dark, var(--secondary));
+}
+
+@media (max-width: 1040px) {
+  .section-view-status {
+    padding: 10px;
+    border-radius: 16px;
+  }
+}
+
+@media (max-width: 430px) {
+  .section-view-status small {
+    font-size: 0.78rem;
+  }
+
+  .view-status-actions .btn {
+    font-size: 0.78rem;
+  }
 }

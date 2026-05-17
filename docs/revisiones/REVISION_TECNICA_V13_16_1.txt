@@ -1,0 +1,17 @@
+REVISION TECNICA - CUENTA CLARA V13.16.1
+
+Objetivo:
+- Corregir la confusion entre Chrome y Edge cuando cada navegador tiene un modo de experiencia distinto guardado en localStorage.
+
+Cambios:
+- Se agrega indicador visible de vista: Modo simple activo / Vista avanzada activa.
+- Se agrega boton Ver/Ocultar herramientas avanzadas desde el menu principal.
+- Se agrega boton Restaurar vista recomendada.
+- Se aclara que en modo simple Historial, Hogar y Compartidas no desaparecen, sino que quedan agrupadas en Herramientas.
+- Se refuerza visualmente el boton Herramientas cuando la app esta en modo simple.
+- Se actualiza service worker a cuenta-clara-v13.16.1.
+
+Alcance:
+- No cambia calculos, OCR, pagos, recurrentes, perfil ni solicitudes.
+- No requiere SQL nuevo.
+- No agrega dependencias.

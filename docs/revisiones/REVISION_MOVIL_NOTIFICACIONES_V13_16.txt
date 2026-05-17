@@ -1,4 +1,4 @@
-REVISION MOVIL - NOTIFICACIONES V13.16
+REVISION MOVIL - NOTIFICACIONES V13.16.1
 
 Criterios aplicados
 - Las notificaciones no saturan Inicio: la tarjeta aparece solo si hay solicitudes pendientes.

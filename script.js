@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.16 cargada');
-const APP_VERSION = '13.16';
+console.info('Cuenta Clara V13.16.1 cargada');
+const APP_VERSION = '13.16.1';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -124,6 +124,10 @@ const dom = {
   smartActionButton: document.querySelector('#smartActionButton'),
   simpleModeButton: document.querySelector('#simpleModeButton'),
   advancedModeButton: document.querySelector('#advancedModeButton'),
+  viewModeLabel: document.querySelector('#viewModeLabel'),
+  viewModeHelp: document.querySelector('#viewModeHelp'),
+  toggleAdvancedToolsButton: document.querySelector('#toggleAdvancedToolsButton'),
+  restoreRecommendedViewButton: document.querySelector('#restoreRecommendedViewButton'),
   stepCreate: document.querySelector('#stepCreate'),
   stepPeople: document.querySelector('#stepPeople'),
   stepProducts: document.querySelector('#stepProducts'),
@@ -4230,6 +4234,26 @@ function getExperienceMode() {
   return localStorage.getItem(EXPERIENCE_MODE_KEY) === 'advanced' ? 'advanced' : 'simple';
 }
 
+function updateExperienceModeChrome() {
+  const mode = getExperienceMode();
+  const isSimple = mode === 'simple';
+
+  if (dom.viewModeLabel) {
+    dom.viewModeLabel.textContent = isSimple ? 'Modo simple activo' : 'Vista avanzada activa';
+  }
+
+  if (dom.viewModeHelp) {
+    dom.viewModeHelp.textContent = isSimple
+      ? 'Lo avanzado no desaparece: está agrupado en Herramientas.'
+      : 'Historial, Hogar y Compartidas quedan visibles en el menú.';
+  }
+
+  if (dom.toggleAdvancedToolsButton) {
+    dom.toggleAdvancedToolsButton.textContent = isSimple ? 'Ver herramientas avanzadas' : 'Ocultar herramientas avanzadas';
+    dom.toggleAdvancedToolsButton.setAttribute('aria-pressed', String(!isSimple));
+  }
+}
+
 function setExperienceMode(mode) {
   const selectedMode = mode === 'advanced' ? 'advanced' : 'simple';
   localStorage.setItem(EXPERIENCE_MODE_KEY, selectedMode);
@@ -4241,11 +4265,25 @@ function setExperienceMode(mode) {
     dom.advancedModeButton.classList.toggle('is-active', selectedMode === 'advanced');
   }
 
+  updateExperienceModeChrome();
+
   try {
     renderGuidedExperience();
   } catch (error) {
     console.warn('No se pudo renderizar la experiencia guiada:', error);
   }
+}
+
+function toggleAdvancedToolsVisibility() {
+  const nextMode = getExperienceMode() === 'advanced' ? 'simple' : 'advanced';
+  setExperienceMode(nextMode);
+  showToast(nextMode === 'advanced' ? 'Herramientas avanzadas visibles.' : 'Vista simple activa. Lo avanzado queda en Herramientas.');
+}
+
+function restoreRecommendedView() {
+  setExperienceMode('simple');
+  setAppSection('home', { instant: true });
+  showToast('Vista recomendada restaurada. Usa Herramientas para lo avanzado.');
 }
 
 function initExperienceMode() {
@@ -4343,6 +4381,7 @@ function setAppSection(section, options = {}) {
   });
 
   updateMobileSectionChrome(nextSection);
+  updateExperienceModeChrome();
 
   try {
     localStorage.setItem(APP_SECTION_KEY, nextSection);
@@ -12223,6 +12262,8 @@ dom.homeActionOpenPaymentsButton?.addEventListener('click', () => setAppSection(
 dom.homeNewBillButton?.addEventListener('click', focusGuidedNewBillChoices);
 dom.simpleModeButton?.addEventListener('click', () => setExperienceMode('simple'));
 dom.advancedModeButton?.addEventListener('click', () => setExperienceMode('advanced'));
+dom.toggleAdvancedToolsButton?.addEventListener('click', toggleAdvancedToolsVisibility);
+dom.restoreRecommendedViewButton?.addEventListener('click', restoreRecommendedView);
 dom.manualProductMethodButton?.addEventListener('click', focusManualProductForm);
 dom.receiptMethodButton?.addEventListener('click', openReceiptModal);
 dom.quickProductMethodButton?.addEventListener('click', showQuickProductsArea);
