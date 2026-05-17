@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0f766e" />
   <meta name="google-adsense-account" content="ca-pub-4358472434423818" />
   <title>Mi perfil | Cuenta Clara</title>
-  <link rel="stylesheet" href="styles.css?v=13.12" />
+  <link rel="stylesheet" href="styles.css?v=13.14" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
 </head>
@@ -333,6 +333,22 @@
           </div>
           <div class="social-results-list" id="registeredFriendsList"></div>
         </div>
+
+        <div class="social-box shared-profile-box">
+          <div class="receipt-results-header">
+            <strong>Solicitudes de cuentas</strong>
+            <span id="sharedAccountRequestsCount">0</span>
+          </div>
+          <div class="social-results-list compact-shared-list" id="sharedAccountRequestsList"></div>
+        </div>
+
+        <div class="social-box shared-profile-box">
+          <div class="receipt-results-header">
+            <strong>Cuentas compartidas</strong>
+            <span id="sharedAcceptedAccountsCount">0</span>
+          </div>
+          <div class="social-results-list compact-shared-list" id="sharedAcceptedAccountsList"></div>
+        </div>
       </div>
 
       <div class="friends-page-list" id="friendsPageList"></div>
@@ -368,8 +384,8 @@
   <div class="toast hidden" id="profileToast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="shared-utils.js?v=13.12"></script>
-<script src="supabase-config.js?v=13.12"></script>
-  <script src="profile.js?v=13.12"></script>
+  <script src="shared-utils.js?v=13.14"></script>
+<script src="supabase-config.js?v=13.14"></script>
+  <script src="profile.js?v=13.14"></script>
 </body>
 </html>

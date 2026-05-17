@@ -1,0 +1,27 @@
+{
+  "version": "13.14",
+  "nombre": "Cuenta Clara v13.14 - solicitudes de cuentas compartidas",
+  "objetivo": "Permitir que un amigo registrado reciba una solicitud al ser agregado a una cuenta y pueda aceptarla para verla en su perfil.",
+  "validaciones": {
+    "script_js": "OK",
+    "profile_js": "OK",
+    "shared_utils_js": "OK",
+    "index_html_ids_duplicados": 0,
+    "perfil_html_ids_duplicados": 0,
+    "privacidad_html_ids_duplicados": 0,
+    "styles_css_llaves_balanceadas": true,
+    "service_worker_cache": "cuenta-clara-v13.14"
+  },
+  "cambios": [
+    "Solicitudes automáticas al agregar amigos registrados desde Personas.",
+    "Botón Enviar solicitud para participantes registrados sin invitación.",
+    "Solicitudes de cuentas visibles en Mi Perfil > Amigos.",
+    "Cuentas compartidas aceptadas visibles en Mi Perfil.",
+    "Sincronización local de cuenta aceptada para impacto en perfil financiero.",
+    "Vista móvil compacta para Compartidas y Perfil."
+  ],
+  "sql": {
+    "requiere_sql_nuevo": false,
+    "nota": "Usa el script existente sql/03-supabase-shared-accounts.sql si compartidas nunca fue configurado."
+  }
+}

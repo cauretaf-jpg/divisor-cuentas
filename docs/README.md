@@ -1,22 +1,42 @@
-# Cuenta Clara V13.12
+# Cuenta Clara V13.14
 
-Versión enfocada en limpiar el Inicio y ordenar las herramientas avanzadas.
+Versión enfocada en **solicitudes de cuentas compartidas entre amigos registrados** y vista móvil más compacta.
 
-## Nuevo en V13.12
+## Nuevo en V13.14
 
-- Inicio más liviano y directo.
-- Nueva sección **Más herramientas**.
-- Plantillas, modo demo, recordatorios, recurrentes, compartidas y detalle avanzado de cuenta quedan fuera del Inicio principal.
-- Accesos principales del Inicio reducidos a acciones básicas: Personas, Gastos, Resumen y Pagos.
-- Pendiente ahora se mantiene con máximo 3 alertas visibles.
-- Últimas cuentas se muestran de forma más breve.
-- Menú lateral reorganizado con separación entre uso básico y herramientas.
-- Service worker actualizado a `cuenta-clara-v13.12`.
+- Al agregar un amigo registrado desde Personas, la app puede enviarle una solicitud real de cuenta compartida.
+- El amigo invitado puede aceptar o rechazar desde **Compartidas** o desde **Mi Perfil > Amigos**.
+- Al aceptar, la cuenta queda visible como compartida y se guarda localmente vinculada para impactar el perfil financiero.
+- La sección Compartidas muestra mejor participantes manuales, usuarios registrados, pendientes y aceptados.
+- Se agregó botón **Enviar solicitud** para participantes registrados que aún no tienen invitación.
+- Se agregaron bloques en Perfil:
+  - Solicitudes de cuentas.
+  - Cuentas compartidas aceptadas.
+- Vista móvil compacta para solicitudes, tarjetas, botones y listas de compartidas.
+
+## Base de datos
+
+No requiere SQL nuevo si ya están configuradas las tablas de compartidas.
+
+Si nunca se configuró esta parte, ejecutar:
+
+```txt
+sql/03-supabase-shared-accounts.sql
+```
+
+## Validación
+
+- `script.js`: OK.
+- `profile.js`: OK.
+- `shared-utils.js`: OK.
+- `index.html`: sin IDs duplicados.
+- `perfil.html`: sin IDs duplicados.
+- `privacidad.html`: sin IDs duplicados.
+- `styles.css`: llaves balanceadas.
+- Service worker: `cuenta-clara-v13.14`.
 
 ## Instalación
 
 1. Descomprime el ZIP.
 2. Sube los archivos a tu repositorio.
 3. Publica en Vercel como en versiones anteriores.
-
-No requiere SQL nuevo ni dependencias nuevas.

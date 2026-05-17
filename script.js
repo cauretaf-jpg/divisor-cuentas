@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.12 cargada');
-const APP_VERSION = '13.12';
+console.info('Cuenta Clara V13.14 cargada');
+const APP_VERSION = '13.14';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -142,6 +142,14 @@ const dom = {
   homeActionAmountOutput: document.querySelector('#homeActionAmountOutput'),
   homeActionList: document.querySelector('#homeActionList'),
   homeActionOpenPaymentsButton: document.querySelector('#homeActionOpenPaymentsButton'),
+  guidedFlowPanel: document.querySelector('#guidedFlowPanel'),
+  guidedFlowStatus: document.querySelector('#guidedFlowStatus'),
+  guidedFlowStatusText: document.querySelector('#guidedFlowStatusText'),
+  guidedFlowBadge: document.querySelector('#guidedFlowBadge'),
+  guidedFlowSteps: document.querySelector('#guidedFlowSteps'),
+  guidedFlowMissingList: document.querySelector('#guidedFlowMissingList'),
+  guidedFlowPrimaryButton: document.querySelector('#guidedFlowPrimaryButton'),
+  guidedFlowSecondaryButton: document.querySelector('#guidedFlowSecondaryButton'),
   continueActiveBillButton: document.querySelector('#continueActiveBillButton'),
   homeNewBillButton: document.querySelector('#homeNewBillButton'),
   homeRecentBillsList: document.querySelector('#homeRecentBillsList'),
@@ -1189,6 +1197,136 @@ function renderAccountReviewPanel() {
   const primary = items[0];
   dom.accountReviewPrimaryButton.textContent = 'Resolver pendiente';
   dom.accountReviewPrimaryButton.onclick = () => setAppSection(primary.section || 'summary', { scroll: false });
+}
+
+
+function getFlowSectionFromStep(step) {
+  if (step === 'people') return 'people';
+  if (step === 'products') return 'expenses';
+  if (step === 'share') return 'payments';
+  return 'summary';
+}
+
+function runSmartPrimaryAction(copy = getSmartActionCopy()) {
+  const targetSection = getFlowSectionFromStep(copy.step);
+  setAppSection(targetSection, { scroll: false });
+
+  setTimeout(() => {
+    if (copy.step === 'people') {
+      const { hasPeople, bill } = getGuidedState();
+      scrollToGuideTarget(hasPeople && !bill.payerId ? (dom.payerSelect || dom.personNameInput) : dom.personNameInput);
+      return;
+    }
+    if (copy.step === 'products') {
+      scrollToGuideTarget(billIsQuickForGuidance() ? dom.quickTotalInput : dom.productNameInput);
+      return;
+    }
+    if (copy.step === 'share') {
+      dom.paymentActionCenter?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    dom.accountReviewPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 80);
+}
+
+function renderGuidedFlowPanel() {
+  if (!dom.guidedFlowPanel || !dom.guidedFlowSteps || !dom.guidedFlowMissingList) return;
+
+  const { bill, hasPeople, hasProducts, hasAmounts, calculation } = getGuidedState();
+  const reviewItems = getAccountReviewItems(bill);
+  const blocking = reviewItems.filter((item) => item.level === 'danger');
+  const warnings = reviewItems.filter((item) => item.level === 'warning');
+  const pendingPeople = bill.people.filter((person) => !person.paid && (calculation.finalTotals[person.id] || 0) > 0).length;
+  const copy = getSmartActionCopy();
+
+  let status = 'Borrador';
+  let statusText = 'Sigue el siguiente paso.';
+  let statusClass = 'is-draft';
+
+  if (!hasPeople || !hasProducts) {
+    status = 'En progreso';
+    statusText = copy.help;
+    statusClass = 'is-progress';
+  } else if (blocking.length > 0) {
+    status = 'Hay que corregir';
+    statusText = blocking[0].text;
+    statusClass = 'is-danger';
+  } else if (warnings.length > 0) {
+    status = 'Revisar antes de enviar';
+    statusText = warnings[0].text;
+    statusClass = 'is-warning';
+  } else if (pendingPeople > 0) {
+    status = 'Lista, con pagos pendientes';
+    statusText = `${pendingPeople} persona${pendingPeople === 1 ? '' : 's'} por marcar como pagada${pendingPeople === 1 ? '' : 's'}.`;
+    statusClass = 'is-warning';
+  } else if (hasAmounts) {
+    status = 'Lista para compartir';
+    statusText = 'Todo está ordenado.';
+    statusClass = 'is-ready';
+  }
+
+  dom.guidedFlowPanel.classList.remove('is-draft', 'is-progress', 'is-warning', 'is-danger', 'is-ready');
+  dom.guidedFlowPanel.classList.add(statusClass);
+  if (dom.guidedFlowStatus) dom.guidedFlowStatus.textContent = status;
+  if (dom.guidedFlowStatusText) dom.guidedFlowStatusText.textContent = statusText;
+  if (dom.guidedFlowBadge) dom.guidedFlowBadge.textContent = status.replace('Hay que ', '');
+
+  const steps = [
+    { key: 'people', label: 'Personas', section: 'people', done: hasPeople, current: copy.step === 'people' },
+    { key: 'expenses', label: 'Gastos', section: 'expenses', done: hasProducts, current: copy.step === 'products' },
+    { key: 'summary', label: 'Revisar', section: 'summary', done: hasAmounts && blocking.length === 0, current: copy.step === 'review' || (hasPeople && hasProducts && blocking.length > 0) },
+    { key: 'payments', label: 'Compartir', section: 'payments', done: hasAmounts && blocking.length === 0 && pendingPeople === 0, current: copy.step === 'share' },
+  ];
+
+  dom.guidedFlowSteps.innerHTML = steps.map((step, index) => `
+    <button class="guided-flow-step ${step.done ? 'is-done' : ''} ${step.current ? 'is-current' : ''}" data-flow-section="${step.section}" type="button">
+      <span>${step.done ? '✓' : index + 1}</span>
+      <strong>${escapeHtml(step.label)}</strong>
+    </button>
+  `).join('');
+
+  dom.guidedFlowSteps.querySelectorAll('[data-flow-section]').forEach((button) => {
+    button.addEventListener('click', () => setAppSection(button.dataset.flowSection, { scroll: false }));
+  });
+
+  const actionItems = reviewItems
+    .filter((item) => item.level !== 'info')
+    .concat(reviewItems.filter((item) => item.level === 'info'))
+    .slice(0, 3);
+
+  dom.guidedFlowMissingList.innerHTML = '';
+  if (actionItems.length === 0) {
+    const ok = document.createElement('div');
+    ok.className = 'guided-flow-ok';
+    ok.innerHTML = '<strong>Sin alertas</strong><small>Puedes compartir o seguir cobrando pagos.</small>';
+    dom.guidedFlowMissingList.appendChild(ok);
+  } else {
+    for (const item of actionItems) {
+      const row = document.createElement('button');
+      row.className = `guided-flow-missing-row is-${item.level}`;
+      row.type = 'button';
+      row.innerHTML = `<span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.text)}</small></span><em>Resolver</em>`;
+      row.addEventListener('click', () => setAppSection(item.section || 'summary', { scroll: false }));
+      dom.guidedFlowMissingList.appendChild(row);
+    }
+  }
+
+  if (dom.guidedFlowPrimaryButton) {
+    dom.guidedFlowPrimaryButton.textContent = blocking.length > 0 ? 'Resolver ahora' : copy.button;
+    dom.guidedFlowPrimaryButton.onclick = () => {
+      const firstBlocking = blocking[0] || warnings[0];
+      if (firstBlocking) {
+        setAppSection(firstBlocking.section || 'summary', { scroll: false });
+        return;
+      }
+      runSmartPrimaryAction(copy);
+    };
+  }
+
+  if (dom.guidedFlowSecondaryButton) {
+    dom.guidedFlowSecondaryButton.textContent = hasAmounts ? 'Ver pagos' : 'Revisar cuenta';
+    dom.guidedFlowSecondaryButton.onclick = () => setAppSection(hasAmounts ? 'payments' : 'summary', { scroll: false });
+  }
 }
 
 function renderHomeActionPanel() {
@@ -4224,7 +4362,7 @@ function getSmartActionCopy() {
   if (!hasPeople) {
     return {
       title: 'Agrega personas',
-      help: 'Empieza agregando quienes participarán en esta cuenta. También puedes usar tus amigos frecuentes.',
+      help: 'Añade participantes.',
       button: 'Agregar personas',
       step: 'people',
     };
@@ -4232,8 +4370,8 @@ function getSmartActionCopy() {
 
   if (!bill.payerId) {
     return {
-      title: 'Elige pagador principal',
-      help: 'En Personas selecciona quién pagó o quién recibirá las transferencias.',
+      title: 'Elige pagador',
+      help: 'Define quién recibe las transferencias.',
       button: 'Elegir pagador',
       step: 'people',
     };
@@ -4241,8 +4379,8 @@ function getSmartActionCopy() {
 
   if (bill.mode === 'quick' && !hasProducts) {
     return {
-      title: 'Ingresa el monto total',
-      help: 'En modo rápido solo necesitas el total de la cuenta. La app lo divide entre las personas agregadas.',
+      title: 'Ingresa total',
+      help: 'La app lo divide entre las personas.',
       button: 'Ingresar total',
       step: 'products',
     };
@@ -4250,10 +4388,10 @@ function getSmartActionCopy() {
 
   if (bill.mode !== 'quick' && !hasProducts) {
     return {
-      title: bill.mode === 'home' ? 'Agrega el primer gasto' : 'Agrega el primer producto',
+      title: bill.mode === 'home' ? 'Agrega gasto' : 'Agrega producto',
       help: bill.mode === 'home'
-        ? 'Registra gastos del hogar como luz, agua, internet, supermercado o streaming.'
-        : 'Puedes escribir productos manualmente o usar la opción de escanear boleta.',
+        ? 'Registra el gasto mensual.'
+        : 'Manual, rápido o boleta.',
       button: bill.mode === 'home' ? 'Agregar gasto' : 'Agregar producto',
       step: 'products',
     };
@@ -4262,7 +4400,7 @@ function getSmartActionCopy() {
   if (hasAmounts) {
     return {
       title: 'Revisa y comparte',
-      help: 'Ya tienes montos calculados. Revisa quién debe pagar y comparte el resumen por WhatsApp o imagen.',
+      help: 'Corrige alertas y envía el resumen.',
       button: 'Compartir cuenta',
       step: 'share',
     };
@@ -4270,7 +4408,7 @@ function getSmartActionCopy() {
 
   return {
     title: 'Revisa la cuenta',
-    help: 'Verifica personas, productos y forma de división antes de compartir.',
+    help: 'La app te muestra qué falta.',
     button: 'Revisar cuenta',
     step: 'review',
   };
@@ -4301,8 +4439,8 @@ function renderSectionGuidance(copy = getSmartActionCopy()) {
       number.textContent = '1';
       strong.textContent = copy.step === 'people' ? copy.title : 'Personas listas';
       paragraph.textContent = copy.step === 'people'
-        ? `${copy.help} Cuando termines, sigue a Gastos.`
-        : 'Ya puedes avanzar a Gastos. También puedes volver aquí para cambiar pagador o teléfonos.';
+        ? copy.help
+        : 'Listo. Puedes avanzar a Gastos.';
       if (button) {
         button.textContent = copy.step === 'people' ? copy.button : 'Ir a Gastos';
         button.onclick = () => {
@@ -4320,8 +4458,8 @@ function renderSectionGuidance(copy = getSmartActionCopy()) {
       number.textContent = '2';
       strong.textContent = copy.step === 'products' ? copy.title : 'Gastos registrados';
       paragraph.textContent = copy.step === 'products'
-        ? `${copy.help} Después revisa el Resumen.`
-        : 'Aquí puedes editar productos, escanear boletas o corregir cantidades antes de compartir.';
+        ? copy.help
+        : 'Edita, escanea o corrige gastos.';
       if (button) {
         button.textContent = copy.step === 'products' ? copy.button : 'Ver resumen';
         button.onclick = () => {
@@ -4338,14 +4476,14 @@ function renderSectionGuidance(copy = getSmartActionCopy()) {
     if (section === 'summary') {
       number.textContent = '3';
       strong.textContent = 'Revisa el cálculo';
-      paragraph.textContent = hasProductsForGuidance() ? 'Confirma total, propina, pagador y transferencias antes de compartir.' : 'Cuando agregues gastos, aquí aparecerá el resumen completo.';
+      paragraph.textContent = hasProductsForGuidance() ? 'Corrige alertas antes de compartir.' : 'El resumen aparecerá al agregar gastos.';
       return;
     }
 
     if (section === 'payments') {
       number.textContent = '4';
       strong.textContent = 'Cierra el seguimiento';
-      paragraph.textContent = 'Marca pagado cuando te transfieran y envía recordatorios por WhatsApp si falta alguien.';
+      paragraph.textContent = 'Envía recordatorios y marca pagados.';
     }
   });
 }
@@ -6555,7 +6693,7 @@ function renderSharedParticipantMap() {
       </div>
       <div class="shared-row-actions">
         ${canLinkSelf ? '<button class="btn btn-light btn-small" type="button" data-action="link-self">Vincular como Yo</button>' : ''}
-        ${person.userId && !member && summary.isShared && summary.isOwner ? '<span class="shared-status-badge muted">Sin invitación</span>' : ''}
+        ${person.userId && !member && summary.isShared && summary.isOwner ? '<button class="btn btn-primary btn-small" type="button" data-action="invite-person">Enviar solicitud</button>' : ''}
       </div>
     `;
 
@@ -6565,6 +6703,8 @@ function renderSharedParticipantMap() {
       persistAndRender();
       showToast('Participante vinculado a tu perfil.');
     });
+
+    row.querySelector('[data-action="invite-person"]')?.addEventListener('click', () => invitePersonToSharedAccount(person));
 
     dom.sharedParticipantMapList.appendChild(row);
   }
@@ -6998,27 +7138,184 @@ function sanitizeSupabaseSearch(value) {
   return String(value || '').trim().replace(/[%,]/g, '');
 }
 
-async function publishActiveBillAsShared() {
+
+function getSharedInviteRoleValue() {
+  return dom.sharedInviteRoleSelect?.value === 'viewer' ? 'viewer' : 'editor';
+}
+
+function getRegisteredParticipantLabel(person = {}) {
+  return person.name || person.email || 'Usuario registrado';
+}
+
+async function ensureActiveBillSharedForInvites(options = {}) {
+  if (!canUseSharedAccounts()) {
+    if (!options.silent) {
+      showNotice('Inicia sesión', 'Para enviar solicitudes reales a amigos registrados debes iniciar sesión. Puedes seguir agregando personas manualmente.');
+    }
+    return false;
+  }
+
+  const bill = getActiveBill();
+
+  if (bill.sharedAccountId) {
+    if (bill.sharedOwnerId && bill.sharedOwnerId !== currentSession.userId) {
+      if (!options.silent) {
+        showNotice('Permiso requerido', 'Solo el dueño puede invitar amigos registrados a esta cuenta.');
+      }
+      return false;
+    }
+
+    bill.sharedRole = 'owner';
+    bill.sharedOwnerId = currentSession.userId;
+    await saveSharedActiveBillNow();
+    return true;
+  }
+
+  if (!bill.people.length) {
+    if (!options.silent) {
+      showNotice('Cuenta sin participantes', 'Agrega participantes antes de enviar solicitudes.');
+    }
+    return false;
+  }
+
+  try {
+    const payload = {
+      ...bill,
+      sharedRole: 'owner',
+      sharedOwnerId: currentSession.userId,
+    };
+
+    const { data, error } = await supabaseClient.rpc('create_shared_account_safe', {
+      p_title: bill.name || 'Cuenta compartida',
+      p_account_state: payload,
+    });
+
+    if (error) throw error;
+
+    bill.sharedAccountId = data;
+    bill.sharedRole = 'owner';
+    bill.sharedOwnerId = currentSession.userId;
+    bill.updatedAt = nowIso();
+    addBillActivity('Cuenta compartida creada para enviar solicitudes a amigos.', 'shared', bill);
+    saveState();
+    await saveSharedActiveBillNow();
+    return true;
+  } catch (error) {
+    console.error(error);
+    if (!options.silent) {
+      showNotice('No se pudo activar colaboración', 'No pude preparar esta cuenta para solicitudes. Revisa conexión o sesión de usuario.');
+    }
+    return false;
+  }
+}
+
+async function inviteRegisteredPersonToActiveAccount(person, options = {}) {
+  const userId = person?.userId || person?.id;
+  if (!userId || userId === currentSession.userId) return { status: 'skipped' };
+
+  const canShare = await ensureActiveBillSharedForInvites({ silent: options.silent });
+  if (!canShare) return { status: 'failed' };
+
+  if (!canManageActiveSharedAccount()) {
+    if (!options.silent) showNotice('Permiso requerido', 'Solo el dueño puede enviar solicitudes para esta cuenta.');
+    return { status: 'failed' };
+  }
+
+  const bill = getActiveBill();
+  const role = options.role === 'viewer' ? 'viewer' : 'editor';
+
+  try {
+    const { data: existingMember, error: existingMemberError } = await supabaseClient
+      .from('shared_account_members')
+      .select('status, role')
+      .eq('account_id', bill.sharedAccountId)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (existingMemberError) throw existingMemberError;
+
+    if (existingMember?.status === 'accepted') {
+      return { status: 'accepted' };
+    }
+
+    if (existingMember?.status === 'pending') {
+      return { status: 'pending' };
+    }
+
+    const { error } = await supabaseClient
+      .from('shared_account_members')
+      .upsert({
+        account_id: bill.sharedAccountId,
+        user_id: userId,
+        role,
+        status: 'pending',
+        invited_by: currentSession.userId,
+        updated_at: nowIso(),
+      }, { onConflict: 'account_id,user_id' });
+
+    if (error) throw error;
+
+    const name = getRegisteredParticipantLabel(person);
+    addBillActivity(`Solicitud enviada a ${name} como ${getSharedRoleLabel(role)}.`, 'shared', bill);
+    saveState();
+    await saveSharedActiveBillNow();
+    return { status: 'sent' };
+  } catch (error) {
+    console.error(error);
+    if (!options.silent) {
+      showNotice('No se pudo enviar solicitud', 'No pude enviar la solicitud a este amigo registrado. Revisa conexión o sesión de usuario.');
+    }
+    return { status: 'failed' };
+  }
+}
+
+async function inviteRegisteredPeopleToActiveAccount(people = [], options = {}) {
+  const registered = (people || []).filter((person) => person?.userId && person.userId !== currentSession.userId);
+  if (!registered.length) return { sent: 0, pending: 0, accepted: 0, failed: 0 };
+
+  const results = { sent: 0, pending: 0, accepted: 0, failed: 0 };
+  for (const person of registered) {
+    const result = await inviteRegisteredPersonToActiveAccount(person, options);
+    if (result.status === 'sent') results.sent += 1;
+    else if (result.status === 'pending') results.pending += 1;
+    else if (result.status === 'accepted') results.accepted += 1;
+    else if (result.status === 'failed') results.failed += 1;
+  }
+
+  await fetchSharedAccounts();
+  return results;
+}
+
+async function invitePersonToSharedAccount(person) {
+  if (!person?.userId) return;
+  const result = await inviteRegisteredPersonToActiveAccount(person, { role: getSharedInviteRoleValue(), silent: false });
+  await fetchSharedAccounts();
+  if (result.status === 'sent') showToast(`Solicitud enviada a ${person.name}.`);
+  if (result.status === 'pending') showToast(`${person.name} ya tiene una solicitud pendiente.`);
+  if (result.status === 'accepted') showToast(`${person.name} ya tiene acceso a esta cuenta.`);
+}
+
+async function publishActiveBillAsShared(options = {}) {
   if (!canUseSharedAccounts()) {
     showNotice('Inicia sesión', 'Debes iniciar sesión para compartir una cuenta con otras personas registradas.');
-    return;
+    return false;
   }
 
   const bill = getActiveBill();
 
   if (bill.sharedAccountId && bill.sharedOwnerId !== currentSession.userId) {
     showNotice('Permiso requerido', 'Solo el dueño puede actualizar la configuración de una cuenta compartida.');
-    return;
+    return false;
   }
 
   if (!bill.people.length) {
     showNotice('Cuenta sin participantes', 'Agrega al menos una persona antes de compartir esta cuenta.');
-    return;
+    return false;
   }
 
-  if (!billHasAmounts(bill)) {
+  if (!options.skipEmptyConfirm && !billHasAmounts(bill)) {
     const continueEmpty = confirm('La cuenta no tiene gastos ni montos. ¿Quieres compartirla de todas formas?');
-    if (!continueEmpty) return;
+    if (!continueEmpty) return false;
   }
 
   try {
@@ -7028,6 +7325,8 @@ async function publishActiveBillAsShared() {
       account_state: { ...bill, sharedRole: 'owner', sharedOwnerId: currentSession.userId },
       updated_at: nowIso(),
     };
+
+    const wasShared = Boolean(bill.sharedAccountId);
 
     if (bill.sharedAccountId) {
       const { error } = await supabaseClient.rpc('update_shared_account_safe', {
@@ -7046,15 +7345,18 @@ async function publishActiveBillAsShared() {
       bill.sharedRole = 'owner';
       bill.sharedOwnerId = currentSession.userId;
       saveState();
+      await saveSharedActiveBillNow();
     }
 
-    addBillActivity(bill.sharedAccountId ? 'Cuenta compartida actualizada.' : 'Cuenta compartida publicada.', 'shared', bill);
+    addBillActivity(wasShared ? 'Cuenta compartida actualizada.' : 'Cuenta compartida publicada.', 'shared', bill);
     saveState();
     await fetchSharedAccounts();
-    showToast('Cuenta compartida actualizada.');
+    showToast(wasShared ? 'Cuenta compartida actualizada.' : 'Cuenta compartida publicada.');
+    return true;
   } catch (error) {
     console.error(error);
     showNotice('No se pudo compartir', 'La colaboración todavía no está disponible o la conexión falló. Intenta nuevamente más tarde.');
+    return false;
   }
 }
 
@@ -7067,7 +7369,7 @@ async function inviteUserToSharedAccount() {
   const bill = getActiveBill();
 
   if (!bill.sharedAccountId) {
-    await publishActiveBillAsShared();
+    await publishActiveBillAsShared({ skipEmptyConfirm: true });
   }
 
   if (!getActiveBill().sharedAccountId) return;
@@ -7107,44 +7409,21 @@ async function inviteUserToSharedAccount() {
       return;
     }
 
-    const { data: existingMember, error: existingMemberError } = await supabaseClient
-      .from('shared_account_members')
-      .select('status, role')
-      .eq('account_id', getActiveBill().sharedAccountId)
-      .eq('user_id', profile.id)
-      .maybeSingle();
+    const result = await inviteRegisteredPersonToActiveAccount({
+      userId: profile.id,
+      name: profile.nick || profile.nombre || profile.email,
+      email: profile.email || '',
+    }, { role: getSharedInviteRoleValue(), silent: false });
 
-    if (existingMemberError) throw existingMemberError;
-
-    if (existingMember?.status === 'accepted') {
-      showNotice('Ya participa', 'Esta persona ya aceptó la invitación y puede abrir la cuenta compartida.');
-      return;
-    }
-
-    if (existingMember?.status === 'pending') {
-      showNotice('Invitación pendiente', 'Esta persona ya tiene una invitación pendiente para esta cuenta.');
-      return;
-    }
-
-    const { error } = await supabaseClient
-      .from('shared_account_members')
-      .upsert({
-        account_id: getActiveBill().sharedAccountId,
-        user_id: profile.id,
-        role: dom.sharedInviteRoleSelect?.value === 'viewer' ? 'viewer' : 'editor',
-        status: 'pending',
-        invited_by: currentSession.userId,
-        updated_at: nowIso(),
-      }, { onConflict: 'account_id,user_id' });
-
-    if (error) throw error;
-
-    const invitedName = profile.nick || profile.nombre || profile.email;
-    addBillActivity(`Invitación enviada a ${invitedName} como ${getSharedRoleLabel(dom.sharedInviteRoleSelect?.value)}.`, 'shared', getActiveBill());
-    saveState();
     if (dom.sharedInviteSearchInput) dom.sharedInviteSearchInput.value = '';
-    await fetchSharedAccounts();
-    showToast(`Invitación enviada a ${invitedName} como ${getSharedRoleLabel(dom.sharedInviteRoleSelect?.value)}.`);
+
+    if (result.status === 'sent') {
+      showToast(`Solicitud enviada a ${profile.nick || profile.nombre || profile.email}.`);
+    } else if (result.status === 'pending') {
+      showNotice('Invitación pendiente', 'Esta persona ya tiene una solicitud pendiente para esta cuenta.');
+    } else if (result.status === 'accepted') {
+      showNotice('Ya participa', 'Esta persona ya aceptó la invitación y puede abrir la cuenta compartida.');
+    }
   } catch (error) {
     console.error(error);
     showNotice('No se pudo invitar', 'No pude enviar la invitación. Revisa que la persona exista, que no esté repetida y que la nube esté conectada.');
@@ -7816,7 +8095,7 @@ function renderFriendsPicker() {
       <div class="friend-mini-avatar">${friend.avatarDataUrl ? `<img src="${friend.avatarDataUrl}" alt="" />` : getInitials(friend.name)}</div>
       <div>
         <strong>${escapeHtml(friend.name)}</strong>
-        <small>${friend.source === 'registered' ? 'Usuario registrado' : 'Amigo manual'} · ${friend.phone ? escapeHtml(formatPhoneForDisplay(friend.phone)) : 'Sin teléfono'}${alreadyInBill ? ' · Ya está en esta cuenta' : ''}</small>
+        <small>${friend.source === 'registered' ? 'Usuario registrado · recibirá solicitud' : 'Amigo manual'} · ${friend.phone ? escapeHtml(formatPhoneForDisplay(friend.phone)) : 'Sin teléfono'}${alreadyInBill ? ' · Ya está en esta cuenta' : ''}</small>
       </div>
     `;
 
@@ -7824,7 +8103,7 @@ function renderFriendsPicker() {
   }
 }
 
-function addSelectedFriendsToBill() {
+async function addSelectedFriendsToBill() {
   const selected = [...dom.friendsPickerList.querySelectorAll('input[type="checkbox"]:checked')]
     .map((input) => input.value);
   const friends = friendsPickerItems.filter((friend) => selected.includes(friend.id));
@@ -7836,6 +8115,7 @@ function addSelectedFriendsToBill() {
 
   const bill = getActiveBill();
   let added = 0;
+  const addedRegisteredPeople = [];
 
   for (const friend of friends) {
     const exists = bill.people.some((person) => person.name.toLowerCase() === friend.name.toLowerCase());
@@ -7844,7 +8124,7 @@ function addSelectedFriendsToBill() {
       continue;
     }
 
-    bill.people.push({
+    const person = {
       id: createId('person'),
       name: friend.name,
       phone: normalizePhoneNumber(friend.phone || ''),
@@ -7852,8 +8132,10 @@ function addSelectedFriendsToBill() {
       userId: friend.userId || '',
       previousDebt: 0,
       paid: false,
-    });
+    };
 
+    bill.people.push(person);
+    if (person.userId) addedRegisteredPeople.push(person);
     added += 1;
   }
 
@@ -7864,6 +8146,29 @@ function addSelectedFriendsToBill() {
 
   persistAndRender();
   closeFriendsPicker();
+
+  if (addedRegisteredPeople.length > 0) {
+    const results = await inviteRegisteredPeopleToActiveAccount(addedRegisteredPeople, {
+      role: getSharedInviteRoleValue(),
+      silent: true,
+    });
+
+    if (results.sent > 0) {
+      showToast(`${added} agregado${added === 1 ? '' : 's'} · ${results.sent} solicitud${results.sent === 1 ? '' : 'es'} enviada${results.sent === 1 ? '' : 's'}.`);
+      return;
+    }
+
+    if (results.pending > 0 || results.accepted > 0) {
+      showToast(`${added} agregado${added === 1 ? '' : 's'} · solicitudes ya existentes.`);
+      return;
+    }
+
+    if (results.failed > 0) {
+      showNotice('Amigos agregados', 'Se agregaron a la cuenta, pero no pude enviar algunas solicitudes. Revisa Compartidas cuando tengas conexión.');
+      return;
+    }
+  }
+
   showToast(`${added} amigo${added === 1 ? '' : 's'} agregado${added === 1 ? '' : 's'} a la cuenta.`);
 }
 
@@ -8855,6 +9160,7 @@ function render() {
   renderBackupDiagnostics();
   try {
     renderGuidedExperience();
+    renderGuidedFlowPanel();
     renderTemplateAssistant();
     renderActiveTemplateHelper();
     renderMobileHomeDashboard();

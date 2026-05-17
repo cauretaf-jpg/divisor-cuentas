@@ -1,4 +1,4 @@
-console.info('Cuenta Clara Perfil V13.12 cargado');
+console.info('Cuenta Clara Perfil V13.14 cargado');
 
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 let cloudSyncErrorNotified = false;
@@ -43,6 +43,10 @@ const dom = {
   outgoingRequestsList: document.querySelector('#outgoingRequestsList'),
   registeredFriendsCount: document.querySelector('#registeredFriendsCount'),
   registeredFriendsList: document.querySelector('#registeredFriendsList'),
+  sharedAccountRequestsCount: document.querySelector('#sharedAccountRequestsCount'),
+  sharedAccountRequestsList: document.querySelector('#sharedAccountRequestsList'),
+  sharedAcceptedAccountsCount: document.querySelector('#sharedAcceptedAccountsCount'),
+  sharedAcceptedAccountsList: document.querySelector('#sharedAcceptedAccountsList'),
   friendsList: document.querySelector('#friendsPageList'),
   statTotalBills: document.querySelector('#pageStatTotalBills'),
   statActiveBills: document.querySelector('#pageStatActiveBills'),
@@ -1231,6 +1235,226 @@ async function loadPublicProfiles(ids) {
   return new Map((data || []).map((profile) => [profile.id, profile]));
 }
 
+
+function getSharedRoleLabel(role) {
+  if (role === 'viewer') return 'Lector';
+  if (role === 'owner') return 'Dueño';
+  return 'Editor';
+}
+
+function getSharedAccountPersonForCurrentUser(bill = {}) {
+  const people = Array.isArray(bill.people) ? bill.people : [];
+  const matchKeys = getProfileMatchKeys();
+  return people.find((person) => personMatchesProfile(person, matchKeys)) || null;
+}
+
+function getSharedAccountSummaryText(account = {}, membership = {}) {
+  const bill = account.account_state || {};
+  const person = getSharedAccountPersonForCurrentUser(bill);
+  const snapshot = calculateBillSnapshot(bill);
+  const amount = person ? Number(snapshot.finalTotals[person.id] || 0) : 0;
+  const paidText = person?.paid ? 'Pagado' : 'Pendiente';
+  const roleText = getSharedRoleLabel(membership.role);
+  const amountText = person ? ` · ${paidText}: ${formatCurrency(amount)}` : '';
+  return `${roleText}${amountText}`;
+}
+
+function renderSharedProfileMessage(node, text) {
+  if (!node) return;
+  node.innerHTML = `<p class="helper-text compact-text">${text}</p>`;
+}
+
+
+async function syncAcceptedSharedAccountToProfileState(accountId) {
+  if (!currentUser || !accountId || !state) return;
+
+  try {
+    const { data: account, error } = await supabaseClient
+      .from('shared_accounts')
+      .select('id, owner_id, title, account_state, updated_at')
+      .eq('id', accountId)
+      .single();
+
+    if (error) throw error;
+
+    const { data: membership } = await supabaseClient
+      .from('shared_account_members')
+      .select('role, status')
+      .eq('account_id', accountId)
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    const sourceBill = account.account_state && typeof account.account_state === 'object'
+      ? account.account_state
+      : {};
+
+    const incoming = {
+      ...sourceBill,
+      id: sourceBill.id || `shared_${account.id}`,
+      name: account.title || sourceBill.name || 'Cuenta compartida',
+      sharedAccountId: account.id,
+      sharedOwnerId: account.owner_id,
+      sharedRole: account.owner_id === currentUser.id ? 'owner' : (membership?.role || 'editor'),
+      updatedAt: sourceBill.updatedAt || account.updated_at || nowIso(),
+    };
+
+    state.bills = Array.isArray(state.bills) ? state.bills : [];
+    const existingIndex = state.bills.findIndex((bill) => bill.sharedAccountId === account.id || bill.id === incoming.id);
+    if (existingIndex >= 0) {
+      state.bills[existingIndex] = incoming;
+    } else {
+      state.bills.unshift(incoming);
+    }
+
+    if (!state.activeBillId) state.activeBillId = incoming.id;
+    await saveState();
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function updateSharedAccountInviteStatus(accountId, status) {
+  if (!currentUser || !accountId) return;
+
+  const rpcName = status === 'accepted' ? 'accept_shared_invite_safe' : 'reject_shared_invite_safe';
+  try {
+    const { error } = await supabaseClient.rpc(rpcName, { p_account_id: accountId });
+    if (error) {
+      const message = String(error.message || '').toLowerCase();
+      if (!(message.includes('function') || message.includes('schema cache') || message.includes('not found'))) {
+        throw error;
+      }
+
+      const { error: fallbackError } = await supabaseClient
+        .from('shared_account_members')
+        .update({ status, updated_at: nowIso() })
+        .eq('account_id', accountId)
+        .eq('user_id', currentUser.id);
+      if (fallbackError) throw fallbackError;
+    }
+
+    if (status === 'accepted') {
+      await syncAcceptedSharedAccountToProfileState(accountId);
+    }
+
+    showToast(status === 'accepted' ? 'Cuenta aceptada. Aparecerá en tu perfil financiero.' : 'Solicitud rechazada.');
+    await renderProfileSharedAccounts();
+    renderStats();
+  } catch (error) {
+    console.error(error);
+    showToast('No se pudo actualizar la solicitud.');
+  }
+}
+
+function renderSharedAccountCard(account, membership, options = {}) {
+  const card = document.createElement('div');
+  card.className = `social-user-card shared-account-profile-card status-${membership.status || 'pending'}`;
+  const bill = account.account_state || {};
+  const title = account.title || bill.name || 'Cuenta compartida';
+  const summary = getSharedAccountSummaryText(account, membership);
+  const owner = account.ownerProfile?.nick || account.ownerProfile?.nombre || account.ownerProfile?.email || 'Usuario';
+
+  card.innerHTML = `
+    <div class="friend-mini-avatar">${getInitials(title)}</div>
+    <div class="social-user-body">
+      <strong>${title}</strong>
+      <span>${summary}</span>
+      <small>Creada por ${owner}</small>
+    </div>
+    <div class="social-user-actions"></div>
+  `;
+
+  const actions = card.querySelector('.social-user-actions');
+  if (options.pending) {
+    const accept = document.createElement('button');
+    accept.className = 'btn btn-primary btn-small';
+    accept.type = 'button';
+    accept.textContent = 'Aceptar';
+    accept.addEventListener('click', () => updateSharedAccountInviteStatus(account.id, 'accepted'));
+    actions.appendChild(accept);
+
+    const reject = document.createElement('button');
+    reject.className = 'btn btn-light btn-small';
+    reject.type = 'button';
+    reject.textContent = 'Rechazar';
+    reject.addEventListener('click', () => updateSharedAccountInviteStatus(account.id, 'rejected'));
+    actions.appendChild(reject);
+  } else {
+    const open = document.createElement('a');
+    open.className = 'btn btn-light btn-small';
+    open.href = 'index.html#shared';
+    open.textContent = 'Abrir';
+    actions.appendChild(open);
+  }
+
+  return card;
+}
+
+async function renderProfileSharedAccounts() {
+  if (!currentUser || !dom.sharedAccountRequestsList || !dom.sharedAcceptedAccountsList) return;
+
+  try {
+    const { data: memberships, error } = await supabaseClient
+      .from('shared_account_members')
+      .select('account_id, role, status, created_at')
+      .eq('user_id', currentUser.id)
+      .in('status', ['pending', 'accepted'])
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const accountIds = [...new Set((memberships || []).map((item) => item.account_id).filter(Boolean))];
+    let accounts = [];
+    if (accountIds.length) {
+      const { data, error: accountError } = await supabaseClient
+        .from('shared_accounts')
+        .select('id, owner_id, title, account_state, updated_at')
+        .in('id', accountIds);
+      if (accountError) throw accountError;
+      accounts = data || [];
+    }
+
+    const ownerIds = [...new Set(accounts.map((account) => account.owner_id).filter(Boolean))];
+    const owners = new Map();
+    if (ownerIds.length) {
+      const { data: profiles } = await supabaseClient
+        .from('public_profiles')
+        .select('id, email, nick, nombre')
+        .in('id', ownerIds);
+      for (const profile of profiles || []) owners.set(profile.id, profile);
+    }
+
+    const accountById = new Map(accounts.map((account) => [account.id, { ...account, ownerProfile: owners.get(account.owner_id) || {} }]));
+    const pending = (memberships || []).filter((item) => item.status === 'pending' && accountById.has(item.account_id));
+    const accepted = (memberships || []).filter((item) => item.status === 'accepted' && accountById.has(item.account_id));
+
+    dom.sharedAccountRequestsCount.textContent = pending.length;
+    dom.sharedAcceptedAccountsCount.textContent = accepted.length;
+    dom.sharedAccountRequestsList.innerHTML = '';
+    dom.sharedAcceptedAccountsList.innerHTML = '';
+
+    if (!pending.length) {
+      renderSharedProfileMessage(dom.sharedAccountRequestsList, 'No tienes solicitudes de cuentas.');
+    } else {
+      for (const membership of pending) {
+        dom.sharedAccountRequestsList.appendChild(renderSharedAccountCard(accountById.get(membership.account_id), membership, { pending: true }));
+      }
+    }
+
+    if (!accepted.length) {
+      renderSharedProfileMessage(dom.sharedAcceptedAccountsList, 'Aún no tienes cuentas compartidas aceptadas.');
+    } else {
+      for (const membership of accepted) {
+        dom.sharedAcceptedAccountsList.appendChild(renderSharedAccountCard(accountById.get(membership.account_id), membership));
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    renderSharedProfileMessage(dom.sharedAccountRequestsList, 'No pude cargar solicitudes de cuentas en este momento.');
+    renderSharedProfileMessage(dom.sharedAcceptedAccountsList, 'No pude cargar cuentas compartidas en este momento.');
+  }
+}
+
 async function renderFriendRequests() {
   if (!currentUser || !dom.incomingRequestsList) {
     return;
@@ -1404,6 +1628,7 @@ function render() {
   renderStats();
   setStatsPanel(activeStatsPanel);
   renderFriendRequests();
+  renderProfileSharedAccounts();
   renderFriends();
   setPageProfileSection(activeProfileSection, false);
 }

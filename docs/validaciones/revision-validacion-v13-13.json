@@ -1,0 +1,47 @@
+{
+  "version": "13.14",
+  "nombre": "Cuenta Clara v13.14 - menos texto y diseño guiado",
+  "fecha_revision": "2026-05-17T19:59:25",
+  "objetivo": "Reducir lectura, guiar por pasos y modernizar la estetica sin agregar SQL ni dependencias.",
+  "validaciones": {
+    "javascript": [
+      {
+        "script.js": "OK"
+      },
+      {
+        "profile.js": "OK"
+      },
+      {
+        "shared-utils.js": "OK"
+      }
+    ],
+    "html": {
+      "index.html": {
+        "ids": 405,
+        "duplicados": [],
+        "estado": "OK"
+      },
+      "perfil.html": {
+        "ids": 92,
+        "duplicados": [],
+        "estado": "OK"
+      },
+      "privacidad.html": {
+        "ids": 0,
+        "duplicados": [],
+        "estado": "OK"
+      }
+    },
+    "css_llaves_balanceadas": true,
+    "service_worker_cache": "cuenta-clara-v13.14",
+    "sql_nuevo": "No",
+    "dependencias_nuevas": "No"
+  },
+  "cambios_clave": [
+    "Panel guiado Personas -> Gastos -> Revisar -> Compartir",
+    "Estados visuales y pendientes accionables",
+    "Textos largos reducidos",
+    "Modo simple con menos guias visibles",
+    "Paleta moderna y minimalista"
+  ]
+}

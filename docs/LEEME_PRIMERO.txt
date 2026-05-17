@@ -1,32 +1,51 @@
-CUENTA CLARA V13.12 - INICIO LIMPIO Y HERRAMIENTAS ORDENADAS
+CUENTA CLARA V13.14 - SOLICITUDES DE CUENTAS COMPARTIDAS
 
-NUEVO EN V13.12
+NUEVO EN V13.14
 
-1. Inicio más limpio
-   - Se redujo la carga visual del panel principal.
-   - Inicio ahora muestra cuenta activa, acciones principales, pendientes clave y cuentas recientes.
+1. Solicitudes reales entre amigos registrados
+   - Al agregar un amigo registrado desde Personas, la app lo agrega como participante vinculado.
+   - Si la sesión está iniciada, Cuenta Clara prepara la cuenta como compartida y envía una solicitud al amigo.
+   - El amigo puede aceptar o rechazar la solicitud desde Compartidas o desde Mi Perfil.
 
-2. Nueva sección "Más herramientas"
-   - Plantillas.
-   - Modo demo.
-   - Recordatorios completos.
-   - Recurrentes.
-   - Compartidas.
-   - Detalle avanzado de cuenta.
-   - Acceso a respaldo/diagnóstico desde Historial.
+2. Perfil conectado a cuentas compartidas
+   - En Mi Perfil > Amigos ahora aparecen:
+     - Solicitudes de cuentas.
+     - Cuentas compartidas aceptadas.
+   - Al aceptar una cuenta compartida, se guarda una copia local vinculada para que impacte el perfil financiero.
 
-3. Mejor experiencia móvil
-   - Menos tarjetas acumuladas en Inicio.
-   - Las funciones avanzadas quedan agrupadas aparte.
-   - Botones principales más claros.
+3. Participantes más claros
+   - La sección Compartidas distingue mejor:
+     - Tú.
+     - Usuario registrado.
+     - Persona manual.
+     - Invitación pendiente.
+     - Invitación aceptada.
+   - Si una persona registrada está en la cuenta pero todavía no fue invitada, aparece el botón Enviar solicitud.
 
-NO REQUIERE
-- SQL nuevo.
-- Dependencias nuevas.
-- Cambios de variables de entorno.
+4. Vista móvil compacta
+   - Tarjetas de solicitudes más pequeñas.
+   - Botones más compactos pero tocables.
+   - Listas de cuentas compartidas más cómodas en celular.
+   - Menos saturación visual en Compartidas y Perfil.
 
-COMANDO SUGERIDO PARA PUBLICAR
+REQUISITOS
+
+- No requiere SQL nuevo si ya ejecutaste el script de cuentas compartidas usado en versiones anteriores.
+- Si nunca configuraste compartidas, ejecuta:
+  sql/03-supabase-shared-accounts.sql
+
+VALIDACION
+
+- script.js OK.
+- profile.js OK.
+- shared-utils.js OK.
+- index.html sin IDs duplicados.
+- perfil.html sin IDs duplicados.
+- privacidad.html sin IDs duplicados.
+- styles.css con llaves balanceadas.
+
+PUBLICACION SUGERIDA
 
 git add .
-git commit -m "Publica Cuenta Clara v13.12"
+git commit -m "Publica Cuenta Clara v13.14"
 git push

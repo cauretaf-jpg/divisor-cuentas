@@ -5,12 +5,12 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="Cuenta Clara permite dividir cuentas, productos compartidos, propinas y transferencias de forma simple." name="description"/>
-<meta content="#0f766e" name="theme-color"/>
+<meta content="#2563eb" name="theme-color"/>
 <meta content="ca-pub-4358472434423818" name="google-adsense-account"/>
 <!-- Google AdSense Auto Ads -->
 <script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818"></script>
 <title>Cuenta Clara | Divide cuentas sin enredos</title>
-<link href="styles.css?v=13.12" rel="stylesheet"/>
+<link href="styles.css?v=13.14" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
 </head>
@@ -21,7 +21,7 @@
 <img alt="" class="brand-icon" src="assets/logo.svg"/>
 <div>
 <strong>Cuenta Clara</strong>
-<span>Divide gastos, propinas y transferencias</span>
+<span>Gastos claros en pocos pasos</span>
 </div>
 </a>
 <div class="header-actions">
@@ -41,7 +41,7 @@
 </div>
 </div>
 </header>
-<main class="container app-layout sectioned-layout"><aside aria-label="Navegación principal de Cuenta Clara" class="section-nav"><section class="card section-nav-card"><div class="section-nav-title"><p class="eyebrow">Menú</p><h2>Menú principal</h2><p>Acciones básicas primero; herramientas avanzadas aparte.</p></div><nav aria-label="Secciones de la app" class="section-nav-list"><button class="section-nav-button is-active" data-app-section="home" type="button"><strong>Inicio</strong><span>Elegir tipo de cuenta</span></button><button class="section-nav-button" data-app-section="people" type="button"><strong>Personas</strong><span>Agregar participantes</span></button><button class="section-nav-button" data-app-section="expenses" type="button"><strong>Gastos</strong><span>Agregar productos o boleta</span></button><button class="section-nav-button" data-app-section="summary" type="button"><strong>Resumen</strong><span>Ver totales</span></button><button class="section-nav-button" data-app-section="payments" type="button"><strong>Pagos</strong><span>Transferencias y compartir</span></button><button class="section-nav-button" data-app-section="tools" type="button"><strong>Más herramientas</strong><span>Plantillas, demo y respaldo</span></button><button class="section-nav-button" data-app-section="history" type="button"><strong>Historial</strong><span>Tus cuentas guardadas</span></button><button class="section-nav-button" data-app-section="recurring" type="button"><strong>Hogar</strong><span>Cuentas recurrentes</span></button><button class="section-nav-button" data-app-section="shared" type="button"><strong>Compartidas</strong><span>Invitaciones y colaboración</span></button></nav><div class="section-nav-footer"><small>Consejo: Inicio queda para continuar rápido; lo avanzado está en Más herramientas.</small></div></section></aside><section class="workspace section-workspace"><div aria-live="polite" class="mobile-screen-header" id="mobileScreenHeader"><div><p class="eyebrow" id="mobileScreenEyebrow">Cuenta Clara</p><strong id="mobileScreenTitle">Inicio</strong></div><div class="mobile-screen-actions"><button class="btn btn-light btn-small" id="mobileHomeButton" type="button">Inicio</button><button class="btn btn-light btn-small" id="mobileBackButton" type="button">Atrás</button></div></div><section class="current-list-indicator card" id="currentListIndicator">
+<main class="container app-layout sectioned-layout"><aside aria-label="Navegación principal de Cuenta Clara" class="section-nav"><section class="card section-nav-card"><div class="section-nav-title"><p class="eyebrow">Menú</p><h2>Flujo principal</h2><p>Sigue los pasos. Lo avanzado queda aparte.</p></div><nav aria-label="Secciones de la app" class="section-nav-list"><button class="section-nav-button is-active" data-app-section="home" type="button"><strong>Inicio</strong><span>Estado y acciones</span></button><button class="section-nav-button" data-app-section="people" type="button"><strong>Personas</strong><span>Quiénes participan</span></button><button class="section-nav-button" data-app-section="expenses" type="button"><strong>Gastos</strong><span>Qué se pagó</span></button><button class="section-nav-button" data-app-section="summary" type="button"><strong>Resumen</strong><span>Revisar cuenta</span></button><button class="section-nav-button" data-app-section="payments" type="button"><strong>Pagos</strong><span>Cobrar y compartir</span></button><button class="section-nav-button" data-app-section="tools" type="button"><strong>Herramientas</strong><span>Opciones avanzadas</span></button><button class="section-nav-button" data-app-section="history" type="button"><strong>Historial</strong><span>Cuentas guardadas</span></button><button class="section-nav-button" data-app-section="recurring" type="button"><strong>Hogar</strong><span>Mensualidades</span></button><button class="section-nav-button" data-app-section="shared" type="button"><strong>Compartidas</strong><span>Acceso y permisos</span></button></nav><div class="section-nav-footer"><small>Menos lectura: cada alerta trae una acción.</small></div></section></aside><section class="workspace section-workspace"><div aria-live="polite" class="mobile-screen-header" id="mobileScreenHeader"><div><p class="eyebrow" id="mobileScreenEyebrow">Cuenta Clara</p><strong id="mobileScreenTitle">Inicio</strong></div><div class="mobile-screen-actions"><button class="btn btn-light btn-small" id="mobileHomeButton" type="button">Inicio</button><button class="btn btn-light btn-small" id="mobileBackButton" type="button">Atrás</button></div></div><section class="current-list-indicator card" id="currentListIndicator">
 <div>
 <p class="eyebrow">Editando lista</p>
 <h2 id="currentListName">Lista actual</h2>
@@ -54,12 +54,27 @@
 <p id="networkStatusText">Tus cambios se guardarán en este dispositivo y se sincronizarán cuando vuelva internet.</p>
 </div>
 <span id="networkStatusPill">Modo local</span>
-</section><section class="app-section is-active" data-app-section-panel="home" id="appSection-home"><section class="section-page-heading card"><div><p class="eyebrow">Panel principal</p><h2>Inicio limpio</h2><p class="section-helper">Continúa tu cuenta actual, revisa pendientes clave o entra a una acción principal.</p></div></section><section class="mobile-home-dashboard card" id="homeDashboardPanel">
+</section><section aria-live="polite" class="card guided-flow-panel" id="guidedFlowPanel">
+<div class="guided-flow-header">
+<div>
+<p class="eyebrow">Paso actual</p>
+<h2 id="guidedFlowStatus">Cuenta en progreso</h2>
+<p id="guidedFlowStatusText">La app te dirá qué falta y dónde tocar.</p>
+</div>
+<span class="guided-flow-badge" id="guidedFlowBadge">Borrador</span>
+</div>
+<div aria-label="Progreso de la cuenta" class="guided-flow-steps" id="guidedFlowSteps"></div>
+<div class="guided-flow-missing" id="guidedFlowMissingList"></div>
+<div class="guided-flow-actions">
+<button class="btn btn-primary btn-small" id="guidedFlowPrimaryButton" type="button">Continuar</button>
+<button class="btn btn-light btn-small" id="guidedFlowSecondaryButton" type="button">Revisar cuenta</button>
+</div>
+</section><section class="app-section is-active" data-app-section-panel="home" id="appSection-home"><section class="section-page-heading card"><div><p class="eyebrow">Panel principal</p><h2>Inicio</h2><p class="section-helper">Estado, pendientes y acciones rápidas.</p></div></section><section class="mobile-home-dashboard card" id="homeDashboardPanel">
 <div class="home-dashboard-top">
 <div>
 <p class="eyebrow">Panel principal</p>
 <h2 id="homeGreetingOutput">Hola</h2>
-<p id="homeSummaryMetaOutput">Cuenta activa, pendientes y accesos principales.</p>
+<p id="homeSummaryMetaOutput">Tu cuenta y lo pendiente.</p>
 </div>
 <span class="home-sync-pill" id="homeDashboardSyncOutput">Local</span>
 </div>
@@ -82,20 +97,20 @@
 <div>
 <span class="home-action-kicker">Pendiente ahora</span>
 <strong id="homeActionSummaryOutput">Sin acciones urgentes</strong>
-<small>Máximo 3 alertas clave.</small>
+<small>Acciones directas.</small>
 </div>
 <strong class="home-action-amount" id="homeActionAmountOutput">$0</strong>
 </div>
 <div class="home-action-list" id="homeActionList"></div>
 <div class="home-action-actions">
-<button class="btn btn-primary btn-small" id="homeActionOpenPaymentsButton" type="button">Abrir centro de pagos</button>
-<button class="btn btn-light btn-small" data-app-section="summary" type="button">Revisar cuenta actual</button>
+<button class="btn btn-primary btn-small" id="homeActionOpenPaymentsButton" type="button">Ver pagos</button>
+<button class="btn btn-light btn-small" data-app-section="summary" type="button">Revisar cuenta</button>
 </div>
 </section>
 
-<div class="home-primary-actions"><button class="btn btn-primary" id="homeNewBillButton" type="button">Crear nueva cuenta</button><button class="btn btn-light" data-app-section="expenses" type="button">Agregar gasto</button><button class="btn btn-light" data-app-section="tools" type="button">Más herramientas</button></div>
+<div class="home-primary-actions"><button class="btn btn-primary" id="homeNewBillButton" type="button">Nueva cuenta</button><button class="btn btn-light" data-app-section="expenses" type="button">Agregar gasto</button><button class="btn btn-light" data-app-section="tools" type="button">Herramientas</button></div>
 <div aria-label="Accesos rápidos premium" class="home-premium-shortcuts"><button data-app-section="people" type="button"><span>1</span><strong>Personas</strong><small>Participantes</small></button><button data-app-section="expenses" type="button"><span>2</span><strong>Gastos</strong><small>Productos o boleta</small></button><button data-app-section="summary" type="button"><span>3</span><strong>Resumen</strong><small>Totales y revisión</small></button><button data-app-section="payments" type="button"><span>4</span><strong>Pagos</strong><small>Cobros y WhatsApp</small></button></div>
-<section class="home-tools-shortcut card" id="homeToolsShortcutCard"><div><p class="eyebrow">Herramientas</p><h3>Plantillas, demo, hogar y respaldo</h3><p class="section-helper">Movimos lo avanzado para que Inicio no se vea sobrecargado.</p></div><div class="home-tools-shortcut-actions"><button class="btn btn-light btn-small" data-app-section="tools" type="button">Abrir herramientas</button><button class="btn btn-light btn-small" data-app-section="history" type="button">Historial</button></div></section><div class="home-recent-block">
+<section class="home-tools-shortcut card" id="homeToolsShortcutCard"><div><p class="eyebrow">Herramientas</p><h3>Opciones avanzadas</h3><p class="section-helper">Plantillas, demo, hogar, compartidas y respaldo.</p></div><div class="home-tools-shortcut-actions"><button class="btn btn-light btn-small" data-app-section="tools" type="button">Abrir</button><button class="btn btn-light btn-small" data-app-section="history" type="button">Historial</button></div></section><div class="home-recent-block">
 <div class="home-recent-title"><strong>Recientes</strong><button class="btn btn-light btn-small" data-app-section="history" type="button">Ver todas</button></div>
 <div class="home-recent-list" id="homeRecentBillsList"></div>
 </div>
@@ -114,14 +129,15 @@
 <div><span>1</span><strong>Crear</strong><small>Elige una plantilla.</small></div>
 <div><span>2</span><strong>Personas</strong><small>Agrega participantes.</small></div>
 <div><span>3</span><strong>Gastos</strong><small>Manual o boleta.</small></div>
-<div><span>4</span><strong>Resumen</strong><small>Comparte el resultado.</small></div>
+<div><span>4</span><strong>Revisar</strong><small>Corrige alertas.</small></div>
+<div><span>5</span><strong>Compartir</strong><small>Envía el resumen.</small></div>
 </div>
 <div class="first-use-actions">
 <button class="btn btn-primary" id="startFirstBillButton" type="button">Crear mi primera cuenta</button>
 <button class="btn btn-light" id="firstUseExampleButton" type="button">Probar con ejemplo</button>
 <button class="btn btn-light" id="dismissFirstUseButton" type="button">Entendido</button>
 </div>
-</section></section><section class="app-section" data-app-section-panel="tools" id="appSection-tools"><section class="section-page-heading card"><div><p class="eyebrow">Herramientas</p><h2>Más herramientas</h2><p class="section-helper">Plantillas, modo demo, detalles de cuenta, recordatorios, recurrentes, compartidas y respaldo están agrupados aquí para mantener Inicio limpio.</p></div></section><section class="tools-hub-card card" id="toolsHubCard"><div><p class="eyebrow">Centro de herramientas</p><h3>Elige qué necesitas hacer</h3><p class="section-helper">Usa esta zona cuando quieras configurar algo avanzado o revisar datos fuera del flujo principal.</p></div><div class="tools-hub-grid"><button class="tool-hub-button" data-focus-target="guidedStartCard" type="button"><strong>Plantillas</strong><span>Restaurante, hogar, streaming o cuenta rápida.</span></button><button class="tool-hub-button" data-focus-target="demoDataCard" type="button"><strong>Modo demo</strong><span>Cargar ejemplos para mostrar la app.</span></button><button class="tool-hub-button" data-app-section="recurring" type="button"><strong>Recurrentes</strong><span>Hogar, streaming y deuda acumulada.</span></button><button class="tool-hub-button" data-app-section="shared" type="button"><strong>Compartidas</strong><span>Invitaciones, roles y permisos.</span></button><button class="tool-hub-button" data-app-section="history" type="button"><strong>Historial</strong><span>Cuentas guardadas, filtros y respaldo.</span></button><button class="tool-hub-button" data-focus-target="backupSecurityPanel" type="button"><strong>Respaldo</strong><span>Exportar, importar y diagnóstico simple.</span></button></div></section><section class="mobile-onboarding-card card" id="mobileOnboardingCard">
+</section></section><section class="app-section" data-app-section-panel="tools" id="appSection-tools"><section class="section-page-heading card"><div><p class="eyebrow">Herramientas</p><h2>Herramientas</h2><p class="section-helper">Plantillas, modo demo, detalles de cuenta, recordatorios, recurrentes, compartidas y respaldo están agrupados aquí para mantener Inicio limpio.</p></div></section><section class="tools-hub-card card" id="toolsHubCard"><div><p class="eyebrow">Centro de herramientas</p><h3>Opciones avanzadas</h3><p class="section-helper">Entra solo cuando lo necesites.</p></div><div class="tools-hub-grid"><button class="tool-hub-button" data-focus-target="guidedStartCard" type="button"><strong>Plantillas</strong><span>Restaurante, hogar, streaming o cuenta rápida.</span></button><button class="tool-hub-button" data-focus-target="demoDataCard" type="button"><strong>Modo demo</strong><span>Cargar ejemplos para mostrar la app.</span></button><button class="tool-hub-button" data-app-section="recurring" type="button"><strong>Recurrentes</strong><span>Hogar, streaming y deuda acumulada.</span></button><button class="tool-hub-button" data-app-section="shared" type="button"><strong>Compartidas</strong><span>Invitaciones, roles y permisos.</span></button><button class="tool-hub-button" data-app-section="history" type="button"><strong>Historial</strong><span>Cuentas guardadas, filtros y respaldo.</span></button><button class="tool-hub-button" data-focus-target="backupSecurityPanel" type="button"><strong>Respaldo</strong><span>Exportar, importar y diagnóstico simple.</span></button></div></section><section class="mobile-onboarding-card card" id="mobileOnboardingCard">
 <div>
 <p class="eyebrow">Ayuda rápida</p>
 <h2>Cómo usar Cuenta Clara</h2>
@@ -269,7 +285,7 @@
 <button class="btn btn-light" id="closeBillButton" type="button">Cerrar cuenta</button>
 <button class="btn btn-danger-light" id="deleteBillButton" type="button">Eliminar</button>
 </div>
-</section></section><section class="app-section ad-protected-zone" data-app-section-panel="people" id="appSection-people"><section class="section-page-heading card"><div><p class="eyebrow">Participantes</p><h2>Personas</h2><p class="section-helper">Agrega personas, teléfonos opcionales y estados de pago sin ver el resto de la app.</p></div></section><section class="guide-card card" data-guide-card="people"><div><span class="guide-number">1</span></div><div><strong>Primero agrega a quienes participaron</strong><p>Después selecciona el pagador principal. Sin personas no se puede dividir ningún gasto.</p></div><button class="btn btn-primary btn-small" data-focus-target="personNameInput" type="button">Agregar persona</button></section><section class="grid-two">
+</section></section><section class="app-section ad-protected-zone" data-app-section-panel="people" id="appSection-people"><section class="section-page-heading card"><div><p class="eyebrow">Participantes</p><h2>Personas</h2><p class="section-helper">Agrega quiénes participan y quién recibe las transferencias.</p></div></section><section class="guide-card card" data-guide-card="people"><div><span class="guide-number">1</span></div><div><strong>Agrega participantes</strong><p>Sin personas no hay división.</p></div><button class="btn btn-primary btn-small" data-focus-target="personNameInput" type="button">Agregar persona</button></section><section class="grid-two">
 <section class="card">
 <div class="section-title">
 <div>
@@ -318,7 +334,7 @@
 </section>
 <div class="people-list" id="peopleList"></div>
 </section>
-</section></section><section class="app-section ad-protected-zone" data-app-section-panel="expenses" id="appSection-expenses"><section class="section-page-heading card"><div><p class="eyebrow">Consumos</p><h2>Gastos</h2><p class="section-helper">Agrega productos, gastos del hogar, boletas y productos rápidos en una vista enfocada.</p></div></section><section class="guide-card card" data-guide-card="expenses"><div><span class="guide-number">2</span></div><div><strong>Luego agrega los consumos</strong><p>Usa “Escribir” para ingresar manualmente o “Escanear boleta” para subir una imagen desde cámara, galería o archivos.</p></div><button class="btn btn-primary btn-small" data-focus-target="productNameInput" type="button">Agregar gasto</button></section><section class="card bill-mode-switcher-card" id="billModeSwitcherCard">
+</section></section><section class="app-section ad-protected-zone" data-app-section-panel="expenses" id="appSection-expenses"><section class="section-page-heading card"><div><p class="eyebrow">Consumos</p><h2>Gastos</h2><p class="section-helper">Agrega lo pagado y asigna consumidores.</p></div></section><section class="guide-card card" data-guide-card="expenses"><div><span class="guide-number">2</span></div><div><strong>Agrega gastos</strong><p>Manual, rápido o boleta.</p></div><button class="btn btn-primary btn-small" data-focus-target="productNameInput" type="button">Agregar gasto</button></section><section class="card bill-mode-switcher-card" id="billModeSwitcherCard">
 <div class="section-title compact">
 <div>
 <p class="eyebrow">Tipo de cuenta</p>
@@ -547,7 +563,7 @@
 </div>
 <div class="category-totals" id="categoryTotals"></div>
 <div class="product-list" id="productList"></div>
-</section></section><section class="app-section ad-protected-zone" data-app-section-panel="summary" id="appSection-summary"><section class="section-page-heading card"><div><p class="eyebrow">Totales</p><h2>Resumen</h2><p class="section-helper">Revisa subtotal, propina, total final y estado general de la cuenta.</p></div></section><section class="guide-card card" data-guide-card="summary"><div><span class="guide-number">3</span></div><div><strong>Revisa si el cálculo está correcto</strong><p>Aquí ves subtotal, propina, total final y cuánto queda pendiente por cobrar.</p></div><button class="btn btn-primary btn-small" data-app-section="payments" type="button">Ver pagos</button></section><section aria-live="polite" class="card account-review-card" id="accountReviewPanel">
+</section></section><section class="app-section ad-protected-zone" data-app-section-panel="summary" id="appSection-summary"><section class="section-page-heading card"><div><p class="eyebrow">Totales</p><h2>Resumen</h2><p class="section-helper">Confirma totales y corrige alertas.</p></div></section><section class="guide-card card" data-guide-card="summary"><div><span class="guide-number">3</span></div><div><strong>Revisa alertas</strong><p>La app indica qué falta.</p></div><button class="btn btn-primary btn-small" data-app-section="payments" type="button">Ver pagos</button></section><section aria-live="polite" class="card account-review-card" id="accountReviewPanel">
 <div class="account-review-header">
 <div>
 <p class="eyebrow">Revisión previa</p>
@@ -623,7 +639,7 @@
 <button class="btn btn-light btn-small" id="generateReceiptImageButton" type="button">Generar imagen</button>
 <button class="btn btn-light btn-small" id="openPaymentsFromReceiptButton" type="button">Ir a pagos</button>
 </div>
-</section></section></section><section class="app-section ad-protected-zone" data-app-section-panel="payments" id="appSection-payments"><section class="section-page-heading card"><div><p class="eyebrow">Transferencias</p><h2>Pagos</h2><p class="section-helper">Consulta cuánto paga cada persona, quién debe transferir y comparte la cuenta.</p></div></section><section class="guide-card card" data-guide-card="payments"><div><span class="guide-number">4</span></div><div><strong>Comparte el resultado</strong><p>Cuando alguien te transfiera, márcalo como pagado. Los cobros pendientes quedarán visibles abajo para que sea fácil hacer seguimiento.</p></div><button class="btn btn-primary btn-small" data-open-share="true" type="button">Compartir</button></section><section class="card payment-action-center" id="paymentActionCenter">
+</section></section></section><section class="app-section ad-protected-zone" data-app-section-panel="payments" id="appSection-payments"><section class="section-page-heading card"><div><p class="eyebrow">Transferencias</p><h2>Pagos</h2><p class="section-helper">Cobra, marca pagados y comparte.</p></div></section><section class="guide-card card" data-guide-card="payments"><div><span class="guide-number">4</span></div><div><strong>Comparte y cobra</strong><p>Envía el resumen y marca pagados.</p></div><button class="btn btn-primary btn-small" data-open-share="true" type="button">Compartir</button></section><section class="card payment-action-center" id="paymentActionCenter">
 <div class="payment-action-header">
 <div>
 <p class="eyebrow">Centro financiero</p>
@@ -717,7 +733,7 @@
 <button class="btn btn-light" id="copySummaryButton" type="button">Copiar rápido</button>
 <button class="btn btn-light" id="whatsappButton" type="button">WhatsApp rápido</button>
 </div>
-</section></section><section class="app-section" data-app-section-panel="history" id="appSection-history"><section class="section-page-heading card"><div><p class="eyebrow">Tus cuentas</p><h2>Historial</h2><p class="section-helper">Busca, filtra, abre cuentas guardadas y administra respaldos.</p></div></section><section class="guide-card card" data-guide-card="history"><div><span class="guide-number">↺</span></div><div><strong>El historial es para volver a una cuenta</strong><p>Presiona “Editar” y la app abrirá directamente Gastos para seguir modificando esa cuenta.</p></div><button class="btn btn-primary btn-small" data-app-section="home" type="button">Crear otra cuenta</button></section><section class="card sidebar-history-card">
+</section></section><section class="app-section" data-app-section-panel="history" id="appSection-history"><section class="section-page-heading card"><div><p class="eyebrow">Tus cuentas</p><h2>Historial</h2><p class="section-helper">Abre cuentas anteriores y respaldos.</p></div></section><section class="guide-card card" data-guide-card="history"><div><span class="guide-number">↺</span></div><div><strong>Vuelve a una cuenta</strong><p>Edita o revisa cuentas guardadas.</p></div><button class="btn btn-primary btn-small" data-app-section="home" type="button">Crear otra cuenta</button></section><section class="card sidebar-history-card">
 <div class="section-title compact">
 <div>
 <p class="eyebrow">Historial</p>
@@ -784,7 +800,7 @@
 </div>
 <div class="diagnostic-list" id="diagnosticList"></div>
 </section>
-</section></section><section class="app-section" data-app-section-panel="recurring" id="appSection-recurring"><section class="section-page-heading card"><div><p class="eyebrow">Recurrentes</p><h2>Hogar</h2><p class="section-helper">Administra carpetas mensuales, deuda acumulada e historial de cuentas del hogar.</p></div></section><details class="card sidebar-recurring-card" id="recurringSidebarPanel" open="">
+</section></section><section class="app-section" data-app-section-panel="recurring" id="appSection-recurring"><section class="section-page-heading card"><div><p class="eyebrow">Recurrentes</p><h2>Hogar</h2><p class="section-helper">Cuentas mensuales y deuda acumulada.</p></div></section><details class="card sidebar-recurring-card" id="recurringSidebarPanel" open="">
 <summary class="sidebar-details-summary">
 <div>
 <p class="eyebrow">Hogar</p>
@@ -873,7 +889,7 @@
 </div>
 <div class="recurring-month-history" id="recurringMonthHistoryList"></div>
 </section>
-</section></section><section class="app-section" data-app-section-panel="shared" id="appSection-shared"><section class="section-page-heading card"><div><p class="eyebrow">Colaboración</p><h2>Compartidas</h2><p class="section-helper">Comparte cuentas con usuarios registrados, revisa invitaciones y controla roles de acceso.</p></div></section><details class="card sidebar-shared-card" id="sharedSidebarPanel" open="">
+</section></section><section class="app-section" data-app-section-panel="shared" id="appSection-shared"><section class="section-page-heading card"><div><p class="eyebrow">Colaboración</p><h2>Compartidas</h2><p class="section-helper">Solicitudes, roles y permisos entre amigos registrados.</p></div></section><details class="card sidebar-shared-card" id="sharedSidebarPanel" open="">
 <summary class="sidebar-details-summary">
 <div>
 <p class="eyebrow">Colaboración</p>
@@ -881,11 +897,11 @@
 </div>
 <span>▾</span>
 </summary>
-<p class="helper-text compact-text">Comparte la cuenta actual, busca usuarios registrados por correo o nick y controla permisos desde un solo lugar.</p>
+<p class="helper-text compact-text">Agrega amigos registrados, envía solicitudes y controla quién puede editar o solo revisar.</p>
 <div class="sidebar-action-stack">
 <button class="btn btn-primary btn-small" id="publishSharedAccountButton" type="button">Compartir cuenta actual</button>
 <div class="shared-invite-row">
-<input id="sharedInviteSearchInput" placeholder="Correo o nick exacto" type="search"/>
+<input id="sharedInviteSearchInput" placeholder="Correo o nick de amigo" type="search"/>
 <select aria-label="Rol de invitación" id="sharedInviteRoleSelect">
 <option value="editor">Editor</option>
 <option value="viewer">Lector</option>
@@ -954,12 +970,12 @@
 <button aria-label="Cerrar" class="icon-button" id="closeFriendsPickerButton" type="button">×</button>
 </div>
 <p class="helper-text">
-        Selecciona amigos de tu perfil para agregarlos como participantes de esta cuenta.
+        Selecciona amigos. Si son usuarios registrados, Cuenta Clara les enviará una solicitud para aceptar la cuenta y verla en su perfil.
       </p>
 <div class="friends-picker-list" id="friendsPickerList"></div>
 <div class="auth-actions-row">
 <a class="btn btn-light" href="perfil.html">Administrar amigos</a>
-<button class="btn btn-primary" id="addSelectedFriendsButton" type="button">Agregar seleccionados</button>
+<button class="btn btn-primary" id="addSelectedFriendsButton" type="button">Agregar y enviar solicitud</button>
 </div>
 </section>
 </div>
@@ -1272,8 +1288,8 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="shared-utils.js?v=13.12"></script>
-<script src="supabase-config.js?v=13.12"></script>
-<script src="script.js?v=13.12"></script>
+<script src="shared-utils.js?v=13.14"></script>
+<script src="supabase-config.js?v=13.14"></script>
+<script src="script.js?v=13.14"></script>
 </body>
 </html>
