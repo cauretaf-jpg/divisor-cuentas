@@ -1,16 +1,16 @@
-const CACHE_NAME = 'cuenta-clara-v13.16.1';
+const CACHE_NAME = 'cuenta-clara-v13.17';
 
 const ASSETS = [
   './',
   './index.html',
-  './styles.css?v=13.16.1',
-  './shared-utils.js?v=13.16.1',
-  './script.js?v=13.16.1',
-  './supabase-config.js?v=13.16.1',
+  './styles.css?v=13.17',
+  './shared-utils.js?v=13.17',
+  './script.js?v=13.17',
+  './supabase-config.js?v=13.17',
   './manifest.json',
   './privacidad.html',
   './perfil.html',
-  './profile.js?v=13.16.1',
+  './profile.js?v=13.17',
   './ads.txt',
   './assets/logo.svg',
 ];
@@ -53,5 +53,52 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(() => caches.match(event.request))
+  );
+});
+
+
+self.addEventListener('push', (event) => {
+  let payload = {};
+
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch {
+    payload = { title: 'Cuenta Clara', body: event.data ? event.data.text() : 'Tienes una novedad pendiente.' };
+  }
+
+  const title = payload.title || 'Cuenta Clara';
+  const options = {
+    body: payload.body || 'Tienes una solicitud pendiente.',
+    icon: './assets/logo.svg',
+    badge: './assets/logo.svg',
+    tag: payload.tag || payload.notificationId || 'cuenta-clara-push',
+    renotify: true,
+    data: {
+      url: payload.url || './index.html#shared',
+      accountId: payload.accountId || '',
+      notificationId: payload.notificationId || '',
+    },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = new URL(event.notification?.data?.url || './index.html#shared', self.location.origin).href;
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client) {
+          client.navigate(targetUrl).catch(() => {});
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+      return undefined;
+    })
   );
 });

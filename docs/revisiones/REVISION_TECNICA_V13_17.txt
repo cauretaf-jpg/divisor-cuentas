@@ -1,0 +1,41 @@
+REVISION TECNICA - CUENTA CLARA V13.17
+
+Objetivo
+- Agregar primera fase de notificaciones del celular y estado de conexión.
+- Mantener intacta la lógica de cuentas, pagos, OCR, perfil y recurrentes.
+
+Cambios aplicados
+1. Versión actualizada a v13.17.
+2. Service worker actualizado a cuenta-clara-v13.17.
+3. Se agregaron eventos push y notificationclick al service worker.
+4. Se agregó panel Estado de conexión en Herramientas.
+5. Se agregó botón Activar notificaciones.
+6. Se agregó botón Probar aviso.
+7. Se agregó estado visible para sesión, sincronización, solicitudes y notificaciones del celular.
+8. Si el usuario activa permisos, la app puede mostrar avisos del navegador para solicitudes nuevas mientras la app está abierta o cuando el navegador permita service worker activo.
+9. Se agregó soporte opcional para Push API con VAPID.
+10. Se agregó guardado opcional de suscripciones push en la tabla push_subscriptions.
+11. Se agregó llamada opcional a Edge Function send-shared-invite-push cuando se envía una solicitud de cuenta compartida.
+12. Si el backend push no está configurado, la app no rompe el flujo: mantiene las notificaciones internas.
+
+Archivos modificados
+- index.html
+- script.js
+- profile.js
+- service-worker.js
+- styles.css
+- supabase-config.js
+- docs/README.md
+- docs/LEEME_PRIMERO.txt
+
+Archivos nuevos
+- sql/04-supabase-push-subscriptions.sql
+- supabase/functions/send-shared-invite-push/index.ts
+- docs/revisiones/REVISION_TECNICA_V13_17.txt
+- docs/revisiones/REVISION_PUSH_V13_17.txt
+- docs/validaciones/revision-validacion-v13-17.json
+
+Notas importantes
+- Las notificaciones internas siguen funcionando sin SQL nuevo.
+- Para push real con la app cerrada se debe ejecutar sql/04-supabase-push-subscriptions.sql, generar VAPID keys, configurar supabase-config.js y desplegar la Edge Function.
+- No se agregaron dependencias al frontend.

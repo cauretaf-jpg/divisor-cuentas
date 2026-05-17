@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.16.1 cargada');
-const APP_VERSION = '13.16.1';
+console.info('Cuenta Clara V13.17 cargada');
+const APP_VERSION = '13.17';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -9,6 +9,11 @@ const APP_SECTION_KEY = 'cuenta-clara-active-section';
 const ONBOARDING_DISMISSED_KEY = 'cuenta-clara-onboarding-dismissed';
 const DEMO_BILL_IDS_KEY = 'cuenta-clara-demo-bill-ids';
 const NOTIFICATION_SEEN_KEY_PREFIX = 'cuenta-clara-seen-notifications';
+const SYSTEM_NOTIFICATIONS_KEY_PREFIX = 'cuenta-clara-system-notifications';
+const SYSTEM_NOTIFICATION_SHOWN_KEY_PREFIX = 'cuenta-clara-system-notifications-shown';
+const PUSH_SUBSCRIPTION_STATUS_KEY_PREFIX = 'cuenta-clara-push-subscription-status';
+const PUSH_PUBLIC_VAPID_KEY = window.CUENTA_CLARA_PUBLIC_VAPID_KEY || '';
+const PUSH_EDGE_FUNCTION_NAME = window.CUENTA_CLARA_PUSH_FUNCTION_NAME || 'send-shared-invite-push';
 let activeStorageKey = GUEST_STORAGE_KEY;
 let currentSession = { mode: 'guest', email: '', name: '', userId: '' };
 let cloudSaveTimer = null;
@@ -161,6 +166,17 @@ const dom = {
   sharedNotificationText: document.querySelector('#sharedNotificationText'),
   sharedNotificationList: document.querySelector('#sharedNotificationList'),
   mobileNotificationBadge: document.querySelector('#mobileNotificationBadge'),
+  connectionStatusPanel: document.querySelector('#connectionStatusPanel'),
+  connectionStatusBadge: document.querySelector('#connectionStatusBadge'),
+  connectionStatusHelp: document.querySelector('#connectionStatusHelp'),
+  connectionSessionOutput: document.querySelector('#connectionSessionOutput'),
+  connectionSyncOutput: document.querySelector('#connectionSyncOutput'),
+  connectionRequestsOutput: document.querySelector('#connectionRequestsOutput'),
+  connectionPushOutput: document.querySelector('#connectionPushOutput'),
+  enablePushNotificationsButton: document.querySelector('#enablePushNotificationsButton'),
+  testPushNotificationButton: document.querySelector('#testPushNotificationButton'),
+  refreshConnectionStatusButton: document.querySelector('#refreshConnectionStatusButton'),
+  pushSetupHelp: document.querySelector('#pushSetupHelp'),
   guidedFlowPanel: document.querySelector('#guidedFlowPanel'),
   guidedFlowStatus: document.querySelector('#guidedFlowStatus'),
   guidedFlowStatusText: document.querySelector('#guidedFlowStatusText'),
@@ -7284,6 +7300,366 @@ function renderNotificationCenter() {
     }
     renderNotificationList(dom.sharedNotificationList, notifications);
   }
+
+  notifyUnreadInvitesWithSystemNotification();
+  renderConnectionStatus();
+}
+
+
+function getSystemNotificationStorageKey() {
+  const userKey = currentSession.userId || currentSession.email || 'guest';
+  return `${SYSTEM_NOTIFICATIONS_KEY_PREFIX}:${userKey}`;
+}
+
+function getSystemNotificationShownStorageKey() {
+  const userKey = currentSession.userId || currentSession.email || 'guest';
+  return `${SYSTEM_NOTIFICATION_SHOWN_KEY_PREFIX}:${userKey}`;
+}
+
+function getPushSubscriptionStatusKey() {
+  const userKey = currentSession.userId || currentSession.email || 'guest';
+  return `${PUSH_SUBSCRIPTION_STATUS_KEY_PREFIX}:${userKey}`;
+}
+
+function isSystemNotificationsEnabled() {
+  return localStorage.getItem(getSystemNotificationStorageKey()) === 'enabled';
+}
+
+function setSystemNotificationsEnabled(enabled) {
+  localStorage.setItem(getSystemNotificationStorageKey(), enabled ? 'enabled' : 'disabled');
+}
+
+function loadSystemNotificationShownIds() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(getSystemNotificationShownStorageKey()) || '[]');
+    return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveSystemNotificationShownIds(ids) {
+  try {
+    localStorage.setItem(getSystemNotificationShownStorageKey(), JSON.stringify([...ids].slice(-200)));
+  } catch {
+    // Si localStorage falla, solo se omite el control anti-duplicado.
+  }
+}
+
+function savePushSubscriptionStatus(status, detail = '') {
+  try {
+    localStorage.setItem(getPushSubscriptionStatusKey(), JSON.stringify({
+      status,
+      detail,
+      updatedAt: nowIso(),
+    }));
+  } catch {
+    // No bloquea el uso de la app.
+  }
+}
+
+function loadPushSubscriptionStatus() {
+  try {
+    return JSON.parse(localStorage.getItem(getPushSubscriptionStatusKey()) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function getNotificationPermissionValue() {
+  if (typeof Notification === 'undefined') return 'unsupported';
+  return Notification.permission || 'default';
+}
+
+function getNotificationPermissionLabel() {
+  const permission = getNotificationPermissionValue();
+  if (permission === 'granted') return 'Permitidas';
+  if (permission === 'denied') return 'Bloqueadas';
+  if (permission === 'default') return 'Sin activar';
+  return 'No compatible';
+}
+
+function getPushCapability() {
+  const hasNotification = typeof Notification !== 'undefined';
+  const hasServiceWorker = 'serviceWorker' in navigator;
+  const hasPushManager = 'PushManager' in window;
+  return {
+    hasNotification,
+    hasServiceWorker,
+    hasPushManager,
+    canAskPermission: hasNotification && hasServiceWorker,
+    canSubscribe: hasNotification && hasServiceWorker && hasPushManager && Boolean(PUSH_PUBLIC_VAPID_KEY),
+  };
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i += 1) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+async function getCuentaClaraServiceWorkerRegistration() {
+  if (!('serviceWorker' in navigator)) return null;
+  try {
+    const existing = await navigator.serviceWorker.getRegistration();
+    if (existing) return existing;
+    return await navigator.serviceWorker.register('./service-worker.js');
+  } catch (error) {
+    console.warn('No se pudo registrar service worker para notificaciones:', error);
+    return null;
+  }
+}
+
+async function savePushSubscriptionToCloud(subscription) {
+  if (!subscription || !canUseSharedAccounts()) {
+    savePushSubscriptionStatus('local', 'Permiso activo en este navegador. Inicia sesión para guardar el dispositivo.');
+    return false;
+  }
+
+  try {
+    const payload = subscription.toJSON ? subscription.toJSON() : subscription;
+    const { error } = await supabaseClient
+      .from('push_subscriptions')
+      .upsert({
+        user_id: currentSession.userId,
+        endpoint: payload.endpoint,
+        subscription: payload,
+        device_label: navigator.userAgent ? navigator.userAgent.slice(0, 120) : 'Dispositivo web',
+        enabled: true,
+        last_seen_at: nowIso(),
+        updated_at: nowIso(),
+      }, { onConflict: 'user_id,endpoint' });
+
+    if (error) throw error;
+    savePushSubscriptionStatus('cloud', 'Dispositivo guardado para push real.');
+    return true;
+  } catch (error) {
+    console.warn('No se pudo guardar suscripción push:', error);
+    savePushSubscriptionStatus('pending-backend', 'Permiso activo. Falta configurar la tabla de push o permisos de nube.');
+    return false;
+  }
+}
+
+async function activateSystemNotifications() {
+  const capability = getPushCapability();
+
+  if (!capability.canAskPermission) {
+    showNotice('No compatible', 'Este navegador no permite notificaciones web para Cuenta Clara. Puedes seguir usando las solicitudes dentro de la app.');
+    renderConnectionStatus();
+    return;
+  }
+
+  let permission = getNotificationPermissionValue();
+  if (permission === 'default') {
+    permission = await Notification.requestPermission();
+  }
+
+  if (permission !== 'granted') {
+    setSystemNotificationsEnabled(false);
+    savePushSubscriptionStatus('blocked', 'El permiso de notificaciones no está activo.');
+    showNotice('Permiso no activo', 'El navegador no permitió notificaciones. Puedes activarlas manualmente desde la configuración del sitio.');
+    renderConnectionStatus();
+    return;
+  }
+
+  setSystemNotificationsEnabled(true);
+  const registration = await getCuentaClaraServiceWorkerRegistration();
+
+  if (registration && capability.canSubscribe) {
+    try {
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(PUSH_PUBLIC_VAPID_KEY),
+        });
+      }
+      await savePushSubscriptionToCloud(subscription);
+    } catch (error) {
+      console.warn('No se pudo suscribir a push:', error);
+      savePushSubscriptionStatus('permission-only', 'Permiso activo. No se pudo crear suscripción push.');
+    }
+  } else if (!PUSH_PUBLIC_VAPID_KEY) {
+    savePushSubscriptionStatus('permission-only', 'Permiso activo. Falta configurar VAPID para push real con la app cerrada.');
+  } else {
+    savePushSubscriptionStatus('permission-only', 'Permiso activo. Este navegador no soporta PushManager.');
+  }
+
+  showToast('Notificaciones activadas en este dispositivo.');
+  renderConnectionStatus();
+  notifyUnreadInvitesWithSystemNotification();
+}
+
+async function showCuentaClaraNotification(title, options = {}) {
+  if (!isSystemNotificationsEnabled() || getNotificationPermissionValue() !== 'granted') return false;
+  const registration = await getCuentaClaraServiceWorkerRegistration();
+  const notificationOptions = {
+    body: options.body || 'Revisa Cuenta Clara.',
+    icon: './assets/logo.svg',
+    badge: './assets/logo.svg',
+    tag: options.tag || 'cuenta-clara',
+    renotify: true,
+    data: options.data || { url: './index.html#shared' },
+  };
+
+  try {
+    if (registration?.showNotification) {
+      await registration.showNotification(title, notificationOptions);
+      return true;
+    }
+    // Respaldo para navegadores de escritorio antiguos con la app abierta.
+    new Notification(title, notificationOptions);
+    return true;
+  } catch (error) {
+    console.warn('No se pudo mostrar notificación:', error);
+    return false;
+  }
+}
+
+async function testSystemNotification() {
+  if (getNotificationPermissionValue() !== 'granted' || !isSystemNotificationsEnabled()) {
+    await activateSystemNotifications();
+  }
+
+  const shown = await showCuentaClaraNotification('Cuenta Clara', {
+    body: 'Las notificaciones están activas en este dispositivo.',
+    tag: 'cuenta-clara-test',
+    data: { url: './index.html#shared' },
+  });
+
+  if (shown) showToast('Aviso de prueba enviado.');
+  else showNotice('No se pudo mostrar', 'El navegador no permitió mostrar el aviso de prueba. Revisa permisos del sitio.');
+}
+
+function notifyUnreadInvitesWithSystemNotification() {
+  if (!isSystemNotificationsEnabled() || getNotificationPermissionValue() !== 'granted') return;
+  const unread = getUnreadInternalNotifications();
+  if (!unread.length) return;
+
+  const shown = loadSystemNotificationShownIds();
+  const next = unread.find((item) => !shown.has(item.id));
+  if (!next) return;
+
+  shown.add(next.id);
+  saveSystemNotificationShownIds(shown);
+  showCuentaClaraNotification('Nueva solicitud de Cuenta Clara', {
+    body: `${next.title} · ${next.text || 'Tienes una solicitud pendiente.'}`,
+    tag: next.id,
+    data: { url: './index.html#shared', accountId: next.accountId, notificationId: next.id },
+  });
+}
+
+async function sendSharedInvitePush(recipientUserId, payload = {}) {
+  if (!recipientUserId || !canUseSharedAccounts() || typeof supabaseClient === 'undefined' || !supabaseClient?.functions?.invoke) return false;
+
+  try {
+    const { error } = await supabaseClient.functions.invoke(PUSH_EDGE_FUNCTION_NAME, {
+      body: {
+        recipientUserId,
+        accountId: payload.accountId || '',
+        title: payload.title || 'Cuenta compartida',
+        fromName: currentSession.name || currentSession.email || 'Un amigo',
+        role: payload.role || 'editor',
+      },
+    });
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.warn('Push real no enviado o backend pendiente:', error);
+    return false;
+  }
+}
+
+function getConnectionStatusSummary() {
+  const capability = getPushCapability();
+  const permission = getNotificationPermissionValue();
+  const pushStatus = loadPushSubscriptionStatus();
+  const pendingRequests = getInternalNotifications().length;
+  const unreadRequests = getUnreadInternalNotifications().length;
+
+  let pushLabel = getNotificationPermissionLabel();
+  if (permission === 'granted' && isSystemNotificationsEnabled()) {
+    if (pushStatus.status === 'cloud') pushLabel = 'Push activo';
+    else if (pushStatus.status === 'permission-only') pushLabel = 'Permiso activo';
+    else if (pushStatus.status === 'pending-backend') pushLabel = 'Backend pendiente';
+    else pushLabel = 'Activadas';
+  }
+
+  return {
+    capability,
+    permission,
+    pushStatus,
+    pendingRequests,
+    unreadRequests,
+    sessionLabel: currentSession.mode === 'user' ? 'Sesión iniciada' : 'Modo invitado',
+    syncLabel: getHomeSyncLabel(),
+    pushLabel,
+  };
+}
+
+function renderConnectionStatus() {
+  if (!dom.connectionStatusPanel) return;
+  const summary = getConnectionStatusSummary();
+  const isUser = currentSession.mode === 'user';
+  const permissionGranted = summary.permission === 'granted';
+  const enabled = isSystemNotificationsEnabled();
+  const hasBackend = summary.pushStatus?.status === 'cloud';
+
+  if (dom.connectionStatusBadge) {
+    let badgeText = 'Revisado';
+    let badgeClass = 'is-ok';
+    if (!isUser) {
+      badgeText = 'Modo invitado';
+      badgeClass = 'is-warning';
+    } else if (!permissionGranted || !enabled) {
+      badgeText = 'Avisos desactivados';
+      badgeClass = 'is-muted';
+    } else if (!hasBackend) {
+      badgeText = 'Permiso activo';
+      badgeClass = 'is-warning';
+    }
+    dom.connectionStatusBadge.textContent = badgeText;
+    dom.connectionStatusBadge.classList.remove('is-ok', 'is-muted', 'is-warning');
+    dom.connectionStatusBadge.classList.add(badgeClass);
+  }
+
+  if (dom.connectionStatusHelp) {
+    dom.connectionStatusHelp.textContent = isUser
+      ? 'Tu sesión permite recibir solicitudes. Activa avisos para enterarte más rápido.'
+      : 'Inicia sesión para recibir solicitudes reales de otros usuarios.';
+  }
+  if (dom.connectionSessionOutput) dom.connectionSessionOutput.textContent = summary.sessionLabel;
+  if (dom.connectionSyncOutput) dom.connectionSyncOutput.textContent = summary.syncLabel;
+  if (dom.connectionRequestsOutput) {
+    dom.connectionRequestsOutput.textContent = summary.pendingRequests
+      ? `${summary.unreadRequests} nueva${summary.unreadRequests === 1 ? '' : 's'} · ${summary.pendingRequests} pendiente${summary.pendingRequests === 1 ? '' : 's'}`
+      : 'Sin pendientes';
+  }
+  if (dom.connectionPushOutput) dom.connectionPushOutput.textContent = summary.pushLabel;
+
+  if (dom.enablePushNotificationsButton) {
+    dom.enablePushNotificationsButton.textContent = permissionGranted && enabled ? 'Revisar notificaciones' : 'Activar notificaciones';
+    dom.enablePushNotificationsButton.disabled = !summary.capability.canAskPermission;
+  }
+  if (dom.testPushNotificationButton) {
+    dom.testPushNotificationButton.disabled = !summary.capability.canAskPermission;
+  }
+  if (dom.pushSetupHelp) {
+    if (!summary.capability.hasNotification) {
+      dom.pushSetupHelp.textContent = 'Este navegador no permite notificaciones web. Las solicitudes seguirán apareciendo dentro de la app.';
+    } else if (!PUSH_PUBLIC_VAPID_KEY) {
+      dom.pushSetupHelp.textContent = 'Avisos internos y permisos listos. Para push real con la app cerrada falta configurar VAPID, SQL 04 y Edge Function.';
+    } else if (hasBackend) {
+      dom.pushSetupHelp.textContent = 'Este dispositivo quedó guardado para recibir solicitudes con push real.';
+    } else {
+      dom.pushSetupHelp.textContent = summary.pushStatus?.detail || 'Activa notificaciones y revisa que el backend de push esté configurado.';
+    }
+  }
 }
 
 function isMissingSharedSqlError(error) {
@@ -7556,6 +7932,11 @@ async function inviteRegisteredPersonToActiveAccount(person, options = {}) {
 
     const name = getRegisteredParticipantLabel(person);
     addBillActivity(`Solicitud enviada a ${name} como ${getSharedRoleLabel(role)}.`, 'shared', bill);
+    sendSharedInvitePush(userId, {
+      accountId: bill.sharedAccountId,
+      title: bill.name || 'Cuenta compartida',
+      role,
+    }).catch(() => {});
     saveState();
     await saveSharedActiveBillNow();
     return { status: 'sent' };
@@ -9582,6 +9963,7 @@ function render() {
   renderTransfers();
   renderBackupDiagnostics();
   renderNotificationCenter();
+  renderConnectionStatus();
   try {
     renderGuidedExperience();
     renderGuidedFlowPanel();
@@ -12349,6 +12731,18 @@ if (dom.homeNotificationOpenButton) {
 }
 if (dom.homeNotificationMarkReadButton) {
   dom.homeNotificationMarkReadButton.addEventListener('click', markAllNotificationsSeen);
+}
+if (dom.enablePushNotificationsButton) {
+  dom.enablePushNotificationsButton.addEventListener('click', activateSystemNotifications);
+}
+if (dom.testPushNotificationButton) {
+  dom.testPushNotificationButton.addEventListener('click', testSystemNotification);
+}
+if (dom.refreshConnectionStatusButton) {
+  dom.refreshConnectionStatusButton.addEventListener('click', () => {
+    renderConnectionStatus();
+    showToast('Estado actualizado.');
+  });
 }
 if (dom.setPaymentDueDateButton) {
   dom.setPaymentDueDateButton.addEventListener('click', setPaymentDueDateFromInput);

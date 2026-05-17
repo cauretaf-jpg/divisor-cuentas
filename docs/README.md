@@ -1,41 +1,61 @@
-# Cuenta Clara V13.16.1
+# Cuenta Clara V13.17
 
-Versión enfocada en mejorar el uso real cuando hay muchos amigos, reducir ruido visual y preparar recordatorios por WhatsApp de manera controlada.
+Versión enfocada en **notificaciones del celular** y **estado de conexión**, manteniendo como base la v13.16.1.
 
-## Nuevo en V13.16.1
+## Nuevo en V13.17
 
-- Buscador en **Agregar personas desde amigos**.
-- Filtro por nombre, correo o teléfono.
-- Contador de amigos visibles y seleccionados.
-- **Personas frecuentes** queda oculto por defecto y se abre solo con botón.
-- En estadísticas, **Personas frecuentes** queda colapsado para reducir lectura.
-- Nueva sección de **Notificaciones WhatsApp** en Pagos.
-- Activación manual de recordatorios WhatsApp.
-- Botón para preparar pendientes por WhatsApp.
-- Mensaje claro: WhatsApp siempre requiere confirmación del usuario; la app no envía mensajes automáticamente.
-- Ajustes móviles compactos para buscador, tarjetas y botones.
+- Nueva sección **Estado de conexión** dentro de Herramientas.
+- Estado visible de:
+  - sesión;
+  - sincronización;
+  - solicitudes pendientes;
+  - notificaciones del celular.
+- Botón **Activar notificaciones**.
+- Botón **Probar aviso**.
+- El service worker ahora soporta eventos `push` y `notificationclick`.
+- Al tocar una notificación, la app puede abrir directamente **Compartidas**.
+- Cuando se envía una solicitud de cuenta compartida, la app intenta llamar una Edge Function opcional para push real.
+- Si el backend push no está configurado, la app no falla: mantiene el centro de notificaciones interno.
 
-## Importante sobre WhatsApp
+## Funciona sin configuración adicional
 
-Desde una app web normal, Cuenta Clara puede preparar mensajes y abrir WhatsApp, pero no puede enviarlos automáticamente sin confirmación. El envío automático real requeriría integración backend con WhatsApp Business API.
+- Solicitudes dentro de la app.
+- Badges y contadores.
+- Panel Estado de conexión.
+- Permiso de notificaciones del navegador.
+- Aviso de prueba.
+- Avisos del sistema cuando el navegador lo permite y la app detecta solicitudes nuevas.
 
-## Base de datos
+## Push real con la app cerrada
 
-No requiere SQL nuevo.
+Para que el celular reciba avisos aunque Cuenta Clara no esté abierta, se requiere configuración adicional:
+
+1. Ejecutar `sql/04-supabase-push-subscriptions.sql`.
+2. Generar claves VAPID.
+3. Pegar la clave pública en `supabase-config.js`:
+   `window.CUENTA_CLARA_PUBLIC_VAPID_KEY = '...'`.
+4. Desplegar `supabase/functions/send-shared-invite-push`.
+5. Configurar variables de entorno:
+   - `VAPID_PUBLIC_KEY`
+   - `VAPID_PRIVATE_KEY`
+   - `VAPID_SUBJECT`
+6. Cada usuario debe iniciar sesión y presionar **Activar notificaciones**.
 
 ## Validación
 
 - `script.js`: OK.
 - `profile.js`: OK.
 - `shared-utils.js`: OK.
+- `service-worker.js`: OK.
 - `index.html`: sin IDs duplicados.
 - `perfil.html`: sin IDs duplicados.
 - `privacidad.html`: sin IDs duplicados.
 - `styles.css`: llaves balanceadas.
-- Service worker: `cuenta-clara-v13.16.1`.
+- Service worker: `cuenta-clara-v13.17`.
 
-## Instalación
+## Publicación
 
 1. Descomprime el ZIP.
-2. Sube los archivos a tu repositorio.
-3. Publica en Vercel como en versiones anteriores.
+2. Sube los archivos a GitHub.
+3. Publica en Vercel.
+4. Recarga fuerte o reinstala la PWA si el navegador conserva caché anterior.

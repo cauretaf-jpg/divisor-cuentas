@@ -1,0 +1,32 @@
+REVISION PUSH - CUENTA CLARA V13.17
+
+Qué queda funcionando de inmediato
+- Centro de notificaciones interno de v13.16.
+- Panel Estado de conexión.
+- Permiso de notificaciones del navegador/celular.
+- Aviso de prueba.
+- Avisos del sistema para solicitudes nuevas cuando el navegador y el permiso lo permiten.
+
+Qué requiere configuración adicional
+Para que Felipe reciba una notificación aunque no tenga la app abierta:
+1. Ejecutar sql/04-supabase-push-subscriptions.sql en Supabase.
+2. Generar claves VAPID.
+3. Pegar la clave pública en supabase-config.js:
+   window.CUENTA_CLARA_PUBLIC_VAPID_KEY = '...';
+4. Desplegar supabase/functions/send-shared-invite-push.
+5. Configurar variables de entorno de la función:
+   VAPID_PUBLIC_KEY
+   VAPID_PRIVATE_KEY
+   VAPID_SUBJECT
+6. Cada usuario debe abrir Cuenta Clara, iniciar sesión y presionar Activar notificaciones.
+
+Comportamiento esperado
+- Carlos invita a Felipe a una cuenta compartida.
+- La solicitud queda en Compartidas.
+- Si Felipe activó notificaciones, recibe aviso.
+- Al tocar el aviso, abre Cuenta Clara en Compartidas.
+
+Limitaciones conocidas
+- iPhone requiere que la app esté instalada como PWA desde la pantalla de inicio para recibir Web Push.
+- Si el navegador bloquea permisos, la app mantiene las solicitudes internas.
+- El envío push automático depende de la Edge Function desplegada.

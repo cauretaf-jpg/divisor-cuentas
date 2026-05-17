@@ -1,37 +1,39 @@
-CUENTA CLARA V13.16.1 - BUSCADOR DE AMIGOS Y WHATSAPP CONTROLADO
+CUENTA CLARA V13.17 - NOTIFICACIONES PUSH Y ESTADO DE CONEXION
 
-NUEVO EN V13.16.1
+NUEVO EN V13.17
 
-1. Buscador al agregar amigos
-   - En Personas > Agregar desde amigos ahora existe un buscador.
-   - Permite filtrar por nombre, correo o teléfono.
-   - Muestra cuántos amigos están visibles y cuántos fueron seleccionados.
+1. Estado de conexion
+   - Nueva tarjeta en Herramientas.
+   - Muestra sesion, sincronizacion, solicitudes y notificaciones del celular.
 
-2. Personas frecuentes ocultas
-   - La sección Personas frecuentes ya no queda abierta de entrada.
-   - Se abre con el botón Ver personas frecuentes.
-   - En estadísticas también queda colapsada para reducir carga visual.
+2. Activar notificaciones
+   - Permite pedir permiso al navegador/celular.
+   - Incluye boton Probar aviso.
+   - Si el permiso queda activo, Cuenta Clara puede mostrar avisos del sistema cuando detecta solicitudes nuevas.
 
-3. Notificaciones WhatsApp controladas
-   - En Pagos se agregó un bloque para activar recordatorios WhatsApp.
-   - La app puede preparar mensajes y abrir WhatsApp.
-   - WhatsApp siempre exige que el usuario confirme el envío.
-   - El envío automático real requeriría WhatsApp Business API.
+3. Service worker preparado
+   - Se agregaron eventos push y notificationclick.
+   - Al tocar una notificacion, abre Cuenta Clara en Compartidas.
 
-4. Ajuste móvil
-   - Buscador, listas de amigos y botones se ajustan mejor en celular.
-   - Las tarjetas quedan más compactas y cómodas.
+4. Push real opcional
+   - Se incluye SQL 04 para guardar dispositivos.
+   - Se incluye Edge Function de ejemplo para enviar push.
+   - Si no configuras backend push, la app sigue funcionando con notificaciones internas.
 
-REQUISITOS
+IMPORTANTE
 
-- No requiere SQL nuevo.
-- No agrega dependencias nuevas.
+- Las solicitudes dentro de la app no requieren SQL nuevo.
+- El push real con la app cerrada SI requiere configurar:
+  - sql/04-supabase-push-subscriptions.sql
+  - VAPID keys
+  - supabase/functions/send-shared-invite-push
 
 VALIDACION
 
 - script.js OK.
 - profile.js OK.
 - shared-utils.js OK.
+- service-worker.js OK.
 - index.html sin IDs duplicados.
 - perfil.html sin IDs duplicados.
 - privacidad.html sin IDs duplicados.
@@ -40,5 +42,5 @@ VALIDACION
 PUBLICACION SUGERIDA
 
 git add .
-git commit -m "Publica Cuenta Clara v13.16.1"
+git commit -m "Publica Cuenta Clara v13.17"
 git push
