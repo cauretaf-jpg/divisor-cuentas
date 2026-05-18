@@ -1,0 +1,24 @@
+REVISION VISUAL PUBLICA - CUENTA CLARA V13.18.8
+
+Pantallas revisadas:
+- Inicio público.
+- Cómo funciona.
+- Funciones.
+- Preguntas frecuentes.
+- Contacto.
+- Privacidad.
+- Términos.
+- Footer público.
+
+Criterio aplicado:
+- No mostrar nombres de archivos ni estructura interna.
+- No mostrar información técnica de despliegue, anuncios o base de datos.
+- Mantener el footer legal visible pero discreto.
+- Usar frases orientadas al usuario, no al desarrollo.
+- Reforzar lectura móvil con tarjetas compactas, menos texto y CTA claros.
+
+Resultado:
+- Landing más comercial.
+- Páginas públicas más limpias en celular.
+- Footer reducido a enlaces esenciales.
+- Contacto más claro para usuarios comunes.

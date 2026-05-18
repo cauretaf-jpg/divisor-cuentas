@@ -1,4 +1,4 @@
-REVISION VISUAL PUBLICA - CUENTA CLARA V13.18.7
+REVISION VISUAL PUBLICA - CUENTA CLARA V13.18.8
 
 Se aplico una capa visual mas moderna y minimalista para el sitio publico:
 - Landing con hero claro y CTA directo a la app.

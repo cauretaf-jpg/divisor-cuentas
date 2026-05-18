@@ -11301,7 +11301,7 @@ body.advanced-mode .view-status-pill {
   }
 }
 
-/* V13.18.7 - Estado de la app y avisos */
+/* V13.18.8 - Estado de la app y avisos */
 .connection-status-panel {
   display: grid;
   gap: 0.9rem;
@@ -11395,7 +11395,7 @@ body.dark-mode .connection-status-item,
 }
 
 
-/* V13.18.7 - Sitio publico, landing y limpieza visual */
+/* V13.18.8 - Sitio publico, landing y limpieza visual */
 :root {
   --cc-primary: #2563eb;
   --cc-primary-strong: #1d4ed8;
@@ -11799,17 +11799,17 @@ body.dark .public-page,
   .app-legal-footer { padding-bottom: 6.5rem; }
 }
 
-/* V13.18.7 - Footer interno ocupa toda la grilla de la app */
+/* V13.18.8 - Footer interno ocupa toda la grilla de la app */
 .app-layout > .app-legal-footer {
   grid-column: 1 / -1;
 }
 
 
-/* V13.18.7 - limpieza visual publica */
+/* V13.18.8 - limpieza visual publica */
 .public-ad-zone { display: none !important; }
 
 
-/* V13.18.7 - Contacto funcional y móvil más limpio */
+/* V13.18.8 - Contacto funcional y móvil más limpio */
 .contact-page-shell {
   gap: 1.1rem;
 }
@@ -12099,7 +12099,7 @@ body.dark .public-page,
 }
 
 
-/* V13.18.7 - Limpieza de textos visibles y estado discreto */
+/* V13.18.8 - Limpieza de textos visibles y estado discreto */
 .section-view-status {
   margin-top: 1rem;
   padding: 0.75rem;
@@ -12141,5 +12141,233 @@ body.dark .public-page,
   }
   .section-view-status small {
     font-size: 0.72rem;
+  }
+}
+
+/* V13.18.8 - pulido final sitio público y textos visibles */
+.public-page {
+  background:
+    radial-gradient(circle at 8% 4%, rgba(37, 99, 235, 0.10), transparent 24rem),
+    radial-gradient(circle at 88% 12%, rgba(14, 165, 233, 0.10), transparent 26rem),
+    linear-gradient(180deg, #f8fafc 0%, #eef4ff 52%, #f8fafc 100%);
+}
+
+.public-hero {
+  padding-top: clamp(2.25rem, 6vw, 5.25rem);
+}
+
+.public-hero-copy h1 {
+  max-width: 860px;
+}
+
+.public-hero-copy > p:not(.eyebrow) {
+  max-width: 700px;
+}
+
+.public-tight-section {
+  padding-top: clamp(1.8rem, 4vw, 3.25rem);
+}
+
+.feature-card-grid .public-info-card {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.feature-icon {
+  width: 2.45rem;
+  height: 2.45rem;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 1rem;
+  background: rgba(37, 99, 235, 0.09);
+  margin-bottom: 0.15rem;
+}
+
+.compact-check-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.compact-check-list span {
+  min-height: 3.1rem;
+  display: flex;
+  align-items: center;
+}
+
+.public-cta-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  margin-top: clamp(1rem, 3vw, 2rem);
+  margin-bottom: clamp(2rem, 5vw, 4rem);
+  padding: clamp(1.15rem, 3vw, 1.8rem);
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  border-radius: 1.5rem;
+  background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(239,246,255,0.9));
+  box-shadow: 0 22px 64px rgba(15, 23, 42, 0.08);
+}
+
+.public-cta-card h2 {
+  margin: 0.25rem 0 0.45rem;
+  font-size: clamp(1.45rem, 3vw, 2.35rem);
+  line-height: 1.04;
+  letter-spacing: -0.055em;
+}
+
+.public-cta-card p {
+  margin: 0;
+  color: var(--cc-muted);
+  line-height: 1.55;
+}
+
+.public-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.site-footer {
+  padding: 1.3rem 0 0.85rem;
+}
+
+.site-footer-simple {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.site-footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+}
+
+.site-footer-links a {
+  margin: 0;
+  font-weight: 850;
+  color: #e2e8f0;
+}
+
+.public-content-page {
+  max-width: 1080px;
+}
+
+.public-page-hero.card,
+.contact-hero.card {
+  box-shadow: 0 18px 54px rgba(15, 23, 42, 0.07);
+}
+
+.faq-list details {
+  transition: border-color 0.18s ease, transform 0.18s ease;
+}
+
+.faq-list details[open] {
+  border-color: rgba(37, 99, 235, 0.22);
+}
+
+@media (max-width: 920px) {
+  .public-cta-card {
+    grid-template-columns: 1fr;
+  }
+  .public-cta-actions {
+    justify-content: flex-start;
+  }
+  .site-footer-simple {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .site-footer-links {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .public-page {
+    background: linear-gradient(180deg, #f8fafc 0%, #eef4ff 48%, #f8fafc 100%);
+  }
+  .site-header-grid {
+    gap: 0.65rem;
+    padding: 0.72rem 0;
+  }
+  .public-hero {
+    padding-top: 1.35rem;
+  }
+  .public-hero-grid {
+    gap: 1.15rem;
+  }
+  .public-hero-copy h1,
+  .public-page-hero h1,
+  .contact-hero h1 {
+    font-size: clamp(2.05rem, 11vw, 3.15rem);
+    line-height: 1;
+  }
+  .public-hero-copy p,
+  .public-page-hero p,
+  .public-section-head p,
+  .public-section p,
+  .legal-card p,
+  .faq-list p {
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+  .public-trust-row {
+    gap: 0.5rem;
+  }
+  .public-trust-row span {
+    width: auto;
+    flex: 1 1 calc(50% - 0.5rem);
+    padding: 0.48rem 0.62rem;
+    font-size: 0.78rem;
+  }
+  .public-info-card,
+  .public-page-hero,
+  .legal-card,
+  .public-steps article,
+  .faq-list details {
+    border-radius: 1.1rem;
+  }
+  .public-info-card,
+  .public-steps article,
+  .faq-list details {
+    padding: 0.95rem;
+  }
+  .public-steps article {
+    grid-template-columns: 2rem 1fr;
+    gap: 0.15rem 0.75rem;
+  }
+  .public-steps article span {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.75rem;
+  }
+  .compact-check-list {
+    grid-template-columns: 1fr;
+  }
+  .compact-check-list span {
+    min-height: auto;
+    padding: 0.75rem 0.85rem;
+  }
+  .public-cta-card {
+    border-radius: 1.2rem;
+    padding: 1rem;
+  }
+  .public-cta-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .public-cta-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .site-footer {
+    margin-top: 1rem;
+  }
+  .site-footer-bottom {
+    gap: 0.35rem;
+    flex-direction: column;
   }
 }

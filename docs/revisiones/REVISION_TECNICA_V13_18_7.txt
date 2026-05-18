@@ -1,4 +1,4 @@
-CUENTA CLARA V13.18.7 - LIMPIEZA DE MENSAJES PUBLICOS
+CUENTA CLARA V13.18.8 - LIMPIEZA DE MENSAJES PUBLICOS
 
 Cambios aplicados:
 - Se reemplazó la sección pública que explicaba decisiones internas de estructura.
@@ -6,4 +6,4 @@ Cambios aplicados:
 - La landing ahora comunica beneficios para el usuario: uso simple, flujo guiado y acceso directo a Cuenta Clara.
 - Se cambió el texto visible “Sitio público” en la app/perfil por “Inicio web”.
 - No se modificó la lógica de cuentas, pagos, OCR, perfil, solicitudes ni notificaciones.
-- Se actualizó la versión pública y el service worker a v13.18.7.
+- Se actualizó la versión pública y el service worker a v13.18.8.

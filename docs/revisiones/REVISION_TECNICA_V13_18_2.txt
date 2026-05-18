@@ -1,4 +1,4 @@
-REVISION TECNICA - CUENTA CLARA V13.18.7
+REVISION TECNICA - CUENTA CLARA V13.18.8
 
 Objetivo:
 - Limpiar información técnica visible para usuarios comunes.

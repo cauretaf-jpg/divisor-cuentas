@@ -1,0 +1,38 @@
+CUENTA CLARA V13.18.8 - PULIDO FINAL SITIO PUBLICO Y TEXTOS VISIBLES
+
+Objetivo:
+- Dejar la landing y páginas públicas más limpias, comerciales y comprensibles para usuarios comunes.
+- Mantener la estructura pública/legal sin mostrar decisiones internas de implementación.
+- Mejorar experiencia móvil del sitio público sin modificar lógica de cuentas.
+
+Cambios aplicados:
+1. Landing pública reescrita con enfoque de producto:
+   - Qué resuelve Cuenta Clara.
+   - Para qué sirve.
+   - Botones claros para abrir la app o ver cómo funciona.
+2. Se eliminan mensajes de arquitectura interna o revisión interna.
+3. Footer público simplificado:
+   - Cuenta Clara.
+   - Privacidad.
+   - Términos.
+   - Contacto.
+4. Páginas públicas ajustadas con textos más breves.
+5. Contacto mantiene formulario funcional por correo, con textos más simples.
+6. Se agregan estilos responsive para landing, CTA, tarjetas, footer y páginas públicas.
+7. Se mantiene la app principal sin cambios funcionales.
+8. Se actualiza versión y service worker a v13.18.8.
+
+No modificado:
+- Cálculos de cuentas.
+- OCR / lectura de boletas.
+- Pagos.
+- Perfil financiero.
+- Solicitudes compartidas.
+- Notificaciones internas.
+- Sincronización.
+
+SQL:
+- No requiere SQL nuevo.
+
+Dependencias:
+- No agrega dependencias nuevas.

@@ -1,11 +1,11 @@
-CUENTA CLARA V13.18.7 - PUBLICACION EN VERCEL
+CUENTA CLARA V13.18.8 - PUBLICACION EN VERCEL
 
 Este ZIP está preparado para publicarse con los archivos directamente en la raíz del proyecto.
 
 IMPORTANTE:
 - index.html debe quedar directamente en la raíz del repositorio/proyecto.
 - app.html debe quedar directamente en la raíz del repositorio/proyecto.
-- NO dejes los archivos dentro de una subcarpeta como Cuenta-Clara-v13.18.7/ dentro del repositorio, porque Vercel puede responder 404 en https://divisor-cuentas.vercel.app/.
+- NO dejes los archivos dentro de una subcarpeta como Cuenta-Clara-v13.18.8/ dentro del repositorio, porque Vercel puede responder 404 en https://divisor-cuentas.vercel.app/.
 
 Estructura esperada en la carpeta del proyecto:
 index.html
@@ -33,7 +33,7 @@ Si sigue apareciendo 404, revisa en Vercel:
 - Output Directory: vacío.
 
 
-AJUSTE V13.18.7 - CONTACTO FUNCIONAL
+AJUSTE V13.18.8 - CONTACTO FUNCIONAL
 - Página Contacto con formulario validado.
 - Botón Enviar por correo mediante mailto.
 - Botón Copiar mensaje como respaldo.

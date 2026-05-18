@@ -8,7 +8,7 @@
   <meta name="google-adsense-account" content="ca-pub-4358472434423818" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818" crossorigin="anonymous"></script>
   <title>Contacto | Cuenta Clara</title>
-  <link rel="stylesheet" href="styles.css?v=13.18.7" />
+  <link rel="stylesheet" href="styles.css?v=13.18.8" />
 <link href="favicon.ico" rel="icon" sizes="any" />
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml" />
 <link href="assets/icon-192.png" rel="apple-touch-icon" />
@@ -29,12 +29,12 @@
     <div>
       <p class="eyebrow">Contacto</p>
       <h1>¿Necesitas ayuda con Cuenta Clara?</h1>
-      <p>Escríbenos una sugerencia, reporta algo que no funcionó o comparte una idea para mejorar la app. El mensaje queda listo para enviar desde tu correo.</p>
+      <p>Envía una sugerencia, una consulta o cuéntanos si algo no funcionó. El mensaje quedará listo para enviarlo desde tu correo.</p>
     </div>
     <div class="contact-hero-badge" aria-label="Soporte de Cuenta Clara">
       <span>Respuesta clara</span>
       <strong>Soporte y mejoras</strong>
-      <small>Idealmente incluye dispositivo, navegador y qué estabas haciendo.</small>
+      <small>Incluye qué estabas haciendo para entender mejor el caso.</small>
     </div>
   </section>
 
@@ -43,7 +43,7 @@
       <div class="contact-card-head">
         <p class="eyebrow">Formulario</p>
         <h2>Enviar comentario</h2>
-        <p>Completa los datos. Al enviar, se abrirá tu app de correo con el mensaje preparado.</p>
+        <p>Completa los datos y prepara el mensaje para enviarlo desde tu correo.</p>
       </div>
 
       <form id="contactForm" class="contact-form" novalidate>
@@ -66,14 +66,14 @@
         </label>
         <label>
           <span>Dispositivo o navegador</span>
-          <input id="contactDevice" name="device" type="text" placeholder="Ej: Chrome en Android, Safari en iPhone, Edge en Windows" />
+          <input id="contactDevice" name="device" type="text" placeholder="Ej: celular Android, iPhone o computador" />
         </label>
         <label class="contact-form-full">
           <span>Mensaje</span>
           <textarea id="contactMessage" name="message" rows="6" placeholder="Cuéntanos qué ocurrió o qué te gustaría mejorar." required></textarea>
         </label>
 
-        <div id="contactStatus" class="contact-status" aria-live="polite">Completa el formulario para preparar tu mensaje.</div>
+        <div id="contactStatus" class="contact-status" aria-live="polite">Completa los datos para preparar tu mensaje.</div>
 
         <div class="contact-actions">
           <button class="btn btn-primary" type="submit">Enviar por correo</button>
@@ -86,17 +86,17 @@
       <article class="public-info-card contact-mini-card">
         <span class="contact-mini-icon">⚠</span>
         <strong>Algo no funcionó</strong>
-        <p>Incluye qué pantalla usabas, qué esperabas ver y si ocurrió en celular o computador.</p>
+        <p>Indica qué estabas haciendo y si ocurrió en celular o computador.</p>
       </article>
       <article class="public-info-card contact-mini-card">
         <span class="contact-mini-icon">✦</span>
         <strong>Sugerir una mejora</strong>
-        <p>Describe el caso real. Por ejemplo: restaurante, streaming, hogar, viaje o cuenta compartida.</p>
+        <p>Describe el caso real: salida, hogar, streaming, viaje o cuenta compartida.</p>
       </article>
       <article class="public-info-card contact-mini-card">
         <span class="contact-mini-icon">✓</span>
         <strong>Antes de enviar</strong>
-        <p>Si algo no funciona, prueba actualizar la página antes de enviar el mensaje.</p>
+        <p>Antes de enviar, prueba actualizar la página una vez.</p>
       </article>
     </aside>
   </section>
@@ -104,7 +104,7 @@
 <script>
 (function () {
   const CONTACT_EMAIL = 'contacto@cuentaclara.app';
-  const APP_VERSION = 'v13.18.7';
+  const APP_VERSION = 'v13.18.8';
   const form = document.getElementById('contactForm');
   const status = document.getElementById('contactStatus');
   const copyButton = document.getElementById('copyContactMessage');
@@ -187,25 +187,15 @@ ${prepared.body}`;
 })();
 </script>
   <footer class="site-footer">
-  <div class="container site-footer-grid">
-    <div>
-      <a class="brand site-footer-brand" href="index.html"><img class="brand-icon" src="assets/logo.svg" alt="" /><div><strong>Cuenta Clara</strong><span>Divide gastos sin enredos</span></div></a>
-      <p>App web para dividir cuentas, organizar pagos, compartir resúmenes y administrar gastos recurrentes.</p>
-    </div>
-    <div>
-      <strong>Sitio</strong>
-      <a href="como-funciona.html">Cómo funciona</a>
-      <a href="funciones.html">Funciones</a>
-      <a href="preguntas-frecuentes.html">Preguntas frecuentes</a>
-    </div>
-    <div>
-      <strong>Legal</strong>
+  <div class="container site-footer-simple">
+    <a class="brand site-footer-brand" href="index.html"><img class="brand-icon" src="assets/logo.svg" alt="" /><div><strong>Cuenta Clara</strong><span>Divide gastos sin enredos</span></div></a>
+    <nav class="site-footer-links" aria-label="Enlaces legales y contacto">
       <a href="privacidad.html">Privacidad</a>
       <a href="terminos.html">Términos</a>
       <a href="contacto.html">Contacto</a>
-    </div>
+    </nav>
   </div>
-  <div class="container site-footer-bottom"><span>© 2026 Cuenta Clara.</span><span>Divide gastos sin enredos.</span></div>
+  <div class="container site-footer-bottom"><span>© 2026 Cuenta Clara.</span><span>Divide gastos con claridad.</span></div>
 </footer>
 </body>
 </html>
