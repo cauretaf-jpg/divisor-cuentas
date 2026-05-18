@@ -1,4 +1,4 @@
-CUENTA CLARA V13.18.8 - PULIDO FINAL SITIO PUBLICO Y TEXTOS VISIBLES
+CUENTA CLARA V13.18.9 - PULIDO FINAL SITIO PUBLICO Y TEXTOS VISIBLES
 
 Objetivo:
 - Dejar la landing y páginas públicas más limpias, comerciales y comprensibles para usuarios comunes.
@@ -20,7 +20,7 @@ Cambios aplicados:
 5. Contacto mantiene formulario funcional por correo, con textos más simples.
 6. Se agregan estilos responsive para landing, CTA, tarjetas, footer y páginas públicas.
 7. Se mantiene la app principal sin cambios funcionales.
-8. Se actualiza versión y service worker a v13.18.8.
+8. Se actualiza versión y service worker a v13.18.9.
 
 No modificado:
 - Cálculos de cuentas.

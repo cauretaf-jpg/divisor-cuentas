@@ -1,5 +1,5 @@
 {
-  "version": "13.18.8",
+  "version": "13.18.9",
   "objetivo": "Contacto funcional y mejora móvil",
   "validaciones": {
     "contactoHtml": "OK",
@@ -7,7 +7,7 @@
     "mailto": "OK",
     "copiarMensaje": "OK",
     "cssLlavesBalanceadas": "OK",
-    "serviceWorkerCache": "cuenta-clara-v13.18.8",
+    "serviceWorkerCache": "cuenta-clara-v13.18.9",
     "sqlNuevo": false,
     "dependenciasNuevas": false
   }

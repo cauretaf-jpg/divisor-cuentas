@@ -1,5 +1,5 @@
 {
-  "version": "13.18.8",
+  "version": "13.18.9",
   "objetivo": "Pulido final del sitio publico y textos visibles",
   "validaciones": {
     "scriptJs": "OK",
@@ -10,7 +10,7 @@
     "cssLlaves": "OK",
     "sqlNuevo": false,
     "dependenciasNuevas": false,
-    "serviceWorkerCache": "cuenta-clara-v13.18.8",
+    "serviceWorkerCache": "cuenta-clara-v13.18.9",
     "comentarios": "No requiere SQL nuevo ni dependencias nuevas."
   }
 }

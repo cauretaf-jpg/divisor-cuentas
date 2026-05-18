@@ -1,0 +1,12 @@
+CUENTA CLARA V13.18.9 - AJUSTE MOVIL Y MENU INFERIOR
+
+Cambios:
+1. Se agrega Personas al menu inferior movil de la app.
+2. Se mantiene el menu inferior en 5 accesos: Inicio, Personas, Gastos, Resumen y Pagos.
+3. Perfil queda disponible desde Mas opciones y desde el acceso superior.
+4. Se agregan reglas finales para evitar desbordes en celular.
+5. Se compacta header, landing y tarjetas publicas en pantallas pequenas.
+6. Se refuerza estado activo del boton Personas en el menu inferior.
+
+No se modifica logica de cuentas, pagos, OCR, perfil, compartidas ni notificaciones.
+No requiere SQL nuevo.

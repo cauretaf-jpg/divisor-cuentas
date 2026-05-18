@@ -1,5 +1,5 @@
 {
-  "version": "13.18.8",
+  "version": "13.18.9",
   "objetivo": "limpieza visual y eliminación de textos técnicos/no necesarios para usuarios comunes",
   "requiere_sql": false,
   "dependencias_nuevas": false,

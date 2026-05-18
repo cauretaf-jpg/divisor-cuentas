@@ -1,4 +1,4 @@
-CUENTA CLARA V13.18.8 - LIMPIEZA VISUAL Y TEXTOS INTERNOS
+CUENTA CLARA V13.18.9 - LIMPIEZA VISUAL Y TEXTOS INTERNOS
 
 Cambios principales:
 - Se quitaron textos públicos que exponían app.html como detalle técnico.

@@ -1,5 +1,5 @@
 {
-  "version": "13.18.8",
+  "version": "13.18.9",
   "objetivo": "limpieza de mensajes públicos visibles",
   "validaciones": {
     "script_js": "OK",
@@ -8,7 +8,7 @@
     "service_worker_js": "OK",
     "html_sin_ids_duplicados": "OK",
     "css_llaves_balanceadas": "OK",
-    "serviceWorkerCache": "cuenta-clara-v13.18.8"
+    "serviceWorkerCache": "cuenta-clara-v13.18.9"
   },
   "requiere_sql_nuevo": false,
   "agrega_dependencias": false

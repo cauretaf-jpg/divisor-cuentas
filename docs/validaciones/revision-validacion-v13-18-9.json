@@ -1,0 +1,14 @@
+{
+  "version": "13.18.9",
+  "validaciones": {
+    "scriptSyntax": "OK",
+    "profileSyntax": "OK",
+    "sharedUtilsSyntax": "OK",
+    "serviceWorkerSyntax": "OK",
+    "htmlIds": "Sin duplicados",
+    "cssLlaves": "Balanceadas",
+    "mobileBottomNav": "Incluye Personas"
+  },
+  "sqlNuevo": false,
+  "dependenciasNuevas": false
+}
