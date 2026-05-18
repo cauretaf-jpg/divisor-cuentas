@@ -8,9 +8,11 @@
 <meta content="#2563eb" name="theme-color"/>
 <meta content="ca-pub-4358472434423818" name="google-adsense-account"/>
 <title>App | Cuenta Clara</title>
-<link href="styles.css?v=13.18" rel="stylesheet"/>
+<link href="styles.css?v=13.18.5" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
-<link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
+<link href="favicon.ico" rel="icon" sizes="any" />
+<link href="assets/logo.svg" rel="icon" type="image/svg+xml" />
+<link href="assets/icon-192.png" rel="apple-touch-icon" />
 </head>
 <body>
 <header class="app-header">
@@ -152,12 +154,12 @@
 <button class="btn btn-light" id="firstUseExampleButton" type="button">Probar con ejemplo</button>
 <button class="btn btn-light" id="dismissFirstUseButton" type="button">Entendido</button>
 </div>
-</section></section><section class="app-section" data-app-section-panel="tools" id="appSection-tools"><section class="section-page-heading card"><div><p class="eyebrow">Herramientas</p><h2>Herramientas</h2><p class="section-helper">Plantillas, modo demo, detalles de cuenta, recordatorios, recurrentes, compartidas y respaldo están agrupados aquí para mantener Inicio limpio.</p></div></section><section class="tools-hub-card card" id="toolsHubCard"><div><p class="eyebrow">Centro de herramientas</p><h3>Opciones avanzadas</h3><p class="section-helper">Entra solo cuando lo necesites.</p></div><div class="tools-hub-grid"><button class="tool-hub-button" data-focus-target="guidedStartCard" type="button"><strong>Plantillas</strong><span>Restaurante, hogar, streaming o cuenta rápida.</span></button><button class="tool-hub-button" data-focus-target="demoDataCard" type="button"><strong>Modo demo</strong><span>Cargar ejemplos para mostrar la app.</span></button><button class="tool-hub-button" data-app-section="recurring" type="button"><strong>Recurrentes</strong><span>Hogar, streaming y deuda acumulada.</span></button><button class="tool-hub-button" data-app-section="shared" type="button"><strong>Compartidas</strong><span>Invitaciones, roles y permisos.</span></button><button class="tool-hub-button" data-focus-target="connectionStatusPanel" type="button"><strong>Estado de conexión</strong><span>Sesión, nube y notificaciones del celular.</span></button><button class="tool-hub-button" data-app-section="history" type="button"><strong>Historial</strong><span>Cuentas guardadas, filtros y respaldo.</span></button><button class="tool-hub-button" data-focus-target="backupSecurityPanel" type="button"><strong>Respaldo</strong><span>Exportar, importar y diagnóstico simple.</span></button></div></section><section aria-live="polite" class="card connection-status-panel" id="connectionStatusPanel">
+</section></section><section class="app-section" data-app-section-panel="tools" id="appSection-tools"><section class="section-page-heading card"><div><p class="eyebrow">Herramientas</p><h2>Herramientas</h2><p class="section-helper">Plantillas, modo demo, detalles de cuenta, recordatorios, recurrentes, compartidas y respaldo están agrupados aquí para mantener Inicio limpio.</p></div></section><section class="tools-hub-card card" id="toolsHubCard"><div><p class="eyebrow">Centro de herramientas</p><h3>Opciones avanzadas</h3><p class="section-helper">Entra solo cuando lo necesites.</p></div><div class="tools-hub-grid"><button class="tool-hub-button" data-focus-target="guidedStartCard" type="button"><strong>Plantillas</strong><span>Restaurante, hogar, streaming o cuenta rápida.</span></button><button class="tool-hub-button" data-focus-target="demoDataCard" type="button"><strong>Modo demo</strong><span>Cargar ejemplos para mostrar la app.</span></button><button class="tool-hub-button" data-app-section="recurring" type="button"><strong>Recurrentes</strong><span>Hogar, streaming y deuda acumulada.</span></button><button class="tool-hub-button" data-app-section="shared" type="button"><strong>Compartidas</strong><span>Invitaciones, roles y permisos.</span></button><button class="tool-hub-button" data-focus-target="connectionStatusPanel" type="button"><strong>Estado de la app</strong><span>Sesión, guardado y avisos del celular.</span></button><button class="tool-hub-button" data-app-section="history" type="button"><strong>Historial</strong><span>Cuentas guardadas, filtros y respaldo.</span></button><button class="tool-hub-button" data-focus-target="backupSecurityPanel" type="button"><strong>Respaldo</strong><span>Exportar, importar y revisar estado.</span></button></div></section><section aria-live="polite" class="card connection-status-panel" id="connectionStatusPanel">
 <div class="connection-status-header">
 <div>
-<p class="eyebrow">Conexión</p>
-<h3>Estado de conexión</h3>
-<p class="section-helper" id="connectionStatusHelp">Revisa sesión, nube, solicitudes y notificaciones del celular.</p>
+<p class="eyebrow">Estado</p>
+<h3>Estado de la app</h3>
+<p class="section-helper" id="connectionStatusHelp">Revisa tu sesión, guardado, solicitudes y avisos.</p>
 </div>
 <span class="security-status-pill" id="connectionStatusBadge">Revisando</span>
 </div>
@@ -165,14 +167,14 @@
 <article class="connection-status-item"><span>Sesión</span><strong id="connectionSessionOutput">Revisando</strong></article>
 <article class="connection-status-item"><span>Sincronización</span><strong id="connectionSyncOutput">Revisando</strong></article>
 <article class="connection-status-item"><span>Solicitudes</span><strong id="connectionRequestsOutput">0 pendientes</strong></article>
-<article class="connection-status-item"><span>Notificaciones celular</span><strong id="connectionPushOutput">No revisado</strong></article>
+<article class="connection-status-item"><span>Avisos del celular</span><strong id="connectionPushOutput">No revisado</strong></article>
 </div>
 <div class="connection-status-actions">
 <button class="btn btn-primary btn-small" id="enablePushNotificationsButton" type="button">Activar notificaciones</button>
 <button class="btn btn-light btn-small" id="testPushNotificationButton" type="button">Probar aviso</button>
 <button class="btn btn-light btn-small" id="refreshConnectionStatusButton" type="button">Actualizar estado</button>
 </div>
-<p class="helper-text compact-text" id="pushSetupHelp">Las notificaciones internas funcionan al abrir la app. Para avisos reales con la app cerrada se debe configurar push en Supabase.</p>
+<p class="helper-text compact-text" id="pushSetupHelp">Las solicitudes aparecerán dentro de la app. También puedes activar avisos del celular si tu navegador lo permite.</p>
 </section><section class="mobile-onboarding-card card" id="mobileOnboardingCard">
 <div>
 <p class="eyebrow">Ayuda rápida</p>
@@ -834,19 +836,19 @@
 <button class="btn btn-light btn-small" id="importBackupButton" type="button">Importar respaldo</button>
 <input accept="application/json,.json" class="hidden" id="backupFileInput" type="file"/>
 </div>
-<section aria-label="Respaldo y diagnóstico" class="backup-security-panel" id="backupSecurityPanel">
+<section aria-label="Respaldo y estado" class="backup-security-panel" id="backupSecurityPanel">
 <div class="backup-security-header">
 <div>
 <p class="eyebrow">Seguridad</p>
-<h3>Respaldo y diagnóstico</h3>
-<p id="backupStatusOutput">Revisa el estado de tus datos antes de importar o publicar una versión nueva.</p>
+<h3>Respaldo y estado</h3>
+<p id="backupStatusOutput">Revisa el estado de tus datos antes de importar un respaldo.</p>
 </div>
 <span class="security-status-pill" id="diagnosticStatusOutput">Revisando</span>
 </div>
 <div class="diagnostic-grid" id="backupSummaryGrid"></div>
 <div class="diagnostic-actions">
-<button class="btn btn-light btn-small" id="diagnosticRefreshButton" type="button">Actualizar diagnóstico</button>
-<button class="btn btn-light btn-small" id="diagnosticCopyButton" type="button">Copiar diagnóstico</button>
+<button class="btn btn-light btn-small" id="diagnosticRefreshButton" type="button">Actualizar estado</button>
+<button class="btn btn-light btn-small" id="diagnosticCopyButton" type="button">Copiar estado</button>
 <button class="btn btn-light btn-small" id="restoreAutoBackupButton" type="button">Restaurar copia previa</button>
 </div>
 <div class="diagnostic-list" id="diagnosticList"></div>
@@ -1357,8 +1359,8 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="shared-utils.js?v=13.18"></script>
-<script src="supabase-config.js?v=13.18"></script>
-<script src="script.js?v=13.18"></script>
+<script src="shared-utils.js?v=13.18.5"></script>
+<script src="supabase-config.js?v=13.18.5"></script>
+<script src="script.js?v=13.18.5"></script>
 </body>
 </html>

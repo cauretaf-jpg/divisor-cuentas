@@ -1,0 +1,15 @@
+Cuenta Clara V13.18.5 - Contacto funcional y mejora móvil
+
+Cambios aplicados:
+1. Página Contacto convertida en formulario funcional sin backend nuevo.
+2. El formulario valida nombre, correo y mensaje.
+3. El botón Enviar por correo prepara un mailto con asunto y cuerpo ordenado.
+4. El botón Copiar mensaje copia el texto completo como respaldo.
+5. El estado del formulario informa si faltan datos, si se copió o si se preparó el correo.
+6. Rediseño móvil de contacto con tarjetas más compactas, campos cómodos y botones a ancho completo.
+7. Versiones y cache actualizadas a cuenta-clara-v13.18.5.
+8. No se modificó la lógica de app, cuentas, perfil, pagos, OCR, solicitudes ni notificaciones internas.
+
+Nota:
+- El envío definitivo depende de que el usuario confirme desde su app de correo.
+- No requiere SQL nuevo ni dependencias externas.

@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Página de contacto y soporte de Cuenta Clara." />
+  <meta name="description" content="Contacto y soporte de Cuenta Clara para consultas, sugerencias y reportes de problemas." />
   <meta name="theme-color" content="#2563eb" />
   <meta name="google-adsense-account" content="ca-pub-4358472434423818" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818" crossorigin="anonymous"></script>
   <title>Contacto | Cuenta Clara</title>
-  <link rel="stylesheet" href="styles.css?v=13.18" />
-  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css?v=13.18.5" />
+<link href="favicon.ico" rel="icon" sizes="any" />
+<link href="assets/logo.svg" rel="icon" type="image/svg+xml" />
+<link href="assets/icon-192.png" rel="apple-touch-icon" />
 </head>
 <body class="public-page">
   <header class="site-header">
@@ -22,27 +24,168 @@
       <a class="btn btn-primary site-app-button" href="app.html">Abrir app</a>
     </div>
   </header>
-  <main class="container public-content-page">
-  <section class="public-page-hero card">
-    <p class="eyebrow">Contacto</p>
-    <h1>Contacto y soporte.</h1>
-    <p>Usa esta página como punto de referencia para consultas, sugerencias o reportes de error mientras se define un canal oficial público.</p>
+  <main class="container public-content-page contact-page-shell">
+  <section class="contact-hero card">
+    <div>
+      <p class="eyebrow">Contacto</p>
+      <h1>¿Necesitas ayuda con Cuenta Clara?</h1>
+      <p>Escríbenos una sugerencia, reporta un problema o comparte una idea para mejorar la app. El mensaje queda listo para enviar desde tu correo.</p>
+    </div>
+    <div class="contact-hero-badge" aria-label="Soporte de Cuenta Clara">
+      <span>Respuesta clara</span>
+      <strong>Soporte y mejoras</strong>
+      <small>Idealmente incluye dispositivo, navegador y qué estabas haciendo.</small>
+    </div>
   </section>
-  <section class="public-card-grid two">
-    <article class="public-info-card"><strong>Reportar un problema</strong><p>Indica navegador, dispositivo, versión de la app y qué acción estabas realizando cuando ocurrió el problema.</p></article>
-    <article class="public-info-card"><strong>Sugerir una mejora</strong><p>Describe el caso de uso, quién participa en la cuenta y qué resultado esperas ver.</p></article>
-  </section>
-  <section class="legal-card card">
-    <h2>Mensaje sugerido</h2>
-    <p>Puedes copiar este formato para enviar comentarios al administrador del proyecto:</p>
-    <pre class="contact-template">Hola, tengo un comentario sobre Cuenta Clara.
-Versión: v13.18
-Dispositivo/navegador:
-Qué estaba haciendo:
-Qué ocurrió:
-Qué esperaba:</pre>
+
+  <section class="contact-layout">
+    <article class="contact-form-card card">
+      <div class="contact-card-head">
+        <p class="eyebrow">Formulario</p>
+        <h2>Enviar comentario</h2>
+        <p>Completa los datos. Al enviar, se abrirá tu app de correo con el mensaje preparado.</p>
+      </div>
+
+      <form id="contactForm" class="contact-form" novalidate>
+        <label>
+          <span>Nombre</span>
+          <input id="contactName" name="name" type="text" autocomplete="name" placeholder="Tu nombre" required />
+        </label>
+        <label>
+          <span>Correo</span>
+          <input id="contactEmail" name="email" type="email" autocomplete="email" placeholder="tu@email.com" required />
+        </label>
+        <label>
+          <span>Tipo de mensaje</span>
+          <select id="contactType" name="type" required>
+            <option value="Sugerencia">Sugerencia</option>
+            <option value="Problema técnico">Problema técnico</option>
+            <option value="Consulta">Consulta</option>
+            <option value="Privacidad">Privacidad</option>
+          </select>
+        </label>
+        <label>
+          <span>Dispositivo o navegador</span>
+          <input id="contactDevice" name="device" type="text" placeholder="Ej: Chrome en Android, Safari en iPhone, Edge en Windows" />
+        </label>
+        <label class="contact-form-full">
+          <span>Mensaje</span>
+          <textarea id="contactMessage" name="message" rows="6" placeholder="Cuéntanos qué ocurrió o qué te gustaría mejorar." required></textarea>
+        </label>
+
+        <div id="contactStatus" class="contact-status" aria-live="polite">Completa el formulario para preparar tu mensaje.</div>
+
+        <div class="contact-actions">
+          <button class="btn btn-primary" type="submit">Enviar por correo</button>
+          <button class="btn btn-light" id="copyContactMessage" type="button">Copiar mensaje</button>
+        </div>
+      </form>
+    </article>
+
+    <aside class="contact-side-stack">
+      <article class="public-info-card contact-mini-card">
+        <span class="contact-mini-icon">⚠</span>
+        <strong>Reportar un problema</strong>
+        <p>Incluye qué pantalla usabas, qué esperabas ver y si ocurrió en celular o computador.</p>
+      </article>
+      <article class="public-info-card contact-mini-card">
+        <span class="contact-mini-icon">✦</span>
+        <strong>Sugerir una mejora</strong>
+        <p>Describe el caso real. Por ejemplo: restaurante, streaming, hogar, viaje o cuenta compartida.</p>
+      </article>
+      <article class="public-info-card contact-mini-card">
+        <span class="contact-mini-icon">✓</span>
+        <strong>Antes de enviar</strong>
+        <p>Si es un error, prueba actualizar la página y revisar si estás usando la última versión publicada.</p>
+      </article>
+    </aside>
   </section>
 </main>
+<script>
+(function () {
+  const CONTACT_EMAIL = 'contacto@cuentaclara.app';
+  const APP_VERSION = 'v13.18.5';
+  const form = document.getElementById('contactForm');
+  const status = document.getElementById('contactStatus');
+  const copyButton = document.getElementById('copyContactMessage');
+
+  function getValue(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+
+  function buildMessage() {
+    const name = getValue('contactName');
+    const email = getValue('contactEmail');
+    const type = getValue('contactType') || 'Consulta';
+    const device = getValue('contactDevice') || 'No indicado';
+    const message = getValue('contactMessage');
+    const page = window.location.href;
+    const date = new Date().toLocaleString('es-CL');
+    return {
+      subject: `[Cuenta Clara] ${type} - ${name || 'Contacto'}`,
+      body: `Hola, tengo un comentario sobre Cuenta Clara.
+
+Tipo: ${type}
+Nombre: ${name}
+Correo: ${email}
+Versión: ${APP_VERSION}
+Dispositivo/navegador: ${device}
+Página: ${page}
+Fecha: ${date}
+
+Mensaje:
+${message}
+`
+    };
+  }
+
+  function validateForm() {
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      status.textContent = 'Faltan datos obligatorios para preparar el mensaje.';
+      status.className = 'contact-status is-warning';
+      return false;
+    }
+    return true;
+  }
+
+  async function copyPreparedMessage() {
+    if (!validateForm()) return false;
+    const prepared = buildMessage();
+    const text = `${prepared.subject}
+
+${prepared.body}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      status.textContent = 'Mensaje copiado. Puedes pegarlo en correo, WhatsApp o el canal que uses.';
+      status.className = 'contact-status is-success';
+      return true;
+    } catch (error) {
+      status.textContent = 'No se pudo copiar automáticamente. Selecciona el mensaje manualmente desde tu navegador.';
+      status.className = 'contact-status is-warning';
+      return false;
+    }
+  }
+
+  if (copyButton) {
+    copyButton.addEventListener('click', copyPreparedMessage);
+  }
+
+  if (form) {
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      if (!validateForm()) return;
+      const prepared = buildMessage();
+      await copyPreparedMessage();
+      const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(prepared.subject)}&body=${encodeURIComponent(prepared.body)}`;
+      status.textContent = 'Mensaje preparado. Confirma el envío en tu aplicación de correo.';
+      status.className = 'contact-status is-success';
+      window.location.href = mailto;
+    });
+  }
+})();
+</script>
   <footer class="site-footer">
   <div class="container site-footer-grid">
     <div>
@@ -60,10 +203,9 @@ Qué esperaba:</pre>
       <a href="privacidad.html">Privacidad</a>
       <a href="terminos.html">Términos</a>
       <a href="contacto.html">Contacto</a>
-      <a href="ads.txt">ads.txt</a>
     </div>
   </div>
-  <div class="container site-footer-bottom"><span>© 2026 Cuenta Clara.</span><span>Anuncios ubicados solo en zonas informativas y no dentro del flujo principal de la app.</span></div>
+  <div class="container site-footer-bottom"><span>© 2026 Cuenta Clara.</span><span>Divide gastos sin enredos.</span></div>
 </footer>
 </body>
 </html>

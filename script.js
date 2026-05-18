@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.18 cargada');
-const APP_VERSION = '13.18';
+console.info('Cuenta Clara V13.18.5 cargada');
+const APP_VERSION = '13.18.5';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -7436,11 +7436,11 @@ async function savePushSubscriptionToCloud(subscription) {
       }, { onConflict: 'user_id,endpoint' });
 
     if (error) throw error;
-    savePushSubscriptionStatus('cloud', 'Dispositivo guardado para push real.');
+    savePushSubscriptionStatus('cloud', 'Avisos del celular activados para este dispositivo.');
     return true;
   } catch (error) {
-    console.warn('No se pudo guardar suscripción push:', error);
-    savePushSubscriptionStatus('pending-backend', 'Permiso activo. Falta configurar la tabla de push o permisos de nube.');
+    console.warn('No se pudo guardar el dispositivo para avisos:', error);
+    savePushSubscriptionStatus('pending-backend', 'Permiso activo. Falta completar la activación de avisos del celular.');
     return false;
   }
 }
@@ -7481,13 +7481,13 @@ async function activateSystemNotifications() {
       }
       await savePushSubscriptionToCloud(subscription);
     } catch (error) {
-      console.warn('No se pudo suscribir a push:', error);
-      savePushSubscriptionStatus('permission-only', 'Permiso activo. No se pudo crear suscripción push.');
+      console.warn('No se pudo activar avisos del celular:', error);
+      savePushSubscriptionStatus('permission-only', 'Permiso activo. No se pudo completar el registro del dispositivo.');
     }
   } else if (!PUSH_PUBLIC_VAPID_KEY) {
-    savePushSubscriptionStatus('permission-only', 'Permiso activo. Falta configurar VAPID para push real con la app cerrada.');
+    savePushSubscriptionStatus('permission-only', 'Permiso activo. Los avisos con la app cerrada todavía no están disponibles.');
   } else {
-    savePushSubscriptionStatus('permission-only', 'Permiso activo. Este navegador no soporta PushManager.');
+    savePushSubscriptionStatus('permission-only', 'Permiso activo. Este navegador tiene soporte limitado para avisos del celular.');
   }
 
   showToast('Notificaciones activadas en este dispositivo.');
@@ -7570,7 +7570,7 @@ async function sendSharedInvitePush(recipientUserId, payload = {}) {
     if (error) throw error;
     return true;
   } catch (error) {
-    console.warn('Push real no enviado o backend pendiente:', error);
+    console.warn('Aviso del celular no enviado:', error);
     return false;
   }
 }
@@ -7584,9 +7584,9 @@ function getConnectionStatusSummary() {
 
   let pushLabel = getNotificationPermissionLabel();
   if (permission === 'granted' && isSystemNotificationsEnabled()) {
-    if (pushStatus.status === 'cloud') pushLabel = 'Push activo';
+    if (pushStatus.status === 'cloud') pushLabel = 'Avisos activos';
     else if (pushStatus.status === 'permission-only') pushLabel = 'Permiso activo';
-    else if (pushStatus.status === 'pending-backend') pushLabel = 'Backend pendiente';
+    else if (pushStatus.status === 'pending-backend') pushLabel = 'Activación pendiente';
     else pushLabel = 'Activadas';
   }
 
@@ -7653,11 +7653,22 @@ function renderConnectionStatus() {
     if (!summary.capability.hasNotification) {
       dom.pushSetupHelp.textContent = 'Este navegador no permite notificaciones web. Las solicitudes seguirán apareciendo dentro de la app.';
     } else if (!PUSH_PUBLIC_VAPID_KEY) {
-      dom.pushSetupHelp.textContent = 'Avisos internos y permisos listos. Para push real con la app cerrada falta configurar VAPID, SQL 04 y Edge Function.';
+      dom.pushSetupHelp.textContent = 'Los avisos dentro de la app están activos. Los avisos con la app cerrada todavía no están disponibles.';
     } else if (hasBackend) {
-      dom.pushSetupHelp.textContent = 'Este dispositivo quedó guardado para recibir solicitudes con push real.';
+      dom.pushSetupHelp.textContent = 'Este dispositivo quedó listo para recibir avisos de solicitudes.';
     } else {
-      dom.pushSetupHelp.textContent = summary.pushStatus?.detail || 'Activa notificaciones y revisa que el backend de push esté configurado.';
+      const status = summary.pushStatus?.status || '';
+      if (status === 'pending-backend') {
+        dom.pushSetupHelp.textContent = 'Permiso activo. Falta completar la activación de avisos del celular.';
+      } else if (status === 'permission-only') {
+        dom.pushSetupHelp.textContent = 'Permiso activo. Las solicitudes seguirán apareciendo dentro de la app.';
+      } else if (status === 'local') {
+        dom.pushSetupHelp.textContent = 'Permiso activo en este navegador. Inicia sesión para conectar tus solicitudes.';
+      } else if (status === 'blocked') {
+        dom.pushSetupHelp.textContent = 'El permiso no está activo. Puedes habilitarlo desde la configuración del navegador.';
+      } else {
+        dom.pushSetupHelp.textContent = 'Activa notificaciones para recibir avisos de solicitudes.';
+      }
     }
   }
 }
@@ -11041,7 +11052,7 @@ function getBackupDiagnostics() {
         pendingTotal += calculation.pendingTotal || 0;
       }
     } catch {
-      // Si una cuenta antigua no calcula correctamente, el diagnóstico sigue funcionando.
+      // Si una cuenta antigua no calcula correctamente, el estado general sigue funcionando.
     }
   }
 
@@ -11234,9 +11245,9 @@ async function copyDiagnosticSummary() {
   const text = getDiagnosticPlainText();
   try {
     await navigator.clipboard.writeText(text);
-    showToast('Diagnóstico copiado.');
+    showToast('Estado copiado.');
   } catch {
-    prompt('Copia el diagnóstico:', text);
+    prompt('Copia el estado:', text);
   }
 }
 
@@ -12899,7 +12910,7 @@ dom.backupFileInput.addEventListener('change', () => {
 });
 dom.diagnosticRefreshButton?.addEventListener('click', () => {
   renderBackupDiagnostics();
-  showToast('Diagnóstico actualizado.');
+  showToast('Estado actualizado.');
 });
 dom.diagnosticCopyButton?.addEventListener('click', copyDiagnosticSummary);
 dom.restoreAutoBackupButton?.addEventListener('click', restoreAutomaticImportBackup);
