@@ -1,4 +1,4 @@
-CUENTA CLARA V13.18.5 - SITIO PUBLICO Y APP SEPARADA
+CUENTA CLARA V13.18.6 - SITIO PUBLICO Y APP SEPARADA
 
 CAMBIO PRINCIPAL
 - index.html: landing publica.
@@ -15,21 +15,21 @@ PAGINAS NUEVAS
 IMPORTANTE
 - No requiere SQL nuevo.
 - No agrega dependencias nuevas.
-- El service worker queda en cuenta-clara-v13.18.5.
+- El service worker queda en cuenta-clara-v13.18.6.
 
 
-AJUSTE V13.18.5
+AJUSTE V13.18.6
 - Se limpio informacion visible sobre anuncios.
 - ads.txt se mantiene en raiz, pero no se muestra como opcion para usuarios.
 - No requiere SQL nuevo.
 
-AJUSTE V13.18.5 - LIMPIEZA TECNICA VISIBLE
+AJUSTE V13.18.6 - LIMPIEZA TECNICA VISIBLE
 - Se quitaron mensajes visibles sobre configuración interna de notificaciones.
 - Se reemplazó Diagnóstico por Estado en textos visibles de la app.
 - Se agregó .vercelignore para que carpetas internas no se publiquen en Vercel.
 
 
-AJUSTE V13.18.5 - CONTACTO FUNCIONAL
+AJUSTE V13.18.6 - CONTACTO FUNCIONAL
 - Página Contacto con formulario validado.
 - Botón Enviar por correo mediante mailto.
 - Botón Copiar mensaje como respaldo.

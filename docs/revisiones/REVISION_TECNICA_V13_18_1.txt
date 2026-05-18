@@ -1,4 +1,4 @@
-REVISION TECNICA - CUENTA CLARA V13.18.5
+REVISION TECNICA - CUENTA CLARA V13.18.6
 
 Objetivo:
 - Ajuste menor posterior a V13.18 para limpiar información visible innecesaria sobre anuncios.
@@ -10,7 +10,7 @@ Cambios aplicados:
 4. Se elimino la seccion especifica "Anuncios" desde Privacidad para reducir ruido visual.
 5. Footer publico queda mas simple: Privacidad, Terminos y Contacto.
 6. La app principal mantiene el flujo sin anuncios dentro de app.html.
-7. Versiones y cache actualizadas a cuenta-clara-v13.18.5.
+7. Versiones y cache actualizadas a cuenta-clara-v13.18.6.
 
 Validacion:
 - Sin cambios en logica de cuentas, pagos, OCR, perfil, solicitudes ni notificaciones.

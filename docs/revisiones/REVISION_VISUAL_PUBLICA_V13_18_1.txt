@@ -1,4 +1,4 @@
-REVISION VISUAL PUBLICA - CUENTA CLARA V13.18.5
+REVISION VISUAL PUBLICA - CUENTA CLARA V13.18.6
 
 Criterio visual:
 - La landing debe vender claridad y utilidad, no explicar la ubicacion de anuncios.

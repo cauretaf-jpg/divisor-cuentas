@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.18.5 cargada');
-const APP_VERSION = '13.18.5';
+console.info('Cuenta Clara V13.18.6 cargada');
+const APP_VERSION = '13.18.6';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -578,7 +578,7 @@ function getCloudSyncErrorMessage(error) {
     return 'Tu sesión no está activa. Vuelve a ingresar y presiona Guardar ahora.';
   }
 
-  return 'Los cambios siguen guardados localmente. Revisa tu conexión o vuelve a intentar más tarde.';
+  return 'Los cambios siguen guardados en este dispositivo. Revisa tu conexión o vuelve a intentar más tarde.';
 }
 
 function notifyCloudSyncError(title, error) {
@@ -663,7 +663,7 @@ async function saveCloudStateNow(options = {}) {
     try {
       localStorage.setItem(activeStorageKey, JSON.stringify(state));
     } catch (storageError) {
-      console.warn('No se pudo actualizar la copia local antes de sincronizar:', storageError);
+      console.warn('No se pudo actualizar la copia del dispositivo antes de sincronizar:', storageError);
     }
 
     setSyncStatus('saving', options.message || 'Guardando...');
@@ -1621,7 +1621,7 @@ async function saveProfileFromModal() {
     });
 
     if (error) {
-      showNotice('Perfil guardado localmente', 'No se pudo actualizar el perfil en la nube en este momento.');
+      showNotice('Perfil guardado en este dispositivo', 'No se pudo actualizar el perfil en la nube en este momento.');
     }
   }
 
@@ -2694,7 +2694,7 @@ async function processReceiptImage() {
   }
 
   if (typeof Tesseract === 'undefined') {
-    showNotice('OCR no disponible', 'No se pudo cargar la librería de lectura. Prueba con internet activo o desde Vercel.');
+    showNotice('OCR no disponible', 'No se pudo cargar la lectura de boletas. Revisa tu conexión e intenta nuevamente.');
     return;
   }
 
@@ -3299,7 +3299,7 @@ async function registerLocalUser(event) {
   event.preventDefault();
 
   if (!hasSupabaseClient()) {
-    showNotice('Modo local disponible', 'No se pudo cargar la conexión de usuario. Puedes seguir usando Cuenta Clara como invitado.');
+    showNotice('Modo invitado disponible', 'No se pudo cargar la conexión de usuario. Puedes seguir usando Cuenta Clara como invitado.');
     return;
   }
 
@@ -3374,7 +3374,7 @@ async function loginLocalUser(event) {
   event.preventDefault();
 
   if (!hasSupabaseClient()) {
-    showNotice('Modo local disponible', 'No se pudo cargar la conexión de usuario. Puedes seguir usando Cuenta Clara como invitado.');
+    showNotice('Modo invitado disponible', 'No se pudo cargar la conexión de usuario. Puedes seguir usando Cuenta Clara como invitado.');
     return;
   }
 
@@ -3807,8 +3807,8 @@ function saveState() {
     localStorage.setItem(activeStorageKey, JSON.stringify(state));
     lastLocalSaveAt = nowIso();
   } catch (error) {
-    console.warn('No se pudo guardar localmente:', error);
-    showNotice('No se pudo guardar en este navegador', 'La cuenta sigue abierta, pero el navegador no permitió guardar localmente. Si tienes sesión iniciada, intentaré sincronizarla igual; también puedes exportar respaldo.');
+    console.warn('No se pudo guardar en este dispositivo:', error);
+    showNotice('No se pudo guardar en este navegador', 'La cuenta sigue abierta, pero el navegador no permitió guardar en este dispositivo. Si tienes sesión iniciada, intentaré sincronizarla igual; también puedes exportar respaldo.');
   }
 
   scheduleCloudSave();
@@ -4255,13 +4255,13 @@ function updateExperienceModeChrome() {
   const isSimple = mode === 'simple';
 
   if (dom.viewModeLabel) {
-    dom.viewModeLabel.textContent = isSimple ? 'Modo simple activo' : 'Vista avanzada activa';
+    dom.viewModeLabel.textContent = isSimple ? 'Vista simple' : 'Vista avanzada activa';
   }
 
   if (dom.viewModeHelp) {
     dom.viewModeHelp.textContent = isSimple
-      ? 'Lo avanzado no desaparece: está agrupado en Herramientas.'
-      : 'Historial, Hogar y Compartidas quedan visibles en el menú.';
+      ? 'Herramientas avanzadas disponibles.'
+      : 'Todas las secciones están visibles.';
   }
 
   if (dom.toggleAdvancedToolsButton) {
@@ -4293,13 +4293,13 @@ function setExperienceMode(mode) {
 function toggleAdvancedToolsVisibility() {
   const nextMode = getExperienceMode() === 'advanced' ? 'simple' : 'advanced';
   setExperienceMode(nextMode);
-  showToast(nextMode === 'advanced' ? 'Herramientas avanzadas visibles.' : 'Vista simple activa. Lo avanzado queda en Herramientas.');
+  showToast(nextMode === 'advanced' ? 'Herramientas avanzadas visibles.' : 'Vista simple activa. Las herramientas avanzadas siguen disponibles.');
 }
 
 function restoreRecommendedView() {
   setExperienceMode('simple');
   setAppSection('home', { instant: true });
-  showToast('Vista recomendada restaurada. Usa Herramientas para lo avanzado.');
+  showToast('Vista recomendada restaurada.');
 }
 
 function initExperienceMode() {
@@ -4402,8 +4402,7 @@ function setAppSection(section, options = {}) {
   try {
     localStorage.setItem(APP_SECTION_KEY, nextSection);
   } catch {
-    // Si el navegador bloquea localStorage, la navegación sigue funcionando en memoria visual.
-  }
+      }
 
   if (options.scroll !== false) {
     const panel = document.querySelector(`[data-app-section-panel="${nextSection}"]`);
@@ -4682,12 +4681,12 @@ function renderNetworkStatus() {
   if (isOffline) {
     dom.networkStatusTitle.textContent = 'Sin conexión';
     dom.networkStatusText.textContent = 'Puedes seguir usando Cuenta Clara. Tus cambios quedan guardados en este dispositivo y se sincronizarán cuando vuelva internet.';
-    dom.networkStatusPill.textContent = 'Guardado local';
+    dom.networkStatusPill.textContent = 'En este dispositivo';
     return;
   }
 
   if (hasCloudIssue) {
-    dom.networkStatusTitle.textContent = 'Guardado local activo';
+    dom.networkStatusTitle.textContent = 'Guardado en este dispositivo';
     dom.networkStatusText.textContent = 'No se pudo sincronizar ahora. Tus datos no se pierden; quedaron guardados en este dispositivo y puedes reintentar desde Perfil.';
     dom.networkStatusPill.textContent = 'Pendiente';
     return;
@@ -4695,7 +4694,7 @@ function renderNetworkStatus() {
 
   dom.networkStatusTitle.textContent = 'Modo invitado';
   dom.networkStatusText.textContent = 'Tus cuentas se guardan solo en este dispositivo. Inicia sesión para respaldarlas y abrirlas desde otro equipo.';
-  dom.networkStatusPill.textContent = 'Local';
+  dom.networkStatusPill.textContent = 'En este dispositivo';
 }
 
 function renderMobileHomeDashboard() {
@@ -4725,7 +4724,7 @@ function renderMobileHomeDashboard() {
   dom.homeDashboardSyncOutput.textContent = getHomeSyncLabel();
   dom.homeDashboardSyncOutput.classList.toggle('is-error', cloudSyncStatus === 'error');
   dom.homeDashboardSyncOutput.classList.toggle('is-saving', cloudSyncStatus === 'saving');
-  dom.homeActiveBillOutput.textContent = bill.name || 'Lista actual';
+  dom.homeActiveBillOutput.textContent = bill.name || 'Cuenta actual';
   dom.homeActiveBillMetaOutput.textContent = `${getBillModeLabel(bill.mode)} · ${bill.people.length} persona${bill.people.length === 1 ? '' : 's'} · ${productCount} gasto${productCount === 1 ? '' : 's'}`;
   dom.homeDashboardTotalOutput.textContent = formatCurrency(calculation.grandTotal);
   dom.homeDashboardMineOutput.textContent = myAmount === null ? '-' : formatCurrency(myAmount);
@@ -5416,7 +5415,7 @@ function applyBillModePreset(bill, mode, customName = '') {
   }
 }
 
-function openInitialAccountSetup(message = 'Lista creada. Agrega personas y define el pagador principal.') {
+function openInitialAccountSetup(message = 'Cuenta creada. Agrega personas y define el pagador principal.') {
   setAppSection('people', { scroll: false });
 
   requestAnimationFrame(() => {
@@ -5434,7 +5433,7 @@ function openInitialAccountSetup(message = 'Lista creada. Agrega personas y defi
 
 function askGuidedBillName(mode) {
   const defaultName = getGuidedBillName(mode);
-  const response = prompt('¿Qué nombre quieres darle a esta lista?', defaultName);
+  const response = prompt('¿Qué nombre quieres darle a esta cuenta?', defaultName);
 
   if (response === null) {
     return null;
@@ -5568,8 +5567,8 @@ function createGuidedBill(mode) {
   render();
   openInitialAccountSetup(
     bill.mode === 'home'
-      ? 'Lista creada. Agrega personas y elige pagador principal en Personas.'
-      : 'Lista creada. Agrega personas, elige pagador principal y luego revisa propina en Gastos.'
+      ? 'Cuenta creada. Agrega personas y elige pagador principal en Personas.'
+      : 'Cuenta creada. Agrega personas, elige pagador principal y luego revisa propina en Gastos.'
   );
 }
 
@@ -7117,8 +7116,7 @@ function saveSeenNotificationIds(ids) {
   try {
     localStorage.setItem(getNotificationStorageKey(), JSON.stringify([...ids].slice(-200)));
   } catch {
-    // Si localStorage no está disponible, las notificaciones siguen visibles durante la sesión.
-  }
+      }
 }
 
 function getSharedInviteNotification(invite = {}) {
@@ -7342,8 +7340,7 @@ function saveSystemNotificationShownIds(ids) {
   try {
     localStorage.setItem(getSystemNotificationShownStorageKey(), JSON.stringify([...ids].slice(-200)));
   } catch {
-    // Si localStorage falla, solo se omite el control anti-duplicado.
-  }
+      }
 }
 
 function savePushSubscriptionStatus(status, detail = '') {
@@ -7417,7 +7414,7 @@ async function getCuentaClaraServiceWorkerRegistration() {
 
 async function savePushSubscriptionToCloud(subscription) {
   if (!subscription || !canUseSharedAccounts()) {
-    savePushSubscriptionStatus('local', 'Permiso activo en este navegador. Inicia sesión para guardar el dispositivo.');
+    savePushSubscriptionStatus('local', 'Permiso activo en este dispositivo. Inicia sesión para conectar tus solicitudes.');
     return false;
   }
 
@@ -7440,7 +7437,7 @@ async function savePushSubscriptionToCloud(subscription) {
     return true;
   } catch (error) {
     console.warn('No se pudo guardar el dispositivo para avisos:', error);
-    savePushSubscriptionStatus('pending-backend', 'Permiso activo. Falta completar la activación de avisos del celular.');
+    savePushSubscriptionStatus('pending-backend', 'Permiso activo. Los avisos del celular aún no están disponibles.');
     return false;
   }
 }
@@ -7512,8 +7509,7 @@ async function showCuentaClaraNotification(title, options = {}) {
       await registration.showNotification(title, notificationOptions);
       return true;
     }
-    // Respaldo para navegadores de escritorio antiguos con la app abierta.
-    new Notification(title, notificationOptions);
+        new Notification(title, notificationOptions);
     return true;
   } catch (error) {
     console.warn('No se pudo mostrar notificación:', error);
@@ -7586,7 +7582,7 @@ function getConnectionStatusSummary() {
   if (permission === 'granted' && isSystemNotificationsEnabled()) {
     if (pushStatus.status === 'cloud') pushLabel = 'Avisos activos';
     else if (pushStatus.status === 'permission-only') pushLabel = 'Permiso activo';
-    else if (pushStatus.status === 'pending-backend') pushLabel = 'Activación pendiente';
+    else if (pushStatus.status === 'pending-backend') pushLabel = 'Pendiente';
     else pushLabel = 'Activadas';
   }
 
@@ -7659,11 +7655,11 @@ function renderConnectionStatus() {
     } else {
       const status = summary.pushStatus?.status || '';
       if (status === 'pending-backend') {
-        dom.pushSetupHelp.textContent = 'Permiso activo. Falta completar la activación de avisos del celular.';
+        dom.pushSetupHelp.textContent = 'Permiso activo. Los avisos del celular aún no están disponibles.';
       } else if (status === 'permission-only') {
         dom.pushSetupHelp.textContent = 'Permiso activo. Las solicitudes seguirán apareciendo dentro de la app.';
       } else if (status === 'local') {
-        dom.pushSetupHelp.textContent = 'Permiso activo en este navegador. Inicia sesión para conectar tus solicitudes.';
+        dom.pushSetupHelp.textContent = 'Permiso activo en este dispositivo. Inicia sesión para conectar tus solicitudes.';
       } else if (status === 'blocked') {
         dom.pushSetupHelp.textContent = 'El permiso no está activo. Puedes habilitarlo desde la configuración del navegador.';
       } else {
@@ -8636,7 +8632,7 @@ function renderBillHeader() {
 
 
   if (dom.currentListName) {
-    dom.currentListName.textContent = bill.name || 'Nueva lista';
+    dom.currentListName.textContent = bill.name || 'Nueva cuenta';
   }
   if (dom.currentListMeta) {
     const modeLabel = getBillModeLabel(bill.mode);
@@ -8968,14 +8964,14 @@ function addCurrentUserAsPerson() {
   if (existing) {
     updatePersonWithSelfProfile(existing, selfInfo);
     persistAndRender();
-    showToast('Tu perfil ya está en esta lista.');
+    showToast('Tu perfil ya está en esta cuenta.');
     return;
   }
 
   const nameMatches = getPotentialSelfNameMatches(bill, selfInfo);
 
   if (nameMatches.length === 1) {
-    const confirmed = confirm(`Ya existe “${nameMatches[0].name}” en esta lista. ¿Quieres vincular esa persona con tu perfil?`);
+    const confirmed = confirm(`Ya existe “${nameMatches[0].name}” en esta cuenta. ¿Quieres vincular esa persona con tu perfil?`);
     if (!confirmed) return;
 
     updatePersonWithSelfProfile(nameMatches[0], selfInfo);
@@ -9000,7 +8996,7 @@ function addCurrentUserAsPerson() {
   });
 
   persistAndRender();
-  showToast('Te agregué a la lista.');
+  showToast('Te agregué a la cuenta.');
 }
 
 function renderSelfParticipantCard() {
@@ -9028,13 +9024,13 @@ function renderSelfParticipantCard() {
   }
 
   if (existing) {
-    if (title) title.textContent = `${selfInfo.name} está en esta lista`;
+    if (title) title.textContent = `${selfInfo.name} está en esta cuenta`;
     if (infoText) infoText.textContent = 'Esta persona está vinculada a tu perfil y sus movimientos impactan tus estadísticas.';
     dom.addMePersonButton.textContent = 'Ya agregado';
     return;
   }
 
-  if (title) title.textContent = 'Agregarme a esta lista';
+  if (title) title.textContent = 'Agregarme a esta cuenta';
   if (infoText) infoText.textContent = `Agrega “${selfInfo.name}” como participante vinculado a tu perfil.`;
   dom.addMePersonButton.textContent = '+ Yo';
 }
@@ -11171,7 +11167,7 @@ function importBackupFile(file) {
         ? `el usuario ${currentSession.email}`
         : 'el modo invitado';
       const preview = getImportPreviewText(payload, importedState);
-      const confirmed = confirm(`¿Importar este respaldo?\n\n${preview}\n\nReemplazará las cuentas guardadas en ${profileLabel}. Antes de importar crearé una copia local de seguridad.`);
+      const confirmed = confirm(`¿Importar este respaldo?\n\n${preview}\n\nReemplazará las cuentas guardadas en ${profileLabel}. Antes de importar crearé una copia de seguridad.`);
 
       if (!confirmed) return;
 
@@ -11225,9 +11221,9 @@ function getDiagnosticPlainText() {
   return [
     `Cuenta Clara v${diagnostic.appVersion}`,
     `Modo: ${diagnostic.sessionMode}`,
-    `Datos locales: ${diagnostic.hasLocalData ? 'disponibles' : 'sin datos guardados'}`,
+    `Datos del dispositivo: ${diagnostic.hasLocalData ? 'disponibles' : 'sin datos guardados'}`,
     `Sincronización: ${diagnostic.cloudStatus}`,
-    `Último guardado local: ${diagnostic.lastLocalSaveAt ? formatDate(diagnostic.lastLocalSaveAt) : 'sin registro'}`,
+    `Último guardado en este dispositivo: ${diagnostic.lastLocalSaveAt ? formatDate(diagnostic.lastLocalSaveAt) : 'sin registro'}`,
     `Última sincronización: ${diagnostic.lastCloudSyncAt ? formatDate(diagnostic.lastCloudSyncAt) : 'sin registro'}`,
     `Cuentas: ${diagnostic.billsCount}`,
     `Personas registradas en cuentas: ${diagnostic.peopleCount}`,
@@ -11236,7 +11232,7 @@ function getDiagnosticPlainText() {
     `Compartidas: ${diagnostic.sharedCount}`,
     `Cuentas con pendientes: ${diagnostic.pendingBills}`,
     `Monto pendiente total: ${formatCurrency(diagnostic.pendingTotal)}`,
-    `Tamaño local aproximado: ${formatBytes(diagnostic.localSizeBytes)}`,
+    `Tamaño aproximado: ${formatBytes(diagnostic.localSizeBytes)}`,
     `Copia previa de importación: ${diagnostic.hasAutoBackup ? 'disponible' : 'no disponible'}`,
   ].join('\n');
 }
@@ -11275,7 +11271,7 @@ function renderBackupDiagnostics() {
     ['Modo', diagnostic.sessionMode],
     ['Cuentas', diagnostic.billsCount],
     ['Pendiente total', formatCurrency(diagnostic.pendingTotal)],
-    ['Datos locales', formatBytes(diagnostic.localSizeBytes)],
+    ['Datos del dispositivo', formatBytes(diagnostic.localSizeBytes)],
     ['Sincronización', diagnostic.cloudStatus],
   ];
 
@@ -11294,7 +11290,7 @@ function renderBackupDiagnostics() {
     ['Carpetas recurrentes', diagnostic.recurringCount],
     ['Cuentas compartidas', diagnostic.sharedCount],
     ['Copia previa para restaurar', diagnostic.hasAutoBackup ? 'Disponible' : 'No disponible'],
-    ['Último guardado local', diagnostic.lastLocalSaveAt ? formatDate(diagnostic.lastLocalSaveAt) : 'Sin registro'],
+    ['Último guardado en este dispositivo', diagnostic.lastLocalSaveAt ? formatDate(diagnostic.lastLocalSaveAt) : 'Sin registro'],
     ['Última sincronización', diagnostic.lastCloudSyncAt ? formatDate(diagnostic.lastCloudSyncAt) : 'Sin registro'],
   ];
 
@@ -11710,7 +11706,7 @@ async function exportExcel() {
   if (typeof ExcelJS === 'undefined') {
     showNotice(
       'Excel profesional no disponible',
-      'La exportación bonita usa ExcelJS desde internet. Prueba desde Vercel o revisa tu conexión.'
+      'No se pudo preparar el Excel avanzado. Revisa tu conexión e intenta nuevamente.'
     );
     return;
   }
@@ -12485,7 +12481,7 @@ async function installApp() {
   if (!deferredInstallPrompt) {
     showNotice(
       'Instalar Cuenta Clara',
-      'Si el navegador no abre la instalación automáticamente, usa el menú del navegador y elige “Instalar app” o “Agregar a pantalla de inicio”. En Chrome o Edge suele aparecer al usar el sitio desde Vercel.'
+      'Si el navegador no abre la instalación automáticamente, usa el menú del navegador y elige “Instalar app” o “Agregar a pantalla de inicio”.'
     );
     return;
   }
@@ -12576,7 +12572,7 @@ dom.saveProfileButton && dom.saveProfileButton.addEventListener('click', savePro
 dom.savePreferencesButton && dom.savePreferencesButton.addEventListener('click', saveProfilePreferences);
 dom.syncNowButton && dom.syncNowButton.addEventListener('click', async () => {
   const saved = await saveCloudStateNow({ force: true, message: 'Guardando...' });
-  showToast(saved ? 'Guardado en la nube.' : 'No se pudo guardar en la nube. Quedó guardado localmente.');
+  showToast(saved ? 'Guardado en la nube.' : 'No se pudo guardar en la nube. Quedó guardado en este dispositivo.');
 });
 
 dom.installAppButton && dom.installAppButton.addEventListener('click', installApp);

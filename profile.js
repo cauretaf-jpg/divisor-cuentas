@@ -1,4 +1,4 @@
-console.info('Cuenta Clara Perfil V13.18.5 cargado');
+console.info('Cuenta Clara Perfil V13.18.6 cargado');
 
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
 let cloudSyncErrorNotified = false;
@@ -184,7 +184,7 @@ function getCloudSyncErrorMessage(error) {
     return 'No se pudo guardar el respaldo en este momento. Tus datos quedaron protegidos en este dispositivo.';
   }
 
-  return 'No se pudo sincronizar en la nube. Se conserva la copia local.';
+  return 'No se pudo sincronizar ahora. Se conserva la copia en este dispositivo.';
 }
 
 function notifyCloudSyncError(error) {

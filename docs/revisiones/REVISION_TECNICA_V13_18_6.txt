@@ -1,0 +1,16 @@
+CUENTA CLARA V13.18.6 - LIMPIEZA VISUAL Y TEXTOS INTERNOS
+
+Cambios principales:
+- Se quitaron textos públicos que exponían app.html como detalle técnico.
+- Se reemplazó “Sitio informativo” por una bajada de marca más natural.
+- Se reemplazó “Boletas/OCR” por “Lectura de boletas”.
+- Se redujo el bloque de vista simple al final del menú lateral.
+- Se eliminó el texto “Menos lectura...” del menú.
+- Se cambió “Lista” por “Cuenta” en textos visibles.
+- Se cambió “Local” por “En este dispositivo” o “Modo invitado” según contexto.
+- Se ocultaron botones de prueba de estado dentro de opciones avanzadas.
+- Se quitaron menciones visibles a Vercel y ExcelJS en mensajes de usuario.
+- Se agregó README_PUBLICAR_VERCEL.txt a .vercelignore.
+- Se limpiaron comentarios técnicos innecesarios en supabase-config.js.
+
+No requiere SQL nuevo ni dependencias nuevas.

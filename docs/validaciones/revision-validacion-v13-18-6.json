@@ -1,0 +1,12 @@
+{
+  "version": "13.18.6",
+  "objetivo": "limpieza visual y eliminación de textos técnicos/no necesarios para usuarios comunes",
+  "requiere_sql": false,
+  "dependencias_nuevas": false,
+  "checks": [
+    "sintaxis JS",
+    "IDs HTML duplicados",
+    "llaves CSS",
+    "textos públicos revisados"
+  ]
+}

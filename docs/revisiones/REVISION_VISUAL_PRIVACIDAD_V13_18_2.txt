@@ -1,4 +1,4 @@
-REVISION VISUAL Y PRIVACIDAD - CUENTA CLARA V13.18.5
+REVISION VISUAL Y PRIVACIDAD - CUENTA CLARA V13.18.6
 
 Criterio:
 El usuario común debe ver solo información útil para usar Cuenta Clara.

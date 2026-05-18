@@ -11301,7 +11301,7 @@ body.advanced-mode .view-status-pill {
   }
 }
 
-/* V13.18.5 - Estado de conexión y notificaciones del celular */
+/* V13.18.6 - Estado de la app y avisos */
 .connection-status-panel {
   display: grid;
   gap: 0.9rem;
@@ -11395,7 +11395,7 @@ body.dark-mode .connection-status-item,
 }
 
 
-/* V13.18.5 - Sitio publico, landing y limpieza visual */
+/* V13.18.6 - Sitio publico, landing y limpieza visual */
 :root {
   --cc-primary: #2563eb;
   --cc-primary-strong: #1d4ed8;
@@ -11799,17 +11799,17 @@ body.dark .public-page,
   .app-legal-footer { padding-bottom: 6.5rem; }
 }
 
-/* V13.18.5 - Footer interno ocupa toda la grilla de la app */
+/* V13.18.6 - Footer interno ocupa toda la grilla de la app */
 .app-layout > .app-legal-footer {
   grid-column: 1 / -1;
 }
 
 
-/* V13.18.5 - limpieza visual publica */
+/* V13.18.6 - limpieza visual publica */
 .public-ad-zone { display: none !important; }
 
 
-/* V13.18.5 - Contacto funcional y móvil más limpio */
+/* V13.18.6 - Contacto funcional y móvil más limpio */
 .contact-page-shell {
   gap: 1.1rem;
 }
@@ -12095,5 +12095,51 @@ body.dark .public-page,
 
   .contact-mini-card {
     padding: 0.85rem;
+  }
+}
+
+
+/* V13.18.6 - Limpieza de textos visibles y estado discreto */
+.section-view-status {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  gap: 0.45rem;
+  border-style: dashed;
+  background: color-mix(in srgb, var(--surface) 94%, var(--muted) 6%);
+}
+.section-view-status .view-status-pill {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.66rem;
+  letter-spacing: 0.025em;
+}
+.section-view-status small {
+  font-size: 0.76rem;
+  font-weight: 650;
+}
+.view-status-actions .btn {
+  min-height: 32px;
+  padding-block: 0.35rem;
+  font-size: 0.78rem;
+}
+.connection-advanced-actions {
+  margin-top: 0.65rem;
+  border-top: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  padding-top: 0.65rem;
+}
+.connection-advanced-actions summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-weight: 800;
+  font-size: 0.82rem;
+}
+.connection-status-actions.compact {
+  margin-top: 0.6rem;
+}
+@media (max-width: 720px) {
+  .section-view-status {
+    padding: 0.65rem;
+  }
+  .section-view-status small {
+    font-size: 0.72rem;
   }
 }
