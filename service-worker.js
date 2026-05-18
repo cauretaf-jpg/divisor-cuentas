@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cuenta-clara-v13.18.4';
+const CACHE_NAME = 'cuenta-clara-v13.18';
 
 const ASSETS = [
   './',
@@ -10,19 +10,15 @@ const ASSETS = [
   './privacidad.html',
   './terminos.html',
   './contacto.html',
-  './styles.css?v=13.18.4',
-  './shared-utils.js?v=13.18.4',
-  './script.js?v=13.18.4',
-  './supabase-config.js?v=13.18.4',
+  './styles.css?v=13.18',
+  './shared-utils.js?v=13.18',
+  './script.js?v=13.18',
+  './supabase-config.js?v=13.18',
   './manifest.json',
   './perfil.html',
-  './profile.js?v=13.18.4',
+  './profile.js?v=13.18',
   './ads.txt',
   './assets/logo.svg',
-  './assets/icon-512.png',
-  './assets/icon-192.png',
-  './favicon.ico',
-  './404.html',
 ];
 
 self.addEventListener('install', (event) => {
@@ -58,10 +54,8 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        if (response && response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone)).catch(() => {});
-        }
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone)).catch(() => {});
         return response;
       })
       .catch(() => caches.match(event.request))
