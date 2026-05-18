@@ -1,4 +1,4 @@
-REVISION TECNICA - CUENTA CLARA V13.18.6
+REVISION TECNICA - CUENTA CLARA V13.18.7
 
 Objetivo:
 - Separar el sitio informativo publico de la app principal.
@@ -15,7 +15,7 @@ Cambios principales:
 7. Anuncios separados del flujo principal: el script de AdSense queda en paginas informativas, no dentro de app.html.
 8. El aviso de vista simple/avanzada se movio al final del menu lateral.
 9. Manifest actualizado para abrir la app en app.html.
-10. Service worker actualizado a cuenta-clara-v13.18.6 y cache de paginas publicas.
+10. Service worker actualizado a cuenta-clara-v13.18.7 y cache de paginas publicas.
 
 No requiere SQL nuevo.
 No agrega dependencias nuevas.

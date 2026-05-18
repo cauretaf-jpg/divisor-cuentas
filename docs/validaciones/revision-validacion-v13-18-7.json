@@ -1,0 +1,15 @@
+{
+  "version": "13.18.7",
+  "objetivo": "limpieza de mensajes públicos visibles",
+  "validaciones": {
+    "script_js": "OK",
+    "profile_js": "OK",
+    "shared_utils_js": "OK",
+    "service_worker_js": "OK",
+    "html_sin_ids_duplicados": "OK",
+    "css_llaves_balanceadas": "OK",
+    "serviceWorkerCache": "cuenta-clara-v13.18.7"
+  },
+  "requiere_sql_nuevo": false,
+  "agrega_dependencias": false
+}

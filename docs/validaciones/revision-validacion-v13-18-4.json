@@ -1,11 +1,11 @@
 {
-  "version": "13.18.6",
+  "version": "13.18.7",
   "objetivo": "corregir despliegue raiz en Vercel",
   "validaciones": {
     "indexRoot": true,
     "appRoot": true,
     "vercelRootRewrite": true,
-    "serviceWorkerCache": "cuenta-clara-v13.18.6",
+    "serviceWorkerCache": "cuenta-clara-v13.18.7",
     "sinSqlNuevo": true,
     "sinDependenciasNuevas": true
   }

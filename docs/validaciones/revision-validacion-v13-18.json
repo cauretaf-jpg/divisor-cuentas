@@ -1,5 +1,5 @@
 {
-  "version": "13.18.6",
+  "version": "13.18.7",
   "validaciones": {
     "appEnAppHtml": true,
     "landingEnIndex": true,
@@ -13,7 +13,7 @@
       "contacto.html"
     ],
     "adsTxt": "google.com, pub-4358472434423818, DIRECT, f08c47fec0942fa0",
-    "serviceWorkerCache": "cuenta-clara-v13.18.6",
+    "serviceWorkerCache": "cuenta-clara-v13.18.7",
     "sqlNuevo": false,
     "dependenciasNuevas": false
   }

@@ -1,4 +1,4 @@
-Cuenta Clara V13.18.6 - Corrección 404 de recursos públicos
+Cuenta Clara V13.18.7 - Corrección 404 de recursos públicos
 
 Cambios:
 - Se agregó favicon.ico en raíz para evitar solicitudes 404 del navegador.
@@ -8,7 +8,7 @@ Cambios:
 - Se agregó 404.html como página simple de recurso no encontrado.
 - Se agregó vercel.json con rutas limpias opcionales hacia páginas .html.
 - El service worker ahora cachea iconos y evita guardar respuestas 404 en caché.
-- Service worker actualizado a cuenta-clara-v13.18.6.
+- Service worker actualizado a cuenta-clara-v13.18.7.
 
 Validación esperada:
 - /favicon.ico debe responder correctamente en producción.

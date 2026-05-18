@@ -1,11 +1,11 @@
 {
-  "version": "13.18.6",
+  "version": "13.18.7",
   "objetivo": "limpieza visual de informacion visible sobre anuncios",
   "validaciones": {
     "adsTxtConservadoEnRaiz": true,
     "landingSinBloqueAnunciosVisible": true,
     "footerSinLinkAdsTxtVisible": true,
     "appSinCambiosFuncionales": true,
-    "cache": "cuenta-clara-v13.18.6"
+    "cache": "cuenta-clara-v13.18.7"
   }
 }

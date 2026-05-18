@@ -11301,7 +11301,7 @@ body.advanced-mode .view-status-pill {
   }
 }
 
-/* V13.18.6 - Estado de la app y avisos */
+/* V13.18.7 - Estado de la app y avisos */
 .connection-status-panel {
   display: grid;
   gap: 0.9rem;
@@ -11395,7 +11395,7 @@ body.dark-mode .connection-status-item,
 }
 
 
-/* V13.18.6 - Sitio publico, landing y limpieza visual */
+/* V13.18.7 - Sitio publico, landing y limpieza visual */
 :root {
   --cc-primary: #2563eb;
   --cc-primary-strong: #1d4ed8;
@@ -11799,17 +11799,17 @@ body.dark .public-page,
   .app-legal-footer { padding-bottom: 6.5rem; }
 }
 
-/* V13.18.6 - Footer interno ocupa toda la grilla de la app */
+/* V13.18.7 - Footer interno ocupa toda la grilla de la app */
 .app-layout > .app-legal-footer {
   grid-column: 1 / -1;
 }
 
 
-/* V13.18.6 - limpieza visual publica */
+/* V13.18.7 - limpieza visual publica */
 .public-ad-zone { display: none !important; }
 
 
-/* V13.18.6 - Contacto funcional y móvil más limpio */
+/* V13.18.7 - Contacto funcional y móvil más limpio */
 .contact-page-shell {
   gap: 1.1rem;
 }
@@ -12099,7 +12099,7 @@ body.dark .public-page,
 }
 
 
-/* V13.18.6 - Limpieza de textos visibles y estado discreto */
+/* V13.18.7 - Limpieza de textos visibles y estado discreto */
 .section-view-status {
   margin-top: 1rem;
   padding: 0.75rem;
