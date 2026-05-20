@@ -8,7 +8,7 @@
 <meta content="#2563eb" name="theme-color"/>
 <meta content="ca-pub-4358472434423818" name="google-adsense-account"/>
 <title>App | Cuenta Clara</title>
-<link href="styles.css?v=13.18.9" rel="stylesheet"/>
+<link href="styles.css?v=13.19" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="favicon.ico" rel="icon" sizes="any" />
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml" />
@@ -43,6 +43,29 @@
 </div>
 </div>
 </header>
+
+<section aria-modal="true" aria-labelledby="accountWizardTitle" class="account-wizard-shell hidden" id="accountWizard" role="dialog">
+  <div class="account-wizard-backdrop" data-wizard-cancel="true"></div>
+  <div class="account-wizard-panel">
+    <header class="account-wizard-header">
+      <div>
+        <p class="eyebrow" id="accountWizardEyebrow">Crear cuenta</p>
+        <h1 id="accountWizardTitle">Nueva cuenta guiada</h1>
+        <p id="accountWizardSubtitle">Avanza paso a paso. Puedes cancelar cuando quieras.</p>
+      </div>
+      <button aria-label="Cancelar creación" class="account-wizard-close" id="accountWizardCloseButton" type="button">×</button>
+    </header>
+    <div aria-label="Progreso de creación" class="account-wizard-progress" id="accountWizardProgress"></div>
+    <div class="account-wizard-body" id="accountWizardBody"></div>
+    <footer class="account-wizard-footer">
+      <button class="btn btn-light" id="accountWizardCancelButton" type="button">Cancelar</button>
+      <div class="account-wizard-footer-actions">
+        <button class="btn btn-light" id="accountWizardBackButton" type="button">Atrás</button>
+        <button class="btn btn-primary" id="accountWizardNextButton" type="button">Continuar</button>
+      </div>
+    </footer>
+  </div>
+</section>
 <main class="container app-layout sectioned-layout"><aside aria-label="Navegación principal de Cuenta Clara" class="section-nav"><section class="card section-nav-card"><div class="section-nav-title"><p class="eyebrow">Menú</p><h2>Pasos principales</h2><p>Crea, revisa y comparte.</p></div><nav aria-label="Secciones de la app" class="section-nav-list"><button class="section-nav-button is-active" data-app-section="home" type="button"><strong>Inicio</strong><span>Estado y acciones</span></button><button class="section-nav-button" data-app-section="people" type="button"><strong>Personas</strong><span>Quiénes participan</span></button><button class="section-nav-button" data-app-section="expenses" type="button"><strong>Gastos</strong><span>Qué se pagó</span></button><button class="section-nav-button" data-app-section="summary" type="button"><strong>Resumen</strong><span>Revisar cuenta</span></button><button class="section-nav-button" data-app-section="payments" type="button"><strong>Pagos</strong><span>Cobrar y compartir</span></button><button class="section-nav-button" data-app-section="tools" type="button"><strong>Herramientas</strong><span>Opciones avanzadas</span></button><button class="section-nav-button" data-app-section="history" type="button"><strong>Historial</strong><span>Cuentas guardadas</span></button><button class="section-nav-button" data-app-section="recurring" type="button"><strong>Hogar</strong><span>Mensualidades</span></button><button class="section-nav-button" data-app-section="shared" type="button"><strong>Compartidas</strong><span>Acceso y permisos</span></button></nav><div aria-live="polite" class="section-view-status" id="sectionViewStatus"><span class="view-status-pill" id="viewModeLabel">Vista simple</span><small id="viewModeHelp">Herramientas avanzadas disponibles.</small><div class="view-status-actions"><button class="btn btn-light btn-small" id="toggleAdvancedToolsButton" type="button">Ver herramientas avanzadas</button><button class="btn btn-light btn-small" id="restoreRecommendedViewButton" type="button">Restaurar vista recomendada</button></div></div></section></aside><section class="workspace section-workspace"><div aria-live="polite" class="mobile-screen-header" id="mobileScreenHeader"><div><p class="eyebrow" id="mobileScreenEyebrow">Cuenta Clara</p><strong id="mobileScreenTitle">Inicio</strong></div><div class="mobile-screen-actions"><button class="btn btn-light btn-small" id="mobileHomeButton" type="button">Inicio</button><button class="btn btn-light btn-small" id="mobileBackButton" type="button">Atrás</button></div></div><section class="current-list-indicator card" id="currentListIndicator">
 <div>
 <p class="eyebrow">Cuenta actual</p>
@@ -1364,8 +1387,8 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="shared-utils.js?v=13.18.9"></script>
-<script src="supabase-config.js?v=13.18.9"></script>
-<script src="script.js?v=13.18.9"></script>
+<script src="shared-utils.js?v=13.19"></script>
+<script src="supabase-config.js?v=13.19"></script>
+<script src="script.js?v=13.19"></script>
 </body>
 </html>

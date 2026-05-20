@@ -1,0 +1,13 @@
+CUENTA CLARA V13.19 - ASISTENTE GUIADO PARA NUEVA CUENTA
+
+Cambios principales:
+1. El botón Nueva cuenta abre un asistente enfocado en celular y escritorio.
+2. Durante la creación se oculta la navegación normal y se muestran solo pasos, Atrás, Continuar y Cancelar.
+3. Pasos incorporados: Tipo, Nombre, Personas, Gastos y Revisar.
+4. Se puede agregar persona manual, agregarse como Yo y agregar amigos desde el asistente.
+5. Los amigos registrados mantienen el flujo de solicitud compartida existente.
+6. En Gastos se puede agregar total rápido o gastos simples con consumidores.
+7. Cancelar elimina el borrador creado durante el asistente.
+8. Finalizar abre el Resumen de la cuenta creada.
+
+No requiere SQL nuevo ni dependencias nuevas.

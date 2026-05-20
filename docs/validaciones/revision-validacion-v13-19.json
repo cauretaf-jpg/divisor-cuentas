@@ -1,0 +1,16 @@
+{
+  "version": "13.19",
+  "objetivo": "Asistente guiado para nueva cuenta",
+  "validaciones": {
+    "script": "OK",
+    "profile": "OK",
+    "sharedUtils": "OK",
+    "serviceWorker": "OK",
+    "appHtmlIdsDuplicados": false,
+    "perfilHtmlIdsDuplicados": false,
+    "cssLlavesBalanceadas": true,
+    "serviceWorkerCache": "cuenta-clara-v13.19",
+    "requiereSqlNuevo": false,
+    "dependenciasNuevas": false
+  }
+}

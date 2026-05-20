@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.18.9 cargada');
-const APP_VERSION = '13.18.9';
+console.info('Cuenta Clara V13.19 cargada');
+const APP_VERSION = '13.19';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -32,6 +32,7 @@ let sharedUiBusy = false;
 const THEME_KEY = 'cuenta-clara-theme';
 let selectedTemplateKey = 'restaurant';
 let templateSelectionTouched = false;
+let accountWizardState = null;
 
 const CATEGORIES = [
   'Comida',
@@ -72,6 +73,16 @@ const dom = {
   authStatusBadge: document.querySelector('#authStatusBadge'),
   syncStatusBadge: document.querySelector('#syncStatusBadge'),
   newBillButton: document.querySelector('#newBillButton'),
+  accountWizard: document.querySelector('#accountWizard'),
+  accountWizardEyebrow: document.querySelector('#accountWizardEyebrow'),
+  accountWizardTitle: document.querySelector('#accountWizardTitle'),
+  accountWizardSubtitle: document.querySelector('#accountWizardSubtitle'),
+  accountWizardProgress: document.querySelector('#accountWizardProgress'),
+  accountWizardBody: document.querySelector('#accountWizardBody'),
+  accountWizardCancelButton: document.querySelector('#accountWizardCancelButton'),
+  accountWizardCloseButton: document.querySelector('#accountWizardCloseButton'),
+  accountWizardBackButton: document.querySelector('#accountWizardBackButton'),
+  accountWizardNextButton: document.querySelector('#accountWizardNextButton'),
   duplicateBillButton: document.querySelector('#duplicateBillButton'),
   archiveBillButton: document.querySelector('#archiveBillButton'),
   closeBillButton: document.querySelector('#closeBillButton'),
@@ -4392,7 +4403,23 @@ function setAppSection(section, options = {}) {
     panel.classList.toggle('is-active', panel.dataset.appSectionPanel === nextSection);
   });
 
-  dom.sectionNavButtons?.forEach((button) => {
+  
+dom.accountWizardCancelButton?.addEventListener('click', cancelAccountWizard);
+dom.accountWizardCloseButton?.addEventListener('click', cancelAccountWizard);
+dom.accountWizardBackButton?.addEventListener('click', accountWizardBack);
+dom.accountWizardNextButton?.addEventListener('click', accountWizardNext);
+dom.accountWizard?.addEventListener('click', (event) => {
+  if (event.target?.dataset?.wizardCancel === 'true') {
+    cancelAccountWizard();
+  }
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && accountWizardState) {
+    cancelAccountWizard();
+  }
+});
+
+dom.sectionNavButtons?.forEach((button) => {
     button.classList.toggle('is-active', button.dataset.appSection === nextSection);
   });
 
@@ -5093,12 +5120,7 @@ function continueActiveBillFromHome() {
 }
 
 function focusGuidedNewBillChoices() {
-  setAppSection('tools', { scroll: false });
-  const target = dom.guidedStartCard || document.querySelector('#guidedStartCard');
-  requestAnimationFrame(() => {
-    target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  showToast('Elige el tipo de cuenta para crearla paso a paso.');
+  openAccountWizard();
 }
 
 function getGuidedBillName(mode) {
@@ -5570,6 +5592,636 @@ function createGuidedBill(mode) {
       ? 'Cuenta creada. Agrega personas y elige pagador principal en Personas.'
       : 'Cuenta creada. Agrega personas, elige pagador principal y luego revisa propina en Gastos.'
   );
+}
+
+
+const ACCOUNT_WIZARD_STEPS = [
+  { key: 'type', label: 'Tipo' },
+  { key: 'name', label: 'Nombre' },
+  { key: 'people', label: 'Personas' },
+  { key: 'expenses', label: 'Gastos' },
+  { key: 'review', label: 'Revisar' },
+];
+
+function getAccountWizardTemplateKey() {
+  return accountWizardState?.templateKey && BILL_TEMPLATES[accountWizardState.templateKey]
+    ? accountWizardState.templateKey
+    : 'restaurant';
+}
+
+function getAccountWizardTemplate() {
+  return BILL_TEMPLATES[getAccountWizardTemplateKey()] || BILL_TEMPLATES.restaurant;
+}
+
+function getAccountWizardDefaultName(templateKey = getAccountWizardTemplateKey()) {
+  const template = BILL_TEMPLATES[templateKey] || BILL_TEMPLATES.restaurant;
+  return typeof template.name === 'function' ? template.name() : 'Nueva cuenta';
+}
+
+function openAccountWizard(templateKey = selectedTemplateKey || 'restaurant') {
+  if (!dom.accountWizard || !dom.accountWizardBody) {
+    createTemplateBill(templateKey);
+    return;
+  }
+
+  accountWizardState = {
+    step: 0,
+    templateKey: BILL_TEMPLATES[templateKey] ? templateKey : 'restaurant',
+    name: getAccountWizardDefaultName(templateKey),
+    draftBillId: '',
+    previousActiveBillId: state?.activeBillId || '',
+    friendsLoaded: false,
+    friends: [],
+  };
+
+  dom.accountWizard.classList.remove('hidden');
+  document.body.classList.add('account-wizard-active');
+  renderAccountWizard();
+
+  requestAnimationFrame(() => {
+    dom.accountWizardNextButton?.focus();
+  });
+}
+
+function closeAccountWizard(options = {}) {
+  if (!accountWizardState) return;
+
+  const shouldRemoveDraft = !options.keepDraft && accountWizardState.draftBillId;
+  if (shouldRemoveDraft && state?.bills?.some((bill) => bill.id === accountWizardState.draftBillId)) {
+    state.bills = state.bills.filter((bill) => bill.id !== accountWizardState.draftBillId);
+    if (accountWizardState.previousActiveBillId && state.bills.some((bill) => bill.id === accountWizardState.previousActiveBillId)) {
+      state.activeBillId = accountWizardState.previousActiveBillId;
+    } else if (state.bills[0]) {
+      state.activeBillId = state.bills[0].id;
+    } else {
+      const bill = makeDefaultBill();
+      state.bills = [bill];
+      state.activeBillId = bill.id;
+    }
+    saveState();
+    render();
+  }
+
+  accountWizardState = null;
+  dom.accountWizard?.classList.add('hidden');
+  document.body.classList.remove('account-wizard-active');
+}
+
+function cancelAccountWizard() {
+  if (!accountWizardState) return;
+  const hasDraft = Boolean(accountWizardState.draftBillId);
+  const hasName = String(accountWizardState.name || '').trim() && accountWizardState.name !== getAccountWizardDefaultName(accountWizardState.templateKey);
+  const confirmed = !hasDraft && !hasName
+    ? true
+    : confirmAction('¿Cancelar creación de cuenta?', 'Los datos ingresados en este asistente se descartarán.');
+
+  if (!confirmed) return;
+  closeAccountWizard({ keepDraft: false });
+  showToast('Creación cancelada.');
+}
+
+function ensureAccountWizardDraft() {
+  if (!accountWizardState) return null;
+
+  let bill = accountWizardState.draftBillId
+    ? state.bills.find((item) => item.id === accountWizardState.draftBillId)
+    : null;
+
+  const isNewDraft = !bill;
+  if (isNewDraft) {
+    bill = makeDefaultBill();
+    state.bills.unshift(bill);
+    accountWizardState.draftBillId = bill.id;
+  }
+
+  const template = getAccountWizardTemplate();
+  if (isNewDraft) {
+    applyTemplateToBill(bill, getAccountWizardTemplateKey(), String(accountWizardState.name || '').trim() || getAccountWizardDefaultName());
+  } else {
+    bill.mode = ['detailed', 'home', 'quick'].includes(template.mode) ? template.mode : 'detailed';
+    bill.tipPercent = Number(template.tipPercent || 0);
+    if (bill.mode === 'home') bill.homeMonth = bill.homeMonth || getCurrentMonthValue();
+    if (bill.mode === 'quick') bill.quickTotal = Number(bill.quickTotal || 0);
+  }
+  bill.name = String(accountWizardState.name || '').trim() || getAccountWizardDefaultName();
+  bill.templateKey = getAccountWizardTemplateKey();
+  bill.templateLabel = template.label;
+  bill.updatedAt = nowIso();
+  state.activeBillId = bill.id;
+  localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
+  saveState();
+  return bill;
+}
+
+function getAccountWizardBill() {
+  if (!accountWizardState?.draftBillId) return null;
+  return state.bills.find((bill) => bill.id === accountWizardState.draftBillId) || null;
+}
+
+function getAccountWizardMissingItems(bill = getAccountWizardBill()) {
+  if (!bill) return ['Elige tipo y nombre para preparar la cuenta.'];
+  const missing = [];
+  const hasPeople = Array.isArray(bill.people) && bill.people.length > 0;
+  const hasProducts = Array.isArray(bill.products) && bill.products.length > 0;
+  const hasQuickTotal = Number(bill.quickTotal || 0) > 0;
+
+  if (!hasPeople) missing.push('Agrega al menos una persona.');
+  if (!bill.payerId && hasPeople) missing.push('Elige quién pagó o pagará.');
+  if (bill.mode === 'quick') {
+    if (!hasQuickTotal) missing.push('Ingresa el total de la cuenta.');
+  } else {
+    if (!hasProducts) missing.push('Agrega al menos un gasto.');
+    const withoutConsumers = (bill.products || []).filter((product) => !Array.isArray(product.consumers) || product.consumers.length === 0);
+    if (withoutConsumers.length > 0) missing.push(`${withoutConsumers.length} gasto${withoutConsumers.length === 1 ? '' : 's'} sin personas asignadas.`);
+  }
+
+  return missing;
+}
+
+function getAccountWizardTitle(step = accountWizardState?.step || 0) {
+  const titles = ['Elige el tipo de cuenta', 'Nombra la cuenta', 'Agrega personas', 'Agrega gastos', 'Revisa antes de terminar'];
+  return titles[step] || titles[0];
+}
+
+function renderAccountWizard() {
+  if (!accountWizardState || !dom.accountWizardBody) return;
+
+  const step = Math.max(0, Math.min(accountWizardState.step, ACCOUNT_WIZARD_STEPS.length - 1));
+  accountWizardState.step = step;
+  const bill = getAccountWizardBill();
+  const template = getAccountWizardTemplate();
+
+  dom.accountWizardEyebrow.textContent = `Paso ${step + 1} de ${ACCOUNT_WIZARD_STEPS.length}`;
+  dom.accountWizardTitle.textContent = getAccountWizardTitle(step);
+  dom.accountWizardSubtitle.textContent = step < 4
+    ? 'Completa solo lo necesario para avanzar.'
+    : 'Confirma que la cuenta esté lista o vuelve al paso que falte.';
+
+  dom.accountWizardProgress.innerHTML = ACCOUNT_WIZARD_STEPS.map((item, index) => `
+    <span class="account-wizard-step ${index === step ? 'is-active' : ''} ${index < step ? 'is-done' : ''}">
+      <b>${index + 1}</b><em>${escapeHtml(item.label)}</em>
+    </span>
+  `).join('');
+
+  if (dom.accountWizardBackButton) {
+    dom.accountWizardBackButton.disabled = step === 0;
+  }
+  if (dom.accountWizardNextButton) {
+    dom.accountWizardNextButton.textContent = step === ACCOUNT_WIZARD_STEPS.length - 1 ? 'Finalizar cuenta' : 'Continuar';
+  }
+
+  if (step === 0) renderAccountWizardTypeStep();
+  if (step === 1) renderAccountWizardNameStep();
+  if (step === 2) renderAccountWizardPeopleStep();
+  if (step === 3) renderAccountWizardExpensesStep();
+  if (step === 4) renderAccountWizardReviewStep();
+
+  if (step >= 2 && !bill) {
+    ensureAccountWizardDraft();
+  }
+
+  if (step === 2 && !accountWizardState.friendsLoaded) {
+    loadAccountWizardFriends();
+  }
+}
+
+function renderAccountWizardTypeStep() {
+  const choices = ['restaurant', 'supermarket', 'streaming', 'home', 'trip', 'quick', 'custom'];
+  dom.accountWizardBody.innerHTML = `
+    <div class="account-wizard-copy">
+      <strong>¿Qué tipo de cuenta quieres crear?</strong>
+      <p>La plantilla solo prepara la cuenta. Después puedes cambiarla.</p>
+    </div>
+    <div class="account-wizard-template-grid">
+      ${choices.map((key) => {
+        const template = BILL_TEMPLATES[key] || BILL_TEMPLATES.custom;
+        return `<button class="account-wizard-choice ${getAccountWizardTemplateKey() === key ? 'is-selected' : ''}" data-wizard-template="${key}" type="button">
+          <strong>${escapeHtml(template.label)}</strong>
+          <span>${escapeHtml(template.description || template.nextHint || 'Cuenta personalizada.')}</span>
+        </button>`;
+      }).join('')}
+    </div>
+  `;
+
+  dom.accountWizardBody.querySelectorAll('[data-wizard-template]').forEach((button) => {
+    button.addEventListener('click', () => {
+      accountWizardState.templateKey = button.dataset.wizardTemplate;
+      accountWizardState.name = getAccountWizardDefaultName(accountWizardState.templateKey);
+      renderAccountWizard();
+    });
+  });
+}
+
+function renderAccountWizardNameStep() {
+  const template = getAccountWizardTemplate();
+  dom.accountWizardBody.innerHTML = `
+    <label class="account-wizard-field">
+      <span>Nombre de la cuenta</span>
+      <input id="accountWizardNameInput" type="text" value="${escapeHtml(accountWizardState.name || '')}" placeholder="Ej: Cumpleaños, Streaming mayo" />
+    </label>
+    <div class="account-wizard-hint">
+      <strong>${escapeHtml(template.label)}</strong>
+      <p>${escapeHtml(template.nextHint || template.description || 'Puedes ajustar los detalles después.')}</p>
+    </div>
+  `;
+
+  const input = dom.accountWizardBody.querySelector('#accountWizardNameInput');
+  input?.addEventListener('input', () => {
+    accountWizardState.name = input.value;
+  });
+  requestAnimationFrame(() => input?.focus());
+}
+
+function renderAccountWizardPeopleStep() {
+  const bill = ensureAccountWizardDraft();
+  const friends = accountWizardState.friends || [];
+  dom.accountWizardBody.innerHTML = `
+    <div class="account-wizard-split">
+      <section class="account-wizard-card-mini">
+        <h3>Agregar persona</h3>
+        <div class="account-wizard-inline-form">
+          <input id="accountWizardPersonName" type="text" placeholder="Nombre" />
+          <input id="accountWizardPersonPhone" type="tel" placeholder="Teléfono opcional" />
+          <button class="btn btn-primary" id="accountWizardAddPerson" type="button">Agregar</button>
+        </div>
+        <div class="account-wizard-inline-actions">
+          <button class="btn btn-light btn-small" id="accountWizardAddMe" type="button">Agregarme como Yo</button>
+        </div>
+      </section>
+      <section class="account-wizard-card-mini">
+        <h3>Desde amigos</h3>
+        <input id="accountWizardFriendSearch" type="search" placeholder="Buscar amigo" />
+        <div class="account-wizard-friend-list" id="accountWizardFriendList">
+          ${friends.length ? renderAccountWizardFriendRows(friends, bill) : '<p class="helper-text">Cargando amigos guardados...</p>'}
+        </div>
+      </section>
+    </div>
+    <section class="account-wizard-card-mini">
+      <h3>Participantes (${bill.people.length})</h3>
+      <div class="account-wizard-chip-list" id="accountWizardPeopleList">
+        ${bill.people.length ? bill.people.map((person) => `<span class="account-wizard-chip"><strong>${escapeHtml(person.name)}</strong><button data-remove-wizard-person="${person.id}" type="button">×</button></span>`).join('') : '<p class="helper-text">Agrega participantes para continuar.</p>'}
+      </div>
+      ${bill.people.length ? `<label class="account-wizard-field compact"><span>Pagador principal</span><select id="accountWizardPayerSelect"><option value="">Elegir después</option>${bill.people.map((person) => `<option value="${person.id}" ${bill.payerId === person.id ? 'selected' : ''}>${escapeHtml(person.name)}</option>`).join('')}</select></label>` : ''}
+    </section>
+  `;
+
+  dom.accountWizardBody.querySelector('#accountWizardAddPerson')?.addEventListener('click', addManualPersonFromAccountWizard);
+  dom.accountWizardBody.querySelector('#accountWizardPersonName')?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') addManualPersonFromAccountWizard();
+  });
+  dom.accountWizardBody.querySelector('#accountWizardAddMe')?.addEventListener('click', addSelfFromAccountWizard);
+  dom.accountWizardBody.querySelector('#accountWizardPayerSelect')?.addEventListener('change', (event) => {
+    bill.payerId = event.target.value;
+    addBillActivity('Pagador principal actualizado desde creación guiada.', 'people', bill);
+    persistAndRender();
+    renderAccountWizard();
+  });
+  dom.accountWizardBody.querySelectorAll('[data-remove-wizard-person]').forEach((button) => {
+    button.addEventListener('click', () => removePersonFromAccountWizard(button.dataset.removeWizardPerson));
+  });
+  dom.accountWizardBody.querySelector('#accountWizardFriendSearch')?.addEventListener('input', renderAccountWizardFriendSearch);
+  dom.accountWizardBody.querySelectorAll('[data-add-wizard-friend]').forEach((button) => {
+    button.addEventListener('click', () => addFriendFromAccountWizard(button.dataset.addWizardFriend));
+  });
+}
+
+function renderAccountWizardFriendRows(friends, bill) {
+  const peopleNames = new Set((bill.people || []).map((person) => String(person.name || '').toLowerCase()));
+  return friends.slice(0, 10).map((friend) => {
+    const already = peopleNames.has(String(friend.name || '').toLowerCase());
+    return `<button class="account-wizard-friend-row ${already ? 'is-disabled' : ''}" data-add-wizard-friend="${escapeHtml(friend.id)}" ${already ? 'disabled' : ''} type="button">
+      <span>${friend.avatarDataUrl ? `<img src="${friend.avatarDataUrl}" alt="" />` : escapeHtml(getInitials(friend.name))}</span>
+      <strong>${escapeHtml(friend.name)}</strong>
+      <small>${friend.source === 'registered' ? 'Usuario registrado' : 'Amigo manual'}${already ? ' · agregado' : ''}</small>
+    </button>`;
+  }).join('') || '<p class="helper-text">No hay amigos guardados.</p>';
+}
+
+async function loadAccountWizardFriends() {
+  if (!accountWizardState) return;
+  accountWizardState.friendsLoaded = true;
+  try {
+    const manualFriends = getFriends().map((friend) => ({ ...friend, source: 'manual', id: friend.id || `manual_${friend.name}` }));
+    const registeredFriends = await fetchRegisteredFriendsForPicker();
+    if (!accountWizardState) return;
+    accountWizardState.friends = [...registeredFriends, ...manualFriends];
+    if (accountWizardState.step === 2) renderAccountWizard();
+  } catch {
+    accountWizardState.friends = getFriends().map((friend) => ({ ...friend, source: 'manual', id: friend.id || `manual_${friend.name}` }));
+    if (accountWizardState.step === 2) renderAccountWizard();
+  }
+}
+
+function renderAccountWizardFriendSearch() {
+  if (!accountWizardState) return;
+  const bill = getAccountWizardBill();
+  const query = normalizeText(dom.accountWizardBody.querySelector('#accountWizardFriendSearch')?.value || '');
+  const list = dom.accountWizardBody.querySelector('#accountWizardFriendList');
+  if (!list || !bill) return;
+  const filtered = (accountWizardState.friends || []).filter((friend) => {
+    if (!query) return true;
+    return [friend.name, friend.email, friend.phone].filter(Boolean).some((value) => normalizeText(value).includes(query));
+  });
+  list.innerHTML = filtered.length ? renderAccountWizardFriendRows(filtered, bill) : '<p class="helper-text">No encontré amigos con esa búsqueda.</p>';
+  list.querySelectorAll('[data-add-wizard-friend]').forEach((button) => {
+    button.addEventListener('click', () => addFriendFromAccountWizard(button.dataset.addWizardFriend));
+  });
+}
+
+function addManualPersonFromAccountWizard() {
+  const bill = ensureAccountWizardDraft();
+  const nameInput = dom.accountWizardBody.querySelector('#accountWizardPersonName');
+  const phoneInput = dom.accountWizardBody.querySelector('#accountWizardPersonPhone');
+  const cleanName = String(nameInput?.value || '').trim();
+  if (!cleanName) {
+    showToast('Ingresa un nombre.');
+    return;
+  }
+  if (bill.people.some((person) => person.name.toLowerCase() === cleanName.toLowerCase())) {
+    showToast('Esa persona ya está en la cuenta.');
+    return;
+  }
+  bill.people.push({
+    id: createId('person'),
+    name: cleanName,
+    phone: normalizePhoneNumber(phoneInput?.value || ''),
+    email: '',
+    userId: '',
+    previousDebt: 0,
+    paid: false,
+  });
+  if (!bill.payerId) bill.payerId = bill.people[0].id;
+  addBillActivity(`${cleanName} fue agregado desde creación guiada.`, 'people', bill);
+  persistAndRender();
+  renderAccountWizard();
+}
+
+function addSelfFromAccountWizard() {
+  const self = getSelfParticipantInfo();
+  if (!self) {
+    showToast('Inicia sesión para agregarte como Yo.');
+    return;
+  }
+  const bill = ensureAccountWizardDraft();
+  if (bill.people.some((person) => person.userId === self.userId || person.name.toLowerCase() === self.name.toLowerCase())) {
+    showToast('Ya estás en esta cuenta.');
+    return;
+  }
+  bill.people.push({
+    id: createId('person'),
+    name: self.name,
+    phone: normalizePhoneNumber(self.phone || ''),
+    email: normalizeEmail(self.email || ''),
+    userId: self.userId,
+    previousDebt: 0,
+    paid: false,
+  });
+  if (!bill.payerId) bill.payerId = bill.people[0].id;
+  addBillActivity(`${self.name} fue agregado como Yo.`, 'people', bill);
+  persistAndRender();
+  renderAccountWizard();
+}
+
+async function addFriendFromAccountWizard(friendId) {
+  const bill = ensureAccountWizardDraft();
+  const friend = (accountWizardState?.friends || []).find((item) => String(item.id) === String(friendId));
+  if (!friend) return;
+  if (bill.people.some((person) => person.name.toLowerCase() === friend.name.toLowerCase())) {
+    showToast('Ese amigo ya está en la cuenta.');
+    return;
+  }
+  const person = {
+    id: createId('person'),
+    name: friend.name,
+    phone: normalizePhoneNumber(friend.phone || ''),
+    email: normalizeEmail(friend.email || ''),
+    userId: friend.userId || '',
+    previousDebt: 0,
+    paid: false,
+  };
+  bill.people.push(person);
+  if (!bill.payerId) bill.payerId = bill.people[0].id;
+  addBillActivity(`${friend.name} fue agregado desde amigos.`, 'people', bill);
+  persistAndRender();
+  if (person.userId) {
+    inviteRegisteredPeopleToActiveAccount([person], { role: getSharedInviteRoleValue(), silent: true }).catch(() => {});
+  }
+  renderAccountWizard();
+}
+
+function removePersonFromAccountWizard(personId) {
+  const bill = ensureAccountWizardDraft();
+  bill.people = bill.people.filter((person) => person.id !== personId);
+  bill.products = bill.products.map((product) => ({
+    ...product,
+    consumers: (product.consumers || []).filter((consumer) => consumer.personId !== personId),
+  }));
+  if (bill.payerId === personId) bill.payerId = bill.people[0]?.id || '';
+  addBillActivity('Participante quitado durante la creación guiada.', 'people', bill);
+  persistAndRender();
+  renderAccountWizard();
+}
+
+function renderAccountWizardExpensesStep() {
+  const bill = ensureAccountWizardDraft();
+  const peopleOptions = (bill.people || []).map((person) => `<label><input type="checkbox" value="${person.id}" checked /> ${escapeHtml(person.name)}</label>`).join('');
+  const productsHtml = (bill.products || []).map((product) => `<li><strong>${escapeHtml(product.name)}</strong><span>${formatCurrency(Number(product.unitPrice || 0) * Number(product.quantity || 1))}</span><button data-remove-wizard-product="${product.id}" type="button">×</button></li>`).join('');
+
+  dom.accountWizardBody.innerHTML = `
+    ${bill.mode === 'quick' ? `
+      <section class="account-wizard-card-mini">
+        <h3>Total de la cuenta</h3>
+        <label class="account-wizard-field"><span>Monto total</span><input id="accountWizardQuickTotal" type="number" min="0" step="100" value="${Number(bill.quickTotal || 0) || ''}" placeholder="Ej: 25000" /></label>
+        <p class="helper-text">Se dividirá entre las personas agregadas.</p>
+      </section>
+    ` : `
+      <section class="account-wizard-card-mini">
+        <h3>Agregar gasto</h3>
+        <div class="account-wizard-expense-grid">
+          <input id="accountWizardProductName" type="text" placeholder="Ej: Pizza, Luz, Netflix" />
+          <input id="accountWizardProductAmount" type="number" min="0" step="100" placeholder="Monto" />
+          <select id="accountWizardProductCategory">${CATEGORIES.map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join('')}</select>
+          <button class="btn btn-primary" id="accountWizardAddProduct" type="button">Agregar</button>
+        </div>
+        <div class="account-wizard-consumers"><strong>Lo comparten</strong>${peopleOptions || '<p class="helper-text">Agrega personas en el paso anterior.</p>'}</div>
+      </section>
+    `}
+    <section class="account-wizard-card-mini">
+      <h3>Gastos agregados</h3>
+      ${bill.mode === 'quick' ? `<p class="account-wizard-total-preview">Total actual: <strong>${formatCurrency(Number(bill.quickTotal || 0))}</strong></p>` : `<ul class="account-wizard-product-list">${productsHtml || '<li class="is-empty">Aún no hay gastos.</li>'}</ul>`}
+      <div class="account-wizard-inline-actions"><button class="btn btn-light btn-small" id="accountWizardOpenFullExpenses" type="button">Editar con más detalle después</button></div>
+    </section>
+  `;
+
+  dom.accountWizardBody.querySelector('#accountWizardQuickTotal')?.addEventListener('input', (event) => {
+    bill.quickTotal = Math.max(0, Number(event.target.value || 0));
+    addBillActivity('Total rápido actualizado desde creación guiada.', 'expense', bill);
+    persistAndRender();
+  });
+  dom.accountWizardBody.querySelector('#accountWizardAddProduct')?.addEventListener('click', addProductFromAccountWizard);
+  dom.accountWizardBody.querySelector('#accountWizardProductName')?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') addProductFromAccountWizard();
+  });
+  dom.accountWizardBody.querySelectorAll('[data-remove-wizard-product]').forEach((button) => {
+    button.addEventListener('click', () => removeProductFromAccountWizard(button.dataset.removeWizardProduct));
+  });
+  dom.accountWizardBody.querySelector('#accountWizardOpenFullExpenses')?.addEventListener('click', () => {
+    finishAccountWizard('expenses');
+  });
+}
+
+function addProductFromAccountWizard() {
+  const bill = ensureAccountWizardDraft();
+  const nameInput = dom.accountWizardBody.querySelector('#accountWizardProductName');
+  const amountInput = dom.accountWizardBody.querySelector('#accountWizardProductAmount');
+  const categoryInput = dom.accountWizardBody.querySelector('#accountWizardProductCategory');
+  const name = String(nameInput?.value || '').trim();
+  const amount = Number(amountInput?.value || 0);
+  const consumers = [...dom.accountWizardBody.querySelectorAll('.account-wizard-consumers input[type="checkbox"]:checked')]
+    .map((input) => ({ personId: input.value, share: 1 }));
+
+  if (!name) {
+    showToast('Ingresa el nombre del gasto.');
+    return;
+  }
+  if (!Number.isFinite(amount) || amount <= 0) {
+    showToast('Ingresa un monto mayor a cero.');
+    return;
+  }
+  if (consumers.length === 0) {
+    showToast('Selecciona quiénes comparten este gasto.');
+    return;
+  }
+
+  bill.products.push({
+    id: createId('product'),
+    name,
+    unitPrice: amount,
+    quantity: 1,
+    category: CATEGORIES.includes(categoryInput?.value) ? categoryInput.value : 'Otros',
+    splitMode: 'participants',
+    dueDate: '',
+    recurring: bill.mode === 'home',
+    consumers,
+  });
+  addBillActivity(`${name} fue agregado desde creación guiada.`, 'expense', bill);
+  persistAndRender();
+  renderAccountWizard();
+}
+
+function removeProductFromAccountWizard(productId) {
+  const bill = ensureAccountWizardDraft();
+  bill.products = bill.products.filter((product) => product.id !== productId);
+  addBillActivity('Gasto quitado durante la creación guiada.', 'expense', bill);
+  persistAndRender();
+  renderAccountWizard();
+}
+
+function renderAccountWizardReviewStep() {
+  const bill = ensureAccountWizardDraft();
+  const missing = getAccountWizardMissingItems(bill);
+  const total = getBillGrandTotal(bill);
+  dom.accountWizardBody.innerHTML = `
+    <section class="account-wizard-review-card ${missing.length ? 'has-missing' : 'is-ready'}">
+      <span>${missing.length ? 'Faltan detalles' : 'Cuenta lista'}</span>
+      <strong>${escapeHtml(bill.name)}</strong>
+      <p>${bill.people.length} persona${bill.people.length === 1 ? '' : 's'} · ${bill.mode === 'quick' ? 'total rápido' : `${bill.products.length} gasto${bill.products.length === 1 ? '' : 's'}`} · ${formatCurrency(total)}</p>
+    </section>
+    <div class="account-wizard-review-grid">
+      <div><span>Tipo</span><strong>${escapeHtml(bill.templateLabel || getBillModeLabel(bill.mode))}</strong></div>
+      <div><span>Pagador</span><strong>${escapeHtml((bill.people || []).find((person) => person.id === bill.payerId)?.name || 'Pendiente')}</strong></div>
+      <div><span>Total</span><strong>${formatCurrency(total)}</strong></div>
+    </div>
+    <section class="account-wizard-card-mini">
+      <h3>${missing.length ? 'Para terminar falta' : 'Todo listo'}</h3>
+      <ul class="account-wizard-missing-list">
+        ${missing.length ? missing.map((item) => `<li>${escapeHtml(item)}</li>`).join('') : '<li>Ya puedes finalizar y compartir el resumen.</li>'}
+      </ul>
+      <div class="account-wizard-inline-actions">
+        <button class="btn btn-light btn-small" data-wizard-jump="2" type="button">Editar personas</button>
+        <button class="btn btn-light btn-small" data-wizard-jump="3" type="button">Editar gastos</button>
+      </div>
+    </section>
+  `;
+  dom.accountWizardBody.querySelectorAll('[data-wizard-jump]').forEach((button) => {
+    button.addEventListener('click', () => {
+      accountWizardState.step = Number(button.dataset.wizardJump || 0);
+      renderAccountWizard();
+    });
+  });
+}
+
+function getBillGrandTotal(bill) {
+  if (!bill) return 0;
+  if (bill.mode === 'quick') return Number(bill.quickTotal || 0);
+  const subtotal = (bill.products || []).reduce((sum, product) => sum + Number(product.unitPrice || 0) * Number(product.quantity || 1), 0);
+  const tip = bill.mode === 'home' ? 0 : subtotal * (Number(bill.tipPercent || 0) / 100);
+  return subtotal + tip;
+}
+
+function accountWizardNext() {
+  if (!accountWizardState) return;
+  const step = accountWizardState.step;
+
+  if (step === 0) {
+    accountWizardState.name = getAccountWizardDefaultName(accountWizardState.templateKey);
+  }
+
+  if (step === 1) {
+    const input = dom.accountWizardBody.querySelector('#accountWizardNameInput');
+    const cleanName = String(input?.value || accountWizardState.name || '').trim();
+    if (!cleanName) {
+      showToast('Ingresa un nombre para la cuenta.');
+      return;
+    }
+    accountWizardState.name = cleanName;
+    ensureAccountWizardDraft();
+  }
+
+  if (step === 2) {
+    const bill = ensureAccountWizardDraft();
+    if (!bill.people.length) {
+      showToast('Agrega al menos una persona para continuar.');
+      return;
+    }
+  }
+
+  if (step === 3) {
+    const bill = ensureAccountWizardDraft();
+    if (bill.mode === 'quick' && Number(bill.quickTotal || 0) <= 0) {
+      showToast('Ingresa el total de la cuenta.');
+      return;
+    }
+    if (bill.mode !== 'quick' && !bill.products.length) {
+      showToast('Agrega al menos un gasto.');
+      return;
+    }
+  }
+
+  if (step >= ACCOUNT_WIZARD_STEPS.length - 1) {
+    finishAccountWizard('summary');
+    return;
+  }
+
+  accountWizardState.step += 1;
+  renderAccountWizard();
+}
+
+function accountWizardBack() {
+  if (!accountWizardState || accountWizardState.step <= 0) return;
+  accountWizardState.step -= 1;
+  renderAccountWizard();
+}
+
+function finishAccountWizard(section = 'summary') {
+  const bill = ensureAccountWizardDraft();
+  addBillActivity('Cuenta creada con asistente guiado.', 'status', bill);
+  saveState();
+  render();
+  const targetSection = normalizeAppSection(section);
+  closeAccountWizard({ keepDraft: true });
+  setAppSection(targetSection, { scroll: false, instant: true });
+  showToast('Cuenta creada. Sigue editando o comparte el resumen.');
 }
 
 function createExampleBill() {
