@@ -1,0 +1,17 @@
+{
+  "version": "13.19.1",
+  "objetivo": "Pulido del asistente guiado para Nueva cuenta",
+  "validaciones": {
+    "scriptJs": "OK",
+    "profileJs": "OK",
+    "sharedUtilsJs": "OK",
+    "serviceWorkerJs": "OK",
+    "indexHtmlIdsDuplicados": "OK",
+    "appHtmlIdsDuplicados": "OK",
+    "perfilHtmlIdsDuplicados": "OK",
+    "contactoHtmlIdsDuplicados": "OK",
+    "cssLlavesBalanceadas": "OK"
+  },
+  "requiereSqlNuevo": false,
+  "dependenciasNuevas": false
+}

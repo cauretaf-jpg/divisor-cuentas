@@ -11301,7 +11301,7 @@ body.advanced-mode .view-status-pill {
   }
 }
 
-/* V13.19 - Estado de la app y avisos */
+/* V13.19.1.1 - Estado de la app y avisos */
 .connection-status-panel {
   display: grid;
   gap: 0.9rem;
@@ -11395,7 +11395,7 @@ body.dark-mode .connection-status-item,
 }
 
 
-/* V13.19 - Sitio publico, landing y limpieza visual */
+/* V13.19.1.1 - Sitio publico, landing y limpieza visual */
 :root {
   --cc-primary: #2563eb;
   --cc-primary-strong: #1d4ed8;
@@ -11799,17 +11799,17 @@ body.dark .public-page,
   .app-legal-footer { padding-bottom: 6.5rem; }
 }
 
-/* V13.19 - Footer interno ocupa toda la grilla de la app */
+/* V13.19.1.1 - Footer interno ocupa toda la grilla de la app */
 .app-layout > .app-legal-footer {
   grid-column: 1 / -1;
 }
 
 
-/* V13.19 - limpieza visual publica */
+/* V13.19.1.1 - limpieza visual publica */
 .public-ad-zone { display: none !important; }
 
 
-/* V13.19 - Contacto funcional y móvil más limpio */
+/* V13.19.1.1 - Contacto funcional y móvil más limpio */
 .contact-page-shell {
   gap: 1.1rem;
 }
@@ -12099,7 +12099,7 @@ body.dark .public-page,
 }
 
 
-/* V13.19 - Limpieza de textos visibles y estado discreto */
+/* V13.19.1.1 - Limpieza de textos visibles y estado discreto */
 .section-view-status {
   margin-top: 1rem;
   padding: 0.75rem;
@@ -12144,7 +12144,7 @@ body.dark .public-page,
   }
 }
 
-/* V13.19 - pulido final sitio público y textos visibles */
+/* V13.19.1.1 - pulido final sitio público y textos visibles */
 .public-page {
   background:
     radial-gradient(circle at 8% 4%, rgba(37, 99, 235, 0.10), transparent 24rem),
@@ -12373,7 +12373,7 @@ body.dark .public-page,
 }
 
 
-/* V13.19 - ajuste móvil app y menú inferior */
+/* V13.19.1.1 - ajuste móvil app y menú inferior */
 body[data-active-section="people"] .mobile-bottom-nav-button[data-app-section="people"],
 body[data-active-section="expenses"] .mobile-bottom-nav-button[data-app-section="expenses"],
 body[data-active-section="summary"] .mobile-bottom-nav-button[data-app-section="summary"],
@@ -12466,7 +12466,7 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
   }
 }
 
-/* V13.19 - pulido móvil del sitio público */
+/* V13.19.1.1 - pulido móvil del sitio público */
 @media (max-width: 720px) {
   body.public-page {
     overflow-x: hidden;
@@ -12654,7 +12654,7 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
 }
 
 
-/* V13.19 - Asistente guiado para nueva cuenta */
+/* V13.19.1.1 - Asistente guiado para nueva cuenta */
 body.account-wizard-active {
   overflow: hidden;
 }
@@ -13167,5 +13167,175 @@ body.account-wizard-active .app-footer {
   .account-wizard-footer-actions {
     display: grid;
     grid-template-columns: 0.9fr 1.1fr;
+  }
+}
+
+/* V13.19.1 - Pulido del asistente guiado */
+.account-wizard-progress {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.account-wizard-meter {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.22);
+}
+
+.account-wizard-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--primary-color, #2563eb), #38bdf8);
+  transition: width 0.2s ease;
+}
+
+.account-wizard-step-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.account-wizard-copy.compact {
+  margin-bottom: 12px;
+}
+
+.account-wizard-expense-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.account-wizard-expense-option {
+  min-height: 82px;
+  padding: 14px;
+  border: 1px solid var(--border-color, rgba(148, 163, 184, 0.25));
+  border-radius: 20px;
+  background: var(--surface-color, #fff);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.account-wizard-expense-option strong,
+.account-wizard-expense-option span {
+  display: block;
+}
+
+.account-wizard-expense-option span {
+  margin-top: 4px;
+  color: var(--muted-color, #64748b);
+  font-size: 0.88rem;
+}
+
+.account-wizard-expense-option:hover,
+.account-wizard-expense-option.is-selected {
+  border-color: rgba(37, 99, 235, 0.5);
+  box-shadow: 0 14px 32px rgba(37, 99, 235, 0.1);
+  transform: translateY(-1px);
+}
+
+.account-wizard-warning {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 10px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  border-radius: 18px;
+  background: rgba(245, 158, 11, 0.1);
+  color: #92400e;
+}
+
+.account-wizard-warning strong,
+.account-wizard-warning span {
+  display: block;
+}
+
+.account-wizard-warning span {
+  font-size: 0.9rem;
+}
+
+.account-wizard-warning .btn {
+  grid-row: span 2;
+}
+
+.account-wizard-check-list {
+  display: grid;
+  gap: 10px;
+}
+
+.account-wizard-check {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--border-color, rgba(148, 163, 184, 0.22));
+  border-radius: 16px;
+  background: var(--soft-bg, #f8fafc);
+}
+
+.account-wizard-check > span {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  font-weight: 900;
+}
+
+.account-wizard-check strong,
+.account-wizard-check small {
+  display: block;
+}
+
+.account-wizard-check small {
+  margin-top: 2px;
+  color: var(--muted-color, #64748b);
+  line-height: 1.35;
+}
+
+.account-wizard-check.is-ok > span {
+  background: rgba(22, 163, 74, 0.12);
+  color: #15803d;
+}
+
+.account-wizard-check.is-warn > span {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.account-wizard-check.is-error > span {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+}
+
+@media (max-width: 860px) {
+  .account-wizard-step-row {
+    grid-template-columns: repeat(5, minmax(86px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .account-wizard-expense-options,
+  .account-wizard-check,
+  .account-wizard-warning {
+    grid-template-columns: 1fr;
+  }
+
+  .account-wizard-check > span {
+    width: 28px;
+    height: 28px;
+  }
+
+  .account-wizard-check .btn,
+  .account-wizard-warning .btn {
+    width: 100%;
   }
 }

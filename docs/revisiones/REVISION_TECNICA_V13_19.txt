@@ -1,4 +1,4 @@
-CUENTA CLARA V13.19 - ASISTENTE GUIADO PARA NUEVA CUENTA
+CUENTA CLARA V13.19.1.1 - ASISTENTE GUIADO PARA NUEVA CUENTA
 
 Cambios principales:
 1. El botón Nueva cuenta abre un asistente enfocado en celular y escritorio.

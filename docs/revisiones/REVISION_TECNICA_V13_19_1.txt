@@ -1,0 +1,25 @@
+CUENTA CLARA V13.19.1 - PULIDO DEL ASISTENTE GUIADO
+
+Objetivo:
+- Ajustar el asistente de Nueva cuenta antes de agregar funciones grandes.
+- Reducir dudas en usuarios nuevos con validaciones, progreso claro y revisión tipo semáforo.
+
+Cambios principales:
+- Barra de progreso más clara en el asistente.
+- Validación mínima de 2 personas antes de pasar a Gastos.
+- Validación de gastos y consumidores antes de avanzar.
+- Revisión final tipo semáforo con acciones Corregir.
+- Paso Gastos más simple: Total rápido o Gastos detallados.
+- Opción de guardar como borrador al cancelar el asistente.
+- Ajustes visuales del asistente en celular y escritorio.
+
+No se modifica:
+- Landing pública.
+- Cuentas compartidas.
+- Perfil financiero.
+- OCR/lectura de boletas fuera del flujo guiado.
+- Notificaciones internas o push.
+- Base de datos/Supabase.
+
+Requiere SQL nuevo: no.
+Dependencias nuevas: no.

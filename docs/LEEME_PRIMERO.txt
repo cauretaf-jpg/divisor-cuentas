@@ -1,4 +1,4 @@
-CUENTA CLARA V13.19 - SITIO PUBLICO Y APP SEPARADA
+CUENTA CLARA V13.19.1.1 - SITIO PUBLICO Y APP SEPARADA
 
 CAMBIO PRINCIPAL
 - index.html: landing publica.
@@ -15,21 +15,21 @@ PAGINAS NUEVAS
 IMPORTANTE
 - No requiere SQL nuevo.
 - No agrega dependencias nuevas.
-- El service worker queda en cuenta-clara-v13.19.
+- El service worker queda en cuenta-clara-v13.19.1.1.
 
 
-AJUSTE V13.19
+AJUSTE V13.19.1.1
 - Se limpio informacion visible sobre anuncios.
 - ads.txt se mantiene en raiz, pero no se muestra como opcion para usuarios.
 - No requiere SQL nuevo.
 
-AJUSTE V13.19 - LIMPIEZA TECNICA VISIBLE
+AJUSTE V13.19.1.1 - LIMPIEZA TECNICA VISIBLE
 - Se quitaron mensajes visibles sobre configuración interna de notificaciones.
 - Se reemplazó Diagnóstico por Estado en textos visibles de la app.
 - Se agregó .vercelignore para que carpetas internas no se publiquen en Vercel.
 
 
-AJUSTE V13.19 - CONTACTO FUNCIONAL
+AJUSTE V13.19.1.1 - CONTACTO FUNCIONAL
 - Página Contacto con formulario validado.
 - Botón Enviar por correo mediante mailto.
 - Botón Copiar mensaje como respaldo.
@@ -37,7 +37,13 @@ AJUSTE V13.19 - CONTACTO FUNCIONAL
 - No requiere SQL nuevo.
 
 
-AJUSTE V13.19 - ASISTENTE GUIADO
+AJUSTE V13.19.1.1 - ASISTENTE GUIADO
 - Nueva cuenta abre un flujo enfocado con pasos y navegación mínima.
 - Funciona en celular y escritorio.
+- No requiere SQL nuevo.
+
+AJUSTE V13.19.1 - PULIDO DEL ASISTENTE GUIADO
+- El asistente de Nueva cuenta ahora guía mejor cada paso.
+- La revisión final muestra estados claros y botones para corregir.
+- Se puede guardar borrador al cancelar.
 - No requiere SQL nuevo.

@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.19 cargada');
-const APP_VERSION = '13.19';
+console.info('Cuenta Clara V13.19.1.1 cargada');
+const APP_VERSION = '13.19.1';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -5671,13 +5671,40 @@ function cancelAccountWizard() {
   if (!accountWizardState) return;
   const hasDraft = Boolean(accountWizardState.draftBillId);
   const hasName = String(accountWizardState.name || '').trim() && accountWizardState.name !== getAccountWizardDefaultName(accountWizardState.templateKey);
-  const confirmed = !hasDraft && !hasName
-    ? true
-    : confirmAction('¿Cancelar creación de cuenta?', 'Los datos ingresados en este asistente se descartarán.');
 
-  if (!confirmed) return;
-  closeAccountWizard({ keepDraft: false });
-  showToast('Creación cancelada.');
+  if (!hasDraft && !hasName) {
+    closeAccountWizard({ keepDraft: false });
+    showToast('Creación cancelada.');
+    return;
+  }
+
+  const choice = prompt(
+    '¿Qué quieres hacer con esta cuenta?\n\n1. Seguir creando\n2. Guardar como borrador\n3. Cancelar y eliminar',
+    '1'
+  );
+
+  if (choice === null || choice.trim() === '' || choice.trim() === '1') return;
+
+  if (choice.trim() === '2') {
+    const bill = ensureAccountWizardDraft();
+    if (bill) {
+      addBillActivity('Cuenta guardada como borrador desde el asistente.', 'status', bill);
+      saveState();
+    }
+    closeAccountWizard({ keepDraft: true });
+    render();
+    setAppSection('home', { scroll: false, instant: true });
+    showToast('Borrador guardado.');
+    return;
+  }
+
+  if (choice.trim() === '3') {
+    closeAccountWizard({ keepDraft: false });
+    showToast('Creación cancelada.');
+    return;
+  }
+
+  showToast('Opción no reconocida. La cuenta sigue en edición.');
 }
 
 function ensureAccountWizardDraft() {
@@ -5718,24 +5745,75 @@ function getAccountWizardBill() {
   return state.bills.find((bill) => bill.id === accountWizardState.draftBillId) || null;
 }
 
-function getAccountWizardMissingItems(bill = getAccountWizardBill()) {
-  if (!bill) return ['Elige tipo y nombre para preparar la cuenta.'];
-  const missing = [];
-  const hasPeople = Array.isArray(bill.people) && bill.people.length > 0;
-  const hasProducts = Array.isArray(bill.products) && bill.products.length > 0;
-  const hasQuickTotal = Number(bill.quickTotal || 0) > 0;
-
-  if (!hasPeople) missing.push('Agrega al menos una persona.');
-  if (!bill.payerId && hasPeople) missing.push('Elige quién pagó o pagará.');
-  if (bill.mode === 'quick') {
-    if (!hasQuickTotal) missing.push('Ingresa el total de la cuenta.');
-  } else {
-    if (!hasProducts) missing.push('Agrega al menos un gasto.');
-    const withoutConsumers = (bill.products || []).filter((product) => !Array.isArray(product.consumers) || product.consumers.length === 0);
-    if (withoutConsumers.length > 0) missing.push(`${withoutConsumers.length} gasto${withoutConsumers.length === 1 ? '' : 's'} sin personas asignadas.`);
+function getAccountWizardReviewChecks(bill = getAccountWizardBill()) {
+  if (!bill) {
+    return [{ status: 'warn', label: 'Cuenta', text: 'Elige tipo y nombre para preparar la cuenta.', step: 0 }];
   }
 
-  return missing;
+  const people = Array.isArray(bill.people) ? bill.people : [];
+  const products = Array.isArray(bill.products) ? bill.products : [];
+  const hasQuickTotal = Number(bill.quickTotal || 0) > 0;
+  const withoutConsumers = products.filter((product) => !Array.isArray(product.consumers) || product.consumers.length === 0);
+  const payerName = people.find((person) => person.id === bill.payerId)?.name || '';
+  const total = getBillGrandTotal(bill);
+  const checks = [];
+
+  checks.push({
+    status: people.length >= 2 ? 'ok' : 'error',
+    label: 'Personas',
+    text: people.length >= 2
+      ? `${people.length} participantes agregados.`
+      : 'Agrega al menos 2 personas para dividir la cuenta.',
+    step: 2,
+  });
+
+  checks.push({
+    status: payerName ? 'ok' : 'error',
+    label: 'Pagador',
+    text: payerName ? `${payerName} figura como pagador principal.` : 'Elige quién pagó o pagará la cuenta.',
+    step: 2,
+  });
+
+  if (bill.mode === 'quick') {
+    checks.push({
+      status: hasQuickTotal ? 'ok' : 'error',
+      label: 'Total',
+      text: hasQuickTotal ? `Total rápido: ${formatCurrency(Number(bill.quickTotal || 0))}.` : 'Ingresa el total de la cuenta.',
+      step: 3,
+    });
+  } else {
+    checks.push({
+      status: products.length > 0 ? 'ok' : 'error',
+      label: 'Gastos',
+      text: products.length > 0
+        ? `${products.length} gasto${products.length === 1 ? '' : 's'} agregado${products.length === 1 ? '' : 's'}.`
+        : 'Agrega al menos un gasto.',
+      step: 3,
+    });
+    checks.push({
+      status: withoutConsumers.length === 0 && products.length > 0 ? 'ok' : 'error',
+      label: 'Asignación',
+      text: withoutConsumers.length === 0 && products.length > 0
+        ? 'Todos los gastos tienen personas asignadas.'
+        : `${withoutConsumers.length || products.length} gasto${(withoutConsumers.length || products.length) === 1 ? '' : 's'} pendiente${(withoutConsumers.length || products.length) === 1 ? '' : 's'} de asignar.`,
+      step: 3,
+    });
+  }
+
+  checks.push({
+    status: total > 0 ? 'ok' : 'warn',
+    label: 'Resultado',
+    text: total > 0 ? `Total calculado: ${formatCurrency(total)}.` : 'Todavía no hay monto para calcular.',
+    step: 3,
+  });
+
+  return checks;
+}
+
+function getAccountWizardMissingItems(bill = getAccountWizardBill()) {
+  return getAccountWizardReviewChecks(bill)
+    .filter((item) => item.status === 'error')
+    .map((item) => item.text);
 }
 
 function getAccountWizardTitle(step = accountWizardState?.step || 0) {
@@ -5757,11 +5835,17 @@ function renderAccountWizard() {
     ? 'Completa solo lo necesario para avanzar.'
     : 'Confirma que la cuenta esté lista o vuelve al paso que falte.';
 
-  dom.accountWizardProgress.innerHTML = ACCOUNT_WIZARD_STEPS.map((item, index) => `
-    <span class="account-wizard-step ${index === step ? 'is-active' : ''} ${index < step ? 'is-done' : ''}">
-      <b>${index + 1}</b><em>${escapeHtml(item.label)}</em>
-    </span>
-  `).join('');
+  const progressPercent = Math.round(((step + 1) / ACCOUNT_WIZARD_STEPS.length) * 100);
+  dom.accountWizardProgress.innerHTML = `
+    <div class="account-wizard-meter" aria-hidden="true"><span style="width: ${progressPercent}%"></span></div>
+    <div class="account-wizard-step-row">
+      ${ACCOUNT_WIZARD_STEPS.map((item, index) => `
+        <span class="account-wizard-step ${index === step ? 'is-active' : ''} ${index < step ? 'is-done' : ''}">
+          <b>${index + 1}</b><em>${escapeHtml(item.label)}</em>
+        </span>
+      `).join('')}
+    </div>
+  `;
 
   if (dom.accountWizardBackButton) {
     dom.accountWizardBackButton.disabled = step === 0;
@@ -6024,15 +6108,31 @@ function removePersonFromAccountWizard(personId) {
 
 function renderAccountWizardExpensesStep() {
   const bill = ensureAccountWizardDraft();
-  const peopleOptions = (bill.people || []).map((person) => `<label><input type="checkbox" value="${person.id}" checked /> ${escapeHtml(person.name)}</label>`).join('');
+  const people = Array.isArray(bill.people) ? bill.people : [];
+  const hasEnoughPeople = people.length >= 2;
+  const peopleOptions = people.map((person) => `<label><input type="checkbox" value="${person.id}" checked /> ${escapeHtml(person.name)}</label>`).join('');
   const productsHtml = (bill.products || []).map((product) => `<li><strong>${escapeHtml(product.name)}</strong><span>${formatCurrency(Number(product.unitPrice || 0) * Number(product.quantity || 1))}</span><button data-remove-wizard-product="${product.id}" type="button">×</button></li>`).join('');
+  const isQuick = bill.mode === 'quick';
 
   dom.accountWizardBody.innerHTML = `
-    ${bill.mode === 'quick' ? `
+    <div class="account-wizard-copy compact">
+      <strong>Elige cómo quieres partir</strong>
+      <p>Usa total rápido para dividir simple o agrega productos si necesitas detalle.</p>
+    </div>
+    <div class="account-wizard-expense-options">
+      <button class="account-wizard-expense-option ${isQuick ? 'is-selected' : ''}" data-wizard-expense-mode="quick" type="button">
+        <strong>Total rápido</strong><span>Dividir un monto entre todos.</span>
+      </button>
+      <button class="account-wizard-expense-option ${!isQuick ? 'is-selected' : ''}" data-wizard-expense-mode="detailed" type="button">
+        <strong>Gastos detallados</strong><span>Agregar productos o cobros específicos.</span>
+      </button>
+    </div>
+    ${!hasEnoughPeople ? `<div class="account-wizard-warning"><strong>Faltan personas</strong><span>Agrega al menos 2 participantes para dividir correctamente.</span><button class="btn btn-light btn-small" data-wizard-jump="2" type="button">Ir a Personas</button></div>` : ''}
+    ${isQuick ? `
       <section class="account-wizard-card-mini">
         <h3>Total de la cuenta</h3>
         <label class="account-wizard-field"><span>Monto total</span><input id="accountWizardQuickTotal" type="number" min="0" step="100" value="${Number(bill.quickTotal || 0) || ''}" placeholder="Ej: 25000" /></label>
-        <p class="helper-text">Se dividirá entre las personas agregadas.</p>
+        <p class="helper-text">Se dividirá en partes iguales entre las personas agregadas.</p>
       </section>
     ` : `
       <section class="account-wizard-card-mini">
@@ -6047,12 +6147,18 @@ function renderAccountWizardExpensesStep() {
       </section>
     `}
     <section class="account-wizard-card-mini">
-      <h3>Gastos agregados</h3>
-      ${bill.mode === 'quick' ? `<p class="account-wizard-total-preview">Total actual: <strong>${formatCurrency(Number(bill.quickTotal || 0))}</strong></p>` : `<ul class="account-wizard-product-list">${productsHtml || '<li class="is-empty">Aún no hay gastos.</li>'}</ul>`}
-      <div class="account-wizard-inline-actions"><button class="btn btn-light btn-small" id="accountWizardOpenFullExpenses" type="button">Editar con más detalle después</button></div>
+      <h3>${isQuick ? 'Vista previa' : 'Gastos agregados'}</h3>
+      ${isQuick ? `<p class="account-wizard-total-preview">Total actual: <strong>${formatCurrency(Number(bill.quickTotal || 0))}</strong></p>` : `<ul class="account-wizard-product-list">${productsHtml || '<li class="is-empty">Aún no hay gastos.</li>'}</ul>`}
+      <div class="account-wizard-inline-actions">
+        <button class="btn btn-light btn-small" id="accountWizardOpenFullExpenses" type="button">Editar con más detalle después</button>
+        <button class="btn btn-light btn-small" id="accountWizardReceiptLater" type="button">Leer boleta después</button>
+      </div>
     </section>
   `;
 
+  dom.accountWizardBody.querySelectorAll('[data-wizard-expense-mode]').forEach((button) => {
+    button.addEventListener('click', () => setAccountWizardExpenseMode(button.dataset.wizardExpenseMode));
+  });
   dom.accountWizardBody.querySelector('#accountWizardQuickTotal')?.addEventListener('input', (event) => {
     bill.quickTotal = Math.max(0, Number(event.target.value || 0));
     addBillActivity('Total rápido actualizado desde creación guiada.', 'expense', bill);
@@ -6065,9 +6171,34 @@ function renderAccountWizardExpensesStep() {
   dom.accountWizardBody.querySelectorAll('[data-remove-wizard-product]').forEach((button) => {
     button.addEventListener('click', () => removeProductFromAccountWizard(button.dataset.removeWizardProduct));
   });
+  dom.accountWizardBody.querySelectorAll('[data-wizard-jump]').forEach((button) => {
+    button.addEventListener('click', () => {
+      accountWizardState.step = Number(button.dataset.wizardJump || 0);
+      renderAccountWizard();
+    });
+  });
   dom.accountWizardBody.querySelector('#accountWizardOpenFullExpenses')?.addEventListener('click', () => {
     finishAccountWizard('expenses');
   });
+  dom.accountWizardBody.querySelector('#accountWizardReceiptLater')?.addEventListener('click', () => {
+    finishAccountWizard('expenses');
+    showToast('Abre Lectura de boletas desde Gastos cuando quieras escanear.');
+  });
+}
+
+function setAccountWizardExpenseMode(mode) {
+  const bill = ensureAccountWizardDraft();
+  if (!bill) return;
+  if (mode === 'quick') {
+    bill.mode = 'quick';
+    bill.quickTotal = Number(bill.quickTotal || 0);
+  } else {
+    const template = getAccountWizardTemplate();
+    bill.mode = template.mode === 'home' ? 'home' : 'detailed';
+  }
+  addBillActivity(`Modo de gastos cambiado a ${bill.mode === 'quick' ? 'total rápido' : 'gastos detallados'}.`, 'expense', bill);
+  persistAndRender();
+  renderAccountWizard();
 }
 
 function addProductFromAccountWizard() {
@@ -6119,11 +6250,13 @@ function removeProductFromAccountWizard(productId) {
 
 function renderAccountWizardReviewStep() {
   const bill = ensureAccountWizardDraft();
+  const checks = getAccountWizardReviewChecks(bill);
   const missing = getAccountWizardMissingItems(bill);
   const total = getBillGrandTotal(bill);
+  const ready = missing.length === 0;
   dom.accountWizardBody.innerHTML = `
-    <section class="account-wizard-review-card ${missing.length ? 'has-missing' : 'is-ready'}">
-      <span>${missing.length ? 'Faltan detalles' : 'Cuenta lista'}</span>
+    <section class="account-wizard-review-card ${ready ? 'is-ready' : 'has-missing'}">
+      <span>${ready ? 'Lista para finalizar' : 'Faltan correcciones'}</span>
       <strong>${escapeHtml(bill.name)}</strong>
       <p>${bill.people.length} persona${bill.people.length === 1 ? '' : 's'} · ${bill.mode === 'quick' ? 'total rápido' : `${bill.products.length} gasto${bill.products.length === 1 ? '' : 's'}`} · ${formatCurrency(total)}</p>
     </section>
@@ -6133,10 +6266,16 @@ function renderAccountWizardReviewStep() {
       <div><span>Total</span><strong>${formatCurrency(total)}</strong></div>
     </div>
     <section class="account-wizard-card-mini">
-      <h3>${missing.length ? 'Para terminar falta' : 'Todo listo'}</h3>
-      <ul class="account-wizard-missing-list">
-        ${missing.length ? missing.map((item) => `<li>${escapeHtml(item)}</li>`).join('') : '<li>Ya puedes finalizar y compartir el resumen.</li>'}
-      </ul>
+      <h3>Revisión rápida</h3>
+      <div class="account-wizard-check-list">
+        ${checks.map((item) => `
+          <div class="account-wizard-check is-${item.status}">
+            <span>${item.status === 'ok' ? '✓' : item.status === 'warn' ? '!' : '•'}</span>
+            <div><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(item.text)}</small></div>
+            ${item.status !== 'ok' ? `<button class="btn btn-light btn-small" data-wizard-jump="${item.step}" type="button">Corregir</button>` : ''}
+          </div>
+        `).join('')}
+      </div>
       <div class="account-wizard-inline-actions">
         <button class="btn btn-light btn-small" data-wizard-jump="2" type="button">Editar personas</button>
         <button class="btn btn-light btn-small" data-wizard-jump="3" type="button">Editar gastos</button>
@@ -6180,8 +6319,8 @@ function accountWizardNext() {
 
   if (step === 2) {
     const bill = ensureAccountWizardDraft();
-    if (!bill.people.length) {
-      showToast('Agrega al menos una persona para continuar.');
+    if (bill.people.length < 2) {
+      showToast('Agrega al menos 2 personas para continuar.');
       return;
     }
   }
@@ -6196,9 +6335,22 @@ function accountWizardNext() {
       showToast('Agrega al menos un gasto.');
       return;
     }
+    if (bill.mode !== 'quick') {
+      const withoutConsumers = (bill.products || []).filter((product) => !Array.isArray(product.consumers) || product.consumers.length === 0);
+      if (withoutConsumers.length > 0) {
+        showToast('Asigna personas a todos los gastos.');
+        return;
+      }
+    }
   }
 
   if (step >= ACCOUNT_WIZARD_STEPS.length - 1) {
+    const bill = ensureAccountWizardDraft();
+    const missing = getAccountWizardMissingItems(bill);
+    if (missing.length) {
+      showToast('Corrige los puntos pendientes antes de finalizar.');
+      return;
+    }
     finishAccountWizard('summary');
     return;
   }
