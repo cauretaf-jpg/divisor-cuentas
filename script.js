@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.19.1.1 cargada');
-const APP_VERSION = '13.19.1';
+console.info('Cuenta Clara V13.21 AdSense Ready cargada');
+const APP_VERSION = '13.21';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -4266,17 +4266,17 @@ function updateExperienceModeChrome() {
   const isSimple = mode === 'simple';
 
   if (dom.viewModeLabel) {
-    dom.viewModeLabel.textContent = isSimple ? 'Vista simple' : 'Vista avanzada activa';
+    dom.viewModeLabel.textContent = isSimple ? 'Vista simple' : 'Vista completa';
   }
 
   if (dom.viewModeHelp) {
     dom.viewModeHelp.textContent = isSimple
-      ? 'Herramientas avanzadas disponibles.'
-      : 'Todas las secciones están visibles.';
+      ? 'Más opciones disponibles.'
+      : 'Todas las opciones están visibles.';
   }
 
   if (dom.toggleAdvancedToolsButton) {
-    dom.toggleAdvancedToolsButton.textContent = isSimple ? 'Ver herramientas avanzadas' : 'Ocultar herramientas avanzadas';
+    dom.toggleAdvancedToolsButton.textContent = isSimple ? 'Ver más opciones' : 'Ocultar más opciones';
     dom.toggleAdvancedToolsButton.setAttribute('aria-pressed', String(!isSimple));
   }
 }
@@ -4304,7 +4304,7 @@ function setExperienceMode(mode) {
 function toggleAdvancedToolsVisibility() {
   const nextMode = getExperienceMode() === 'advanced' ? 'simple' : 'advanced';
   setExperienceMode(nextMode);
-  showToast(nextMode === 'advanced' ? 'Herramientas avanzadas visibles.' : 'Vista simple activa. Las herramientas avanzadas siguen disponibles.');
+  showToast(nextMode === 'advanced' ? 'Más opciones visibles.' : 'Vista principal restaurada.');
 }
 
 function restoreRecommendedView() {
@@ -8070,7 +8070,7 @@ function renderNotificationCenter() {
   setNotificationBadge(dom.mobileNotificationBadge, unreadCount);
 
   if (dom.notificationCenterButton) {
-    dom.notificationCenterButton.classList.toggle('hidden', currentSession.mode !== 'user');
+    dom.notificationCenterButton.classList.toggle('hidden', currentSession.mode !== 'user' || totalCount === 0);
     dom.notificationCenterButton.classList.toggle('has-notifications', unreadCount > 0);
   }
 

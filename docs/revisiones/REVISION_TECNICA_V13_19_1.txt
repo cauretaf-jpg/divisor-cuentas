@@ -1,4 +1,4 @@
-CUENTA CLARA V13.19.1 - PULIDO DEL ASISTENTE GUIADO
+CUENTA CLARA V13.20 - PULIDO DEL ASISTENTE GUIADO
 
 Objetivo:
 - Ajustar el asistente de Nueva cuenta antes de agregar funciones grandes.

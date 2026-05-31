@@ -1,5 +1,5 @@
 {
-  "version": "13.19.1",
+  "version": "13.20",
   "objetivo": "Pulido del asistente guiado para Nueva cuenta",
   "validaciones": {
     "scriptJs": "OK",

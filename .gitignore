@@ -1,0 +1,8 @@
+# Cuenta Clara - archivos internos no públicos
+docs/
+sql/
+supabase/
+tools/
+README_PUBLICAR_VERCEL.txt
+*.log
+.DS_Store

@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Contacto y soporte de Cuenta Clara para consultas, sugerencias y reportes de problemas." />
+  <meta name="description" content="Contacto y soporte de Cuenta Clara para consultas, reportes de problemas, privacidad y sugerencias." />
   <meta name="theme-color" content="#2563eb" />
   <meta name="google-adsense-account" content="ca-pub-4358472434423818" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818" crossorigin="anonymous"></script>
   <title>Contacto | Cuenta Clara</title>
-  <link rel="stylesheet" href="styles.css?v=13.19.1" />
-<link href="favicon.ico" rel="icon" sizes="any" />
-<link href="assets/logo.svg" rel="icon" type="image/svg+xml" />
-<link href="assets/icon-192.png" rel="apple-touch-icon" />
+  <link rel="canonical" href="https://divisor-cuentas.vercel.app/contacto" />
+  <link rel="stylesheet" href="styles.css?v=13.21" />
+  <link href="favicon.ico" rel="icon" sizes="any" />
+  <link href="assets/logo.svg" rel="icon" type="image/svg+xml" />
+  <link href="assets/icon-192.png" rel="apple-touch-icon" />
 </head>
 <body class="public-page">
   <header class="site-header">
@@ -20,7 +21,7 @@
         <img class="brand-icon" src="assets/logo.svg" alt="" />
         <div><strong>Cuenta Clara</strong><span>Divide gastos sin enredos</span></div>
       </a>
-      <nav class="site-nav" aria-label="Navegación pública"><a class="site-nav-link " href="index.html">Inicio</a><a class="site-nav-link " href="como-funciona.html">Cómo funciona</a><a class="site-nav-link " href="funciones.html">Funciones</a><a class="site-nav-link " href="preguntas-frecuentes.html">Preguntas frecuentes</a><a class="site-nav-link " href="privacidad.html">Privacidad</a><a class="site-nav-link " href="terminos.html">Términos</a><a class="site-nav-link is-active" href="contacto.html">Contacto</a></nav>
+      <nav class="site-nav" aria-label="Navegación pública"><a class="site-nav-link" href="index.html">Inicio</a><a class="site-nav-link" href="como-funciona.html">Cómo funciona</a><a class="site-nav-link" href="funciones.html">Funciones</a><a class="site-nav-link" href="preguntas-frecuentes.html">Preguntas frecuentes</a><a class="site-nav-link" href="acerca-de.html">Acerca de</a><a class="site-nav-link" href="privacidad.html">Privacidad</a><a class="site-nav-link" href="terminos.html">Términos</a><a class="site-nav-link is-active" href="contacto.html">Contacto</a></nav>
       <a class="btn btn-primary site-app-button" href="app.html">Abrir app</a>
     </div>
   </header>
@@ -29,12 +30,12 @@
     <div>
       <p class="eyebrow">Contacto</p>
       <h1>¿Necesitas ayuda con Cuenta Clara?</h1>
-      <p>Envía una sugerencia, una consulta o cuéntanos si algo no funcionó. El mensaje quedará listo para enviarlo desde tu correo.</p>
+      <p>Envía una sugerencia, una consulta o cuéntanos si algo no funcionó. El mensaje se prepara para enviarlo desde tu correo, de modo que siempre puedas revisar el contenido antes de mandarlo.</p>
     </div>
     <div class="contact-hero-badge" aria-label="Soporte de Cuenta Clara">
-      <span>Respuesta clara</span>
-      <strong>Soporte y mejoras</strong>
-      <small>Incluye qué estabas haciendo para entender mejor el caso.</small>
+      <span>Soporte</span>
+      <strong>Consultas y mejoras</strong>
+      <small>Incluye qué estabas haciendo, dispositivo y navegador para entender mejor el caso.</small>
     </div>
   </section>
 
@@ -42,8 +43,8 @@
     <article class="contact-form-card card">
       <div class="contact-card-head">
         <p class="eyebrow">Formulario</p>
-        <h2>Enviar comentario</h2>
-        <p>Completa los datos y prepara el mensaje para enviarlo desde tu correo.</p>
+        <h2>Preparar mensaje</h2>
+        <p>Completa los datos y prepara un correo. Antes de publicarlo, verifica que el correo de soporte configurado exista y pueda recibir mensajes.</p>
       </div>
 
       <form id="contactForm" class="contact-form" novalidate>
@@ -85,8 +86,8 @@
     <aside class="contact-side-stack">
       <article class="public-info-card contact-mini-card">
         <span class="contact-mini-icon">⚠</span>
-        <strong>Algo no funcionó</strong>
-        <p>Indica qué estabas haciendo y si ocurrió en celular o computador.</p>
+        <strong>Reportar un problema</strong>
+        <p>Indica qué estabas haciendo, si ocurrió en celular o computador y si se puede repetir.</p>
       </article>
       <article class="public-info-card contact-mini-card">
         <span class="contact-mini-icon">✦</span>
@@ -95,16 +96,16 @@
       </article>
       <article class="public-info-card contact-mini-card">
         <span class="contact-mini-icon">✓</span>
-        <strong>Antes de enviar</strong>
-        <p>Antes de enviar, prueba actualizar la página una vez.</p>
+        <strong>Privacidad</strong>
+        <p>No envíes datos bancarios, documentos o información sensible innecesaria.</p>
       </article>
     </aside>
   </section>
 </main>
 <script>
 (function () {
-  const CONTACT_EMAIL = 'contacto@cuentaclara.app';
-  const APP_VERSION = 'v13.19.1.1';
+  const CONTACT_EMAIL = 'cuenta.clara.divisor@gmail.com';
+  const APP_VERSION = 'v13.21-adsense-ready';
   const form = document.getElementById('contactForm');
   const status = document.getElementById('contactStatus');
   const copyButton = document.getElementById('copyContactMessage');
@@ -190,12 +191,17 @@ ${prepared.body}`;
   <div class="container site-footer-simple">
     <a class="brand site-footer-brand" href="index.html"><img class="brand-icon" src="assets/logo.svg" alt="" /><div><strong>Cuenta Clara</strong><span>Divide gastos sin enredos</span></div></a>
     <nav class="site-footer-links" aria-label="Enlaces legales y contacto">
+      <a href="index.html">Inicio</a>
+      <a href="como-funciona.html">Cómo funciona</a>
+      <a href="funciones.html">Funciones</a>
+      <a href="preguntas-frecuentes.html">Preguntas frecuentes</a>
+      <a href="acerca-de.html">Acerca de</a>
       <a href="privacidad.html">Privacidad</a>
       <a href="terminos.html">Términos</a>
       <a href="contacto.html">Contacto</a>
     </nav>
   </div>
-  <div class="container site-footer-bottom"><span>© 2026 Cuenta Clara.</span><span>Divide gastos con claridad.</span></div>
+  <div class="container site-footer-bottom"><span>© 2026 Cuenta Clara.</span><span>Herramienta informativa para dividir gastos. Revisa siempre los montos antes de cobrar o pagar.</span></div>
 </footer>
 </body>
 </html>

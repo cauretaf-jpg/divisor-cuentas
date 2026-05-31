@@ -2,27 +2,103 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/", "destination": "/index.html" },
-    { "source": "/app", "destination": "/app.html" },
-    { "source": "/perfil", "destination": "/perfil.html" },
-    { "source": "/como-funciona", "destination": "/como-funciona.html" },
-    { "source": "/funciones", "destination": "/funciones.html" },
-    { "source": "/preguntas-frecuentes", "destination": "/preguntas-frecuentes.html" },
-    { "source": "/privacidad", "destination": "/privacidad.html" },
-    { "source": "/terminos", "destination": "/terminos.html" },
-    { "source": "/contacto", "destination": "/contacto.html" }
+    {
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/app",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/perfil",
+      "destination": "/perfil.html"
+    },
+    {
+      "source": "/como-funciona",
+      "destination": "/como-funciona.html"
+    },
+    {
+      "source": "/funciones",
+      "destination": "/funciones.html"
+    },
+    {
+      "source": "/preguntas-frecuentes",
+      "destination": "/preguntas-frecuentes.html"
+    },
+    {
+      "source": "/acerca-de",
+      "destination": "/acerca-de.html"
+    },
+    {
+      "source": "/privacidad",
+      "destination": "/privacidad.html"
+    },
+    {
+      "source": "/terminos",
+      "destination": "/terminos.html"
+    },
+    {
+      "source": "/contacto",
+      "destination": "/contacto.html"
+    }
   ],
   "headers": [
     {
       "source": "/service-worker.js",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
       ]
     },
     {
       "source": "/manifest.json",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache" }
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/ads.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
       ]
     }
   ]

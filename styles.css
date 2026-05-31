@@ -11301,7 +11301,7 @@ body.advanced-mode .view-status-pill {
   }
 }
 
-/* V13.19.1.1 - Estado de la app y avisos */
+/* V13.21 - Estado de la app y avisos */
 .connection-status-panel {
   display: grid;
   gap: 0.9rem;
@@ -11395,7 +11395,7 @@ body.dark-mode .connection-status-item,
 }
 
 
-/* V13.19.1.1 - Sitio publico, landing y limpieza visual */
+/* V13.21 - Sitio publico AdSense Ready, landing y limpieza visual */
 :root {
   --cc-primary: #2563eb;
   --cc-primary-strong: #1d4ed8;
@@ -11799,17 +11799,17 @@ body.dark .public-page,
   .app-legal-footer { padding-bottom: 6.5rem; }
 }
 
-/* V13.19.1.1 - Footer interno ocupa toda la grilla de la app */
+/* V13.21 - Footer interno ocupa toda la grilla de la app */
 .app-layout > .app-legal-footer {
   grid-column: 1 / -1;
 }
 
 
-/* V13.19.1.1 - limpieza visual publica */
+/* V13.21 - limpieza visual publica */
 .public-ad-zone { display: none !important; }
 
 
-/* V13.19.1.1 - Contacto funcional y móvil más limpio */
+/* V13.21 - Contacto funcional y móvil más limpio */
 .contact-page-shell {
   gap: 1.1rem;
 }
@@ -12099,7 +12099,7 @@ body.dark .public-page,
 }
 
 
-/* V13.19.1.1 - Limpieza de textos visibles y estado discreto */
+/* V13.21 - Limpieza de textos visibles y estado discreto */
 .section-view-status {
   margin-top: 1rem;
   padding: 0.75rem;
@@ -12144,7 +12144,7 @@ body.dark .public-page,
   }
 }
 
-/* V13.19.1.1 - pulido final sitio público y textos visibles */
+/* V13.21 - pulido final sitio público y textos visibles */
 .public-page {
   background:
     radial-gradient(circle at 8% 4%, rgba(37, 99, 235, 0.10), transparent 24rem),
@@ -12373,7 +12373,7 @@ body.dark .public-page,
 }
 
 
-/* V13.19.1.1 - ajuste móvil app y menú inferior */
+/* V13.21 - ajuste móvil app y menú inferior */
 body[data-active-section="people"] .mobile-bottom-nav-button[data-app-section="people"],
 body[data-active-section="expenses"] .mobile-bottom-nav-button[data-app-section="expenses"],
 body[data-active-section="summary"] .mobile-bottom-nav-button[data-app-section="summary"],
@@ -12466,7 +12466,7 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
   }
 }
 
-/* V13.19.1.1 - pulido móvil del sitio público */
+/* V13.21 - pulido móvil del sitio público */
 @media (max-width: 720px) {
   body.public-page {
     overflow-x: hidden;
@@ -12654,7 +12654,7 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
 }
 
 
-/* V13.19.1.1 - Asistente guiado para nueva cuenta */
+/* V13.21 - Asistente guiado para nueva cuenta */
 body.account-wizard-active {
   overflow: hidden;
 }
@@ -13170,7 +13170,7 @@ body.account-wizard-active .app-footer {
   }
 }
 
-/* V13.19.1 - Pulido del asistente guiado */
+/* V13.20 - Pulido del asistente guiado */
 .account-wizard-progress {
   display: grid;
   grid-template-columns: 1fr;
@@ -13337,5 +13337,176 @@ body.account-wizard-active .app-footer {
   .account-wizard-check .btn,
   .account-wizard-warning .btn {
     width: 100%;
+  }
+}
+
+
+/* V13.20 - limpieza de producto final
+   Mantiene visibles solo las rutas principales y reduce ruido visual para usuarios finales. */
+.product-hidden-status,
+.experience-row,
+#homeToolsShortcutCard {
+  display: none !important;
+}
+
+.product-nav-list {
+  gap: 8px;
+}
+
+.product-nav-list .section-nav-button[data-app-section="tools"] strong::after {
+  content: "";
+}
+
+.section-nav-button[data-app-section="tools"] span::after,
+body.simple-mode .section-nav-button[data-app-section="tools"] span::after {
+  content: "" !important;
+}
+
+body.simple-mode .section-nav-button[data-app-section="history"],
+body.simple-mode .section-nav-button[data-app-section="recurring"],
+body.simple-mode .section-nav-button[data-app-section="shared"],
+body.advanced-mode .section-nav-button[data-app-section="history"],
+body.advanced-mode .section-nav-button[data-app-section="recurring"],
+body.advanced-mode .section-nav-button[data-app-section="shared"] {
+  display: none !important;
+}
+
+.section-page-heading .section-helper,
+.tools-hub-card .section-helper,
+.mobile-onboarding-card .section-helper,
+.demo-data-card .section-helper {
+  max-width: 60ch;
+}
+
+#appSection-tools .connection-status-panel,
+#appSection-tools .mobile-onboarding-card,
+#appSection-tools .demo-data-card,
+#appSection-tools .guided-start-card,
+#appSection-history .backupSecurityPanel {
+  margin-top: 14px;
+}
+
+#notificationCenterButton:not(.has-notifications) .notification-badge,
+.mobile-nav-badge.hidden,
+.notification-badge.hidden {
+  display: none !important;
+}
+
+@media (min-width: 981px) {
+  .section-nav-list.product-nav-list,
+  body.simple-mode .section-nav-list.product-nav-list,
+  body.advanced-mode .section-nav-list.product-nav-list {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .section-nav {
+    display: none;
+  }
+  .workspace {
+    width: 100%;
+  }
+  .app-layout {
+    display: block;
+  }
+  .section-page-heading {
+    padding: 14px;
+  }
+  .section-page-heading h2 {
+    font-size: 1.25rem;
+  }
+  .guided-flow-panel {
+    padding: 14px;
+  }
+  .home-primary-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .home-premium-shortcuts,
+  .tools-hub-grid,
+  .home-kpi-grid,
+  .payment-overview-grid,
+  .profile-money-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .home-premium-shortcuts button,
+  .tool-hub-button {
+    min-height: 72px;
+    padding: 10px;
+  }
+  .home-premium-shortcuts small,
+  .tool-hub-button span {
+    font-size: 0.72rem;
+  }
+  .current-list-indicator,
+  .mobile-home-dashboard,
+  .card {
+    border-radius: 18px;
+  }
+}
+
+@media (max-width: 380px) {
+  .home-premium-shortcuts,
+  .tools-hub-grid,
+  .home-kpi-grid,
+  .payment-overview-grid,
+  .profile-money-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* V13.21 - AdSense Ready: contenido público, legal y navegación */
+.public-page-hero p strong,
+.legal-card p strong {
+  color: #0f172a;
+}
+
+.public-actions {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.public-info-card .feature-icon,
+.feature-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.9rem;
+  background: rgba(37, 99, 235, 0.1);
+  margin-bottom: 0.65rem;
+}
+
+.legal-card h2:not(:first-child) {
+  margin-top: 1.15rem;
+}
+
+.legal-card p + p {
+  margin-top: 0.8rem;
+}
+
+.site-nav-link {
+  line-height: 1.1;
+}
+
+.site-footer-bottom span:last-child {
+  text-align: right;
+}
+
+@media (max-width: 760px) {
+  .site-footer-bottom span:last-child {
+    text-align: left;
+  }
+
+  .public-actions .btn {
+    width: 100%;
+    justify-content: center;
   }
 }
