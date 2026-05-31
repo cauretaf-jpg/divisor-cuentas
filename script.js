@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.21 AdSense Ready cargada');
-const APP_VERSION = '13.21';
+console.info('Cuenta Clara V13.24 Historial prioritario cargada');
+const APP_VERSION = '13.24';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -73,6 +73,13 @@ const dom = {
   authStatusBadge: document.querySelector('#authStatusBadge'),
   syncStatusBadge: document.querySelector('#syncStatusBadge'),
   newBillButton: document.querySelector('#newBillButton'),
+  guideMeButton: document.querySelector('#guideMeButton'),
+  floatingGuideButton: document.querySelector('#floatingGuideButton'),
+  floatingGuideText: document.querySelector('#floatingGuideText'),
+  intuitiveStartTitle: document.querySelector('#intuitiveStartTitle'),
+  intuitiveStartText: document.querySelector('#intuitiveStartText'),
+  quickStartNewBillButton: document.querySelector('#quickStartNewBillButton'),
+  quickStartTotalButton: document.querySelector('#quickStartTotalButton'),
   accountWizard: document.querySelector('#accountWizard'),
   accountWizardEyebrow: document.querySelector('#accountWizardEyebrow'),
   accountWizardTitle: document.querySelector('#accountWizardTitle'),
@@ -154,6 +161,9 @@ const dom = {
   homeDashboardSyncOutput: document.querySelector('#homeDashboardSyncOutput'),
   homeActiveBillOutput: document.querySelector('#homeActiveBillOutput'),
   homeActiveBillMetaOutput: document.querySelector('#homeActiveBillMetaOutput'),
+  homeHistoryTotalOutput: document.querySelector('#homeHistoryTotalOutput'),
+  homeHistoryPendingOutput: document.querySelector('#homeHistoryPendingOutput'),
+  homeHistoryLastOutput: document.querySelector('#homeHistoryLastOutput'),
   homeDashboardTotalOutput: document.querySelector('#homeDashboardTotalOutput'),
   homeDashboardMineOutput: document.querySelector('#homeDashboardMineOutput'),
   homeDashboardReceivableOutput: document.querySelector('#homeDashboardReceivableOutput'),
@@ -1391,6 +1401,29 @@ function renderGuidedFlowPanel() {
     dom.guidedFlowSecondaryButton.textContent = hasAmounts ? 'Ver pagos' : 'Revisar cuenta';
     dom.guidedFlowSecondaryButton.onclick = () => setAppSection(hasAmounts ? 'payments' : 'summary', { scroll: false });
   }
+}
+
+
+function renderIntuitiveStartCard(copy = getSmartActionCopy()) {
+  if (dom.intuitiveStartTitle) {
+    dom.intuitiveStartTitle.textContent = copy.title || 'Siguiente paso';
+  }
+
+  if (dom.intuitiveStartText) {
+    dom.intuitiveStartText.textContent = copy.help || 'La app te indica la acción recomendada.';
+  }
+
+  if (dom.guideMeButton) {
+    dom.guideMeButton.textContent = copy.button || 'Guíame';
+  }
+
+  if (dom.floatingGuideText) {
+    dom.floatingGuideText.textContent = copy.button || 'Siguiente paso';
+  }
+}
+
+function startQuickTotalWizard() {
+  openAccountWizard('quick');
 }
 
 function renderHomeActionPanel() {
@@ -4356,7 +4389,7 @@ const APP_SECTION_TITLES = {
   summary: { title: 'Resumen', eyebrow: 'Totales' },
   payments: { title: 'Pagos', eyebrow: 'Transferencias' },
   tools: { title: 'Más herramientas', eyebrow: 'Cuenta Clara' },
-  history: { title: 'Historial', eyebrow: 'Tus cuentas' },
+  history: { title: 'Historial de Cuentas', eyebrow: 'Tus cuentas' },
   recurring: { title: 'Hogar', eyebrow: 'Recurrentes' },
   shared: { title: 'Compartidas', eyebrow: 'Colaboración' },
 };
@@ -4772,10 +4805,22 @@ function renderHomeRecentBills() {
     return;
   }
 
-  const recentBills = [...state.bills]
+  const visibleBills = [...state.bills]
     .filter((bill) => !bill.archived)
-    .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
-    .slice(0, 3);
+    .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+  const recentBills = visibleBills.slice(0, 3);
+  const pendingBills = visibleBills.filter((bill) => getBillStatus(bill) === 'pending').length;
+  const lastBill = visibleBills[0];
+
+  if (dom.homeHistoryTotalOutput) {
+    dom.homeHistoryTotalOutput.textContent = String(visibleBills.length);
+  }
+  if (dom.homeHistoryPendingOutput) {
+    dom.homeHistoryPendingOutput.textContent = String(pendingBills);
+  }
+  if (dom.homeHistoryLastOutput) {
+    dom.homeHistoryLastOutput.textContent = lastBill ? formatDate(lastBill.updatedAt || lastBill.createdAt) : '-';
+  }
 
   dom.homeRecentBillsList.innerHTML = '';
 
@@ -10778,6 +10823,7 @@ function render() {
   try {
     renderGuidedExperience();
     renderGuidedFlowPanel();
+    renderIntuitiveStartCard();
     renderTemplateAssistant();
     renderActiveTemplateHelper();
     renderMobileHomeDashboard();
@@ -13453,6 +13499,11 @@ dom.smartActionButton?.addEventListener('click', handleSmartAction);
 dom.continueActiveBillButton?.addEventListener('click', continueActiveBillFromHome);
 dom.homeActionOpenPaymentsButton?.addEventListener('click', () => setAppSection('payments', { scroll: false }));
 dom.homeNewBillButton?.addEventListener('click', focusGuidedNewBillChoices);
+document.querySelector('#historyNewBillButton')?.addEventListener('click', focusGuidedNewBillChoices);
+dom.guideMeButton?.addEventListener('click', () => runSmartPrimaryAction());
+dom.floatingGuideButton?.addEventListener('click', () => runSmartPrimaryAction());
+dom.quickStartNewBillButton?.addEventListener('click', () => openAccountWizard());
+dom.quickStartTotalButton?.addEventListener('click', startQuickTotalWizard);
 dom.simpleModeButton?.addEventListener('click', () => setExperienceMode('simple'));
 dom.advancedModeButton?.addEventListener('click', () => setExperienceMode('advanced'));
 dom.toggleAdvancedToolsButton?.addEventListener('click', toggleAdvancedToolsVisibility);

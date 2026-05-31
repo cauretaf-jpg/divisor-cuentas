@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cuenta-clara-v13.21-adsense-ready';
+const CACHE_NAME = 'cuenta-clara-v13.24-historial';
 
 const ASSETS = [
   './',
@@ -11,13 +11,13 @@ const ASSETS = [
   './privacidad.html',
   './terminos.html',
   './contacto.html',
-  './styles.css?v=13.21',
-  './shared-utils.js?v=13.21',
-  './script.js?v=13.21',
-  './supabase-config.js?v=13.21',
+  './styles.css?v=13.24',
+  './shared-utils.js?v=13.24',
+  './script.js?v=13.24',
+  './supabase-config.js?v=13.24',
   './manifest.json',
   './perfil.html',
-  './profile.js?v=13.21',
+  './profile.js?v=13.24',
   './ads.txt',
   './robots.txt',
   './sitemap.xml',
