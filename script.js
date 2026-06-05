@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.24 Historial prioritario cargada');
-const APP_VERSION = '13.24';
+console.info('Cuenta Clara V13.20.1 cargada');
+const APP_VERSION = '13.20.1';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -73,13 +73,6 @@ const dom = {
   authStatusBadge: document.querySelector('#authStatusBadge'),
   syncStatusBadge: document.querySelector('#syncStatusBadge'),
   newBillButton: document.querySelector('#newBillButton'),
-  guideMeButton: document.querySelector('#guideMeButton'),
-  floatingGuideButton: document.querySelector('#floatingGuideButton'),
-  floatingGuideText: document.querySelector('#floatingGuideText'),
-  intuitiveStartTitle: document.querySelector('#intuitiveStartTitle'),
-  intuitiveStartText: document.querySelector('#intuitiveStartText'),
-  quickStartNewBillButton: document.querySelector('#quickStartNewBillButton'),
-  quickStartTotalButton: document.querySelector('#quickStartTotalButton'),
   accountWizard: document.querySelector('#accountWizard'),
   accountWizardEyebrow: document.querySelector('#accountWizardEyebrow'),
   accountWizardTitle: document.querySelector('#accountWizardTitle'),
@@ -161,9 +154,6 @@ const dom = {
   homeDashboardSyncOutput: document.querySelector('#homeDashboardSyncOutput'),
   homeActiveBillOutput: document.querySelector('#homeActiveBillOutput'),
   homeActiveBillMetaOutput: document.querySelector('#homeActiveBillMetaOutput'),
-  homeHistoryTotalOutput: document.querySelector('#homeHistoryTotalOutput'),
-  homeHistoryPendingOutput: document.querySelector('#homeHistoryPendingOutput'),
-  homeHistoryLastOutput: document.querySelector('#homeHistoryLastOutput'),
   homeDashboardTotalOutput: document.querySelector('#homeDashboardTotalOutput'),
   homeDashboardMineOutput: document.querySelector('#homeDashboardMineOutput'),
   homeDashboardReceivableOutput: document.querySelector('#homeDashboardReceivableOutput'),
@@ -1401,29 +1391,6 @@ function renderGuidedFlowPanel() {
     dom.guidedFlowSecondaryButton.textContent = hasAmounts ? 'Ver pagos' : 'Revisar cuenta';
     dom.guidedFlowSecondaryButton.onclick = () => setAppSection(hasAmounts ? 'payments' : 'summary', { scroll: false });
   }
-}
-
-
-function renderIntuitiveStartCard(copy = getSmartActionCopy()) {
-  if (dom.intuitiveStartTitle) {
-    dom.intuitiveStartTitle.textContent = copy.title || 'Siguiente paso';
-  }
-
-  if (dom.intuitiveStartText) {
-    dom.intuitiveStartText.textContent = copy.help || 'La app te indica la acción recomendada.';
-  }
-
-  if (dom.guideMeButton) {
-    dom.guideMeButton.textContent = copy.button || 'Guíame';
-  }
-
-  if (dom.floatingGuideText) {
-    dom.floatingGuideText.textContent = copy.button || 'Siguiente paso';
-  }
-}
-
-function startQuickTotalWizard() {
-  openAccountWizard('quick');
 }
 
 function renderHomeActionPanel() {
@@ -4351,6 +4318,150 @@ function initExperienceMode() {
 }
 
 
+
+const MOBILE_PROGRESSIVE_QUERY = [
+  '.app-section > .card',
+  '.app-section .grid-two > .card',
+  '.app-section > .settings-inner-card',
+  '.app-section .settings-inner-card',
+  '.app-section > .backup-security-panel',
+  '.app-section > .home-reminder-panel',
+  '.app-section > .home-recurring-panel',
+  '.app-section > .quick-total-panel',
+  '.app-section .payment-reminder-panel',
+  '.app-section .whatsappNotificationPanel',
+  '.app-section .profile-payer-summary',
+  '.app-section .transfer-card',
+  '.app-section .sidebar-transfer-block'
+].join(',');
+
+const MOBILE_PROGRESSIVE_OPEN_IDS = new Set([
+  'homeDashboardPanel',
+  'paymentActionCenter',
+  'accountReviewPanel',
+  'toolsHubCard',
+  'sharedNotificationSummary'
+]);
+
+const MOBILE_PROGRESSIVE_HIDE_IDS = new Set([
+  'firstUseCard'
+]);
+
+const MOBILE_PROGRESSIVE_SKIP_CLASSES = [
+  'section-page-heading',
+  'guide-card',
+  'modal-backdrop',
+  'account-wizard-shell',
+  'shared-readonly-banner',
+  'network-status-banner'
+];
+
+function isMobileViewport() {
+  return typeof window !== 'undefined' && window.matchMedia?.('(max-width: 760px)').matches;
+}
+
+function getMobileCardTitle(card) {
+  const explicit = card.getAttribute('data-mobile-title');
+  if (explicit) return explicit;
+  const titleNode = card.querySelector('h2, h3, .section-title strong, .home-action-kicker, .home-reminder-kicker, strong');
+  const title = titleNode?.textContent?.trim();
+  if (title) return title.length > 44 ? `${title.slice(0, 42)}…` : title;
+  return 'Ver detalle';
+}
+
+function getMobileCardHint(card) {
+  const hintNode = card.querySelector('.section-helper, .helper-text, small, p');
+  const hint = hintNode?.textContent?.replace(/\s+/g, ' ')?.trim();
+  if (!hint) return 'Toca para mostrar u ocultar.';
+  return hint.length > 64 ? `${hint.slice(0, 62)}…` : hint;
+}
+
+function shouldSkipMobileProgressiveCard(card) {
+  if (!card || card.closest('.modal-backdrop, .account-wizard-shell')) return true;
+  if (card.tagName === 'DETAILS') return true;
+  if (MOBILE_PROGRESSIVE_HIDE_IDS.has(card.id)) return true;
+  return MOBILE_PROGRESSIVE_SKIP_CLASSES.some((className) => card.classList.contains(className));
+}
+
+function shouldOpenMobileCardByDefault(card) {
+  if (!card) return false;
+  if (MOBILE_PROGRESSIVE_OPEN_IDS.has(card.id)) return true;
+  if (card.querySelector('#personForm, #productForm, #quickTotalInput')) return true;
+  if (card.classList.contains('mobile-home-dashboard')) return true;
+  if (card.id === 'guidedFlowPanel') return true;
+  return false;
+}
+
+function setupMobileProgressiveCard(card) {
+  if (!card || shouldSkipMobileProgressiveCard(card)) return;
+  if (card.dataset.mobileProgressiveReady === 'true') return;
+
+  card.dataset.mobileProgressiveReady = 'true';
+  card.classList.add('mobile-progressive-card');
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'mobile-card-toggle';
+  button.setAttribute('aria-expanded', 'true');
+  button.innerHTML = `<span><strong>${getMobileCardTitle(card)}</strong><small>${getMobileCardHint(card)}</small></span><em>Ocultar</em>`;
+  card.insertBefore(button, card.firstChild);
+
+  button.addEventListener('click', () => {
+    const collapsed = card.classList.toggle('is-collapsed');
+    button.setAttribute('aria-expanded', String(!collapsed));
+    const action = button.querySelector('em');
+    if (action) action.textContent = collapsed ? 'Ver' : 'Ocultar';
+  });
+
+  if (!shouldOpenMobileCardByDefault(card)) {
+    card.classList.add('is-collapsed');
+    button.setAttribute('aria-expanded', 'false');
+    const action = button.querySelector('em');
+    if (action) action.textContent = 'Ver';
+  }
+}
+
+function initMobileProgressiveDisclosure() {
+  document.querySelectorAll(MOBILE_PROGRESSIVE_QUERY).forEach(setupMobileProgressiveCard);
+  syncMobileProgressiveForSection(currentAppSection || 'home');
+}
+
+function expandMobileCardForElement(element) {
+  const card = element?.closest?.('.mobile-progressive-card.is-collapsed');
+  if (!card) return;
+  card.classList.remove('is-collapsed');
+  const button = card.querySelector('.mobile-card-toggle');
+  button?.setAttribute('aria-expanded', 'true');
+  const action = button?.querySelector('em');
+  if (action) action.textContent = 'Ocultar';
+}
+
+function syncMobileProgressiveForSection(section = currentAppSection) {
+  if (!isMobileViewport()) {
+    document.querySelectorAll('.mobile-progressive-card.is-collapsed').forEach((card) => {
+      card.classList.remove('is-collapsed');
+      const button = card.querySelector('.mobile-card-toggle');
+      button?.setAttribute('aria-expanded', 'true');
+      const action = button?.querySelector('em');
+      if (action) action.textContent = 'Ocultar';
+    });
+    return;
+  }
+
+  const panel = document.querySelector(`[data-app-section-panel="${normalizeAppSection(section)}"]`);
+  if (!panel) return;
+
+  panel.querySelectorAll('.mobile-progressive-card').forEach((card) => {
+    if (shouldOpenMobileCardByDefault(card)) {
+      card.classList.remove('is-collapsed');
+      const button = card.querySelector('.mobile-card-toggle');
+      button?.setAttribute('aria-expanded', 'true');
+      const action = button?.querySelector('em');
+      if (action) action.textContent = 'Ocultar';
+    }
+  });
+}
+
 function normalizeAppSection(section) {
   const allowed = new Set(['home', 'people', 'expenses', 'summary', 'payments', 'tools', 'history', 'recurring', 'shared']);
   const aliases = {
@@ -4389,7 +4500,7 @@ const APP_SECTION_TITLES = {
   summary: { title: 'Resumen', eyebrow: 'Totales' },
   payments: { title: 'Pagos', eyebrow: 'Transferencias' },
   tools: { title: 'Más herramientas', eyebrow: 'Cuenta Clara' },
-  history: { title: 'Historial de Cuentas', eyebrow: 'Tus cuentas' },
+  history: { title: 'Historial', eyebrow: 'Tus cuentas' },
   recurring: { title: 'Hogar', eyebrow: 'Recurrentes' },
   shared: { title: 'Compartidas', eyebrow: 'Colaboración' },
 };
@@ -4458,6 +4569,7 @@ dom.sectionNavButtons?.forEach((button) => {
 
   updateMobileSectionChrome(nextSection);
   updateExperienceModeChrome();
+  syncMobileProgressiveForSection(nextSection);
 
   try {
     localStorage.setItem(APP_SECTION_KEY, nextSection);
@@ -4496,6 +4608,7 @@ function scrollToGuideTarget(element) {
   if (!element) return;
 
   revealSectionForElement(element);
+  expandMobileCardForElement(element);
 
   setTimeout(() => {
     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -4805,22 +4918,10 @@ function renderHomeRecentBills() {
     return;
   }
 
-  const visibleBills = [...state.bills]
+  const recentBills = [...state.bills]
     .filter((bill) => !bill.archived)
-    .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
-  const recentBills = visibleBills.slice(0, 3);
-  const pendingBills = visibleBills.filter((bill) => getBillStatus(bill) === 'pending').length;
-  const lastBill = visibleBills[0];
-
-  if (dom.homeHistoryTotalOutput) {
-    dom.homeHistoryTotalOutput.textContent = String(visibleBills.length);
-  }
-  if (dom.homeHistoryPendingOutput) {
-    dom.homeHistoryPendingOutput.textContent = String(pendingBills);
-  }
-  if (dom.homeHistoryLastOutput) {
-    dom.homeHistoryLastOutput.textContent = lastBill ? formatDate(lastBill.updatedAt || lastBill.createdAt) : '-';
-  }
+    .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
+    .slice(0, 3);
 
   dom.homeRecentBillsList.innerHTML = '';
 
@@ -10823,7 +10924,6 @@ function render() {
   try {
     renderGuidedExperience();
     renderGuidedFlowPanel();
-    renderIntuitiveStartCard();
     renderTemplateAssistant();
     renderActiveTemplateHelper();
     renderMobileHomeDashboard();
@@ -13499,11 +13599,6 @@ dom.smartActionButton?.addEventListener('click', handleSmartAction);
 dom.continueActiveBillButton?.addEventListener('click', continueActiveBillFromHome);
 dom.homeActionOpenPaymentsButton?.addEventListener('click', () => setAppSection('payments', { scroll: false }));
 dom.homeNewBillButton?.addEventListener('click', focusGuidedNewBillChoices);
-document.querySelector('#historyNewBillButton')?.addEventListener('click', focusGuidedNewBillChoices);
-dom.guideMeButton?.addEventListener('click', () => runSmartPrimaryAction());
-dom.floatingGuideButton?.addEventListener('click', () => runSmartPrimaryAction());
-dom.quickStartNewBillButton?.addEventListener('click', () => openAccountWizard());
-dom.quickStartTotalButton?.addEventListener('click', startQuickTotalWizard);
 dom.simpleModeButton?.addEventListener('click', () => setExperienceMode('simple'));
 dom.advancedModeButton?.addEventListener('click', () => setExperienceMode('advanced'));
 dom.toggleAdvancedToolsButton?.addEventListener('click', toggleAdvancedToolsVisibility);
@@ -13835,6 +13930,7 @@ async function initApp() {
   importBillFromUrl();
   saveState();
   render();
+  initMobileProgressiveDisclosure();
   initAppSections();
   initServiceWorker();
 
