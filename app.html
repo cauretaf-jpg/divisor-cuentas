@@ -8,7 +8,7 @@
 <meta content="#2563eb" name="theme-color"/>
 <meta content="ca-pub-4358472434423818" name="google-adsense-account"/>
 <title>App | Cuenta Clara</title>
-<link href="styles.css?v=13.20.2" rel="stylesheet"/>
+<link href="styles.css?v=13.20.3" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="favicon.ico" rel="icon" sizes="any" />
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml" />
@@ -73,7 +73,12 @@
 <p id="currentListMeta">Revisa aquí qué cuenta estás modificando.</p>
 </div>
 <button class="btn btn-light btn-small" data-app-section="history" type="button">Cambiar cuenta</button>
-</section><section aria-live="polite" class="card shared-readonly-banner hidden" id="sharedReadOnlyBanner"></section><section aria-live="polite" class="card network-status-banner hidden" id="networkStatusBanner">
+</section><nav aria-label="Pestañas de cuenta activa" class="account-section-tabs card" id="accountSectionTabs">
+<button class="account-tab" data-app-section="people" type="button"><span>Personas</span><small>Participantes</small></button>
+<button class="account-tab" data-app-section="expenses" type="button"><span>Gastos</span><small>Montos</small></button>
+<button class="account-tab" data-app-section="summary" type="button"><span>Resumen</span><small>Revisión</small></button>
+<button class="account-tab" data-app-section="payments" type="button"><span>Pagos</span><small>Cobrar</small></button>
+</nav><section aria-live="polite" class="card shared-readonly-banner hidden" id="sharedReadOnlyBanner"></section><section aria-live="polite" class="card network-status-banner hidden" id="networkStatusBanner">
 <div>
 <strong id="networkStatusTitle">Sin conexión</strong>
 <p id="networkStatusText">Tus cambios se guardarán en este dispositivo y se sincronizarán cuando vuelva internet.</p>
@@ -1415,8 +1420,8 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="shared-utils.js?v=13.20.2"></script>
-<script src="supabase-config.js?v=13.20.2"></script>
-<script src="script.js?v=13.20.2"></script>
+<script src="shared-utils.js?v=13.20.3"></script>
+<script src="supabase-config.js?v=13.20.3"></script>
+<script src="script.js?v=13.20.3"></script>
 </body>
 </html>

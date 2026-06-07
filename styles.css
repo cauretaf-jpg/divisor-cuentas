@@ -11301,7 +11301,7 @@ body.advanced-mode .view-status-pill {
   }
 }
 
-/* V13.20.2 - Estado de la app y avisos */
+/* V13.20.3 - Estado de la app y avisos */
 .connection-status-panel {
   display: grid;
   gap: 0.9rem;
@@ -11395,7 +11395,7 @@ body.dark-mode .connection-status-item,
 }
 
 
-/* V13.20.2 - Sitio publico, landing y limpieza visual */
+/* V13.20.3 - Sitio publico, landing y limpieza visual */
 :root {
   --cc-primary: #2563eb;
   --cc-primary-strong: #1d4ed8;
@@ -11799,17 +11799,17 @@ body.dark .public-page,
   .app-legal-footer { padding-bottom: 6.5rem; }
 }
 
-/* V13.20.2 - Footer interno ocupa toda la grilla de la app */
+/* V13.20.3 - Footer interno ocupa toda la grilla de la app */
 .app-layout > .app-legal-footer {
   grid-column: 1 / -1;
 }
 
 
-/* V13.20.2 - limpieza visual publica */
+/* V13.20.3 - limpieza visual publica */
 .public-ad-zone { display: none !important; }
 
 
-/* V13.20.2 - Contacto funcional y móvil más limpio */
+/* V13.20.3 - Contacto funcional y móvil más limpio */
 .contact-page-shell {
   gap: 1.1rem;
 }
@@ -12099,7 +12099,7 @@ body.dark .public-page,
 }
 
 
-/* V13.20.2 - Limpieza de textos visibles y estado discreto */
+/* V13.20.3 - Limpieza de textos visibles y estado discreto */
 .section-view-status {
   margin-top: 1rem;
   padding: 0.75rem;
@@ -12144,7 +12144,7 @@ body.dark .public-page,
   }
 }
 
-/* V13.20.2 - pulido final sitio público y textos visibles */
+/* V13.20.3 - pulido final sitio público y textos visibles */
 .public-page {
   background:
     radial-gradient(circle at 8% 4%, rgba(37, 99, 235, 0.10), transparent 24rem),
@@ -12373,7 +12373,7 @@ body.dark .public-page,
 }
 
 
-/* V13.20.2 - ajuste móvil app y menú inferior */
+/* V13.20.3 - ajuste móvil app y menú inferior */
 body[data-active-section="people"] .mobile-bottom-nav-button[data-app-section="people"],
 body[data-active-section="expenses"] .mobile-bottom-nav-button[data-app-section="expenses"],
 body[data-active-section="summary"] .mobile-bottom-nav-button[data-app-section="summary"],
@@ -12466,7 +12466,7 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
   }
 }
 
-/* V13.20.2 - pulido móvil del sitio público */
+/* V13.20.3 - pulido móvil del sitio público */
 @media (max-width: 720px) {
   body.public-page {
     overflow-x: hidden;
@@ -12654,7 +12654,7 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
 }
 
 
-/* V13.20.2 - Asistente guiado para nueva cuenta */
+/* V13.20.3 - Asistente guiado para nueva cuenta */
 body.account-wizard-active {
   overflow: hidden;
 }
@@ -13459,7 +13459,7 @@ body.advanced-mode .section-nav-button[data-app-section="shared"] {
   }
 }
 
-/* v13.20.2 · Pulido móvil: información progresiva */
+/* v13.20.3 · Pulido móvil: información progresiva */
 .mobile-card-toggle {
   display: none;
 }
@@ -13767,7 +13767,7 @@ body.advanced-mode .section-nav-button[data-app-section="shared"] {
   }
 }
 
-/* V13.20.2: recuperación de contraseña */
+/* V13.20.3: recuperación de contraseña */
 .auth-link-button {
   border: 0;
   background: transparent;
@@ -13814,5 +13814,149 @@ body.advanced-mode .section-nav-button[data-app-section="shared"] {
   .auth-link-button {
     width: 100%;
     min-height: 42px;
+  }
+}
+
+
+/* V13.20.3 - Pestañas de cuenta activa */
+.account-section-tabs {
+  position: sticky;
+  top: 12px;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+  margin: 0 0 14px;
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.account-tab {
+  min-width: 0;
+  min-height: 58px;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  border: 1px solid color-mix(in srgb, var(--primary) 10%, var(--border));
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-soft) 55%, var(--surface));
+  color: var(--text-muted);
+  font: inherit;
+  text-align: left;
+  padding: 0.62rem 0.78rem;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.account-tab:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+  color: var(--text);
+}
+
+.account-tab span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: -0.035em;
+}
+
+.account-tab small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.72rem;
+  color: inherit;
+  opacity: 0.78;
+}
+
+.account-tab.is-active {
+  border-color: color-mix(in srgb, var(--primary) 46%, transparent);
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 14px 30px color-mix(in srgb, var(--primary) 26%, transparent);
+}
+
+body[data-active-section="home"] .account-section-tabs,
+body[data-active-section="tools"] .account-section-tabs,
+body[data-active-section="history"] .account-section-tabs,
+body[data-active-section="recurring"] .account-section-tabs,
+body[data-active-section="shared"] .account-section-tabs {
+  display: none;
+}
+
+@media (max-width: 920px) {
+  .account-section-tabs {
+    top: 10px;
+    grid-template-columns: repeat(4, minmax(104px, 1fr));
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    padding: 7px;
+  }
+
+  .account-tab {
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 760px) {
+  .account-section-tabs {
+    position: sticky;
+    top: 8px;
+    z-index: 44;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(88px, 1fr));
+    gap: 6px;
+    margin: 0 0 10px;
+    padding: 6px;
+    border-radius: 20px;
+  }
+
+  .account-tab {
+    min-height: 48px;
+    border-radius: 15px;
+    padding: 0.44rem 0.52rem;
+    text-align: center;
+  }
+
+  .account-tab span {
+    font-size: 0.82rem;
+  }
+
+  .account-tab small {
+    display: none;
+  }
+
+  [data-app-section-panel="people"] > .section-page-heading,
+  [data-app-section-panel="expenses"] > .section-page-heading,
+  [data-app-section-panel="summary"] > .section-page-heading,
+  [data-app-section-panel="payments"] > .section-page-heading,
+  [data-app-section-panel="people"] > .guide-card,
+  [data-app-section-panel="expenses"] > .guide-card,
+  [data-app-section-panel="summary"] > .guide-card,
+  [data-app-section-panel="payments"] > .guide-card {
+    display: none;
+  }
+}
+
+@media (max-width: 390px) {
+  .account-section-tabs {
+    grid-template-columns: repeat(4, minmax(78px, 1fr));
+  }
+
+  .account-tab {
+    min-height: 46px;
+    padding-inline: 0.35rem;
+  }
+
+  .account-tab span {
+    font-size: 0.76rem;
   }
 }
