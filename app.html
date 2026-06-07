@@ -8,7 +8,7 @@
 <meta content="#2563eb" name="theme-color"/>
 <meta content="ca-pub-4358472434423818" name="google-adsense-account"/>
 <title>App | Cuenta Clara</title>
-<link href="styles.css?v=13.20.1" rel="stylesheet"/>
+<link href="styles.css?v=13.20.2" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="favicon.ico" rel="icon" sizes="any" />
 <link href="assets/logo.svg" rel="icon" type="image/svg+xml" />
@@ -1290,6 +1290,15 @@
 <label for="loginPasswordInput">Contraseña</label>
 <input autocomplete="current-password" id="loginPasswordInput" placeholder="Tu contraseña" type="password"/>
 <button class="btn btn-primary" type="submit">Iniciar sesión</button>
+<button class="auth-link-button" id="showForgotPasswordButton" type="button">Olvidé mi contraseña</button>
+</form>
+<form class="auth-form hidden" id="forgotPasswordForm">
+<label for="forgotEmailInput">Correo electrónico</label>
+<input autocomplete="email" id="forgotEmailInput" placeholder="correo@ejemplo.com" type="email"/>
+<p class="auth-inline-help">Te enviaremos un enlace para crear una nueva contraseña.</p>
+<button class="btn btn-primary" type="submit">Enviar enlace</button>
+<button class="auth-link-button" id="backToLoginFromResetButton" type="button">Volver a iniciar sesión</button>
+<p class="auth-status-message" id="passwordResetStatus"></p>
 </form>
 <form class="auth-form hidden" id="registerForm">
 <label for="registerNameInput">Nombre</label>
@@ -1370,6 +1379,25 @@
 </div>
 </section>
 </div>
+<div aria-labelledby="resetPasswordModalTitle" aria-modal="true" class="modal-backdrop hidden" id="resetPasswordModal" role="dialog">
+<section class="modal-card auth-card">
+<div class="modal-header">
+<div>
+<p class="eyebrow">Recuperar acceso</p>
+<h2 id="resetPasswordModalTitle">Crea una nueva contraseña</h2>
+</div>
+<button aria-label="Cerrar" class="icon-button" id="closeResetPasswordModalButton" type="button">×</button>
+</div>
+<form class="auth-form" id="recoveredPasswordForm">
+<label for="recoveredPasswordInput">Nueva contraseña</label>
+<input autocomplete="new-password" id="recoveredPasswordInput" placeholder="Mínimo 6 caracteres" type="password"/>
+<label for="recoveredPasswordConfirmInput">Repetir contraseña</label>
+<input autocomplete="new-password" id="recoveredPasswordConfirmInput" placeholder="Repite tu contraseña" type="password"/>
+<button class="btn btn-primary" type="submit">Guardar contraseña</button>
+<p class="auth-inline-help">Después de guardar podrás entrar normalmente con tu nueva clave.</p>
+</form>
+</section>
+</div>
 <div aria-live="assertive" class="notice-tab hidden" id="noticeTab" role="alert">
 <div>
 <strong id="noticeTitle">Aviso</strong>
@@ -1387,8 +1415,8 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="shared-utils.js?v=13.20.1"></script>
-<script src="supabase-config.js?v=13.20.1"></script>
-<script src="script.js?v=13.20.1"></script>
+<script src="shared-utils.js?v=13.20.2"></script>
+<script src="supabase-config.js?v=13.20.2"></script>
+<script src="script.js?v=13.20.2"></script>
 </body>
 </html>

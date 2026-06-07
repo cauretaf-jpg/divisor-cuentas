@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.20.1 cargada');
-const APP_VERSION = '13.20.1';
+console.info('Cuenta Clara V13.20.2 cargada');
+const APP_VERSION = '13.20.2';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -452,6 +452,16 @@ const dom = {
   showRegisterButton: document.querySelector('#showRegisterButton'),
   loginForm: document.querySelector('#loginForm'),
   registerForm: document.querySelector('#registerForm'),
+  forgotPasswordForm: document.querySelector('#forgotPasswordForm'),
+  showForgotPasswordButton: document.querySelector('#showForgotPasswordButton'),
+  backToLoginFromResetButton: document.querySelector('#backToLoginFromResetButton'),
+  forgotEmailInput: document.querySelector('#forgotEmailInput'),
+  passwordResetStatus: document.querySelector('#passwordResetStatus'),
+  resetPasswordModal: document.querySelector('#resetPasswordModal'),
+  closeResetPasswordModalButton: document.querySelector('#closeResetPasswordModalButton'),
+  recoveredPasswordForm: document.querySelector('#recoveredPasswordForm'),
+  recoveredPasswordInput: document.querySelector('#recoveredPasswordInput'),
+  recoveredPasswordConfirmInput: document.querySelector('#recoveredPasswordConfirmInput'),
   loginEmailInput: document.querySelector('#loginEmailInput'),
   loginPasswordInput: document.querySelector('#loginPasswordInput'),
   registerNameInput: document.querySelector('#registerNameInput'),
@@ -3294,18 +3304,151 @@ function closeAuthModal() {
 }
 
 function showLoginForm() {
-  dom.loginForm.classList.remove('hidden');
-  dom.registerForm.classList.add('hidden');
-  dom.showLoginButton.classList.add('active');
-  dom.showRegisterButton.classList.remove('active');
+  dom.loginForm?.classList.remove('hidden');
+  dom.registerForm?.classList.add('hidden');
+  dom.forgotPasswordForm?.classList.add('hidden');
+  dom.showLoginButton?.classList.add('active');
+  dom.showRegisterButton?.classList.remove('active');
+  if (dom.passwordResetStatus) dom.passwordResetStatus.textContent = '';
 }
 
 function showRegisterForm() {
-  dom.registerForm.classList.remove('hidden');
-  dom.loginForm.classList.add('hidden');
-  dom.showRegisterButton.classList.add('active');
-  dom.showLoginButton.classList.remove('active');
+  dom.registerForm?.classList.remove('hidden');
+  dom.loginForm?.classList.add('hidden');
+  dom.forgotPasswordForm?.classList.add('hidden');
+  dom.showRegisterButton?.classList.add('active');
+  dom.showLoginButton?.classList.remove('active');
+  if (dom.passwordResetStatus) dom.passwordResetStatus.textContent = '';
 }
+
+function showForgotPasswordForm() {
+  const email = normalizeEmail(dom.loginEmailInput?.value || dom.registerEmailInput?.value || '');
+  if (dom.forgotEmailInput && email) dom.forgotEmailInput.value = email;
+  dom.loginForm?.classList.add('hidden');
+  dom.registerForm?.classList.add('hidden');
+  dom.forgotPasswordForm?.classList.remove('hidden');
+  dom.showLoginButton?.classList.remove('active');
+  dom.showRegisterButton?.classList.remove('active');
+  if (dom.passwordResetStatus) dom.passwordResetStatus.textContent = '';
+}
+
+function getPasswordResetRedirectUrl() {
+  try {
+    return `${window.location.origin}/app?recuperar=1`;
+  } catch {
+    return 'https://divisor-cuentas.vercel.app/app?recuperar=1';
+  }
+}
+
+
+function shouldOpenPasswordResetFromUrl() {
+  try {
+    const params = new URLSearchParams(window.location.search || '');
+    const hashParams = new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
+    return params.get('recuperar') === '1'
+      || params.get('type') === 'recovery'
+      || hashParams.get('type') === 'recovery';
+  } catch {
+    return false;
+  }
+}
+
+async function sendPasswordResetEmail(event) {
+  event.preventDefault();
+
+  if (!hasSupabaseClient()) {
+    showNotice('Recuperación no disponible', 'No se pudo cargar el servicio de usuario. Intenta nuevamente desde el sitio publicado.');
+    return;
+  }
+
+  const email = normalizeEmail(dom.forgotEmailInput?.value || '');
+
+  if (!email) {
+    showToast('Ingresa tu correo.');
+    return;
+  }
+
+  if (dom.passwordResetStatus) {
+    dom.passwordResetStatus.textContent = 'Preparando enlace...';
+  }
+
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+    redirectTo: getPasswordResetRedirectUrl(),
+  });
+
+  if (error) {
+    if (dom.passwordResetStatus) dom.passwordResetStatus.textContent = '';
+    showNotice('No se pudo enviar el enlace', 'Revisa el correo e intenta nuevamente.');
+    return;
+  }
+
+  if (dom.passwordResetStatus) {
+    dom.passwordResetStatus.textContent = 'Listo. Revisa tu correo y abre el enlace para crear una nueva contraseña.';
+  }
+  showToast('Enlace de recuperación enviado.');
+}
+
+function openResetPasswordModal() {
+  dom.resetPasswordModal?.classList.remove('hidden');
+  document.body.classList.add('modal-open');
+  setTimeout(() => dom.recoveredPasswordInput?.focus(), 80);
+}
+
+function closeResetPasswordModal() {
+  dom.resetPasswordModal?.classList.add('hidden');
+  if (dom.authModal?.classList.contains('hidden')) {
+    document.body.classList.remove('modal-open');
+  }
+}
+
+async function updateRecoveredPassword(event) {
+  event.preventDefault();
+
+  if (!hasSupabaseClient()) {
+    showNotice('No se pudo actualizar', 'Intenta abrir nuevamente el enlace de recuperación.');
+    return;
+  }
+
+  const password = dom.recoveredPasswordInput?.value || '';
+  const confirmPassword = dom.recoveredPasswordConfirmInput?.value || '';
+
+  if (!password || password.length < 6) {
+    showToast('La nueva contraseña debe tener al menos 6 caracteres.');
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    showToast('Las contraseñas no coinciden.');
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.updateUser({ password });
+
+  if (error) {
+    showNotice('No se pudo guardar la contraseña', 'El enlace puede haber expirado. Solicita uno nuevo e intenta otra vez.');
+    return;
+  }
+
+  if (data?.user) {
+    setUserSession(data.user);
+    saveAuthSession();
+    await loadCloudState();
+    await savePublicProfileFromMain();
+  }
+
+  dom.recoveredPasswordInput.value = '';
+  dom.recoveredPasswordConfirmInput.value = '';
+  closeResetPasswordModal();
+  closeAuthModal();
+  try {
+    if (shouldOpenPasswordResetFromUrl()) {
+      window.history.replaceState({}, '', `${window.location.origin}/app`);
+    }
+  } catch {}
+  render();
+  showToast('Contraseña actualizada.');
+}
+
 async function registerLocalUser(event) {
   event.preventDefault();
 
@@ -13504,7 +13647,17 @@ if (dom.authModal) {
 }
 dom.showLoginButton && dom.showLoginButton.addEventListener('click', showLoginForm);
 dom.showRegisterButton && dom.showRegisterButton.addEventListener('click', showRegisterForm);
+dom.showForgotPasswordButton && dom.showForgotPasswordButton.addEventListener('click', showForgotPasswordForm);
+dom.backToLoginFromResetButton && dom.backToLoginFromResetButton.addEventListener('click', showLoginForm);
 dom.loginForm && dom.loginForm.addEventListener('submit', loginLocalUser);
+dom.forgotPasswordForm && dom.forgotPasswordForm.addEventListener('submit', sendPasswordResetEmail);
+dom.recoveredPasswordForm && dom.recoveredPasswordForm.addEventListener('submit', updateRecoveredPassword);
+dom.closeResetPasswordModalButton && dom.closeResetPasswordModalButton.addEventListener('click', closeResetPasswordModal);
+dom.resetPasswordModal && dom.resetPasswordModal.addEventListener('click', (event) => {
+  if (event.target === dom.resetPasswordModal) {
+    closeResetPasswordModal();
+  }
+});
 dom.registerForm && dom.registerForm.addEventListener('submit', registerLocalUser);
 dom.continueGuestButton && dom.continueGuestButton.addEventListener('click', switchToGuestMode);
 dom.switchToGuestButton && dom.switchToGuestButton.addEventListener('click', switchToGuestMode);
@@ -13873,6 +14026,10 @@ document.addEventListener('keydown', (event) => {
     closeShareModal();
   }
 
+  if (event.key === 'Escape' && dom.resetPasswordModal && !dom.resetPasswordModal.classList.contains('hidden')) {
+    closeResetPasswordModal();
+  }
+
   if (event.key === 'Escape' && !dom.authModal.classList.contains('hidden')) {
     closeAuthModal();
   }
@@ -13930,6 +14087,11 @@ async function initApp() {
   importBillFromUrl();
   saveState();
   render();
+
+  if (shouldOpenPasswordResetFromUrl() && currentSession.mode === 'user') {
+    openResetPasswordModal();
+  }
+
   initMobileProgressiveDisclosure();
   initAppSections();
   initServiceWorker();
@@ -13937,6 +14099,18 @@ async function initApp() {
   if (hasSupabaseClient()) {
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
+        return;
+      }
+
+      if (event === 'PASSWORD_RECOVERY' && session?.user) {
+        setUserSession(session.user);
+        saveAuthSession();
+        await loadCloudState();
+        await savePublicProfileFromMain();
+        migrateEmptyDefaultPeople();
+        saveState();
+        render();
+        openResetPasswordModal();
         return;
       }
 
