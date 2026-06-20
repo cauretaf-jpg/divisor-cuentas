@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.20.3 cargada');
-const APP_VERSION = '13.20.3';
+console.info('Cuenta Clara V13.20.4 cargada');
+const APP_VERSION = '13.20.4';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -1761,11 +1761,13 @@ function renderAuthUI() {
   const isUser = currentSession.mode === 'user';
 
   const displayName = isUser ? getProfileDisplayName() : '';
-  dom.authStatusBadge.textContent = isUser ? `Perfil · ${displayName}` : 'Invitado';
-  dom.authStatusBadge.setAttribute('aria-label', isUser ? `Abrir perfil de ${displayName}` : 'Iniciar sesión');
+  dom.authStatusBadge.textContent = isUser ? `Mi perfil · ${displayName}` : 'Mi perfil';
+  dom.authStatusBadge.setAttribute('aria-label', isUser ? `Abrir perfil de ${displayName}` : 'Mi perfil');
   dom.authStatusBadge.classList.toggle('is-user', isUser);
-  dom.authStatusBadge.title = isUser ? `Abrir perfil: ${displayName}` : 'Iniciar sesión';
-  dom.authButton.textContent = 'Ingresar';
+  dom.authStatusBadge.classList.toggle('hidden', !isUser);
+  dom.authStatusBadge.title = isUser ? `Abrir perfil: ${displayName}` : '';
+  dom.authButton.textContent = 'Iniciar sesión';
+  dom.authButton.setAttribute('aria-label', 'Iniciar sesión o crear cuenta');
   dom.authButton.classList.toggle('hidden', isUser);
   setSyncStatus(isUser ? (lastCloudSyncAt ? 'saved' : cloudSyncStatus) : 'local', isUser && lastCloudSyncAt ? getCloudSavedText() : '');
 
@@ -3350,6 +3352,30 @@ function shouldOpenPasswordResetFromUrl() {
       || hashParams.get('type') === 'recovery';
   } catch {
     return false;
+  }
+}
+
+function consumeAuthIntentFromUrl() {
+  try {
+    const url = new URL(window.location.href);
+    const intent = String(url.searchParams.get('auth') || '').toLowerCase();
+
+    if (!['login', 'register'].includes(intent) || currentSession.mode === 'user') {
+      return;
+    }
+
+    openAuthModal();
+    if (intent === 'register') {
+      showRegisterForm();
+    } else {
+      showLoginForm();
+    }
+
+    url.searchParams.delete('auth');
+    const cleanUrl = `${url.pathname}${url.search}${url.hash}`;
+    window.history.replaceState({}, '', cleanUrl || 'app.html');
+  } catch (error) {
+    console.warn('No se pudo procesar el acceso solicitado:', error);
   }
 }
 
@@ -14092,6 +14118,7 @@ async function initApp() {
     openResetPasswordModal();
   }
 
+  consumeAuthIntentFromUrl();
   initMobileProgressiveDisclosure();
   initAppSections();
   initServiceWorker();

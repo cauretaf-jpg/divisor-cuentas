@@ -10136,9 +10136,13 @@ textarea {
     font-size: 1rem;
   }
 
-  .header-actions .btn:not(#newBillButton),
+  .header-actions .btn:not(#newBillButton):not(#authButton),
   .header-profile-badge {
     display: none;
+  }
+
+  #authButton:not(.hidden) {
+    display: inline-flex !important;
   }
 
   .mobile-screen-header {
@@ -11301,7 +11305,7 @@ body.advanced-mode .view-status-pill {
   }
 }
 
-/* V13.20.3 - Estado de la app y avisos */
+/* V13.20.4 - Estado de la app y avisos */
 .connection-status-panel {
   display: grid;
   gap: 0.9rem;
@@ -11395,7 +11399,7 @@ body.dark-mode .connection-status-item,
 }
 
 
-/* V13.20.3 - Sitio publico, landing y limpieza visual */
+/* V13.20.4 - Sitio publico, landing y limpieza visual */
 :root {
   --cc-primary: #2563eb;
   --cc-primary-strong: #1d4ed8;
@@ -11799,17 +11803,17 @@ body.dark .public-page,
   .app-legal-footer { padding-bottom: 6.5rem; }
 }
 
-/* V13.20.3 - Footer interno ocupa toda la grilla de la app */
+/* V13.20.4 - Footer interno ocupa toda la grilla de la app */
 .app-layout > .app-legal-footer {
   grid-column: 1 / -1;
 }
 
 
-/* V13.20.3 - limpieza visual publica */
+/* V13.20.4 - limpieza visual publica */
 .public-ad-zone { display: none !important; }
 
 
-/* V13.20.3 - Contacto funcional y móvil más limpio */
+/* V13.20.4 - Contacto funcional y móvil más limpio */
 .contact-page-shell {
   gap: 1.1rem;
 }
@@ -12099,7 +12103,7 @@ body.dark .public-page,
 }
 
 
-/* V13.20.3 - Limpieza de textos visibles y estado discreto */
+/* V13.20.4 - Limpieza de textos visibles y estado discreto */
 .section-view-status {
   margin-top: 1rem;
   padding: 0.75rem;
@@ -12144,7 +12148,7 @@ body.dark .public-page,
   }
 }
 
-/* V13.20.3 - pulido final sitio público y textos visibles */
+/* V13.20.4 - pulido final sitio público y textos visibles */
 .public-page {
   background:
     radial-gradient(circle at 8% 4%, rgba(37, 99, 235, 0.10), transparent 24rem),
@@ -12373,7 +12377,7 @@ body.dark .public-page,
 }
 
 
-/* V13.20.3 - ajuste móvil app y menú inferior */
+/* V13.20.4 - ajuste móvil app y menú inferior */
 body[data-active-section="people"] .mobile-bottom-nav-button[data-app-section="people"],
 body[data-active-section="expenses"] .mobile-bottom-nav-button[data-app-section="expenses"],
 body[data-active-section="summary"] .mobile-bottom-nav-button[data-app-section="summary"],
@@ -12466,7 +12470,7 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
   }
 }
 
-/* V13.20.3 - pulido móvil del sitio público */
+/* V13.20.4 - pulido móvil del sitio público */
 @media (max-width: 720px) {
   body.public-page {
     overflow-x: hidden;
@@ -12654,7 +12658,7 @@ body[data-active-section="home"] .mobile-bottom-nav-button[data-app-section="hom
 }
 
 
-/* V13.20.3 - Asistente guiado para nueva cuenta */
+/* V13.20.4 - Asistente guiado para nueva cuenta */
 body.account-wizard-active {
   overflow: hidden;
 }
@@ -13459,7 +13463,7 @@ body.advanced-mode .section-nav-button[data-app-section="shared"] {
   }
 }
 
-/* v13.20.3 · Pulido móvil: información progresiva */
+/* v13.20.4 · Pulido móvil: información progresiva */
 .mobile-card-toggle {
   display: none;
 }
@@ -13767,7 +13771,7 @@ body.advanced-mode .section-nav-button[data-app-section="shared"] {
   }
 }
 
-/* V13.20.3: recuperación de contraseña */
+/* V13.20.4: recuperación de contraseña */
 .auth-link-button {
   border: 0;
   background: transparent;
@@ -13818,7 +13822,7 @@ body.advanced-mode .section-nav-button[data-app-section="shared"] {
 }
 
 
-/* V13.20.3 - Pestañas de cuenta activa */
+/* V13.20.4 - Pestañas de cuenta activa */
 .account-section-tabs {
   position: sticky;
   top: 12px;
@@ -13958,5 +13962,17 @@ body[data-active-section="shared"] .account-section-tabs {
 
   .account-tab span {
     font-size: 0.76rem;
+  }
+}
+
+
+/* V13.20.4 - Acceso de sesión visible y coherente */
+.header-login-button {
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .header-actions > #authButton:not(.hidden) {
+    min-width: max-content;
   }
 }

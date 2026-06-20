@@ -7,3 +7,6 @@ tools/
 *.log
 .DS_Store
 README_PUBLICAR_VERCEL.txt
+
+# Documentación interna de continuidad
+README.md
