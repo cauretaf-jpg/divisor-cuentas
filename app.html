@@ -5,14 +5,14 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="Cuenta Clara permite dividir cuentas, productos compartidos, propinas y transferencias de forma simple." name="description"/>
-<meta content="#2563eb" name="theme-color"/>
+<meta content="#0f766e" name="theme-color"/>
 <meta content="ca-pub-4358472434423818" name="google-adsense-account"/>
 <title>App | Cuenta Clara</title>
-<link href="styles.css?v=13.20.4" rel="stylesheet"/>
+<link href="styles.css?v=13.21.0" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
-<link href="favicon.ico" rel="icon" sizes="any" />
-<link href="assets/logo.svg" rel="icon" type="image/svg+xml" />
-<link href="assets/icon-192.png" rel="apple-touch-icon" />
+<link href="favicon.ico" rel="icon" sizes="any"/>
+<link href="assets/logo.svg" rel="icon" type="image/svg+xml"/>
+<link href="assets/icon-192.png" rel="apple-touch-icon"/>
 </head>
 <body>
 <header class="app-header">
@@ -27,7 +27,7 @@
 <div class="header-actions">
 <button aria-label="Iniciar sesión o crear cuenta" class="btn btn-light header-login-button" id="authButton" type="button">Iniciar sesión</button>
 <button aria-label="Abrir mi perfil" class="auth-badge header-profile-badge hidden" id="authStatusBadge" type="button">Mi perfil</button>
-<button class="btn btn-light notification-header-button hidden" id="notificationCenterButton" type="button" aria-label="Solicitudes pendientes">Solicitudes <span class="notification-badge hidden" id="notificationHeaderBadge">0</span></button>
+<button aria-label="Solicitudes pendientes" class="btn btn-light notification-header-button hidden" id="notificationCenterButton" type="button">Solicitudes <span class="notification-badge hidden" id="notificationHeaderBadge">0</span></button>
 <button class="btn btn-primary" id="newBillButton" type="button">Nueva cuenta</button>
 <details class="header-more-menu" id="headerMoreMenu">
 <summary class="btn btn-light header-more-trigger">Más opciones</summary>
@@ -43,28 +43,27 @@
 </div>
 </div>
 </header>
-
-<section aria-modal="true" aria-labelledby="accountWizardTitle" class="account-wizard-shell hidden" id="accountWizard" role="dialog">
-  <div class="account-wizard-backdrop" data-wizard-cancel="true"></div>
-  <div class="account-wizard-panel">
-    <header class="account-wizard-header">
-      <div>
-        <p class="eyebrow" id="accountWizardEyebrow">Crear cuenta</p>
-        <h1 id="accountWizardTitle">Nueva cuenta guiada</h1>
-        <p id="accountWizardSubtitle">Avanza paso a paso. Puedes cancelar cuando quieras.</p>
-      </div>
-      <button aria-label="Cancelar creación" class="account-wizard-close" id="accountWizardCloseButton" type="button">×</button>
-    </header>
-    <div aria-label="Progreso de creación" class="account-wizard-progress" id="accountWizardProgress"></div>
-    <div class="account-wizard-body" id="accountWizardBody"></div>
-    <footer class="account-wizard-footer">
-      <button class="btn btn-light" id="accountWizardCancelButton" type="button">Cancelar</button>
-      <div class="account-wizard-footer-actions">
-        <button class="btn btn-light" id="accountWizardBackButton" type="button">Atrás</button>
-        <button class="btn btn-primary" id="accountWizardNextButton" type="button">Continuar</button>
-      </div>
-    </footer>
-  </div>
+<section aria-labelledby="accountWizardTitle" aria-modal="true" class="account-wizard-shell hidden" id="accountWizard" role="dialog">
+<div class="account-wizard-backdrop" data-wizard-cancel="true"></div>
+<div class="account-wizard-panel">
+<header class="account-wizard-header">
+<div>
+<p class="eyebrow" id="accountWizardEyebrow">Crear cuenta</p>
+<h1 id="accountWizardTitle">Nueva cuenta guiada</h1>
+<p id="accountWizardSubtitle">Avanza paso a paso. Puedes cancelar cuando quieras.</p>
+</div>
+<button aria-label="Cancelar creación" class="account-wizard-close" id="accountWizardCloseButton" type="button">×</button>
+</header>
+<div aria-label="Progreso de creación" class="account-wizard-progress" id="accountWizardProgress"></div>
+<div class="account-wizard-body" id="accountWizardBody"></div>
+<footer class="account-wizard-footer">
+<button class="btn btn-light" id="accountWizardCancelButton" type="button">Cancelar</button>
+<div class="account-wizard-footer-actions">
+<button class="btn btn-light" id="accountWizardBackButton" type="button">Atrás</button>
+<button class="btn btn-primary" id="accountWizardNextButton" type="button">Continuar</button>
+</div>
+</footer>
+</div>
 </section>
 <main class="container app-layout sectioned-layout"><aside aria-label="Navegación principal de Cuenta Clara" class="section-nav"><section class="card section-nav-card"><div class="section-nav-title"><p class="eyebrow">Cuenta Clara</p><h2>Pasos principales</h2><p>Crear, revisar y cobrar.</p></div><nav aria-label="Secciones principales de la app" class="section-nav-list product-nav-list"><button class="section-nav-button is-active" data-app-section="home" type="button"><strong>Inicio</strong><span>Panel principal</span></button><button class="section-nav-button" data-app-section="people" type="button"><strong>Personas</strong><span>Participantes</span></button><button class="section-nav-button" data-app-section="expenses" type="button"><strong>Gastos</strong><span>Productos y montos</span></button><button class="section-nav-button" data-app-section="summary" type="button"><strong>Resumen</strong><span>Revisar</span></button><button class="section-nav-button" data-app-section="payments" type="button"><strong>Pagos</strong><span>Cobrar</span></button><button class="section-nav-button" data-app-section="tools" type="button"><strong>Más</strong><span>Historial y ajustes</span></button></nav><div aria-live="polite" class="section-view-status product-hidden-status" id="sectionViewStatus"><span class="view-status-pill" id="viewModeLabel">Vista simple</span><small id="viewModeHelp">Más opciones disponibles.</small><div class="view-status-actions"><button class="btn btn-light btn-small" id="toggleAdvancedToolsButton" type="button">Ver más opciones</button><button class="btn btn-light btn-small" id="restoreRecommendedViewButton" type="button">Restaurar vista recomendada</button></div></div></section></aside><section class="workspace section-workspace"><div aria-live="polite" class="mobile-screen-header" id="mobileScreenHeader"><div><p class="eyebrow" id="mobileScreenEyebrow">Cuenta Clara</p><strong id="mobileScreenTitle">Inicio</strong></div><div class="mobile-screen-actions"><button class="btn btn-light btn-small" id="mobileHomeButton" type="button">Inicio</button><button class="btn btn-light btn-small" id="mobileBackButton" type="button">Atrás</button></div></div><section class="current-list-indicator card" id="currentListIndicator">
 <div>
@@ -138,28 +137,26 @@
 </div>
 </section>
 <section aria-live="polite" class="home-notification-panel hidden" id="homeNotificationPanel">
-  <div class="home-notification-head">
-    <div>
-      <span class="home-action-kicker">Solicitudes</span>
-      <strong id="homeNotificationTitle">Sin solicitudes nuevas</strong>
-      <small id="homeNotificationText">Las invitaciones de amigos aparecerán aquí.</small>
-    </div>
-    <span class="notification-pill" id="homeNotificationBadge">0</span>
-  </div>
-  <div class="notification-list compact" id="homeNotificationList"></div>
-  <div class="home-notification-actions">
-    <button class="btn btn-primary btn-small" id="homeNotificationOpenButton" type="button">Ver solicitudes</button>
-    <button class="btn btn-light btn-small" id="homeNotificationMarkReadButton" type="button">Marcar vistas</button>
-  </div>
+<div class="home-notification-head">
+<div>
+<span class="home-action-kicker">Solicitudes</span>
+<strong id="homeNotificationTitle">Sin solicitudes nuevas</strong>
+<small id="homeNotificationText">Las invitaciones de amigos aparecerán aquí.</small>
+</div>
+<span class="notification-pill" id="homeNotificationBadge">0</span>
+</div>
+<div class="notification-list compact" id="homeNotificationList"></div>
+<div class="home-notification-actions">
+<button class="btn btn-primary btn-small" id="homeNotificationOpenButton" type="button">Ver solicitudes</button>
+<button class="btn btn-light btn-small" id="homeNotificationMarkReadButton" type="button">Marcar vistas</button>
+</div>
 </section>
-
 <div class="home-primary-actions"><button class="btn btn-primary" id="homeNewBillButton" type="button">Nueva cuenta</button><button class="btn btn-light" data-app-section="expenses" type="button">Agregar gasto</button><button class="btn btn-light" data-app-section="tools" type="button">Más</button></div>
-<div aria-label="Accesos rápidos premium" class="home-premium-shortcuts"><button data-app-section="people" type="button"><span>1</span><strong>Personas</strong><small>Participantes</small></button><button data-app-section="expenses" type="button"><span>2</span><strong>Gastos</strong><small>Productos o boleta</small></button><button data-app-section="summary" type="button"><span>3</span><strong>Resumen</strong><small>Totales y revisión</small></button><button data-app-section="payments" type="button"><span>4</span><strong>Pagos</strong><small>Cobros y WhatsApp</small></button></div>
+<div class="home-shortcuts-heading"><strong>Mis accesos</strong><small>Lo más usado para seguir una cuenta desde el celular.</small></div><div aria-label="Accesos rápidos premium" class="home-premium-shortcuts"><button data-app-section="people" type="button"><span>1</span><strong>Personas</strong><small>Participantes</small></button><button data-app-section="expenses" type="button"><span>2</span><strong>Gastos</strong><small>Productos o boleta</small></button><button data-app-section="summary" type="button"><span>3</span><strong>Resumen</strong><small>Totales y revisión</small></button><button data-app-section="payments" type="button"><span>4</span><strong>Pagos</strong><small>Cobros y WhatsApp</small></button></div>
 <div class="home-recent-block">
-<div class="home-recent-title"><strong>Recientes</strong><button class="btn btn-light btn-small" data-app-section="history" type="button">Ver todas</button></div>
+<div class="home-recent-title"><strong>Historial reciente</strong><button class="btn btn-light btn-small" data-app-section="history" type="button">Ver todas</button></div>
 <div class="home-recent-list" id="homeRecentBillsList"></div>
 </div>
-
 </section><section class="first-use-card card hidden" id="firstUseCard">
 <div class="first-use-content">
 <p class="eyebrow">Primer uso</p>
@@ -182,7 +179,86 @@
 <button class="btn btn-light" id="firstUseExampleButton" type="button">Probar con ejemplo</button>
 <button class="btn btn-light" id="dismissFirstUseButton" type="button">Entendido</button>
 </div>
-</section></section><section class="app-section" data-app-section-panel="tools" id="appSection-tools"><section class="section-page-heading card"><div><p class="eyebrow">Más</p><h2>Más opciones</h2><p class="section-helper">Historial, respaldo, recurrentes y configuración en un solo lugar.</p></div></section><section class="tools-hub-card card" id="toolsHubCard"><div><p class="eyebrow">Opciones</p><h3>Elige qué necesitas</h3><p class="section-helper">Lo principal queda en el menú. Aquí está lo secundario.</p></div><div class="tools-hub-grid"><button class="tool-hub-button" data-focus-target="guidedStartCard" type="button"><strong>Plantillas</strong><span>Restaurante, hogar, streaming o cuenta rápida.</span></button><button class="tool-hub-button" data-focus-target="demoDataCard" type="button"><strong>Probar con ejemplo</strong><span>Cargar cuentas simuladas para conocer la app.</span></button><button class="tool-hub-button" data-app-section="recurring" type="button"><strong>Recurrentes</strong><span>Hogar, streaming y deuda acumulada.</span></button><button class="tool-hub-button" data-app-section="shared" type="button"><strong>Compartidas</strong><span>Invitaciones, roles y permisos.</span></button><button class="tool-hub-button" data-focus-target="connectionStatusPanel" type="button"><strong>Estado</strong><span>Sesión, guardado y avisos.</span></button><button class="tool-hub-button" data-app-section="history" type="button"><strong>Historial</strong><span>Cuentas guardadas, filtros y respaldo.</span></button><button class="tool-hub-button" data-app-section="history" type="button"><strong>Respaldo</strong><span>Exportar o importar tus cuentas.</span></button></div></section><section aria-live="polite" class="card connection-status-panel" id="connectionStatusPanel">
+</section></section><section class="app-section" data-app-section-panel="tools" id="appSection-tools"><section class="section-page-heading card"><div><p class="eyebrow">Cuenta Clara</p><h2>Menú</h2><p class="section-helper">Accesos, estado de la app y opciones de tu cuenta.</p></div></section>
+<section class="card mobile-menu-hub" id="mobileMenuHub">
+<div class="mobile-menu-profile">
+<div class="mobile-menu-avatar" id="mobileMenuAvatar">CC</div>
+<div class="mobile-menu-profile-copy">
+<strong id="mobileMenuUserName">Cuenta Clara</strong>
+<small id="mobileMenuUserMeta">Tu espacio para dividir gastos.</small>
+</div>
+<button aria-label="Abrir mi perfil" class="mobile-menu-profile-action" id="mobileMenuProfileButton" type="button">›</button>
+</div>
+<div class="mobile-menu-group">
+<p class="mobile-menu-group-title">Mi cuenta</p>
+<button class="mobile-menu-item" data-menu-target-section="history" type="button">
+<span class="mobile-menu-item-icon">🧾</span>
+<span class="mobile-menu-item-copy"><strong>Historial de cuentas</strong><small>Revisa, recupera o edita cuentas guardadas.</small></span>
+<span class="mobile-menu-item-arrow">›</span>
+</button>
+<button class="mobile-menu-item" data-menu-target-section="recurring" type="button">
+<span class="mobile-menu-item-icon">🏠</span>
+<span class="mobile-menu-item-copy"><strong>Hogar y recurrentes</strong><small>Controla cuentas mensuales y próximos meses.</small></span>
+<span class="mobile-menu-item-arrow">›</span>
+</button>
+<button class="mobile-menu-item" data-menu-target-section="shared" type="button">
+<span class="mobile-menu-item-icon">🤝</span>
+<span class="mobile-menu-item-copy"><strong>Cuentas compartidas</strong><small>Invitaciones, roles y actividad colaborativa.</small></span>
+<span class="mobile-menu-item-arrow">›</span>
+</button>
+</div>
+<div class="mobile-menu-group">
+<p class="mobile-menu-group-title">Cuenta activa</p>
+<button class="mobile-menu-item" data-menu-target-section="people" type="button">
+<span class="mobile-menu-item-icon">👥</span>
+<span class="mobile-menu-item-copy"><strong>Personas</strong><small>Participantes y pagador principal.</small></span>
+<span class="mobile-menu-item-arrow">›</span>
+</button>
+<button class="mobile-menu-item" data-menu-target-section="expenses" type="button">
+<span class="mobile-menu-item-icon">＋</span>
+<span class="mobile-menu-item-copy"><strong>Gastos</strong><small>Productos, boleta y monto rápido.</small></span>
+<span class="mobile-menu-item-arrow">›</span>
+</button>
+<button class="mobile-menu-item" data-menu-target-section="summary" type="button">
+<span class="mobile-menu-item-icon">Σ</span>
+<span class="mobile-menu-item-copy"><strong>Resumen</strong><small>Totales, revisión y validaciones.</small></span>
+<span class="mobile-menu-item-arrow">›</span>
+</button>
+<button class="mobile-menu-item" data-menu-target-section="payments" type="button">
+<span class="mobile-menu-item-icon">$</span>
+<span class="mobile-menu-item-copy"><strong>Pagos</strong><small>Transferencias, estados y WhatsApp.</small></span>
+<span class="mobile-menu-item-arrow">›</span>
+</button>
+</div>
+<div class="mobile-menu-group">
+<p class="mobile-menu-group-title">Soporte</p>
+<a class="mobile-menu-item" href="perfil.html">
+<span class="mobile-menu-item-icon">👤</span>
+<span class="mobile-menu-item-copy"><strong>Mi perfil</strong><small>Amigos, datos personales y configuración.</small></span>
+<span class="mobile-menu-item-arrow">›</span>
+</a>
+<a class="mobile-menu-item" href="privacidad.html">
+<span class="mobile-menu-item-icon">🔒</span>
+<span class="mobile-menu-item-copy"><strong>Privacidad</strong><small>Cómo se usan y protegen tus datos.</small></span>
+<span class="mobile-menu-item-arrow">›</span>
+</a>
+<a class="mobile-menu-item" href="terminos.html">
+<span class="mobile-menu-item-icon">📄</span>
+<span class="mobile-menu-item-copy"><strong>Términos</strong><small>Condiciones de uso de Cuenta Clara.</small></span>
+<span class="mobile-menu-item-arrow">›</span>
+</a>
+<a class="mobile-menu-item" href="contacto.html">
+<span class="mobile-menu-item-icon">✉️</span>
+<span class="mobile-menu-item-copy"><strong>Contacto</strong><small>Escríbenos si necesitas ayuda.</small></span>
+<span class="mobile-menu-item-arrow">›</span>
+</a>
+</div>
+<div class="mobile-menu-footer-actions">
+<button class="btn btn-primary" data-app-action="new-bill" type="button">Nueva cuenta</button>
+<button class="btn btn-light hidden" id="mobileMenuLogoutButton" type="button">Cerrar sesión</button>
+</div>
+</section>
+<section class="tools-hub-card card" id="toolsHubCard"><div><p class="eyebrow">Opciones</p><h3>Elige qué necesitas</h3><p class="section-helper">Lo principal queda en el menú. Aquí está lo secundario.</p></div><div class="tools-hub-grid"><button class="tool-hub-button" data-focus-target="guidedStartCard" type="button"><strong>Plantillas</strong><span>Restaurante, hogar, streaming o cuenta rápida.</span></button><button class="tool-hub-button" data-focus-target="demoDataCard" type="button"><strong>Probar con ejemplo</strong><span>Cargar cuentas simuladas para conocer la app.</span></button><button class="tool-hub-button" data-app-section="recurring" type="button"><strong>Recurrentes</strong><span>Hogar, streaming y deuda acumulada.</span></button><button class="tool-hub-button" data-app-section="shared" type="button"><strong>Compartidas</strong><span>Invitaciones, roles y permisos.</span></button><button class="tool-hub-button" data-focus-target="connectionStatusPanel" type="button"><strong>Estado</strong><span>Sesión, guardado y avisos.</span></button><button class="tool-hub-button" data-app-section="history" type="button"><strong>Historial</strong><span>Cuentas guardadas, filtros y respaldo.</span></button><button class="tool-hub-button" data-app-section="history" type="button"><strong>Respaldo</strong><span>Exportar o importar tus cuentas.</span></button></div></section><section aria-live="polite" class="card connection-status-panel" id="connectionStatusPanel">
 <div class="connection-status-header">
 <div>
 <p class="eyebrow">Estado</p>
@@ -378,7 +454,7 @@
 </div>
 <button class="btn btn-primary btn-small" id="addMePersonButton" type="button">+ Yo</button>
 </div>
-<button class="btn btn-light btn-small frequent-people-toggle hidden" id="toggleFrequentPeopleButton" type="button" aria-expanded="false">Ver personas frecuentes</button>
+<button aria-expanded="false" class="btn btn-light btn-small frequent-people-toggle hidden" id="toggleFrequentPeopleButton" type="button">Ver personas frecuentes</button>
 <div class="frequent-people-panel hidden" id="frequentPeoplePanel">
 <div class="frequent-people-header">
 <strong>Personas frecuentes</strong>
@@ -1039,10 +1115,10 @@
 </section>
 </details></section></section>
 <footer class="app-legal-footer">
-  <span>Cuenta Clara · App</span>
-  <a href="privacidad.html">Privacidad</a>
-  <a href="terminos.html">Términos</a>
-  <a href="contacto.html">Contacto</a>
+<span>Cuenta Clara · App</span>
+<a href="privacidad.html">Privacidad</a>
+<a href="terminos.html">Términos</a>
+<a href="contacto.html">Contacto</a>
 </footer></main>
 <div aria-hidden="true" class="mobile-action-bar">
 <div>
@@ -1052,13 +1128,15 @@
 <button class="btn btn-light btn-small" id="mobileAddProductButton" type="button">Agregar</button>
 <button class="btn btn-primary btn-small" id="mobileShareButton" type="button">Compartir</button>
 </div>
+
 <nav aria-label="Acciones principales" class="mobile-bottom-nav ad-protected-zone">
-<button class="mobile-bottom-nav-button" data-app-section="home" type="button"><span class="mobile-bottom-icon">⌂</span><strong>Inicio</strong><span class="mobile-nav-badge hidden" id="mobileNotificationBadge">0</span></button>
-<button class="mobile-bottom-nav-button" data-app-section="people" type="button"><span class="mobile-bottom-icon">👥</span><strong>Personas</strong></button>
-<button class="mobile-bottom-nav-button" data-app-section="expenses" type="button"><span class="mobile-bottom-icon">＋</span><strong>Gastos</strong></button>
-<button class="mobile-bottom-nav-button" data-app-section="summary" type="button"><span class="mobile-bottom-icon">Σ</span><strong>Resumen</strong></button>
+<button class="mobile-bottom-nav-button" data-app-section="home" type="button"><span class="mobile-bottom-icon">⌂</span><strong>Inicio</strong></button>
+<button class="mobile-bottom-nav-button" data-app-section="history" type="button"><span class="mobile-bottom-icon">🧾</span><strong>Historial</strong></button>
+<button class="mobile-bottom-nav-button mobile-bottom-nav-button--primary" data-app-action="new-bill" type="button"><span class="mobile-bottom-icon">＋</span><strong>Nueva</strong></button>
 <button class="mobile-bottom-nav-button" data-app-section="payments" type="button"><span class="mobile-bottom-icon">$</span><strong>Pagos</strong></button>
+<button class="mobile-bottom-nav-button" data-app-section="tools" type="button"><span class="mobile-bottom-icon">☰</span><strong>Menú</strong><span class="mobile-nav-badge hidden" id="mobileNotificationBadge">0</span></button>
 </nav>
+
 <div aria-labelledby="friendsPickerTitle" aria-modal="true" class="modal-backdrop hidden" id="friendsPickerModal" role="dialog">
 <section class="modal-card friends-picker-card">
 <div class="modal-header">
@@ -1420,8 +1498,8 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="shared-utils.js?v=13.20.4"></script>
-<script src="supabase-config.js?v=13.20.4"></script>
-<script src="script.js?v=13.20.4"></script>
+<script src="shared-utils.js?v=13.21.0"></script>
+<script src="supabase-config.js?v=13.21.0"></script>
+<script src="script.js?v=13.21.0"></script>
 </body>
 </html>

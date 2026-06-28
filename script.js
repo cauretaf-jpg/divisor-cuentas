@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.20.4 cargada');
-const APP_VERSION = '13.20.4';
+console.info('Cuenta Clara V13.21.0 cargada');
+const APP_VERSION = '13.21.0';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -213,6 +213,13 @@ const dom = {
   homeReminderSoonOutput: document.querySelector('#homeReminderSoonOutput'),
   homeReminderList: document.querySelector('#homeReminderList'),
   homeReminderOpenPaymentsButton: document.querySelector('#homeReminderOpenPaymentsButton'),
+  mobileMenuAvatar: document.querySelector('#mobileMenuAvatar'),
+  mobileMenuUserName: document.querySelector('#mobileMenuUserName'),
+  mobileMenuUserMeta: document.querySelector('#mobileMenuUserMeta'),
+  mobileMenuProfileButton: document.querySelector('#mobileMenuProfileButton'),
+  mobileMenuLogoutButton: document.querySelector('#mobileMenuLogoutButton'),
+  mobileMenuSectionButtons: document.querySelectorAll('[data-menu-target-section]'),
+  mobileActionButtons: document.querySelectorAll('[data-app-action]'),
 
   historySearchInput: document.querySelector('#historySearchInput'),
   historyFilterSelect: document.querySelector('#historyFilterSelect'),
@@ -4668,7 +4675,7 @@ const APP_SECTION_TITLES = {
   expenses: { title: 'Gastos', eyebrow: 'Consumos' },
   summary: { title: 'Resumen', eyebrow: 'Totales' },
   payments: { title: 'Pagos', eyebrow: 'Transferencias' },
-  tools: { title: 'Más herramientas', eyebrow: 'Cuenta Clara' },
+  tools: { title: 'Menú', eyebrow: 'Cuenta Clara' },
   history: { title: 'Historial', eyebrow: 'Tus cuentas' },
   recurring: { title: 'Hogar', eyebrow: 'Recurrentes' },
   shared: { title: 'Compartidas', eyebrow: 'Colaboración' },
@@ -5121,6 +5128,37 @@ function renderHomeRecentBills() {
       showToast('Cuenta seleccionada.');
     });
     dom.homeRecentBillsList.appendChild(button);
+  }
+}
+
+function renderMobileMenuHub() {
+  if (!dom.mobileMenuUserName) {
+    return;
+  }
+
+  const isUser = currentSession.mode === 'user';
+  const displayName = isUser ? getProfileDisplayName() : 'Modo invitado';
+  const metaText = isUser
+    ? (currentSession.email || 'Cuenta sincronizada en la nube')
+    : 'Tus cuentas se guardan en este dispositivo hasta iniciar sesión.';
+
+  if (dom.mobileMenuAvatar) {
+    dom.mobileMenuAvatar.textContent = getInitials(displayName);
+  }
+
+  dom.mobileMenuUserName.textContent = displayName;
+
+  if (dom.mobileMenuUserMeta) {
+    dom.mobileMenuUserMeta.textContent = metaText;
+  }
+
+  if (dom.mobileMenuLogoutButton) {
+    dom.mobileMenuLogoutButton.classList.toggle('hidden', !isUser);
+  }
+
+  if (dom.mobileMenuProfileButton) {
+    dom.mobileMenuProfileButton.setAttribute('aria-label', isUser ? `Abrir perfil de ${displayName}` : 'Iniciar sesión');
+    dom.mobileMenuProfileButton.title = isUser ? 'Ir a mi perfil' : 'Iniciar sesión';
   }
 }
 
@@ -11097,6 +11135,7 @@ function render() {
     renderActiveTemplateHelper();
     renderMobileHomeDashboard();
     renderHomeActionPanel();
+    renderMobileMenuHub();
     renderFirstUseOnboarding();
     renderDemoDataCard();
   } catch (error) {
@@ -13732,6 +13771,30 @@ dom.headerMorePanel?.addEventListener('click', (event) => {
 dom.sectionNavButtons?.forEach((button) => {
   button.addEventListener('click', () => setAppSection(button.dataset.appSection));
 });
+
+dom.mobileMenuSectionButtons?.forEach((button) => {
+  button.addEventListener('click', () => setAppSection(button.dataset.menuTargetSection, { scroll: false }));
+});
+
+dom.mobileActionButtons?.forEach((button) => {
+  button.addEventListener('click', () => {
+    const action = button.dataset.appAction;
+    if (action === 'new-bill') {
+      focusGuidedNewBillChoices();
+    }
+  });
+});
+
+dom.mobileMenuProfileButton?.addEventListener('click', () => {
+  if (currentSession.mode === 'user') {
+    window.location.href = 'perfil.html';
+    return;
+  }
+
+  openAuthModal('login');
+});
+
+dom.mobileMenuLogoutButton?.addEventListener('click', logoutLocalUser);
 
 dom.mobileHomeButton?.addEventListener('click', () => setAppSection('home', { scroll: false }));
 
