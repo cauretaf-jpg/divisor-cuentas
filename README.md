@@ -1,10 +1,45 @@
 # Cuenta Clara — Estado del proyecto
 
-**Versión actual:** `v13.21.0`  
+**Versión de desarrollo:** `v13.22.0` (rama de rediseño; producción todavía no actualizada)  
 **Base de esta versión:** `Cuenta-Clara-v13.20.4-acceso-sesion-y-readme`  
 **Tipo de proyecto:** aplicación web estática publicada en Vercel, con Supabase para autenticación, sincronización, amistades y cuentas compartidas.
 
 > Este README es la bitácora de continuidad del proyecto. Cada ZIP nuevo debe actualizar este archivo, agregar una nota técnica en `docs/revisiones/` y una validación en `docs/validaciones/`.
+
+---
+
+
+## 0. Desarrollo v13.22.0 — asistente contextual (17/10/2026)
+
+**Estado:** candidato de prueba en rama `feature/asistente-contextual-propinas-2026-10`. La publicación principal y la base de datos no se han modificado. No corresponde considerar esta versión totalmente validada hasta realizar pruebas manuales en móviles y verificar Supabase.
+
+### Cambios funcionales
+
+- La primera pantalla del asistente pregunta **«¿Qué quieres dividir hoy?»**.
+- Se agregaron contextos **Bar, Cafetería y Juntada o evento**; continúan Restaurante, Supermercado, Hogar, Viaje, Streaming, Cuenta rápida y Otra cuenta.
+- Sugerencias de consumo configuradas por contexto (por ejemplo cerveza, mojito, empanadas, papas, queso y café). Seleccionar una sugerencia prepara nombre y categoría, **no crea un gasto ni inventa su precio**.
+- Para bar, restaurante y cafetería: propina 0 %, 10 % o porcentaje personalizado (0–100); asignación proporcional al consumo, en partes iguales o con montos personalizados y personas exentas. Las asignaciones personalizadas deben sumar el total de propina para finalizar.
+- Revisión del asistente muestra la propina y valida repartos personalizados incompletos.
+- Se corrigió el reinicio no deseado del porcentaje de propina y del modo total rápido al volver a un paso o editar un borrador.
+- Los cálculos ahora excluyen la deuda arrastrada al determinar la propina; se aplica también al detalle exportable por persona.
+- La vista móvil presenta tarjetas contextuales compactas y accesos rápidos de productos.
+
+### Verificaciones realizadas
+
+- Interpretación del JavaScript sin errores de sintaxis.
+- Casos de prueba aislados para propina proporcional, igualitaria, personalizada, exenciones, total rápido y exclusión de deudas anteriores.
+- Validaciones de las referencias de archivos v13.22.0 y caché PWA.
+- El despliegue de **vista previa** en Vercel llegó a estado `READY`.
+
+### Limitaciones y pendientes — no afirmar validación de extremo a extremo
+
+- Se necesita acceso a la **base Supabase utilizada por Cuenta Clara** para inspeccionar RLS, persistencia, usuarios, invitaciones y datos compartidos. La conexión disponible solo mostró otros proyectos.
+- Falta prueba manual en navegador y celular con dos perfiles reales, incluyendo accesibilidad, flujo rápido, productos, propinas y pagos.
+- Las funciones de **pagadores múltiples**, reparto total personalizado/mixto, conciliación directa con boleta y diseño completo de todas las vistas siguen siendo trabajo posterior; no están implementadas por esta revisión.
+- No se borraron carpetas históricas (`assets/` duplicado) ni componentes antiguos sin rastrear sus dependencias y confirmar el origen del despliegue.
+- No se ejecutaron cambios SQL ni migraciones en producción.
+
+Más detalles en `docs/revisiones/REVISION_ASISTENTE_V13_22_0.md` y resultados reproducibles en `docs/validaciones/revision-validacion-v13-22-0.json`.
 
 ---
 
