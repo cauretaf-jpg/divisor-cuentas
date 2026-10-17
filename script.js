@@ -3699,6 +3699,9 @@ function makeDefaultBill() {
     homeMonth: getCurrentMonthValue(),
     payerId: '',
     tipPercent: 10,
+    tipSplitMode: 'proportional',
+    tipExemptIds: [],
+    tipCustomAmounts: {},
     archived: false,
     closed: false,
     closedAt: '',
@@ -3902,7 +3905,14 @@ function normalizeState(input) {
       quickTotal: Number(bill.quickTotal || 0),
       homeMonth: bill.homeMonth || getCurrentMonthValue(),
       payerId: bill.payerId && people.some((p) => p.id === bill.payerId) ? bill.payerId : '',
-      tipPercent: Number.isFinite(Number(bill.tipPercent)) ? Number(bill.tipPercent) : 10,
+      tipPercent: Number.isFinite(Number(bill.tipPercent)) ? Math.max(0, Number(bill.tipPercent)) : 10,
+      tipSplitMode: ['equal', 'custom'].includes(bill.tipSplitMode) ? bill.tipSplitMode : 'proportional',
+      tipExemptIds: Array.isArray(bill.tipExemptIds) ? bill.tipExemptIds.filter((id) => people.some((person) => person.id === id)) : [],
+      tipCustomAmounts: Object.fromEntries(
+        Object.entries(bill.tipCustomAmounts || {})
+          .filter(([id]) => people.some((person) => person.id === id))
+          .map(([id, amount]) => [id, Math.max(0, Math.round(Number(amount) || 0))])
+      ),
       archived: Boolean(bill.archived),
       closed: Boolean(bill.closed),
       closedAt: bill.closedAt || '',
@@ -4247,15 +4257,37 @@ function calculateBill(bill = getActiveBill()) {
   const tipBase = bill.people.reduce((sum, person) =>
     sum + Math.max(0, (baseTotals[person.id] || 0) - Math.max(0, Number(person.previousDebt || 0))), 0);
   const tipPercent = bill.mode === 'home' ? 0 : Math.max(0, Number(bill.tipPercent) || 0);
-  const tipAmount = tipBase * (tipPercent / 100);
+  const tipAmount = Math.round(tipBase * (tipPercent / 100));
+  const eligible = bill.people.filter((person) => !(bill.tipExemptIds || []).includes(person.id));
+  const tipMode = ['equal', 'custom'].includes(bill.tipSplitMode) ? bill.tipSplitMode : 'proportional';
+  const tipAllocations = Object.fromEntries(bill.people.map((person) => [person.id, 0]));
+  if (tipAmount > 0 && eligible.length > 0) {
+    if (tipMode === 'custom') {
+      eligible.forEach((person) => {
+        tipAllocations[person.id] = Math.max(0, Math.round(Number(bill.tipCustomAmounts?.[person.id]) || 0));
+      });
+    } else {
+      const weights = eligible.map((person) => tipMode === 'equal'
+        ? 1
+        : Math.max(0, (baseTotals[person.id] || 0) - Math.max(0, Number(person.previousDebt || 0))));
+      const denominator = weights.reduce((sum, value) => sum + value, 0);
+      const divisor = denominator > 0 ? denominator : eligible.length;
+      const raw = weights.map((weight) => tipAmount * (denominator > 0 ? weight : 1) / divisor);
+      const amounts = raw.map((amount) => Math.floor(amount));
+      let remainder = tipAmount - amounts.reduce((sum, amount) => sum + amount, 0);
+      const order = raw.map((amount, index) => ({ index, fraction: amount - amounts[index] }))
+        .sort((a, b) => b.fraction - a.fraction || a.index - b.index);
+      for (let index = 0; index < remainder; index += 1) amounts[order[index % order.length].index] += 1;
+      eligible.forEach((person, index) => { tipAllocations[person.id] = amounts[index]; });
+    }
+  }
   const finalTotals = {};
   let paidTotal = 0;
   let pendingTotal = 0;
 
   for (const person of bill.people) {
     const personSubtotal = baseTotals[person.id] || 0;
-    const personTipBase = Math.max(0, personSubtotal - Math.max(0, Number(person.previousDebt || 0)));
-    const personTip = personTipBase * (tipPercent / 100);
+    const personTip = tipAllocations[person.id] || 0;
     const finalAmount = personSubtotal + personTip;
 
     finalTotals[person.id] = finalAmount;
@@ -6220,6 +6252,27 @@ function getAccountWizardReviewChecks(bill = getAccountWizardBill()) {
     });
   }
 
+  if (Number(bill.tipPercent || 0) > 0 && bill.mode !== 'home') {
+    const eligible = people.filter((person) => !(bill.tipExemptIds || []).includes(person.id));
+    checks.push({
+      status: eligible.length ? 'ok' : 'error',
+      label: 'Propina',
+      text: eligible.length ? `${eligible.length} persona(s) participan de la propina.` : 'Debe haber al menos una persona que participe de la propina.',
+      step: 3,
+    });
+    if (bill.tipSplitMode === 'custom') {
+      const expected = calculateBill(bill).tipAmount;
+      const assigned = eligible.reduce((sum, person) => sum + Math.max(0, Math.round(Number(bill.tipCustomAmounts?.[person.id]) || 0)), 0);
+      checks.push({
+        status: assigned === expected ? 'ok' : 'error',
+        label: 'Reparto personalizado',
+        text: assigned === expected
+          ? `Propina asignada: ${formatCurrency(assigned)}.`
+          : `La propina debe sumar ${formatCurrency(expected)}; actualmente suma ${formatCurrency(assigned)}.`,
+        step: 3,
+      });
+    }
+  }
   checks.push({
     status: total > 0 ? 'ok' : 'warn',
     label: 'Resultado',
@@ -6587,7 +6640,30 @@ function renderAccountWizardExpensesStep() {
           <button class="account-wizard-suggestion ${currentTip === 10 ? 'is-selected' : ''}" data-wizard-tip="10" type="button">10% sugerido</button>
         </div>
         <label class="account-wizard-field compact"><span>Otro porcentaje (%)</span><input id="accountWizardTipPercent" type="number" min="0" max="100" step="0.5" value="${currentTip}" /></label>
-        <p class="helper-text">Por ahora, la propina se distribuye proporcionalmente al consumo de cada persona.</p>
+        <label class="account-wizard-field compact">
+          <span>¿Cómo repartir la propina?</span>
+          <select id="accountWizardTipSplitMode">
+            <option value="proportional" ${!['equal', 'custom'].includes(bill.tipSplitMode) ? 'selected' : ''}>Según el consumo</option>
+            <option value="equal" ${bill.tipSplitMode === 'equal' ? 'selected' : ''}>En partes iguales</option>
+            <option value="custom" ${bill.tipSplitMode === 'custom' ? 'selected' : ''}>Montos personalizados</option>
+          </select>
+        </label>
+        ${people.length ? `
+          <div class="account-wizard-tip-members">
+            <strong>¿Alguien no participa de la propina?</strong>
+            ${people.map((person) => `<label><input type="checkbox" data-wizard-tip-exempt="${escapeHtml(person.id)}" ${(bill.tipExemptIds || []).includes(person.id) ? 'checked' : ''}/> ${escapeHtml(person.name)} no participa</label>`).join('')}
+          </div>
+        ` : ''}
+        ${bill.tipSplitMode === 'custom' && currentTip > 0 ? `
+          <div class="account-wizard-tip-custom">
+            <strong>Asigna montos de propina (CLP)</strong>
+            ${people.filter((person) => !(bill.tipExemptIds || []).includes(person.id)).map((person) => `
+              <label class="account-wizard-field compact"><span>${escapeHtml(person.name)}</span>
+                <input type="number" min="0" step="1" data-wizard-tip-custom="${escapeHtml(person.id)}" value="${Math.max(0, Math.round(Number(bill.tipCustomAmounts?.[person.id]) || 0))}" />
+              </label>`).join('')}
+            <p class="helper-text">La suma debe coincidir con la propina total. La revisión indicará cualquier diferencia.</p>
+          </div>
+        ` : ''}
       </section>
     ` : ''}
     <section class="account-wizard-card-mini">
@@ -6618,6 +6694,33 @@ function renderAccountWizardExpensesStep() {
     button.addEventListener('click', () => {
       bill.tipPercent = Number(button.dataset.wizardTip);
       addBillActivity('Propina ajustada desde el asistente.', 'expense', bill);
+      persistAndRender();
+      renderAccountWizard();
+    });
+  });
+  dom.accountWizardBody.querySelector('#accountWizardTipSplitMode')?.addEventListener('change', (event) => {
+    bill.tipSplitMode = ['equal', 'custom'].includes(event.target.value) ? event.target.value : 'proportional';
+    persistAndRender();
+    renderAccountWizard();
+  });
+  dom.accountWizardBody.querySelectorAll('[data-wizard-tip-exempt]').forEach((box) => {
+    box.addEventListener('change', () => {
+      const exempt = new Set(bill.tipExemptIds || []);
+      if (box.checked) exempt.add(box.dataset.wizardTipExempt);
+      else exempt.delete(box.dataset.wizardTipExempt);
+      bill.tipExemptIds = [...exempt];
+      persistAndRender();
+      renderAccountWizard();
+    });
+  });
+  dom.accountWizardBody.querySelectorAll('[data-wizard-tip-custom]').forEach((input) => {
+    input.addEventListener('change', () => {
+      const amount = Number(input.value);
+      if (!Number.isFinite(amount) || amount < 0) {
+        showToast('Ingresa un monto de propina válido.');
+        return;
+      }
+      bill.tipCustomAmounts = { ...(bill.tipCustomAmounts || {}), [input.dataset.wizardTipCustom]: Math.round(amount) };
       persistAndRender();
       renderAccountWizard();
     });
@@ -12808,8 +12911,12 @@ function personDetailRows(person, bill, calculation) {
     return [[person.name, 'Sin consumos registrados', '', 0, 0, 0, '', person.paid ? 'Pagado' : 'Pendiente']];
   }
 
+  const tipEligibleSubtotal = detail.items
+    .filter((item) => item.splitMode !== 'carryover')
+    .reduce((sum, item) => sum + item.amount, 0);
   return detail.items.map((item) => {
-    const itemTip = item.splitMode === 'carryover' ? 0 : item.amount * ((Number(bill.tipPercent) || 0) / 100);
+    const itemTip = item.splitMode === 'carryover' || !tipEligibleSubtotal
+      ? 0 : detail.tip * (item.amount / tipEligibleSubtotal);
 
     return [
       person.name,
