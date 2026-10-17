@@ -23,6 +23,10 @@
 - Se corrigió el reinicio no deseado del porcentaje de propina y del modo total rápido al volver a un paso o editar un borrador.
 - Los cálculos ahora excluyen la deuda arrastrada al determinar la propina; se aplica también al detalle exportable por persona.
 - La vista móvil presenta tarjetas contextuales compactas y accesos rápidos de productos.
+- El asistente permite cantidad por producto y subtotal opcional de boleta sin propina. La revisión bloquea finalizar si los productos no cuadran con ese subtotal.
+- La revisión presenta los montos por participante, separados en subtotal y propina.
+- Todo esto funciona sobre estado de cuenta existente y no requiere modificar tablas SQL.
+
 
 ### Verificaciones realizadas
 
