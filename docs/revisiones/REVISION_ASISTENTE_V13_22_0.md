@@ -37,3 +37,12 @@ Pruebas de funciones aisladas: sintaxis JavaScript; proporción con restos; divi
 5. Iniciar sesión con dos usuarios reales; probar cuenta compartida, invitación, aceptación, RLS y sincronización.
 6. Verificar PWA y caché en Android e iOS, navegación de escritorio, accesibilidad y cierre de sesión.
 7. Revisar que el diseño coincida con la propuesta visual y que ninguna vista existente haya quedado inaccesible.
+
+
+## Ampliación de validación (17/10/2026, segunda iteración)
+- Campo de cantidad entera por producto, precio por unidad y cálculo de subtotal por cantidad.
+- Campo opcional para introducir el subtotal impreso de la boleta sin propina; una discrepancia bloquea finalizar el asistente. Esta es una conciliación manual, **no lectura OCR**.
+- Revisión final muestra consumo, propina y total de cada participante.
+- Pruebas agregadas para conciliación coincidente/discordante, cantidad por producto y validación de propina personalizada.
+- GitHub Actions ejecutó pruebas y revisión de sintaxis satisfactoriamente; Vercel generó preview READY.
+- No se ha realizado test E2E en navegador ni probado Supabase.
