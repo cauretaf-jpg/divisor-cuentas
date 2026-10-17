@@ -14669,3 +14669,29 @@ body[data-active-section="shared"] .account-section-tabs {
 .account-wizard-tip-custom .account-wizard-field {
   margin: 0;
 }
+
+
+/* V13.22.0 — conciliación y resumen accesibles. */
+.account-wizard-person-results { display: grid; gap: 10px; margin-top: 12px; }
+.account-wizard-person-result {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 2px 12px;
+  align-items: center;
+  padding: 13px 14px;
+  border: 1px solid var(--border-color, rgba(148,163,184,.25));
+  border-radius: 15px;
+  background: var(--surface-color, #fff);
+}
+.account-wizard-person-result > strong { min-width:0; overflow-wrap:anywhere; }
+.account-wizard-person-result > small {
+  grid-column: 1;
+  color: var(--muted-color,#64748b);
+  line-height: 1.45;
+}
+.account-wizard-person-result > b { grid-column: 2; grid-row: 1 / span 2; font-size: 1rem; }
+@media (max-width: 520px) {
+  .account-wizard-person-result { padding: 11px; }
+  .account-wizard-person-result > b { font-size: .92rem; }
+  .account-wizard-expense-grid input#accountWizardProductQuantity { max-width:100%; }
+}
