@@ -47,4 +47,31 @@ for (const name of ['Mojito', 'Papas fritas', 'Empanadas', 'Queso', 'Capuchino']
 assert.ok(appHtml.includes('script.js?v=13.22.0'));
 assert.ok(css.includes('.account-wizard-suggestion-list'));
 assert.ok(sw.includes("cuenta-clara-v13.22.0"));
-console.log('Validaciones de asistente v13.22.0: OK (10 grupos de pruebas).');
+// Comprobaciones de conciliación sin navegador ni conexión a Supabase.
+const reviewStart = source.indexOf('function getAccountWizardReviewChecks(bill');
+const reviewEnd = source.indexOf('\n}\n\n', reviewStart) + 2;
+assert.ok(reviewStart >= 0 && reviewEnd > reviewStart, 'Debe existir la revisión del asistente');
+const checksFor = new Function('getAccountWizardBill', 'getBillGrandTotal', 'calculateBill', 'formatCurrency',
+  source.slice(reviewStart, reviewEnd) + '; return getAccountWizardReviewChecks;')(
+  () => null, (b) => calculate(b).grandTotal, calculate, (amount) => '
+ + Math.round(amount)
+);
+const baseForReview = bill({
+  name: 'Cena de prueba', payerId: 'a',
+  receiptExpectedSubtotal: 19990,
+  tipSplitMode: 'custom',
+  tipCustomAmounts: { a: 1000, b: 999, c: 0 },
+});
+let checks = checksFor(baseForReview);
+assert.equal(checks.find((c) => c.label === 'Conciliación de boleta')?.status, 'ok');
+assert.equal(checks.find((c) => c.label === 'Reparto personalizado')?.status, 'ok');
+checks = checksFor({ ...baseForReview, receiptExpectedSubtotal: 21000 });
+assert.equal(checks.find((c) => c.label === 'Conciliación de boleta')?.status, 'error');
+checks = checksFor({ ...baseForReview, tipCustomAmounts: { a: 1000, b: 0, c: 0 } });
+assert.equal(checks.find((c) => c.label === 'Reparto personalizado')?.status, 'error');
+const doubled = calculate(bill({ products: [{ ...product(), quantity: 2 }] }));
+assert.equal(doubled.subtotal, 39980, 'Se debe multiplicar cantidad por precio unitario');
+assert.ok(source.includes("id=\"accountWizardProductQuantity\""), 'Falta el campo de cantidad');
+assert.ok(source.includes("id=\"accountWizardReceiptSubtotal\""), 'Falta el subtotal de boleta');
+assert.ok(source.includes('account-wizard-person-results'), 'Falta desglose por persona');
+console.log('Validaciones de asistente v13.22.0: OK (cálculo, conciliación y controles de interfaz).');
