@@ -1,0 +1,28 @@
+name: Validar Cuenta Clara
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - 'feature/asistente-contextual-propinas-2026-10'
+
+jobs:
+  validacion-estatica:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Comprobar sintaxis de scripts
+        run: |
+          node --check script.js
+          node --check profile.js
+          node --check shared-utils.js
+          node --check service-worker.js
+      - name: Comprobar asistente y propinas
+        run: node tests/validar-asistente.js
