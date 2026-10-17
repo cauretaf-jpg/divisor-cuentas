@@ -53,8 +53,7 @@ const reviewEnd = source.indexOf('\n}\n\n', reviewStart) + 2;
 assert.ok(reviewStart >= 0 && reviewEnd > reviewStart, 'Debe existir la revisión del asistente');
 const checksFor = new Function('getAccountWizardBill', 'getBillGrandTotal', 'calculateBill', 'formatCurrency',
   source.slice(reviewStart, reviewEnd) + '; return getAccountWizardReviewChecks;')(
-  () => null, (b) => calculate(b).grandTotal, calculate, (amount) => '
- + Math.round(amount)
+  () => null, (b) => calculate(b).grandTotal, calculate, (amount) => String(Math.round(amount))
 );
 const baseForReview = bill({
   name: 'Cena de prueba', payerId: 'a',
