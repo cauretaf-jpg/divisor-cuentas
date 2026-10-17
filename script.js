@@ -6175,10 +6175,13 @@ function ensureAccountWizardDraft() {
   if (isNewDraft) {
     applyTemplateToBill(bill, getAccountWizardTemplateKey(), String(accountWizardState.name || '').trim() || getAccountWizardDefaultName());
   } else {
-    // No sobrescribir la propina que el usuario eligió al actualizar su borrador.
+    // Conservar la elección del usuario: «total rápido» o «por productos»,
+    // incluso al volver a este paso o modificar el borrador.
     const changedTemplate = bill.templateKey !== getAccountWizardTemplateKey();
-    bill.mode = ['detailed', 'home', 'quick'].includes(template.mode) ? template.mode : 'detailed';
-    if (changedTemplate) bill.tipPercent = Number(template.tipPercent || 0);
+    if (changedTemplate) {
+      bill.mode = ['detailed', 'home', 'quick'].includes(template.mode) ? template.mode : 'detailed';
+      bill.tipPercent = Number(template.tipPercent || 0);
+    }
     if (bill.mode === 'home') bill.homeMonth = bill.homeMonth || getCurrentMonthValue();
     if (bill.mode === 'quick') bill.quickTotal = Number(bill.quickTotal || 0);
   }
