@@ -1,109 +1,107 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Cuenta Clara es una app web para dividir gastos, organizar pagos y compartir resúmenes de cuentas." />
-  <meta name="theme-color" content="#2563eb" />
-  <meta name="google-adsense-account" content="ca-pub-4358472434423818" />
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4358472434423818" crossorigin="anonymous"></script>
-  <title>Divide cuentas sin enredos | Cuenta Clara</title>
-  <link rel="stylesheet" href="styles.css?v=13.21.0" />
-<link href="favicon.ico" rel="icon" sizes="any" />
-<link href="assets/logo.svg" rel="icon" type="image/svg+xml" />
-<link href="assets/icon-192.png" rel="apple-touch-icon" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7fafb">
+  <meta name="description" content="Divide cuentas con amigos en segundos, sin registrarte. Calcula productos, propinas y transferencias.">
+  <meta name="google-adsense-account" content="ca-pub-4358472434423818">
+  <title>Cuenta Clara | Divide gastos sin registro</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="simple.css?v=2.0.0">
 </head>
-<body class="public-page landing-page">
-  <header class="site-header">
-    <div class="container site-header-grid">
-      <a class="brand site-brand" href="index.html" aria-label="Cuenta Clara">
-        <img class="brand-icon" src="assets/logo.svg" alt="" />
-        <div><strong>Cuenta Clara</strong><span>Divide gastos sin enredos</span></div>
-      </a>
-      <nav class="site-nav" aria-label="Navegación pública"><a class="site-nav-link is-active" href="index.html">Inicio</a><a class="site-nav-link " href="como-funciona.html">Cómo funciona</a><a class="site-nav-link " href="funciones.html">Funciones</a><a class="site-nav-link " href="preguntas-frecuentes.html">Preguntas frecuentes</a><a class="site-nav-link " href="privacidad.html">Privacidad</a><a class="site-nav-link " href="terminos.html">Términos</a><a class="site-nav-link " href="contacto.html">Contacto</a></nav>
-      <a class="btn btn-primary site-app-button" href="app.html?auth=login">Iniciar sesión</a>
-    </div>
-  </header>
-  <main>
-  <section class="public-hero">
-    <div class="container public-hero-grid">
-      <div class="public-hero-copy">
-        <p class="eyebrow">Cuenta Clara</p>
-        <h1>Divide gastos con amigos sin hacer cálculos eternos.</h1>
-        <p>Organiza cuentas de salidas, hogar, streaming o viajes. Agrega personas, revisa quién debe y comparte el resumen en pocos pasos.</p>
-        <div class="public-hero-actions">
-          <a class="btn btn-primary" href="app.html?auth=login">Iniciar sesión</a>
-          <a class="btn btn-light" href="app.html">Usar como invitado</a>
-          <a class="btn btn-light" href="como-funciona.html">Ver cómo funciona</a>
-        </div>
-        <div class="public-trust-row">
-          <span>Hecha para celular</span>
-          <span>Modo invitado</span>
-          <span>Resumen para WhatsApp</span>
-        </div>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="Cuenta Clara, ir al inicio"><span class="brand-mark"><img src="assets/logo.svg" alt=""></span><span>Cuenta <b>Clara</b></span></a>
+      <div class="top-actions">
+        <button class="header-link" id="historyOpen" type="button"><span aria-hidden="true">▤</span> Mis cuentas</button>
+        <button class="user-button" id="authOpen" type="button">Ingresar</button>
       </div>
-      <div class="public-hero-card" aria-label="Vista resumida de Cuenta Clara">
-        <div class="mini-phone-card">
-          <span class="mini-status">Lista para compartir</span>
-          <h2>Cumpleaños</h2>
-          <div class="mini-kpis"><div><small>Total</small><strong>$48.900</strong></div><div><small>Pendiente</small><strong>$8.500</strong></div></div>
-          <div class="mini-list"><span>Felipe debe $8.500</span><span>Carlos pagó</span><span>Mensaje listo para enviar</span></div>
+    </header>
+    <main id="main">
+      <section id="screenHome" class="screen home" aria-labelledby="homeTitle">
+        <div class="home-copy"><span class="eyebrow">LA FORMA MÁS SIMPLE DE DIVIDIR</span>
+          <h1 id="homeTitle">Divide gastos,<br><em>no amistades.</em></h1>
+          <p>Agrega los consumos, elige las personas y descubre cuánto debe pagar cada una.</p>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="container public-section public-tight-section">
-    <div class="public-section-head">
-      <p class="eyebrow">Para qué sirve</p>
-      <h2>Menos dudas al momento de pagar.</h2>
-      <p>Cuenta Clara transforma una cuenta compartida en pasos concretos: personas, gastos, revisión y pagos.</p>
-    </div>
-    <div class="public-card-grid three feature-card-grid">
-      <article class="public-info-card"><span class="feature-icon">👥</span><strong>Personas claras</strong><p>Agrega participantes, tu perfil o amigos registrados sin mezclar nombres.</p></article>
-      <article class="public-info-card"><span class="feature-icon">🧾</span><strong>Gastos ordenados</strong><p>Divide productos, propina, cuentas del hogar, streaming o boletas revisadas.</p></article>
-      <article class="public-info-card"><span class="feature-icon">💬</span><strong>Resumen fácil</strong><p>Ve quién debe, marca pagos y prepara mensajes para WhatsApp.</p></article>
-    </div>
-  </section>
-
-  <section class="container public-section split public-compact-split">
-    <div>
-      <p class="eyebrow">Experiencia guiada</p>
-      <h2>La app te muestra qué falta.</h2>
-      <p>En vez de leer instrucciones largas, cada alerta indica el problema y la acción para resolverlo.</p>
-    </div>
-    <div class="public-check-list compact-check-list">
-      <span>Crear cuenta</span>
-      <span>Agregar personas</span>
-      <span>Registrar gastos</span>
-      <span>Revisar pendientes</span>
-      <span>Compartir resultado</span>
-    </div>
-  </section>
-
-  <section class="container public-cta-card">
-    <div>
-      <p class="eyebrow">Empieza cuando quieras</p>
-      <h2>Abre Cuenta Clara y crea tu primera cuenta.</h2>
-      <p>También puedes revisar primero cómo funciona si quieres entender el flujo antes de usarla.</p>
-    </div>
-    <div class="public-cta-actions">
-      <a class="btn btn-primary" href="app.html?auth=login">Iniciar sesión</a>
-      <a class="btn btn-light" href="app.html">Usar como invitado</a>
-      <a class="btn btn-light" href="preguntas-frecuentes.html">Ver preguntas frecuentes</a>
-    </div>
-  </section>
-</main>
-  <footer class="site-footer">
-  <div class="container site-footer-simple">
-    <a class="brand site-footer-brand" href="index.html"><img class="brand-icon" src="assets/logo.svg" alt="" /><div><strong>Cuenta Clara</strong><span>Divide gastos sin enredos</span></div></a>
-    <nav class="site-footer-links" aria-label="Enlaces legales y contacto">
-      <a href="privacidad.html">Privacidad</a>
-      <a href="terminos.html">Términos</a>
-      <a href="contacto.html">Contacto</a>
-    </nav>
+        <div class="home-panel">
+          <div class="panel-heading"><span class="step-indicator">EMPECEMOS</span><h2>¿Qué quieres dividir?</h2><p>Elige una opción para comenzar.</p></div>
+          <div class="category-grid" id="categoryGrid">
+            <button class="category" data-category="bar" type="button"><span class="category-icon">🍻</span><span>Bar</span><span class="category-arrow">↗</span></button>
+            <button class="category" data-category="restaurant" type="button"><span class="category-icon">🍽️</span><span>Restaurante</span><span class="category-arrow">↗</span></button>
+            <button class="category" data-category="supermarket" type="button"><span class="category-icon">🛒</span><span>Supermercado</span><span class="category-arrow">↗</span></button>
+            <button class="category" data-category="other" type="button"><span class="category-icon">✨</span><span>Otro</span><span class="category-arrow">↗</span></button>
+          </div>
+          <div class="home-small"><span>✓ Sin registro</span><span>✓ Gratis</span><span>✓ Resultado inmediato</span></div>
+        </div>
+        <div class="home-bottom"><div><strong>¿Ya dividiste una cuenta?</strong><p>Puedes recuperar tus resultados guardados en este dispositivo.</p></div><button class="text-action" type="button" id="homeHistory">Ver mis cuentas <span aria-hidden="true">→</span></button></div>
+      </section>
+      <section id="screenCalc" class="screen calc hidden" aria-labelledby="calcTitle">
+        <div class="flow-head"><button class="back" id="calcBack" type="button" aria-label="Volver al inicio">←</button><div><div class="eyebrow">PASO 2 DE 3</div><h1 id="calcTitle">Divide tu cuenta</h1><p>Solo necesitas completar estos datos.</p></div></div>
+        <div class="progress" aria-hidden="true"><span class="done"></span><span class="done"></span><span></span></div>
+        <div class="calc-grid">
+          <div class="calc-main">
+            <section class="form-card">
+              <div class="section-head"><span class="number">01</span><div><h2>¿Quiénes participan?</h2><p>Escribe un nombre por persona.</p></div></div>
+              <label class="field"><span>Nombre de esta cuenta (opcional)</span><input id="calcName" maxlength="80" placeholder="Ej: Salida del viernes" autocomplete="off"></label>
+              <div id="peopleRows" class="people-rows"></div>
+              <button class="add-link" id="addPerson" type="button">＋ Agregar persona</button>
+            </section>
+            <section class="form-card">
+              <div class="section-head"><span class="number">02</span><div><h2>¿Cuánto gastaron?</h2><p>Elige la manera más cómoda de dividir.</p></div></div>
+              <div class="segmented" role="group" aria-label="Método de división"><button id="modeTotal" data-mode="total" type="button" class="selected" aria-pressed="true">Monto total</button><button id="modeItems" data-mode="items" type="button" aria-pressed="false">Por productos</button></div>
+              <div id="totalFields"><label class="field large-field"><span>Total del consumo (sin propina)</span><div class="currency-input"><span>$</span><input id="totalAmount" type="number" min="0" step="1" inputmode="numeric" placeholder="30.000"></div></label>
+                <div class="inline-radio" role="group" aria-label="Reparto del monto"><label><input name="totalMode" type="radio" value="equal" checked> Por partes iguales</label><label><input name="totalMode" type="radio" value="custom"> Montos personalizados</label></div>
+                <div id="manualAmounts" class="stack hidden"></div>
+              </div>
+              <div id="itemFields" class="hidden">
+                <div class="help-title">Consumos sugeridos <small>toca uno para completar el nombre</small></div>
+                <div id="suggestions" class="suggestions"></div>
+                <div id="itemRows" class="item-list"></div>
+                <div class="product-editor">
+                  <label class="field"><span>Producto</span><input id="itemName" placeholder="Ej: Mojito" maxlength="80"></label>
+                  <div class="two-fields"><label class="field"><span>Precio unitario ($)</span><input id="itemPrice" type="number" min="0" step="1" inputmode="numeric" placeholder="4500"></label><label class="field"><span>Cantidad</span><input id="itemQty" type="number" min="1" step="1" value="1" inputmode="numeric"></label></div>
+                  <div class="field"><span>¿Quién consumió esto?</span><div id="consumers" class="checks"></div></div>
+                  <div class="editor-actions"><button id="addItem" class="secondary-button" type="button">＋ Agregar producto</button><button id="cancelItemEdit" class="text-action hidden" type="button">Cancelar edición</button></div>
+                </div>
+                <details class="small-details"><summary>¿Quieres comparar con tu boleta?</summary><label class="field"><span>Subtotal de la boleta (sin propina)</span><input id="receiptSubtotal" type="number" min="0" step="1" inputmode="numeric" placeholder="Opcional"></label><small>Si el total no coincide con los productos, te avisaremos antes de calcular.</small></details>
+              </div>
+            </section>
+            <section class="form-card compact-card">
+              <div class="section-head"><span class="number">03</span><div><h2>Propina y pago</h2><p>Solo si corresponde.</p></div></div>
+              <div class="two-fields"><label class="field"><span>Propina</span><select id="tipSelect"><option value="0">Sin propina</option><option value="10">10% sugerido</option><option value="custom">Otro porcentaje</option></select></label><label id="tipCustomField" class="field hidden"><span>Porcentaje (%)</span><input id="tipCustomPercent" min="0" max="100" step="0.5" type="number" inputmode="decimal" value="10"></label></div>
+              <details id="tipAdvanced" class="small-details"><summary>Personalizar reparto de propina</summary>
+                <label class="field"><span>Distribución</span><select id="tipMode"><option value="proportional">Proporcional al consumo</option><option value="equal">En partes iguales</option><option value="custom">Montos personalizados</option></select></label>
+                <div class="field"><span>¿Quiénes no participan de la propina?</span><div id="tipExempts" class="checks"></div></div><div id="tipCustomAmounts" class="stack hidden"></div>
+              </details>
+              <div class="separator"></div>
+              <label class="field"><span>¿Quién pagó la cuenta?</span><select id="payerMode"><option value="single">Una persona pagó todo</option><option value="multiple">Varias personas pagaron</option><option value="unknown">Solo quiero saber cuánto corresponde</option></select></label>
+              <div id="singlePayer" class="field"><span>Pagador</span><select id="payerId"></select></div><div id="multiPayers" class="stack hidden"></div>
+            </section>
+          </div>
+          <aside class="calc-aside"><div class="preview"><span class="eyebrow">TU CUENTA</span><strong id="previewType">Bar</strong><div><small>Consumo estimado</small><b id="previewBase">$0</b></div><div><small>Propina</small><b id="previewTip">$0</b></div><div class="preview-total"><small>Total estimado</small><b id="previewTotal">$0</b></div><p>Verás los montos definitivos en el resultado.</p></div></aside>
+        </div>
+        <div id="calcError" class="error hidden" role="alert"></div>
+        <div class="sticky-actions"><button id="calculateBtn" class="primary-button" type="button">Ver resultado <span aria-hidden="true">→</span></button></div>
+      </section>
+      <section id="screenResult" class="screen result hidden" aria-labelledby="resultTitle">
+        <div class="flow-head"><button class="back" id="resultBack" type="button" aria-label="Volver a editar la cuenta">←</button><div><div class="eyebrow">PASO 3 DE 3</div><h1 id="resultTitle">¡Cuenta dividida!</h1><p>Este es el detalle que puedes compartir.</p></div></div><div class="progress" aria-hidden="true"><span class="done"></span><span class="done"></span><span class="done"></span></div>
+        <div class="result-card"><div class="result-total"><span>RESULTADO DE TU CUENTA</span><h2 id="resultName">Bar</h2><small>Total a dividir</small><strong id="resultAmount">$0</strong><p id="resultBreakdown"></p></div>
+          <div class="result-inside"><h3>¿Cuánto corresponde a cada persona?</h3><div id="resultPeople"></div><div id="transferSection"><h3>¿Quién le transfiere a quién?</h3><div id="transferRows"></div></div></div></div>
+        <div class="result-actions"><button id="shareBtn" class="primary-button" type="button">Compartir resultado <span aria-hidden="true">↗</span></button><button id="copyBtn" class="secondary-button" type="button">Copiar detalle</button><button id="newBtn" class="text-action" type="button">Dividir otra cuenta</button></div>
+        <div class="cloud-callout" id="cloudCallout"><span>☁</span><div><strong id="cloudCalloutTitle">¿Quieres conservar esta cuenta?</strong><p id="cloudCalloutText">Se guardó en este dispositivo. Inicia sesión para sincronizarla en la nube.</p></div><button type="button" id="cloudAction">Guardar en la nube</button></div>
+      </section>
+    </main>
+    <footer class="footer"><span>Cuenta Clara · Calcula sin registro</span><nav aria-label="Enlaces útiles"><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="app.html?advanced=1">Versión avanzada</a></nav></footer>
   </div>
-  <div class="container site-footer-bottom"><span>© 2026 Cuenta Clara.</span><span>Divide gastos con claridad.</span></div>
-</footer>
+  <dialog id="historyDialog" class="modal"><div class="modal-head"><div><span class="eyebrow">EN ESTE DISPOSITIVO</span><h2>Mis cuentas</h2></div><button class="icon-close" data-close="historyDialog" type="button" aria-label="Cerrar">×</button></div><p class="modal-intro" id="historyInfo">Tus cuentas guardadas aparecen aquí.</p><div id="savedList" class="saved-list"></div></dialog>
+  <dialog id="authDialog" class="modal"><div class="modal-head"><div><span class="eyebrow">OPCIONAL</span><h2 id="authTitle">Guardar en la nube</h2></div><button class="icon-close" data-close="authDialog" type="button" aria-label="Cerrar">×</button></div><p class="modal-intro">Puedes seguir dividiendo cuentas sin iniciar sesión. Al ingresar, tus resultados se sincronizarán.</p><form id="authForm"><label class="field"><span>Correo electrónico</span><input id="authEmail" type="email" autocomplete="email" required placeholder="correo@ejemplo.com"></label><label class="field"><span>Contraseña</span><input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="Mínimo 6 caracteres"></label><div class="auth-buttons"><button class="primary-button" type="submit" id="authSubmit">Ingresar</button><button class="secondary-button" type="button" id="authSwitch">Crear cuenta</button></div><button type="button" id="resetPassword" class="text-action">Recuperar contraseña</button><p id="authMessage" class="auth-message" role="status"></p></form></dialog>
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <script src="simple-core.js?v=2.0.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="supabase-config.js?v=13.21.0"></script>
+  <script src="simple-app.js?v=2.0.0"></script>
 </body>
 </html>
