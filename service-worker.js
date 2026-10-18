@@ -1,9 +1,12 @@
-const CACHE_NAME = 'cuenta-clara-v13.21.0';
+const CACHE_NAME = 'cuenta-clara-simple-v2.0.0';
 
 const ASSETS = [
   './',
   './index.html',
   './app.html',
+  './simple.css?v=2.0.0',
+  './simple-core.js?v=2.0.0',
+  './simple-app.js?v=2.0.0',
   './como-funciona.html',
   './funciones.html',
   './preguntas-frecuentes.html',
