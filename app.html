@@ -8,6 +8,14 @@
 <meta content="#0f766e" name="theme-color"/>
 <meta content="ca-pub-4358472434423818" name="google-adsense-account"/>
 <title>App | Cuenta Clara</title>
+<script>
+  // Versión simple de forma predeterminada; el panel avanzado queda disponible.
+  if (new URLSearchParams(location.search).get('advanced') !== '1' && location.hash !== '#shared') {
+    const next = new URL('index.html', location.href);
+    if (new URLSearchParams(location.search).has('auth')) next.searchParams.set('auth','login');
+    location.replace(next.href);
+  }
+</script>
 <link href="styles.css?v=13.21.0" rel="stylesheet"/>
 <link href="manifest.json" rel="manifest"/>
 <link href="favicon.ico" rel="icon" sizes="any"/>
