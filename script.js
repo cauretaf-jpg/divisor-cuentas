@@ -198,6 +198,11 @@ const dom = {
   guidedFlowSecondaryButton: document.querySelector('#guidedFlowSecondaryButton'),
   continueActiveBillButton: document.querySelector('#continueActiveBillButton'),
   homeNewBillButton: document.querySelector('#homeNewBillButton'),
+  homeAllTypesButton: document.querySelector('#homeAllTypesButton'),
+  homeContextButtons: document.querySelectorAll('[data-cc-home-template]'),
+  ccHomeStoredCount: document.querySelector('#ccHomeStoredCount'),
+  ccHomePendingCount: document.querySelector('#ccHomePendingCount'),
+  ccHomeSharedCount: document.querySelector('#ccHomeSharedCount'),
   homeRecentBillsList: document.querySelector('#homeRecentBillsList'),
   homeRecurringPanel: document.querySelector('#homeRecurringPanel'),
   homeRecurringKicker: document.querySelector('#homeRecurringKicker'),
@@ -222,6 +227,12 @@ const dom = {
   mobileActionButtons: document.querySelectorAll('[data-app-action]'),
 
   historySearchInput: document.querySelector('#historySearchInput'),
+  historyNewBillButton: document.querySelector('#historyNewBillButton'),
+  ccHistoryAllCount: document.querySelector('#ccHistoryAllCount'),
+  ccHistoryPendingCount: document.querySelector('#ccHistoryPendingCount'),
+  ccHistoryPaidCount: document.querySelector('#ccHistoryPaidCount'),
+  ccHistoryResultsCount: document.querySelector('#ccHistoryResultsCount'),
+  ccHistoryFilterButtons: document.querySelectorAll('[data-cc-history-filter]'),
   historyFilterSelect: document.querySelector('#historyFilterSelect'),
   historyTypeFilterSelect: document.querySelector('#historyTypeFilterSelect'),
   historySortSelect: document.querySelector('#historySortSelect'),
@@ -5084,6 +5095,28 @@ function renderNetworkStatus() {
   dom.networkStatusPill.textContent = 'En este dispositivo';
 }
 
+// Estadísticas basadas en cuentas reales; la cuenta inicial vacía no es un gasto.
+function getAccountOverviewCounts(bills = state?.bills || [], skipInitialPlaceholder = isLikelyFirstUseState()) {
+  const visibleBills = skipInitialPlaceholder ? [] : bills;
+  return {
+    saved: visibleBills.length,
+    pending: visibleBills.filter((bill) =>
+      getBillStatus(bill) === 'pending' && calculateBill(bill).pendingTotal > 0).length,
+    paid: visibleBills.filter((bill) => getBillStatus(bill) === 'paid').length,
+    shared: visibleBills.filter((bill) => Boolean(bill.sharedAccountId)).length,
+  };
+}
+
+function renderAccountOverviewCounts() {
+  const counts = getAccountOverviewCounts();
+  if (dom.ccHomeStoredCount) dom.ccHomeStoredCount.textContent = String(counts.saved);
+  if (dom.ccHomePendingCount) dom.ccHomePendingCount.textContent = String(counts.pending);
+  if (dom.ccHomeSharedCount) dom.ccHomeSharedCount.textContent = String(counts.shared);
+  if (dom.ccHistoryAllCount) dom.ccHistoryAllCount.textContent = String(counts.saved);
+  if (dom.ccHistoryPendingCount) dom.ccHistoryPendingCount.textContent = String(counts.pending);
+  if (dom.ccHistoryPaidCount) dom.ccHistoryPaidCount.textContent = String(counts.paid);
+}
+
 function renderMobileHomeDashboard() {
   if (!dom.homeGreetingOutput || !state?.bills?.length) {
     return;
@@ -5122,6 +5155,7 @@ function renderMobileHomeDashboard() {
     dom.continueActiveBillButton.textContent = getSmartActionCopy().button;
   }
 
+  renderAccountOverviewCounts();
   renderHomeRecentBills();
   renderHomeReminderDashboard();
   renderHomeRecurringPanel();
@@ -5132,7 +5166,7 @@ function renderHomeRecentBills() {
     return;
   }
 
-  const recentBills = [...state.bills]
+  const recentBills = (isLikelyFirstUseState() ? [] : [...state.bills])
     .filter((bill) => !bill.archived)
     .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
     .slice(0, 3);
@@ -5140,7 +5174,7 @@ function renderHomeRecentBills() {
   dom.homeRecentBillsList.innerHTML = '';
 
   if (recentBills.length === 0) {
-    dom.homeRecentBillsList.appendChild(emptyMessage('Todavía no tienes cuentas recientes.'));
+    dom.homeRecentBillsList.appendChild(emptyMessage('Todavía no tienes cuentas recientes. Crea una desde las opciones de arriba.'));
     return;
   }
 
@@ -5162,7 +5196,7 @@ function renderHomeRecentBills() {
       editingProductId = null;
       saveState();
       render();
-      setAppSection('home', { scroll: false });
+      setAppSection('summary', { instant: true });
       showToast('Cuenta seleccionada.');
     });
     dom.homeRecentBillsList.appendChild(button);
@@ -9747,6 +9781,7 @@ async function saveSharedActiveBillNow() {
 }
 
 function renderBillList() {
+  renderAccountOverviewCounts();
   const search = dom.historySearchInput.value.trim().toLowerCase();
   const filter = dom.historyFilterSelect.value;
   const typeFilter = dom.historyTypeFilterSelect?.value || 'all';
@@ -9760,7 +9795,7 @@ function renderBillList() {
     return bill.mode === typeFilter;
   };
 
-  const filteredBills = state.bills
+  const filteredBills = (isLikelyFirstUseState() ? [] : state.bills)
     .filter((bill) => {
       const status = getBillStatus(bill);
       const matchesSearch = bill.name.toLowerCase().includes(search);
@@ -9786,6 +9821,16 @@ function renderBillList() {
       }
       return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
     });
+
+  if (dom.ccHistoryResultsCount) {
+    const total = getAccountOverviewCounts().saved;
+    dom.ccHistoryResultsCount.textContent = `${filteredBills.length} de ${total} cuenta${total === 1 ? '' : 's'}`;
+  }
+  dom.ccHistoryFilterButtons?.forEach((button) => {
+    const selected = button.dataset.ccHistoryFilter === filter;
+    button.classList.toggle('is-selected', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  });
 
   if (filteredBills.length === 0) {
     const message = search
@@ -9819,7 +9864,7 @@ function renderBillList() {
     const productCount = bill.mode === 'quick' ? (Number(bill.quickTotal || 0) > 0 ? 1 : 0) : bill.products.length;
     const ownershipLabel = bill.sharedAccountId ? 'Compartida' : bill.recurringGroupId ? 'Recurrente' : 'Personal';
     row.innerHTML = `
-      <button class="bill-item history-bill-open" type="button" aria-label="Abrir ${escapeHtml(bill.name)}">
+      <button class="bill-item history-bill-open" type="button" aria-label="Abrir resumen de ${escapeHtml(bill.name)}">
         <div class="history-bill-main">
           <span class="history-status-line"><em class="history-status-badge is-${status}">${statusLabel}</em><em>${escapeHtml(getBillModeLabel(bill.mode))}</em><em>${ownershipLabel}</em></span>
           <strong>${escapeHtml(bill.name)}</strong>
@@ -9841,6 +9886,7 @@ function renderBillList() {
       editingProductId = null;
       saveState();
       render();
+      setAppSection('summary', { instant: true });
       showToast('Cuenta seleccionada.');
     });
 
@@ -14137,7 +14183,26 @@ dom.guideShareButtons?.forEach((button) => {
 dom.smartActionButton?.addEventListener('click', handleSmartAction);
 dom.continueActiveBillButton?.addEventListener('click', continueActiveBillFromHome);
 dom.homeActionOpenPaymentsButton?.addEventListener('click', () => setAppSection('payments', { scroll: false }));
-dom.homeNewBillButton?.addEventListener('click', focusGuidedNewBillChoices);
+dom.homeNewBillButton?.addEventListener('click', () => openAccountWizard());
+dom.homeContextButtons?.forEach((button) => {
+  button.addEventListener('click', () => {
+    const templateKey = button.dataset.ccHomeTemplate || 'restaurant';
+    openAccountWizard(templateKey);
+    // Ya eligió la situación en Inicio; puede volver a cambiarla con «Atrás».
+    if (accountWizardState) {
+      accountWizardState.step = 1;
+      renderAccountWizard();
+    }
+  });
+});
+dom.homeAllTypesButton?.addEventListener('click', () => openAccountWizard('custom'));
+dom.historyNewBillButton?.addEventListener('click', () => openAccountWizard());
+dom.ccHistoryFilterButtons?.forEach((button) => {
+  button.addEventListener('click', () => {
+    dom.historyFilterSelect.value = button.dataset.ccHistoryFilter;
+    renderBillList();
+  });
+});
 dom.simpleModeButton?.addEventListener('click', () => setExperienceMode('simple'));
 dom.advancedModeButton?.addEventListener('click', () => setExperienceMode('advanced'));
 dom.toggleAdvancedToolsButton?.addEventListener('click', toggleAdvancedToolsVisibility);
