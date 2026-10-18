@@ -37,7 +37,19 @@ async function waitForServer() {
     page.on('dialog', (dialog) => dialog.dismiss());
     await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.locator('#ccHomeStoredCount').waitFor({ state: 'visible', timeout: 30000 });
-    await page.locator('#ccCreateHeroTitle').waitFor({ state: 'visible' });
+    console.log('Diagnóstico de la cabecera:', JSON.stringify(await page.locator('#ccCreateHeroTitle').evaluate((el) => {
+      const parents = [];
+      let node = el;
+      for (let i = 0; node && i < 7; i++, node = node.parentElement) {
+        const style = getComputedStyle(node);
+        parents.push({ tag: node.tagName, className: String(node.className).slice(0,110),
+          display: style.display, visibility: style.visibility, opacity: style.opacity,
+          width: node.getBoundingClientRect().width, height: node.getBoundingClientRect().height });
+      }
+      return parents;
+    })));
+    await page.screenshot({ path: path.join(screenshots, 'diagnostico-inicio.png'), fullPage: true });
+    await page.locator('#ccCreateHeroTitle').waitFor({ state: 'visible', timeout: 4000 });
     assert.match(await page.locator('#ccCreateHeroTitle').innerText(), /Qué quieres dividir/i);
     await page.screenshot({ path: path.join(screenshots, 'inicio-movil.png'), fullPage: true });
 
