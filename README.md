@@ -1,6 +1,6 @@
 # Cuenta Clara — Estado del proyecto
 
-**Versión de desarrollo:** `v13.23.0` (rama de rediseño; producción todavía no actualizada)  
+**Versión de desarrollo:** `v13.24.0` (fidelidad visual con PDF; producción todavía no actualizada)  
 **Base de esta versión:** `Cuenta-Clara-v13.20.4-acceso-sesion-y-readme`  
 **Tipo de proyecto:** aplicación web estática publicada en Vercel, con Supabase para autenticación, sincronización, amistades y cuentas compartidas.
 
@@ -8,6 +8,23 @@
 
 ---
 
+
+## 0B. Desarrollo v13.24.0 — Corrección visual fiel al PDF (18/10/2026)
+
+**Motivo:** la v13.23 funcionaba, pero no se parecía visualmente al PDF aprobado. Se sustituyó el gran bloque degradado por fondo blanco y tarjetas de borde fino, azul marino, tipografía clara y turquesa/menta. Se reorganizaron los controles antiguos dentro de un detalle desplegable; las notificaciones de invitaciones permanecen visibles.
+
+El asistente ahora presenta cabecera con logo, flecha superior, barra de progreso segmentada, opciones sobrias y botón principal fijo al pie en móvil. En escritorio se añadió la barra lateral azul marino de la propuesta.
+
+Se creó una hoja de estilos aislada: **`design-pdf.css`**, incluida en el precaché PWA v13.24. No hubo cambios de tablas ni datos. Historial conserva filtros, búsqueda, orden, resumen y acciones; el motor de cálculo y propina es el mismo.
+
+**QA automatizado:** tests Node SUCCESS y Chromium móvil/escritorio SUCCESS (estilos computados, navegación, cuentas ficticias, filtros y resumen). Se generaron capturas en:
+https://github.com/cauretaf-jpg/divisor-cuentas/actions/runs/39146915133/artifacts/12143632971
+
+**Publicación:** rama de desarrollo sin fusionar. Vercel indicó límite diario de despliegues; revisar la publicación de preview cuando se restablezca. Faltan pruebas con usuarios reales y revisión visual directa.
+
+**Bitácora:** `docs/revisiones/FIDELIDAD_PDF_VISUAL_V13_24_0.md`.
+
+---
 
 ## 0A. Desarrollo v13.23.0 — Inicio e Historial rediseñados (18/10/2026)
 
