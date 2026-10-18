@@ -102,7 +102,7 @@ assert.ok(css.includes('.cc-create-hero'), 'Falta estilo del inicio contextual')
 assert.ok(css.includes('.cc-history-overview'), 'Falta estilo del historial');
 
 const overviewStart = source.indexOf('function getAccountOverviewCounts(');
-const overviewEnd = source.indexOf('\\n}\\n\\n', overviewStart) + 2;
+const overviewEnd = source.indexOf('\n}\n\n', overviewStart) + 2;
 assert.ok(overviewStart >= 0 && overviewEnd > overviewStart, 'Falta motor de estadísticas globales');
 const buildOverview = new Function('state', 'isLikelyFirstUseState', 'getBillStatus', 'calculateBill',
   source.slice(overviewStart, overviewEnd) + ';return getAccountOverviewCounts;')(
