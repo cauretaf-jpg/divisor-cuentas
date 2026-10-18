@@ -80,3 +80,41 @@ assert.ok(inviteSql.includes('select m.account_id, a.title'), 'La invitación so
 assert.ok(source.includes(".filter((item) => item.status === 'accepted')"), 'Solo cargar JSON de cuentas aceptadas');
 assert.ok(source.includes(".rpc('list_my_pending_shared_invites')"), 'El título debe venir de una RPC limitada');
 console.log('Validaciones de asistente v13.23.0: OK (cálculo, conciliación y seguridad de invitaciones).');
+// Comprobar que Inicio/Historial utilizan las rutas reales y no elementos inertes.
+for (const id of [
+  'ccCreateHeroTitle', 'homeAllTypesButton', 'ccHomeStoredCount',
+  'ccHomePendingCount', 'ccHomeSharedCount', 'homeRecentBillsList',
+  'historyNewBillButton', 'ccHistoryAllCount', 'ccHistoryPendingCount',
+  'ccHistoryPaidCount', 'ccHistoryResultsCount', 'historyFilterSelect', 'billList'
+]) {
+  const matches = [...appHtml.matchAll(new RegExp('id="' + id + '"', 'g'))];
+  assert.equal(matches.length, 1, 'El elemento ' + id + ' debe existir una sola vez');
+}
+for (const type of ['bar', 'restaurant', 'supermarket', 'home']) {
+  assert.ok(appHtml.includes('data-cc-home-template="' + type + '"'), 'Falta acceso ' + type);
+}
+assert.ok(appHtml.includes('<option value="everything" selected>'), 'Historial debe mostrar todas por defecto');
+assert.ok(source.includes("setAppSection('summary', { instant: true })"), 'Seleccionar del historial debe abrir el resumen');
+assert.ok(source.includes("dom.homeAllTypesButton?.addEventListener('click'"), 'Todos los tipos debe abrir el asistente');
+assert.ok(source.includes("dom.historyNewBillButton?.addEventListener('click'"), 'Historial debe permitir crear');
+assert.ok(source.includes("dom.ccHistoryFilterButtons?.forEach"), 'Los filtros del historial deben funcionar');
+assert.ok(css.includes('.cc-create-hero'), 'Falta estilo del inicio contextual');
+assert.ok(css.includes('.cc-history-overview'), 'Falta estilo del historial');
+
+const overviewStart = source.indexOf('function getAccountOverviewCounts(');
+const overviewEnd = source.indexOf('\\n}\\n\\n', overviewStart) + 2;
+assert.ok(overviewStart >= 0 && overviewEnd > overviewStart, 'Falta motor de estadísticas globales');
+const buildOverview = new Function('state', 'isLikelyFirstUseState', 'getBillStatus', 'calculateBill',
+  source.slice(overviewStart, overviewEnd) + ';return getAccountOverviewCounts;')(
+  { bills: [] }, () => false, (bill) => bill.testStatus, (bill) => ({ pendingTotal: bill.testPending || 0 })
+);
+const billsOverview = [
+  { testStatus: 'pending', testPending: 1500, sharedAccountId: '' },
+  { testStatus: 'pending', testPending: 0, sharedAccountId: '' },
+  { testStatus: 'paid', sharedAccountId: 'shared-1' },
+  { testStatus: 'archived', sharedAccountId: '' },
+];
+assert.deepEqual(buildOverview(billsOverview, false), { saved: 4, pending: 1, paid: 1, shared: 1 });
+assert.deepEqual(buildOverview(billsOverview, true), { saved: 0, pending: 0, paid: 0, shared: 0 });
+console.log('Inicio e Historial v13.23.0: navegación, categorías y estadísticas OK.');
+
