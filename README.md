@@ -1,6 +1,6 @@
 # Cuenta Clara — Estado del proyecto
 
-**Versión de desarrollo:** `v13.22.0` (rama de rediseño; producción todavía no actualizada)  
+**Versión de desarrollo:** `v13.23.0` (rama de rediseño; producción todavía no actualizada)  
 **Base de esta versión:** `Cuenta-Clara-v13.20.4-acceso-sesion-y-readme`  
 **Tipo de proyecto:** aplicación web estática publicada en Vercel, con Supabase para autenticación, sincronización, amistades y cuentas compartidas.
 
@@ -8,6 +8,20 @@
 
 ---
 
+
+## 0A. Desarrollo v13.23.0 — Inicio e Historial rediseñados (18/10/2026)
+
+Se implementó el nuevo **Inicio móvil** en una rama separada con pregunta principal «¿Qué quieres dividir hoy?» (Bar, Restaurante, Supermercado, Hogar), enlace al resto de categorías y creación mediante el asistente guiado. Se priorizó Historial reciente, con apertura directa al resumen, métricas globales separadas de las de la cuenta seleccionada y sincronización discreta.
+
+El **Historial de cuentas** ahora aparece con un acceso destacado, métricas, filtros rápidos, buscador, lista completa por defecto, contador de resultados y acciones conservadas. Se mantuvieron datos, estructura de Supabase, modo invitado, pagos, borradores, cuentas compartidas y recurrencia.
+
+El rediseño usa CSS responsive y las variables actuales de modo oscuro. No se borraron datos ni se crearon bases de datos. Se añadieron pruebas de navegación estructural y conteos, manteniendo los tests del asistente, propina y seguridad.
+
+**Estado:** pruebas automatizadas aprobadas; pendiente validación visual en móvil/escritorio y E2E con usuarios reales antes de fusionar o publicar en producción.
+
+Bitácora: `docs/revisiones/REDISENO_INICIO_HISTORIAL_V13_23_0.md`.
+
+---
 
 ## 0. Desarrollo v13.22.0 — asistente contextual (17/10/2026)
 
