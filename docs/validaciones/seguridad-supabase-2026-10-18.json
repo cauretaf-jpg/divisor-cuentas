@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-18",
+  "project": "cuenta-clara-db",
+  "project_ref": "evmwuvjgokkxxnckhiyc",
+  "phase": "security_migrations_applied_ui_in_preview",
+  "scope": "Cuenta Clara only",
+  "migrations": [
+    "cuenta_clara_harden_function_execution_20261018",
+    "cuenta_clara_fk_indexes_20261018",
+    "cuenta_clara_optimize_rls_auth_20261018",
+    "cuenta_clara_private_pending_invitations_20261018"
+  ],
+  "database_checks": {
+    "all_public_tables_rls_enabled": true,
+    "anon_function_execute_grants_removed": true,
+    "authenticated_rpc_preserved": true,
+    "sql_search_path_warnings_cleared": true,
+    "seven_fk_indexes_created": true,
+    "unindexed_foreign_key_warnings_cleared": true,
+    "auth_rls_initplan_warnings_cleared": true,
+    "pending_invitations_read_only_title_rpc": true
+  },
+  "verified_code_checks": {
+    "javascript_syntax": true,
+    "node_test_suite": true,
+    "github_actions_success": true,
+    "vercel_preview_ready": true
+  },
+  "not_tested": {
+    "real_user_login_and_saved_state_sync": true,
+    "two_user_invitation_acceptance": true,
+    "two_user_invitation_rejection": true,
+    "viewer_editor_role_enforcement": true,
+    "mobile_end_to_end": true,
+    "pwa_offline_and_cache": true
+  },
+  "outstanding_supabase_advisories": [
+    "authenticated_security_definer_function_executable: required for authenticated collaboration; review periodically",
+    "auth_leaked_password_protection: requires Auth setting enabled",
+    "unused_index: informational"
+  ],
+  "release_note": "Database hardening active; UI changes remain unmerged on feature branch. Pending invite titles in old published UI may fall back to a generic label until new UI is released."
+}
