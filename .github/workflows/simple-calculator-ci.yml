@@ -1,0 +1,49 @@
+name: Cuenta Clara 2.0 simple
+on:
+  push:
+    branches:
+      - feature/cuenta-clara-2-calculadora-simple
+  pull_request:
+    branches:
+      - main
+jobs:
+  calculos:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Comprobar código y modelos
+        run: |
+          node --check simple-core.js
+          node --check simple-app.js
+          node --check service-worker.js
+          node tests/simple-core.test.cjs
+  navegador:
+    needs: calculos
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Preparar navegador
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Probar cálculo sin registro
+        run: node tests/simple-browser.test.cjs
+      - name: Guardar capturas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cuenta-clara-2-simple-capturas
+          path: artifacts/simple-ui/*.png
+          if-no-files-found: ignore
+          retention-days: 7
