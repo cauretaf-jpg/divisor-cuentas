@@ -16,7 +16,11 @@ function persist(){if(draft){draft.updatedAt=Date.now();localWrite(DRAFT_KEY,dra
 function screen(which){for(const name of ["Home","Calc","Result"])$("screen"+name).classList.toggle("hidden",name.toLowerCase()!==which);window.scrollTo?.({top:0,behavior:"instant"});}
 function restoreDraft(){const d=localRead(DRAFT_KEY,null);return d && d.people?.length&&d.category&&d.id?d:null;}
 function start(category){draft=C.initial(category);draft.payerId=draft.people[0].id;editingId=null;result=null;renderCalc();persist();screen("calc");}
-function goHome(){screen("home");}
+function goHome(){
+ const unsaved=draft&&!history().some(e=>e.id===draft.id);
+ $("resumeDraft").classList.toggle("hidden",!unsaved);
+ screen("home");
+}
 function renderCalc(){
  $("calcTitle").textContent="Divide tu cuenta de "+(C.names[draft.category]||"gastos").toLowerCase();
  $("calcName").value=draft.title||"";
@@ -203,7 +207,18 @@ function bind(){
  $("multiPayers").addEventListener("input",e=>{const x=e.target.closest("[data-paid]");if(x){draft.payments[x.dataset.paid]=Number(x.value||0);persist();}});
  $("calculateBtn").addEventListener("click",calculate);
  $("copyBtn").addEventListener("click",copy);$("shareBtn").addEventListener("click",share);
+ $("whatsappBtn").addEventListener("click",()=>{
+   if(!draft||!result)return;
+   window.open("https://wa.me/?text="+encodeURIComponent(C.receiptText(draft,result)),"_blank","noopener,noreferrer");
+ });
  $("historyOpen").addEventListener("click",showHistory);$("homeHistory").addEventListener("click",showHistory);
+ $("resumeDraft").addEventListener("click",()=>{
+  const saved=restoreDraft();
+  if(!saved)return toast("No encontramos ese borrador.");
+  draft=saved;editingId=null;result=null;
+  if(!draft.payerId)draft.payerId=draft.people[0]?.id||"";
+  renderCalc();screen("calc");
+ });
  $("authOpen").addEventListener("click",openAuth);$("cloudAction").addEventListener("click",()=>loggedUser?syncCloud():openAuth());
  document.querySelectorAll("[data-close]").forEach(x=>x.addEventListener("click",()=>$((x.dataset.close)).close()));
  $("savedList").addEventListener("click",e=>{const open=e.target.closest("[data-open-saved]"),del=e.target.closest("[data-delete-saved]");if(open)openSaved(open.dataset.openSaved);if(del)deleteSaved(del.dataset.deleteSaved);});
@@ -239,5 +254,7 @@ async function initCloud(){
 bind();authLabel();screen("home");initCloud();
 if("serviceWorker" in navigator)navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
 if(new URLSearchParams(location.search).has("auth")){openAuth();}
-if(restoreDraft()){$("homeHistory").textContent="Ver mis cuentas →";}
+if(restoreDraft()&&!history().some(e=>e.id===restoreDraft().id)){
+  $("resumeDraft").classList.remove("hidden");
+}
 })();
