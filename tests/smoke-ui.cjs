@@ -72,11 +72,51 @@ async function waitForServer() {
     assert.equal(await page.locator('#historyFilterSelect').inputValue(), 'everything');
     await page.screenshot({ path: path.join(screenshots, 'historial-movil.png'), fullPage: true });
 
+    // Revisión con datos exclusivamente locales de ejemplo: sin usuarios reales.
+    const peoplePending = [
+      { id: 'p1', name: 'Ana', previousDebt: 0, paid: true },
+      { id: 'p2', name: 'Beto', previousDebt: 0, paid: false },
+    ];
+    const peoplePaid = peoplePending.map((person) => ({ ...person, paid: true }));
+    const exampleBills = {
+      bills: [
+        { id: 'bill_smoke_bar', name: 'Salida de bar', mode: 'quick', quickTotal: 20000,
+          payerId: 'p1', tipPercent: 10, people: peoplePending, products: [],
+          archived: false, closed: false, createdAt: '2026-10-18T12:00:00.000Z', updatedAt: '2026-10-18T12:00:00.000Z' },
+        { id: 'bill_smoke_cafe', name: 'Cafetería pagada', mode: 'quick', quickTotal: 15000,
+          payerId: 'p1', tipPercent: 0, people: peoplePaid, products: [],
+          archived: false, closed: false, createdAt: '2026-10-17T12:00:00.000Z', updatedAt: '2026-10-17T12:00:00.000Z' },
+      ],
+      activeBillId: 'bill_smoke_bar',
+    };
+    await page.evaluate((seed) => {
+      localStorage.setItem('cuenta-clara-v1-state', JSON.stringify(seed));
+      localStorage.setItem('cuenta-clara-active-section', 'home');
+    }, exampleBills);
+    await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.locator('#ccHomeStoredCount').waitFor({ state: 'visible', timeout: 20000 });
+    assert.equal((await page.locator('#ccHomeStoredCount').innerText()).trim(), '2',
+      'Inicio debe mostrar dos cuentas de ejemplo');
+    await page.locator('#appSection-home .cc-text-link').click();
+    await page.locator('#appSection-history.is-active').waitFor({ state: 'visible' });
+    assert.match(await page.locator('#ccHistoryResultsCount').innerText(), /2 de 2 cuentas/);
+    await page.locator('[data-cc-history-filter="pending"]').click();
+    assert.equal(await page.locator('#appSection-history .history-bill-card').count(), 1);
+    assert.match(await page.locator('#appSection-history .history-bill-main').innerText(), /Salida de bar/);
+    await page.locator('[data-cc-history-filter="paid"]').click();
+    assert.equal(await page.locator('#appSection-history .history-bill-card').count(), 1);
+    assert.match(await page.locator('#appSection-history .history-bill-main').innerText(), /Cafetería pagada/);
+    await page.locator('[data-cc-history-filter="everything"]').click();
+    await page.screenshot({ path: path.join(screenshots, 'historial-ejemplo-movil.png'), fullPage: true });
+    await page.locator('#appSection-history .history-bill-open').first().click();
+    await page.locator('#appSection-summary.is-active').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#billNameInput').inputValue(), 'Salida de bar');
+
     // Comprobar versión de escritorio con el mismo flujo y sin desbordes.
     await page.setViewportSize({ width: 1280, height: 850 });
     await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 45000 });
-    // La app recuerda correctamente que el usuario estaba en Historial.
-    await page.locator('#appSection-history.is-active').waitFor({ state: 'visible', timeout: 15000 });
+    // La app restaura la última sección visitada (en esta prueba, Resumen).
+    await page.locator('#appSection-summary.is-active').waitFor({ state: 'visible', timeout: 15000 });
     await page.locator('.section-nav-button[data-app-section="home"]').click({ timeout: 15000 });
     await page.locator('#ccCreateHeroTitle').waitFor({ state: 'visible', timeout: 15000 });
     const noHorizontalOverflow = await page.evaluate(() =>
