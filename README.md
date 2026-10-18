@@ -47,6 +47,22 @@ Más detalles en `docs/revisiones/REVISION_ASISTENTE_V13_22_0.md` y resultados r
 
 ---
 
+### Supabase — revisión de seguridad del 18 de octubre de 2026
+
+Se verificó el acceso correcto a `cuenta-clara-db` y se aplicaron **cuatro migraciones de seguridad y rendimiento directamente en Supabase**:
+1. Permisos de funciones: se eliminó ejecución por anónimos y se conservaron las RPC de colaboración para usuarios autenticados.
+2. Siete índices nuevos para claves foráneas.
+3. Optimización de 35 políticas RLS sin cambiar sus criterios de acceso.
+4. Las invitaciones pendientes ya no entregan el contenido completo de una cuenta; la nueva RPC solo permite consultar su título hasta aceptar.
+
+Las migraciones están documentadas en `sql/05-` a `sql/08-` y en `docs/revisiones/REVISION_SEGURIDAD_SUPABASE_2026_10_18.md`.
+
+**Distinción importante:** las migraciones de base de datos están aplicadas; la nueva interfaz y los cambios JavaScript siguen **en la rama de desarrollo sin fusionar**. Los tests de GitHub y el preview de Vercel están aprobados, pero no hay aún pruebas E2E con dos usuarios reales. Se requiere probar aceptación y rechazo de invitaciones, roles, perfil, pagos y sincronización antes de fusionar.
+
+Advertencias residuales de Supabase: funciones `SECURITY DEFINER` ejecutables por usuarios autenticados (necesarias para colaboración, con autorización interna), protección de contraseñas filtradas pendiente de configuración en Supabase Auth e información de índices con uso aún no detectado.
+
+---
+
 ## 1. Objetivo de la app
 
 Cuenta Clara permite crear, dividir, revisar y cobrar cuentas compartidas de forma simple, especialmente desde celular.
