@@ -46,6 +46,11 @@
 <section aria-labelledby="accountWizardTitle" aria-modal="true" class="account-wizard-shell hidden" id="accountWizard" role="dialog">
 <div class="account-wizard-backdrop" data-wizard-cancel="true"></div>
 <div class="account-wizard-panel">
+<div class="cc-wizard-topbar">
+  <button class="cc-wizard-topback" id="accountWizardTopBackButton" type="button" aria-label="Volver al paso anterior"><span aria-hidden="true">‹</span></button>
+  <div class="cc-wizard-brand"><img src="assets/logo.svg" alt="" /><strong>Cuenta Clara</strong></div>
+  <button aria-label="Cerrar asistente" class="cc-wizard-topclose" id="accountWizardTopCloseButton" type="button">×</button>
+</div>
 <header class="account-wizard-header">
 <div>
 <p class="eyebrow" id="accountWizardEyebrow">Crear cuenta</p>
@@ -101,14 +106,14 @@
 </section><section class="app-section is-active" data-app-section-panel="home" id="appSection-home"><section class="section-page-heading card cc-page-heading"><div><p class="eyebrow">Tu espacio</p><h2>Inicio</h2><p class="section-helper">Organiza tus cuentas sin perderte.</p></div><button class="btn btn-light btn-small" data-app-section="history" type="button">Mi historial →</button></section><section class="mobile-home-dashboard card" id="homeDashboardPanel">
 <div class="home-dashboard-top">
 <div>
-<p class="eyebrow">Panel principal</p>
+<p class="eyebrow">TU ESPACIO</p>
 <h2 id="homeGreetingOutput">Hola</h2>
 <p id="homeSummaryMetaOutput">Tu cuenta y lo pendiente.</p>
 </div>
 <span class="home-sync-pill" id="homeDashboardSyncOutput">En este dispositivo</span>
 </div>
 <section class="cc-create-hero" aria-labelledby="ccCreateHeroTitle">
-  <div class="cc-create-hero-intro"><span class="cc-create-eyebrow">EMPEZAR ES FÁCIL</span><h3 id="ccCreateHeroTitle">¿Qué quieres dividir hoy?</h3><p>Elige una situación. Te guiaremos para añadir personas, consumos y pagos.</p></div>
+  <div class="cc-create-hero-intro"><span class="cc-create-eyebrow">NUEVA CUENTA</span><h3 id="ccCreateHeroTitle">¿Qué quieres dividir hoy?</h3><p>Elige una opción para comenzar. Te acompañamos paso a paso.</p></div>
   <div class="cc-create-options" aria-label="Crear cuenta según el tipo de gasto">
     <button type="button" data-cc-home-template="bar"><span aria-hidden="true">🍻</span><strong>Bar</strong></button>
     <button type="button" data-cc-home-template="restaurant"><span aria-hidden="true">🍽️</span><strong>Restaurante</strong></button>
@@ -125,13 +130,31 @@
   <div class="cc-overview-grid">
     <div class="cc-overview-stat"><span>Guardadas</span><strong id="ccHomeStoredCount">0</strong><small>En tu historial</small></div>
     <div class="cc-overview-stat"><span>Pendientes</span><strong id="ccHomePendingCount">0</strong><small>Por resolver</small></div>
-    <div class="cc-overview-stat"><span>Compartidas</span><strong id="ccHomeSharedCount">0</strong><small>Con otras personas</small></div>
+    <div class="cc-overview-stat"><span>Compartidas</span><strong id="ccHomeSharedCount">0</strong><small>Con amigos</small></div>
   </div>
 </section>
 <section class="home-recent-block cc-recent-focus" aria-labelledby="ccHomeRecentTitle">
   <div class="home-recent-title"><div><span class="cc-section-eyebrow">CONTINÚA DONDE QUEDASTE</span><strong id="ccHomeRecentTitle">Historial reciente</strong></div><button class="btn btn-light btn-small" data-app-section="history" type="button">Ver todas →</button></div>
   <div class="home-recent-list" id="homeRecentBillsList"></div>
 </section>
+<section aria-live="polite" class="home-notification-panel hidden" id="homeNotificationPanel">
+<div class="home-notification-head">
+<div>
+<span class="home-action-kicker">Solicitudes</span>
+<strong id="homeNotificationTitle">Sin solicitudes nuevas</strong>
+<small id="homeNotificationText">Las invitaciones de amigos aparecerán aquí.</small>
+</div>
+<span class="notification-pill" id="homeNotificationBadge">0</span>
+</div>
+<div class="notification-list compact" id="homeNotificationList"></div>
+<div class="home-notification-actions">
+<button class="btn btn-primary btn-small" id="homeNotificationOpenButton" type="button">Ver solicitudes</button>
+<button class="btn btn-light btn-small" id="homeNotificationMarkReadButton" type="button">Marcar vistas</button>
+</div>
+</section>
+<details class="cc-home-advanced" id="ccHomeAdvanced">
+<summary><span><strong>Detalles de tu cuenta y herramientas</strong><small>Consulta pagos, participantes y acciones adicionales</small></span><span class="cc-expand-chevron" aria-hidden="true">⌄</span></summary>
+<div class="cc-home-advanced-body">
 <div class="home-active-card">
 <div>
 <span>CUENTA SELECCIONADA</span>
@@ -162,23 +185,10 @@
 <button class="btn btn-light btn-small" data-app-section="summary" type="button">Revisar cuenta</button>
 </div>
 </section>
-<section aria-live="polite" class="home-notification-panel hidden" id="homeNotificationPanel">
-<div class="home-notification-head">
-<div>
-<span class="home-action-kicker">Solicitudes</span>
-<strong id="homeNotificationTitle">Sin solicitudes nuevas</strong>
-<small id="homeNotificationText">Las invitaciones de amigos aparecerán aquí.</small>
-</div>
-<span class="notification-pill" id="homeNotificationBadge">0</span>
-</div>
-<div class="notification-list compact" id="homeNotificationList"></div>
-<div class="home-notification-actions">
-<button class="btn btn-primary btn-small" id="homeNotificationOpenButton" type="button">Ver solicitudes</button>
-<button class="btn btn-light btn-small" id="homeNotificationMarkReadButton" type="button">Marcar vistas</button>
-</div>
-</section>
+
 <div class="home-primary-actions"><button class="btn btn-primary" id="homeNewBillButton" type="button">Nueva cuenta</button><button class="btn btn-light" data-app-section="expenses" type="button">Agregar gasto</button><button class="btn btn-light" data-app-section="tools" type="button">Más</button></div>
 <div class="home-shortcuts-heading"><strong>Mis accesos</strong><small>Lo más usado para seguir una cuenta desde el celular.</small></div><div aria-label="Accesos rápidos premium" class="home-premium-shortcuts"><button data-app-section="people" type="button"><span>1</span><strong>Personas</strong><small>Participantes</small></button><button data-app-section="expenses" type="button"><span>2</span><strong>Gastos</strong><small>Productos o boleta</small></button><button data-app-section="summary" type="button"><span>3</span><strong>Resumen</strong><small>Totales y revisión</small></button><button data-app-section="payments" type="button"><span>4</span><strong>Pagos</strong><small>Cobros y WhatsApp</small></button></div>
+</div></details>
 
 </section><section class="first-use-card card hidden" id="firstUseCard">
 <div class="first-use-content">
