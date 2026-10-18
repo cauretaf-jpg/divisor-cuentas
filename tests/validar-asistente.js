@@ -73,4 +73,10 @@ assert.equal(doubled.subtotal, 39980, 'Se debe multiplicar cantidad por precio u
 assert.ok(source.includes("id=\"accountWizardProductQuantity\""), 'Falta el campo de cantidad');
 assert.ok(source.includes("id=\"accountWizardReceiptSubtotal\""), 'Falta el subtotal de boleta');
 assert.ok(source.includes('account-wizard-person-results'), 'Falta desglose por persona');
-console.log('Validaciones de asistente v13.22.0: OK (cálculo, conciliación y controles de interfaz).');
+const inviteSql = readFileSync('sql/08-pending-invite-privacy-2026-10.sql', 'utf8');
+assert.ok(inviteSql.includes("m.status = 'accepted'"), 'El acceso completo debe exigir aceptación');
+assert.ok(inviteSql.includes("m.status = 'pending'"), 'Las invitaciones pendientes deben seguir consultables');
+assert.ok(inviteSql.includes('select m.account_id, a.title'), 'La invitación solo debe devolver ID y título');
+assert.ok(source.includes(".filter((item) => item.status === 'accepted')"), 'Solo cargar JSON de cuentas aceptadas');
+assert.ok(source.includes(".rpc('list_my_pending_shared_invites')"), 'El título debe venir de una RPC limitada');
+console.log('Validaciones de asistente v13.22.0: OK (cálculo, conciliación y seguridad de invitaciones).');
