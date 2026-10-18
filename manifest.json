@@ -1,11 +1,11 @@
 {
   "name": "Cuenta Clara",
   "short_name": "Cuenta Clara",
-  "description": "App web para dividir cuentas, organizar pagos, solicitudes compartidas y gastos recurrentes.",
-  "start_url": "./app.html",
+  "description": "Divide cuentas sin registro. Guarda en este dispositivo y sincroniza opcionalmente.",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#2563eb",
+  "background_color": "#f6f9fa",
+  "theme_color": "#0da798",
   "icons": [
     {
       "src": "assets/icon-192.png",
