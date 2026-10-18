@@ -237,5 +237,7 @@ async function initCloud(){
  }catch(e){console.warn("Supabase auth unavailable",e);}
 }
 bind();authLabel();screen("home");initCloud();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+if(new URLSearchParams(location.search).has("auth")){openAuth();}
 if(restoreDraft()){$("homeHistory").textContent="Ver mis cuentas →";}
 })();
