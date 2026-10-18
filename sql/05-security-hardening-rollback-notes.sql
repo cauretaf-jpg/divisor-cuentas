@@ -1,0 +1,9 @@
+-- SOLO EN CASO DE REVERSIÓN, y revisando antes el riesgo de exponer RPC.
+-- Para restablecer permisos de forma controlada sin volver a abrir acceso anónimo,
+-- conceder las RPC a authenticated (la migración ya lo hace).
+-- No se recomienda reabrir EXECUTE a PUBLIC/anon.
+-- Si fuese imprescindible reconstruir los grants previos, usar el inventario
+-- archivado en docs/revisiones/REVISION_SEGURIDAD_SUPABASE_2026_10_18.md
+-- y verificar cada función.
+-- Los search_paths anteriores estaban en 'public' en RPC/trigger de auth
+-- y no definidos en los 5 triggers de updated_at.
