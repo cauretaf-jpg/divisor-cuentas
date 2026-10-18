@@ -14164,7 +14164,7 @@ dom.applyTemplateChangeButton?.addEventListener('click', () => {
 dom.createExampleBillButton?.addEventListener('click', createExampleBill);
 dom.loadDemoDataButton?.addEventListener('click', loadDemoData);
 dom.clearDemoDataButton?.addEventListener('click', () => clearDemoData());
-dom.startFirstBillButton?.addEventListener('click', focusTemplateChoices);
+dom.startFirstBillButton?.addEventListener('click', () => openAccountWizard());
 dom.firstUseExampleButton?.addEventListener('click', createExampleBill);
 dom.dismissFirstUseButton?.addEventListener('click', dismissFirstUseOnboarding);
 
@@ -14213,7 +14213,7 @@ dom.quickProductMethodButton?.addEventListener('click', showQuickProductsArea);
 dom.quickTotalMethodButton?.addEventListener('click', focusQuickTotalPanel);
 
 
-dom.newBillButton.addEventListener('click', focusGuidedNewBillChoices);
+dom.newBillButton.addEventListener('click', () => openAccountWizard());
 dom.duplicateBillButton.addEventListener('click', duplicateBill);
 dom.archiveBillButton.addEventListener('click', toggleArchiveBill);
 dom.closeBillButton?.addEventListener('click', toggleCloseBill);
