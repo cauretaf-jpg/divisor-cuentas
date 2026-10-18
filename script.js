@@ -4773,20 +4773,7 @@ function setAppSection(section, options = {}) {
   });
 
   
-dom.accountWizardCancelButton?.addEventListener('click', cancelAccountWizard);
-dom.accountWizardCloseButton?.addEventListener('click', cancelAccountWizard);
-dom.accountWizardBackButton?.addEventListener('click', accountWizardBack);
-dom.accountWizardNextButton?.addEventListener('click', accountWizardNext);
-dom.accountWizard?.addEventListener('click', (event) => {
-  if (event.target?.dataset?.wizardCancel === 'true') {
-    cancelAccountWizard();
-  }
-});
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && accountWizardState) {
-    cancelAccountWizard();
-  }
-});
+
 
 dom.sectionNavButtons?.forEach((button) => {
     button.classList.toggle('is-active', button.dataset.appSection === nextSection);
@@ -14152,6 +14139,23 @@ dom.guidedChoiceButtons?.forEach((button) => {
 
 dom.templateChoiceButtons?.forEach((button) => {
   button.addEventListener('click', () => selectTemplatePreview(button.dataset.template, { scroll: true }));
+});
+
+// Los eventos del asistente se enlazan una sola vez al iniciar la aplicación.
+// Registrarlos dentro de setAppSection duplicaba handlers en cada navegación.
+dom.accountWizardCancelButton?.addEventListener('click', cancelAccountWizard);
+dom.accountWizardCloseButton?.addEventListener('click', cancelAccountWizard);
+dom.accountWizardBackButton?.addEventListener('click', accountWizardBack);
+dom.accountWizardNextButton?.addEventListener('click', accountWizardNext);
+dom.accountWizard?.addEventListener('click', (event) => {
+  if (event.target?.dataset?.wizardCancel === 'true') {
+    cancelAccountWizard();
+  }
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && accountWizardState) {
+    cancelAccountWizard();
+  }
 });
 
 dom.templateAssistantStartButton?.addEventListener('click', () => createTemplateBill(selectedTemplateKey));
