@@ -76,7 +76,7 @@ async function waitForServer() {
 
     await page.locator('[data-cc-home-template="bar"]').click({ timeout: 20000 });
     await page.locator('#accountWizard:not(.hidden)').waitFor({ state: 'visible', timeout: 15000 });
-    await page.locator('#accountWizardBackButton').click({ timeout: 15000 });
+    await page.locator('#accountWizardTopBackButton').click({ timeout: 15000 });
     await page.locator('[data-wizard-template="bar"].is-selected').waitFor({ state: 'visible', timeout: 15000 });
     assert.equal(await page.locator('.cc-wizard-progress-segment').count(), 5);
     await page.locator('.cc-wizard-brand').waitFor({ state: 'visible', timeout: 8000 });
