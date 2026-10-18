@@ -44,9 +44,9 @@ for (const label of ['Bar', 'Cafetería', 'Juntada o evento']) {
 for (const name of ['Mojito', 'Papas fritas', 'Empanadas', 'Queso', 'Capuchino']) {
   assert.ok(source.includes("name: '" + name + "'"), 'Falta sugerencia ' + name);
 }
-assert.ok(appHtml.includes('script.js?v=13.22.0'));
+assert.ok(appHtml.includes('script.js?v=13.23.0'));
 assert.ok(css.includes('.account-wizard-suggestion-list'));
-assert.ok(sw.includes("cuenta-clara-v13.22.0"));
+assert.ok(sw.includes("cuenta-clara-v13.23.0"));
 // Comprobaciones de conciliación sin navegador ni conexión a Supabase.
 const reviewStart = source.indexOf('function getAccountWizardReviewChecks(bill');
 const reviewEnd = source.indexOf('\n}\n\n', reviewStart) + 2;
@@ -79,4 +79,4 @@ assert.ok(inviteSql.includes("m.status = 'pending'"), 'Las invitaciones pendient
 assert.ok(inviteSql.includes('select m.account_id, a.title'), 'La invitación solo debe devolver ID y título');
 assert.ok(source.includes(".filter((item) => item.status === 'accepted')"), 'Solo cargar JSON de cuentas aceptadas');
 assert.ok(source.includes(".rpc('list_my_pending_shared_invites')"), 'El título debe venir de una RPC limitada');
-console.log('Validaciones de asistente v13.22.0: OK (cálculo, conciliación y seguridad de invitaciones).');
+console.log('Validaciones de asistente v13.23.0: OK (cálculo, conciliación y seguridad de invitaciones).');
