@@ -9143,7 +9143,9 @@ async function fetchSharedAccounts() {
 
     if (membershipError) throw membershipError;
 
+    // Sólo las invitaciones aceptadas conceden acceso al contenido de la cuenta.
     const memberAccountIds = [...new Set((memberships || [])
+      .filter((item) => item.status === 'accepted')
       .map((item) => item.account_id)
       .filter(Boolean))];
 
@@ -9206,6 +9208,18 @@ async function fetchSharedAccounts() {
 
     const accountById = new Map(memberAccounts.map((account) => [account.id, account]));
 
+    // La RPC sólo devuelve el título de las invitaciones propias pendientes.
+    // Nunca solicitar account_state de una cuenta hasta que la invitación se acepte.
+    let pendingInviteTitles = new Map();
+    if ((memberships || []).some((item) => item.status === 'pending')) {
+      const { data: titles, error: titlesError } = await supabaseClient.rpc('list_my_pending_shared_invites');
+      if (titlesError) {
+        console.warn('No se pudieron recuperar los nombres de invitaciones pendientes:', titlesError);
+      } else {
+        pendingInviteTitles = new Map((titles || []).map((item) => [item.account_id, item.title]));
+      }
+    }
+
     const accepted = (memberships || [])
       .filter((item) => item.status === 'accepted' && accountById.has(item.account_id))
       .map((item) => ({ ...accountById.get(item.account_id), role: item.role }));
@@ -9213,12 +9227,11 @@ async function fetchSharedAccounts() {
     sharedInvitesCache = (memberships || [])
       .filter((item) => item.status === 'pending')
       .map((item) => {
-        const account = accountById.get(item.account_id) || {};
         return {
           accountId: item.account_id,
           role: item.role,
           status: item.status,
-          title: account.title || account.account_state?.name || 'Cuenta compartida',
+          title: pendingInviteTitles.get(item.account_id) || 'Cuenta compartida',
         };
       });
 
