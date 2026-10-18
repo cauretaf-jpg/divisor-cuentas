@@ -51,12 +51,42 @@ async function waitForServer() {
     await page.screenshot({ path: path.join(screenshots, 'diagnostico-inicio.png'), fullPage: true });
     await page.locator('#ccCreateHeroTitle').waitFor({ state: 'visible', timeout: 4000 });
     assert.match(await page.locator('#ccCreateHeroTitle').innerText(), /Qué quieres dividir/i);
+    const design = await page.evaluate(() => {
+      const hero = document.querySelector('.cc-create-hero');
+      const tile = document.querySelector('[data-cc-home-template="bar"]');
+      const panel = document.querySelector('#homeDashboardPanel');
+      const heroStyle = getComputedStyle(hero);
+      const tileStyle = getComputedStyle(tile);
+      return {
+        theme: document.body.classList.contains('cc-pdf-redesign'),
+        heroBg: heroStyle.backgroundImage,
+        heroColor: heroStyle.color,
+        tileBg: tileStyle.backgroundColor,
+        tileRadius: tileStyle.borderRadius,
+        cardBg: getComputedStyle(panel).backgroundColor,
+        designLoaded: [...document.styleSheets].some((sheet) => String(sheet.href || '').includes('design-pdf.css')),
+      };
+    });
+    assert.ok(design.theme && design.designLoaded, 'El tema del PDF debe estar cargado');
+    assert.equal(design.heroBg, 'none', 'El encabezado del PDF no tiene degradado');
+    assert.match(design.tileBg, /rgb\(/, 'Las tarjetas deben tener fondo sólido');
+    assert.match(design.cardBg, /rgb\(/, 'La superficie de Inicio debe tener fondo sólido');
+    console.log('Diseño PDF: estilos aplicados', JSON.stringify(design));
     await page.screenshot({ path: path.join(screenshots, 'inicio-movil.png'), fullPage: true });
 
     await page.locator('[data-cc-home-template="bar"]').click({ timeout: 20000 });
     await page.locator('#accountWizard:not(.hidden)').waitFor({ state: 'visible', timeout: 15000 });
     await page.locator('#accountWizardBackButton').click({ timeout: 15000 });
     await page.locator('[data-wizard-template="bar"].is-selected').waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(await page.locator('.cc-wizard-progress-segment').count(), 5);
+    await page.locator('.cc-wizard-brand').waitFor({ state: 'visible', timeout: 8000 });
+    assert.match(await page.locator('#accountWizardTitle').innerText(), /Qué quieres dividir/);
+    const wizardDesign = await page.locator('.account-wizard-panel').evaluate((el) => ({
+      bg: getComputedStyle(el).backgroundColor,
+      titleColor: getComputedStyle(el.querySelector('h1')).color,
+      footerPrimary: getComputedStyle(el.querySelector('#accountWizardNextButton')).backgroundColor,
+    }));
+    console.log('Diseño PDF asistente:', JSON.stringify(wizardDesign));
     await page.screenshot({ path: path.join(screenshots, 'asistente-bar.png'), fullPage: true });
 
     // El historial abre con todas las cuentas y cambia con filtros rápidos.
@@ -123,7 +153,11 @@ async function waitForServer() {
       document.documentElement.scrollWidth <= document.documentElement.clientWidth + 4);
     assert.ok(noHorizontalOverflow, 'La página de escritorio desborda horizontalmente');
     await page.screenshot({ path: path.join(screenshots, 'inicio-escritorio.png'), fullPage: true });
-    console.log('Chromium: Inicio, asistente Bar e Historial móvil y escritorio aprobados.');
+    await page.locator('#homeAllTypesButton').click();
+    await page.locator('#accountWizard:not(.hidden)').waitFor({ state: 'visible', timeout: 8000 });
+    await page.locator('.cc-wizard-aside').waitFor({ state: 'visible', timeout: 8000 });
+    await page.screenshot({ path: path.join(screenshots, 'asistente-escritorio.png'), fullPage: true });
+    console.log('Chromium: rediseño PDF, asistente, cuentas ficticias e Historial móvil/escritorio aprobados.');
     if (pageErrors.length) console.warn('Errores detectados en consola (revisar):', pageErrors.slice(0, 8));
   } finally {
     if (browser) await browser.close();
