@@ -74,6 +74,8 @@ const dom = {
   syncStatusBadge: document.querySelector('#syncStatusBadge'),
   newBillButton: document.querySelector('#newBillButton'),
   accountWizard: document.querySelector('#accountWizard'),
+  accountWizardTopBackButton: document.querySelector('#accountWizardTopBackButton'),
+  accountWizardTopCloseButton: document.querySelector('#accountWizardTopCloseButton'),
   accountWizardEyebrow: document.querySelector('#accountWizardEyebrow'),
   accountWizardTitle: document.querySelector('#accountWizardTitle'),
   accountWizardSubtitle: document.querySelector('#accountWizardSubtitle'),
@@ -6330,7 +6332,7 @@ function getAccountWizardMissingItems(bill = getAccountWizardBill()) {
 }
 
 function getAccountWizardTitle(step = accountWizardState?.step || 0) {
-  const titles = ['¿Qué quieres dividir hoy?', 'Nombra tu cuenta', '¿Quiénes participan?', '¿Qué consumieron?', 'Revisa antes de terminar'];
+  const titles = ['¿Qué quieres dividir?', 'Ponle un nombre', '¿Quiénes participan?', 'Agrega los consumos', 'Revisa antes de dividir'];
   return titles[step] || titles[0];
 }
 
@@ -6342,23 +6344,29 @@ function renderAccountWizard() {
   const bill = getAccountWizardBill();
   const template = getAccountWizardTemplate();
 
-  dom.accountWizardEyebrow.textContent = `Paso ${step + 1} de ${ACCOUNT_WIZARD_STEPS.length}`;
+  dom.accountWizard.dataset.step = String(step);
+  dom.accountWizardEyebrow.textContent = `NUEVA CUENTA · PASO ${step + 1} DE ${ACCOUNT_WIZARD_STEPS.length}`;
   dom.accountWizardTitle.textContent = getAccountWizardTitle(step);
-  dom.accountWizardSubtitle.textContent = step < 4
-    ? 'Completa solo lo necesario para avanzar.'
-    : 'Confirma que la cuenta esté lista o vuelve al paso que falte.';
-
-  const progressPercent = Math.round(((step + 1) / ACCOUNT_WIZARD_STEPS.length) * 100);
-  dom.accountWizardProgress.innerHTML = `
-    <div class="account-wizard-meter" aria-hidden="true"><span style="width: ${progressPercent}%"></span></div>
-    <div class="account-wizard-step-row">
-      ${ACCOUNT_WIZARD_STEPS.map((item, index) => `
-        <span class="account-wizard-step ${index === step ? 'is-active' : ''} ${index < step ? 'is-done' : ''}">
-          <b>${index + 1}</b><em>${escapeHtml(item.label)}</em>
-        </span>
-      `).join('')}
-    </div>
-  `;
+  const subtitles = [
+    'Elige el tipo de cuenta. Te acompañamos paso a paso.',
+    'Así encontrarás fácilmente tu cuenta en el historial.',
+    'Agrega a quienes van a compartir los gastos.',
+    'Selecciona consumos sugeridos o escribe los tuyos.',
+    'Confirma que los montos estén correctos antes de guardar.',
+  ];
+  dom.accountWizardSubtitle.textContent = subtitles[step] || subtitles[0];
+  dom.accountWizardProgress.innerHTML = ACCOUNT_WIZARD_STEPS.map((item,index) => `
+    <span class="cc-wizard-progress-segment ${index <= step ? 'is-complete' : ''}"
+      aria-label="Paso ${index + 1}: ${escapeHtml(item.label)}"
+      ${index === step ? 'aria-current="step"' : ''}></span>
+  `).join('');
+  dom.accountWizard.querySelectorAll('[data-cc-wizard-side-step]').forEach((item) => {
+    item.classList.toggle('is-current', Number(item.dataset.ccWizardSideStep) === step);
+    item.classList.toggle('is-complete', Number(item.dataset.ccWizardSideStep) < step);
+  });
+  if (dom.accountWizardTopBackButton) {
+    dom.accountWizardTopBackButton.setAttribute('aria-label', step === 0 ? 'Cerrar asistente' : 'Volver al paso anterior');
+  }
 
   if (dom.accountWizardBackButton) {
     dom.accountWizardBackButton.disabled = step === 0;
@@ -6387,8 +6395,8 @@ function renderAccountWizardTypeStep() {
   const icons = { bar: '🍻', restaurant: '🍽️', supermarket: '🛒', cafe: '☕', event: '🎉', home: '🏠', trip: '✈️', streaming: '📺', quick: '⚡', custom: '✨' };
   dom.accountWizardBody.innerHTML = `
     <div class="account-wizard-copy">
-      <strong>¿Qué quieres dividir?</strong>
-      <p>Elige una situación. Te sugeriremos consumos habituales; siempre podrás escribir otros.</p>
+      <strong>Elige una situación</strong>
+      <p>Las sugerencias te ayudarán a ingresar los consumos más rápido.</p>
     </div>
     <div class="account-wizard-template-grid">
       ${choices.map((key) => {
@@ -14147,6 +14155,11 @@ dom.templateChoiceButtons?.forEach((button) => {
 dom.accountWizardCancelButton?.addEventListener('click', cancelAccountWizard);
 dom.accountWizardCloseButton?.addEventListener('click', cancelAccountWizard);
 dom.accountWizardBackButton?.addEventListener('click', accountWizardBack);
+dom.accountWizardTopBackButton?.addEventListener('click', () => {
+  if (accountWizardState?.step > 0) accountWizardBack();
+  else cancelAccountWizard();
+});
+dom.accountWizardTopCloseButton?.addEventListener('click', cancelAccountWizard);
 dom.accountWizardNextButton?.addEventListener('click', accountWizardNext);
 dom.accountWizard?.addEventListener('click', (event) => {
   if (event.target?.dataset?.wizardCancel === 'true') {
