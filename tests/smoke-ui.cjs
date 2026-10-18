@@ -75,7 +75,10 @@ async function waitForServer() {
     // Comprobar versión de escritorio con el mismo flujo y sin desbordes.
     await page.setViewportSize({ width: 1280, height: 850 });
     await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 45000 });
-    await page.locator('#ccCreateHeroTitle').waitFor({ state: 'visible', timeout: 30000 });
+    // La app recuerda correctamente que el usuario estaba en Historial.
+    await page.locator('#appSection-history.is-active').waitFor({ state: 'visible', timeout: 15000 });
+    await page.locator('.section-nav-button[data-app-section="home"]').click({ timeout: 15000 });
+    await page.locator('#ccCreateHeroTitle').waitFor({ state: 'visible', timeout: 15000 });
     const noHorizontalOverflow = await page.evaluate(() =>
       document.documentElement.scrollWidth <= document.documentElement.clientWidth + 4);
     assert.ok(noHorizontalOverflow, 'La página de escritorio desborda horizontalmente');
