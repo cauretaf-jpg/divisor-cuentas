@@ -4562,6 +4562,7 @@ const MOBILE_PROGRESSIVE_QUERY = [
 
 const MOBILE_PROGRESSIVE_OPEN_IDS = new Set([
   'homeDashboardPanel',
+  'historyMainCard',
   'paymentActionCenter',
   'accountReviewPanel',
   'toolsHubCard',
