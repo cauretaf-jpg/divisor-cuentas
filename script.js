@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.22.0 cargada');
-const APP_VERSION = '13.22.0';
+console.info('Cuenta Clara V13.23.0 cargada');
+const APP_VERSION = '13.23.0';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
