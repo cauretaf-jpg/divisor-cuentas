@@ -24,10 +24,16 @@ async function wait(){for(let i=0;i<35;i++){try{if((await fetch(base)).ok)return
  await page.locator('[data-person]').nth(1).fill("Felipe");
  await page.locator("#totalAmount").fill("30000");
  await page.screenshot({path:path.join(dir,"02-calculadora-390.png"),fullPage:true});
+ await page.reload({waitUntil:"domcontentloaded"});
+ await page.locator("#resumeDraft").waitFor({state:"visible"});
+ await page.locator("#resumeDraft").click();
+ await page.locator("#screenCalc").waitFor({state:"visible"});
+ assert.equal(await page.locator("#totalAmount").inputValue(),"30000","El borrador no debe perderse al recargar");
  await page.locator("#calculateBtn").click();
  await page.locator("#screenResult").waitFor({state:"visible"});
  assert.equal((await page.locator("#resultAmount").innerText()).trim(),"$33.000");
  assert.match(await page.locator("#transferRows").innerText(),/Felipe/);
+ assert.equal(await page.locator("#whatsappBtn").isVisible(),true);
  await page.screenshot({path:path.join(dir,"03-resultado-390.png"),fullPage:true});
 
  await page.locator("#newBtn").click();
