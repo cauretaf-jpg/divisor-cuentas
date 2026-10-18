@@ -98,7 +98,7 @@
 <button class="btn btn-primary btn-small" id="guidedFlowPrimaryButton" type="button">Continuar</button>
 <button class="btn btn-light btn-small" id="guidedFlowSecondaryButton" type="button">Revisar cuenta</button>
 </div>
-</section><section class="app-section is-active" data-app-section-panel="home" id="appSection-home"><section class="section-page-heading card"><div><p class="eyebrow">Panel principal</p><h2>Inicio</h2><p class="section-helper">Estado, pendientes y acciones rápidas.</p></div></section><section class="mobile-home-dashboard card" id="homeDashboardPanel">
+</section><section class="app-section is-active" data-app-section-panel="home" id="appSection-home"><section class="section-page-heading card cc-page-heading"><div><p class="eyebrow">Tu espacio</p><h2>Inicio</h2><p class="section-helper">Organiza tus cuentas sin perderte.</p></div><button class="btn btn-light btn-small" data-app-section="history" type="button">Mi historial →</button></section><section class="mobile-home-dashboard card" id="homeDashboardPanel">
 <div class="home-dashboard-top">
 <div>
 <p class="eyebrow">Panel principal</p>
@@ -107,14 +107,40 @@
 </div>
 <span class="home-sync-pill" id="homeDashboardSyncOutput">En este dispositivo</span>
 </div>
+<section class="cc-create-hero" aria-labelledby="ccCreateHeroTitle">
+  <div class="cc-create-hero-intro"><span class="cc-create-eyebrow">EMPEZAR ES FÁCIL</span><h3 id="ccCreateHeroTitle">¿Qué quieres dividir hoy?</h3><p>Elige una situación. Te guiaremos para añadir personas, consumos y pagos.</p></div>
+  <div class="cc-create-options" aria-label="Crear cuenta según el tipo de gasto">
+    <button type="button" data-cc-home-template="bar"><span aria-hidden="true">🍻</span><strong>Bar</strong></button>
+    <button type="button" data-cc-home-template="restaurant"><span aria-hidden="true">🍽️</span><strong>Restaurante</strong></button>
+    <button type="button" data-cc-home-template="supermarket"><span aria-hidden="true">🛒</span><strong>Supermercado</strong></button>
+    <button type="button" data-cc-home-template="home"><span aria-hidden="true">🏠</span><strong>Hogar</strong></button>
+  </div>
+  <div class="cc-create-footer">
+    <button type="button" class="cc-create-all-button" id="homeAllTypesButton">Ver todos los tipos <span aria-hidden="true">→</span></button>
+    <span>Sin cálculos complicados</span>
+  </div>
+</section>
+<section class="cc-overview" aria-labelledby="ccHomeOverviewTitle">
+  <div class="cc-section-heading"><div><span class="cc-section-eyebrow">TUS CUENTAS</span><h3 id="ccHomeOverviewTitle">Todo en un vistazo</h3></div><button class="cc-text-link" data-app-section="history" type="button">Ir al historial →</button></div>
+  <div class="cc-overview-grid">
+    <div class="cc-overview-stat"><span>Guardadas</span><strong id="ccHomeStoredCount">0</strong><small>En tu historial</small></div>
+    <div class="cc-overview-stat"><span>Pendientes</span><strong id="ccHomePendingCount">0</strong><small>Por resolver</small></div>
+    <div class="cc-overview-stat"><span>Compartidas</span><strong id="ccHomeSharedCount">0</strong><small>Con otras personas</small></div>
+  </div>
+</section>
+<section class="home-recent-block cc-recent-focus" aria-labelledby="ccHomeRecentTitle">
+  <div class="home-recent-title"><div><span class="cc-section-eyebrow">CONTINÚA DONDE QUEDASTE</span><strong id="ccHomeRecentTitle">Historial reciente</strong></div><button class="btn btn-light btn-small" data-app-section="history" type="button">Ver todas →</button></div>
+  <div class="home-recent-list" id="homeRecentBillsList"></div>
+</section>
 <div class="home-active-card">
 <div>
-<span>Cuenta activa</span>
+<span>CUENTA SELECCIONADA</span>
 <strong id="homeActiveBillOutput">Cuenta actual</strong>
 <small id="homeActiveBillMetaOutput">Sin datos todavía</small>
 </div>
 <button class="btn btn-primary btn-small" id="continueActiveBillButton" type="button">Continuar</button>
 </div>
+<div class="cc-active-kpis-title">Resumen de la cuenta seleccionada</div>
 <div aria-label="Resumen rápido de la cuenta activa" class="home-kpi-grid">
 <div><span>Total</span><strong id="homeDashboardTotalOutput">$0</strong></div>
 <div><span>Mi parte</span><strong id="homeDashboardMineOutput">-</strong></div>
@@ -153,10 +179,7 @@
 </section>
 <div class="home-primary-actions"><button class="btn btn-primary" id="homeNewBillButton" type="button">Nueva cuenta</button><button class="btn btn-light" data-app-section="expenses" type="button">Agregar gasto</button><button class="btn btn-light" data-app-section="tools" type="button">Más</button></div>
 <div class="home-shortcuts-heading"><strong>Mis accesos</strong><small>Lo más usado para seguir una cuenta desde el celular.</small></div><div aria-label="Accesos rápidos premium" class="home-premium-shortcuts"><button data-app-section="people" type="button"><span>1</span><strong>Personas</strong><small>Participantes</small></button><button data-app-section="expenses" type="button"><span>2</span><strong>Gastos</strong><small>Productos o boleta</small></button><button data-app-section="summary" type="button"><span>3</span><strong>Resumen</strong><small>Totales y revisión</small></button><button data-app-section="payments" type="button"><span>4</span><strong>Pagos</strong><small>Cobros y WhatsApp</small></button></div>
-<div class="home-recent-block">
-<div class="home-recent-title"><strong>Historial reciente</strong><button class="btn btn-light btn-small" data-app-section="history" type="button">Ver todas</button></div>
-<div class="home-recent-list" id="homeRecentBillsList"></div>
-</div>
+
 </section><section class="first-use-card card hidden" id="firstUseCard">
 <div class="first-use-content">
 <p class="eyebrow">Primer uso</p>
@@ -895,12 +918,22 @@
 <button class="btn btn-light" id="copySummaryButton" type="button">Copiar rápido</button>
 <button class="btn btn-light" id="whatsappButton" type="button">WhatsApp rápido</button>
 </div>
-</section></section><section class="app-section" data-app-section-panel="history" id="appSection-history"><section class="section-page-heading card"><div><p class="eyebrow">Tus cuentas</p><h2>Historial</h2><p class="section-helper">Abre cuentas anteriores y respaldos.</p></div></section><section class="guide-card card" data-guide-card="history"><div><span class="guide-number">↺</span></div><div><strong>Vuelve a una cuenta</strong><p>Edita o revisa cuentas guardadas.</p></div><button class="btn btn-primary btn-small" data-app-section="home" type="button">Crear otra cuenta</button></section><section class="card sidebar-history-card">
+</section></section><section class="app-section" data-app-section-panel="history" id="appSection-history"><section class="section-page-heading card cc-page-heading"><div><p class="eyebrow">Todas tus cuentas, en un solo lugar</p><h2>Historial de cuentas</h2><p class="section-helper">Encuentra una cuenta, revisa el resultado o continúa donde quedaste.</p></div><button class="btn btn-primary btn-small" id="historyNewBillButton" type="button">+ Nueva cuenta</button></section>
+<section class="cc-history-overview" aria-label="Resumen de tu historial">
+  <div><span>Guardadas</span><strong id="ccHistoryAllCount">0</strong></div>
+  <div><span>Pendientes</span><strong id="ccHistoryPendingCount">0</strong></div>
+  <div><span>Pagadas</span><strong id="ccHistoryPaidCount">0</strong></div>
+</section>
+<div class="cc-history-quick-filters" role="group" aria-label="Filtrar cuentas rápidamente">
+  <button class="cc-history-filter is-selected" type="button" data-cc-history-filter="everything" aria-pressed="true">Todas</button>
+  <button class="cc-history-filter" type="button" data-cc-history-filter="pending" aria-pressed="false">Pendientes</button>
+  <button class="cc-history-filter" type="button" data-cc-history-filter="paid" aria-pressed="false">Pagadas</button>
+</div><section class="guide-card card" data-guide-card="history"><div><span class="guide-number">↺</span></div><div><strong>Vuelve a una cuenta</strong><p>Edita o revisa cuentas guardadas.</p></div><button class="btn btn-primary btn-small" data-app-section="home" type="button">Crear otra cuenta</button></section><section class="card sidebar-history-card">
 <div class="section-title compact">
 <div>
 <p class="eyebrow">Historial</p>
-<h2>Tus cuentas</h2>
-</div>
+<h2>Explora tus cuentas</h2>
+</div><span id="ccHistoryResultsCount" aria-live="polite" class="cc-history-result-count"></span>
 </div>
 <div class="history-tools history-tools-advanced">
 <label>
@@ -910,12 +943,12 @@
 <label>
 <span>Estado</span>
 <select aria-label="Filtrar historial por estado" id="historyFilterSelect">
+<option value="everything" selected>Todas las cuentas</option>
 <option value="all">Activas</option>
 <option value="pending">Pendientes</option>
 <option value="paid">Pagadas</option>
 <option value="closed">Cerradas</option>
 <option value="archived">Archivadas</option>
-<option value="everything">Todas</option>
 </select>
 </label>
 <label>
