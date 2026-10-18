@@ -1,0 +1,823 @@
+/* ==========================================================================
+   CUENTA CLARA · INTERFAZ PDF / v13.24.0
+   Fuente visual: Cuenta_Clara_Propuesta_Asistente_Guiado_Octubre_2026.pdf
+   Aislamiento: solo Inicio, Historial, asistente y navegación principal.
+   Evitar degradados, tarjetas saturadas y controles heredados.
+   ========================================================================== */
+.cc-pdf-redesign {
+  --cc-paper: #f5f8fa;
+  --cc-white: #ffffff;
+  --cc-ink: #1c2b42;
+  --cc-muted: #62748c;
+  --cc-line: #dbe6ec;
+  --cc-teal: #0faca0;
+  --cc-teal-deep: #087f79;
+  --cc-mint: #def6ef;
+  --cc-navy: #172940;
+  background: var(--cc-paper);
+}
+.cc-pdf-redesign[data-theme="dark"],
+[data-theme="dark"] .cc-pdf-redesign {
+  --cc-paper: #111d2b;
+  --cc-white: #1b2b3b;
+  --cc-ink: #eef5fa;
+  --cc-muted: #b1c4d6;
+  --cc-line: #3c5063;
+  --cc-teal: #12b8a9;
+  --cc-teal-deep: #16b4a8;
+  --cc-mint: #183f3f;
+  --cc-navy: #0d192a;
+}
+.cc-pdf-redesign .app-header {
+  border-bottom: 1px solid var(--cc-line);
+  background: var(--cc-white);
+  box-shadow: none;
+}
+.cc-pdf-redesign .app-header .brand strong { color: var(--cc-ink); font-weight: 820; letter-spacing: -.03em; }
+.cc-pdf-redesign .app-header .brand span { color: var(--cc-muted); }
+.cc-pdf-redesign .sectioned-layout { gap: clamp(16px, 3vw, 26px); }
+.cc-pdf-redesign .sectioned-layout .section-workspace { min-width: 0; }
+.cc-pdf-redesign .sectioned-layout .section-nav-card {
+  background: var(--cc-navy);
+  border: 1px solid var(--cc-navy);
+  color: #eaf5f6;
+  box-shadow: none;
+  border-radius: 24px;
+}
+.cc-pdf-redesign .section-nav-title p,
+.cc-pdf-redesign .section-nav-title h2,
+.cc-pdf-redesign .section-nav-title .eyebrow { color: #edf8f9; }
+.cc-pdf-redesign .section-nav-title > p:last-child { color: #adc2cf; }
+.cc-pdf-redesign .section-nav-button {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  color: #bbd2dc;
+  box-shadow: none;
+  text-align: left;
+}
+.cc-pdf-redesign .section-nav-button strong,
+.cc-pdf-redesign .section-nav-button span { color: inherit; }
+.cc-pdf-redesign .section-nav-button:hover,
+.cc-pdf-redesign .section-nav-button.is-active {
+  color: #fff;
+  border-color: rgba(108, 223, 206, .14);
+  background: #1a626b;
+  box-shadow: none;
+}
+.cc-pdf-redesign #appSection-home .section-page-heading,
+.cc-pdf-redesign #appSection-history .section-page-heading {
+  color: var(--cc-ink);
+  background: var(--cc-white);
+  border: 1px solid var(--cc-line);
+  border-radius: 23px;
+  box-shadow: none;
+}
+.cc-pdf-redesign #appSection-home .section-page-heading h2,
+.cc-pdf-redesign #appSection-history .section-page-heading h2 {
+  color: var(--cc-ink);
+  font-weight: 830;
+}
+.cc-pdf-redesign #appSection-home .section-page-heading p,
+.cc-pdf-redesign #appSection-history .section-page-heading p { color: var(--cc-muted); }
+.cc-pdf-redesign #appSection-history .section-page-heading .eyebrow { color: var(--cc-teal-deep); }
+.cc-pdf-redesign #appSection-home .mobile-home-dashboard {
+  display: grid;
+  gap: 25px;
+  padding: clamp(17px, 3.5vw, 30px);
+  border: 1px solid var(--cc-line);
+  background: var(--cc-white);
+  border-radius: 28px;
+  box-shadow: none;
+  color: var(--cc-ink);
+}
+.cc-pdf-redesign #appSection-home .mobile-home-dashboard::before,
+.cc-pdf-redesign #appSection-home .cc-create-hero::before { display: none; }
+.cc-pdf-redesign #appSection-home .home-dashboard-top {
+  align-items: center;
+  padding: 0;
+}
+.cc-pdf-redesign #appSection-home .home-dashboard-top h2 {
+  color: var(--cc-ink);
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  font-weight: 840;
+  letter-spacing: -.035em;
+}
+.cc-pdf-redesign #appSection-home .home-dashboard-top .eyebrow {
+  display: block;
+  color: var(--cc-teal-deep);
+  font-size: .69rem;
+  letter-spacing: .10em;
+  font-weight: 800;
+}
+.cc-pdf-redesign #appSection-home .home-dashboard-top p:not(.eyebrow) {
+  color: var(--cc-muted);
+  font-size: .81rem;
+  font-weight: 470;
+  margin-top: 4px;
+}
+.cc-pdf-redesign #appSection-home .home-sync-pill {
+  color: var(--cc-muted);
+  background: transparent;
+  border: 1px solid var(--cc-line);
+  box-shadow: none;
+  font-size: .68rem;
+  padding: 5px 9px;
+}
+.cc-pdf-redesign #appSection-home .cc-create-hero {
+  display: grid;
+  gap: 17px;
+  background: transparent;
+  color: var(--cc-ink);
+  border: 0;
+  border-radius: 0;
+  padding: 4px 0 0;
+}
+.cc-pdf-redesign #appSection-home .cc-create-eyebrow,
+.cc-pdf-redesign #appSection-home .cc-section-eyebrow { color: var(--cc-teal-deep); }
+.cc-pdf-redesign #appSection-home .cc-create-hero h3 {
+  margin: 7px 0 7px;
+  color: var(--cc-ink);
+  font-size: clamp(1.55rem, 4vw, 2.35rem);
+  line-height: 1.13;
+  letter-spacing: -.03em;
+  font-weight: 850;
+}
+.cc-pdf-redesign #appSection-home .cc-create-hero p {
+  margin: 0;
+  max-width: 47ch;
+  color: var(--cc-muted);
+  font-size: .95rem;
+  font-weight: 420;
+  line-height: 1.48;
+}
+.cc-pdf-redesign #appSection-home .cc-create-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.cc-pdf-redesign #appSection-home .cc-create-options button {
+  display: grid;
+  grid-template-columns: 49px minmax(0,1fr);
+  place-items: initial;
+  align-items: center;
+  min-height: 91px;
+  padding: 18px;
+  gap: 13px;
+  color: var(--cc-ink);
+  background: var(--cc-white);
+  border: 1.5px solid var(--cc-line);
+  border-radius: 19px;
+  text-align: left;
+  box-shadow: none;
+  transition: border-color .15s, background .15s;
+}
+.cc-pdf-redesign #appSection-home .cc-create-options button:hover {
+  transform: none;
+  background: color-mix(in srgb, var(--cc-mint) 48%, var(--cc-white));
+  border-color: var(--cc-teal);
+}
+.cc-pdf-redesign #appSection-home .cc-create-options button > span {
+  display: grid;
+  place-items: center;
+  width: 49px;
+  height: 49px;
+  border-radius: 15px;
+  background: var(--cc-mint);
+  font-size: 1.4rem;
+}
+.cc-pdf-redesign #appSection-home .cc-create-options button strong {
+  color: var(--cc-ink);
+  font-size: .98rem;
+  font-weight: 820;
+  text-align: left;
+}
+.cc-pdf-redesign #appSection-home .cc-create-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+  padding: 0;
+}
+.cc-pdf-redesign #appSection-home .cc-create-footer > span { color: var(--cc-muted); }
+.cc-pdf-redesign #appSection-home .cc-create-all-button {
+  min-height: 43px;
+  color: var(--cc-teal-deep);
+  background: var(--cc-mint);
+  border: 0;
+  border-radius: 14px;
+  padding: 11px 17px;
+  font-weight: 800;
+}
+.cc-pdf-redesign #appSection-home .cc-create-all-button:hover { background: color-mix(in srgb, var(--cc-mint) 80%, var(--cc-teal)); }
+.cc-pdf-redesign #appSection-home .cc-section-heading h3,
+.cc-pdf-redesign #appSection-home .home-recent-title strong {
+  color: var(--cc-ink);
+  font-weight: 810;
+}
+.cc-pdf-redesign #appSection-home .cc-text-link {
+  color: var(--cc-teal-deep);
+  font-size: .79rem;
+}
+.cc-pdf-redesign #appSection-home .cc-overview {
+  padding-top: 22px;
+  border-top: 1px solid var(--cc-line);
+}
+.cc-pdf-redesign #appSection-home .cc-overview-grid {
+  gap: 11px;
+}
+.cc-pdf-redesign #appSection-home .cc-overview-stat {
+  padding: 16px 18px;
+  border-radius: 17px;
+  background: var(--cc-paper);
+  border: 1px solid var(--cc-line);
+  box-shadow: none;
+}
+.cc-pdf-redesign #appSection-home .cc-overview-stat > span,
+.cc-pdf-redesign #appSection-home .cc-overview-stat small {
+  color: var(--cc-muted);
+  font-size: .74rem;
+}
+.cc-pdf-redesign #appSection-home .cc-overview-stat strong {
+  color: var(--cc-ink);
+  font-size: 1.55rem;
+  font-weight: 820;
+}
+.cc-pdf-redesign #appSection-home .cc-recent-focus {
+  border-top: 1px solid var(--cc-line);
+  padding-top: 19px;
+}
+.cc-pdf-redesign #appSection-home .cc-recent-focus .home-recent-title { background: transparent; border: 0; }
+.cc-pdf-redesign #appSection-home .cc-recent-focus .home-recent-row {
+  padding: 15px 17px;
+  border-radius: 17px;
+  background: var(--cc-white);
+  border: 1px solid var(--cc-line);
+}
+.cc-pdf-redesign #appSection-home .cc-recent-focus .home-recent-row:hover { border-color: var(--cc-teal); background: var(--cc-mint); }
+.cc-pdf-redesign #appSection-home .cc-recent-focus .home-recent-row strong { color: var(--cc-ink); }
+.cc-pdf-redesign #appSection-home .cc-recent-focus .home-recent-row small { color: var(--cc-muted); font-size: .76rem; }
+.cc-pdf-redesign #appSection-home .cc-recent-focus .home-recent-row > strong { color: var(--cc-teal-deep); }
+.cc-pdf-redesign .cc-home-advanced {
+  border: 1px solid var(--cc-line);
+  border-radius: 19px;
+  background: var(--cc-white);
+  margin-top: 1px;
+}
+.cc-pdf-redesign .cc-home-advanced > summary {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  list-style: none;
+  cursor: pointer;
+}
+.cc-pdf-redesign .cc-home-advanced > summary::-webkit-details-marker { display: none; }
+.cc-pdf-redesign .cc-home-advanced > summary > span:first-child { display: grid; gap: 4px; }
+.cc-pdf-redesign .cc-home-advanced > summary strong { color: var(--cc-ink); font-size: .89rem; }
+.cc-pdf-redesign .cc-home-advanced > summary small { color: var(--cc-muted); font-size: .77rem; }
+.cc-pdf-redesign .cc-expand-chevron { color: var(--cc-teal-deep); font-size: 1.3rem; }
+.cc-pdf-redesign .cc-home-advanced[open] .cc-expand-chevron { transform: rotate(180deg); }
+.cc-pdf-redesign .cc-home-advanced-body {
+  display: grid;
+  gap: 15px;
+  padding: 2px 18px 19px;
+  border-top: 1px solid var(--cc-line);
+}
+.cc-pdf-redesign #appSection-home .home-active-card {
+  margin-top: 13px;
+  padding: 14px;
+  color: var(--cc-ink);
+  background: var(--cc-paper);
+  border: 1px solid var(--cc-line);
+  border-radius: 16px;
+}
+.cc-pdf-redesign #appSection-home .home-kpi-grid > div { background: var(--cc-paper); border-color: var(--cc-line); }
+.cc-pdf-redesign #appSection-home .home-kpi-grid strong { color: var(--cc-ink); }
+.cc-pdf-redesign #appSection-home .home-primary-actions .btn-primary { background: var(--cc-teal); border-color: var(--cc-teal); }
+.cc-pdf-redesign #appSection-home .home-notification-panel {
+  border: 1px solid var(--cc-line);
+  background: var(--cc-mint);
+  border-radius: 17px;
+  padding: 16px;
+}
+.cc-pdf-redesign #appSection-history .cc-history-overview { gap: 10px; }
+.cc-pdf-redesign #appSection-history .cc-history-overview > div {
+  background: var(--cc-white);
+  border: 1px solid var(--cc-line);
+  border-radius: 18px;
+  padding: 17px 20px;
+}
+.cc-pdf-redesign #appSection-history .cc-history-overview span { color: var(--cc-muted); }
+.cc-pdf-redesign #appSection-history .cc-history-overview strong { color: var(--cc-ink); font-weight: 840; }
+.cc-pdf-redesign #appSection-history .cc-history-filter {
+  border: 1px solid var(--cc-line);
+  background: var(--cc-white);
+  color: var(--cc-muted);
+  padding: 9px 20px;
+  min-height: 42px;
+  box-shadow: none;
+}
+.cc-pdf-redesign #appSection-history .cc-history-filter.is-selected,
+.cc-pdf-redesign #appSection-history .cc-history-filter[aria-pressed="true"] {
+  background: var(--cc-teal);
+  border-color: var(--cc-teal);
+  color: #fff;
+}
+.cc-pdf-redesign #appSection-history .sidebar-history-card {
+  background: var(--cc-white);
+  border: 1px solid var(--cc-line);
+  border-radius: 24px;
+  box-shadow: none;
+  padding: clamp(15px, 2.5vw, 24px);
+}
+.cc-pdf-redesign #appSection-history .sidebar-history-card .eyebrow { color: var(--cc-teal-deep); }
+.cc-pdf-redesign #appSection-history .sidebar-history-card h2 { color: var(--cc-ink); }
+.cc-pdf-redesign #appSection-history .cc-history-result-count { color: var(--cc-muted); }
+.cc-pdf-redesign #appSection-history .history-tools label span { color: var(--cc-muted); }
+.cc-pdf-redesign #appSection-history .history-tools input,
+.cc-pdf-redesign #appSection-history .history-tools select {
+  color: var(--cc-ink);
+  background: var(--cc-white);
+  border: 1px solid var(--cc-line);
+  border-radius: 11px;
+}
+.cc-pdf-redesign #appSection-history .history-bill-card {
+  background: var(--cc-white);
+  border: 1px solid var(--cc-line);
+  border-radius: 17px;
+  box-shadow: none;
+  padding: 13px;
+}
+.cc-pdf-redesign #appSection-history .history-bill-card.active { border-color: var(--cc-teal); box-shadow: none; }
+.cc-pdf-redesign #appSection-history .history-bill-card .history-bill-open,
+.cc-pdf-redesign #appSection-history .history-bill-card .bill-item {
+  background: transparent;
+  color: var(--cc-ink);
+  padding: 6px 4px 13px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.cc-pdf-redesign #appSection-history .history-bill-main strong { color: var(--cc-ink); font-weight: 825; font-size: 1.04rem; }
+.cc-pdf-redesign #appSection-history .history-bill-main span { color: var(--cc-muted); font-size: .76rem; }
+.cc-pdf-redesign #appSection-history .history-status-badge {
+  border-radius: 999px;
+  font-size: .69rem;
+  font-weight: 720;
+}
+.cc-pdf-redesign #appSection-history .history-bill-actions {
+  border-top: 1px solid var(--cc-line);
+  padding-top: 11px;
+}
+.cc-pdf-redesign #appSection-history .history-bill-actions .btn {
+  border-radius: 11px;
+  min-height: 38px;
+  font-size: .79rem;
+  font-weight: 760;
+}
+.cc-pdf-redesign #appSection-history .history-bill-actions .btn-primary,
+.cc-pdf-redesign #appSection-history .cc-page-heading .btn-primary {
+  background: var(--cc-teal);
+  border-color: var(--cc-teal);
+  color: #fff;
+}
+.cc-pdf-redesign #appSection-history .history-bill-actions .btn-light { background: var(--cc-paper); border-color: var(--cc-line); color: var(--cc-ink); }
+/* ASISTENTE: mismo lenguaje gráfico que los mockups originales. */
+.cc-pdf-redesign .account-wizard-shell {
+  padding: 20px;
+  background: rgba(16, 35, 50, .37);
+  backdrop-filter: blur(6px);
+}
+.cc-pdf-redesign .account-wizard-backdrop { background: transparent; backdrop-filter: none; }
+.cc-pdf-redesign .account-wizard-panel {
+  display: grid;
+  grid-template-columns: 225px minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  width: min(1050px, 100%);
+  height: min(845px, calc(100dvh - 40px));
+  max-height: none;
+  overflow: hidden;
+  border: 1px solid var(--cc-line);
+  border-radius: 27px;
+  color: var(--cc-ink);
+  background: var(--cc-white);
+  box-shadow: 0 28px 90px rgba(10, 28, 48, .17);
+}
+.cc-pdf-redesign .cc-wizard-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  grid-column: 1;
+  grid-row: 1 / -1;
+  padding: 33px 21px;
+  background: var(--cc-navy);
+  color: #fff;
+}
+.cc-pdf-redesign .cc-wizard-aside-brand,
+.cc-pdf-redesign .cc-wizard-brand { display: flex; align-items: center; gap: 10px; font-weight: 830; }
+.cc-pdf-redesign .cc-wizard-aside-brand strong { color: #fff; font-size: 1.18rem; white-space: nowrap; }
+.cc-pdf-redesign .cc-wizard-aside-brand img { width: 32px; height: 32px; }
+.cc-pdf-redesign .cc-wizard-aside-caption { color: #91b9c8; font-size: .65rem; letter-spacing: .11em; font-weight: 850; }
+.cc-pdf-redesign .cc-wizard-aside-steps { display: grid; gap: 8px; }
+.cc-pdf-redesign .cc-wizard-aside-steps span {
+  padding: 13px 12px;
+  border-radius: 11px;
+  color: #aec4d2;
+  font-size: .9rem;
+  font-weight: 560;
+}
+.cc-pdf-redesign .cc-wizard-aside-steps .is-current {
+  background: #216b71;
+  color: #fff;
+  font-weight: 810;
+}
+.cc-pdf-redesign .cc-wizard-aside-steps .is-complete { color: #91e1d4; }
+.cc-pdf-redesign .cc-wizard-aside-note { margin-top: auto; color: #a5bdc8; font-size: .78rem; line-height: 1.6; }
+.cc-pdf-redesign .cc-wizard-topbar { display: none; }
+.cc-pdf-redesign .account-wizard-header {
+  grid-column: 2;
+  grid-row: 1;
+  border: 0;
+  padding: 35px clamp(25px, 4vw, 43px) 16px;
+  background: var(--cc-white);
+  color: var(--cc-ink);
+}
+.cc-pdf-redesign .account-wizard-header .eyebrow,
+.cc-pdf-redesign .account-wizard-header #accountWizardEyebrow {
+  color: var(--cc-teal-deep);
+  font-size: .84rem;
+  line-height: 1.2;
+  font-weight: 900;
+  letter-spacing: .105em;
+}
+.cc-pdf-redesign .account-wizard-header h1 {
+  margin: 14px 0 10px;
+  font-size: clamp(1.8rem, 3.3vw, 2.55rem);
+  letter-spacing: -.038em;
+  color: var(--cc-ink);
+  line-height: 1.16;
+  font-weight: 840;
+}
+.cc-pdf-redesign .account-wizard-header p:not(.eyebrow) { color: var(--cc-muted); font-size: .99rem; line-height: 1.52; }
+.cc-pdf-redesign .account-wizard-header .account-wizard-close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  background: var(--cc-paper);
+  color: var(--cc-muted);
+  font-size: 1.45rem;
+  border: 1px solid var(--cc-line);
+}
+.cc-pdf-redesign .account-wizard-progress {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 5px clamp(25px, 4vw, 43px) 18px;
+  gap: 9px;
+  overflow: visible;
+  background: var(--cc-white);
+}
+.cc-pdf-redesign .cc-wizard-progress-segment {
+  display: block;
+  height: 6px;
+  border-radius: 8px;
+  background: var(--cc-line);
+}
+.cc-pdf-redesign .cc-wizard-progress-segment.is-complete { background: var(--cc-teal); }
+.cc-pdf-redesign .account-wizard-body {
+  grid-column: 2;
+  grid-row: 3;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px clamp(25px, 4vw, 43px) 34px;
+  color: var(--cc-ink);
+  scrollbar-width: thin;
+}
+.cc-pdf-redesign .account-wizard-copy strong,
+.cc-pdf-redesign .account-wizard-card-mini h3 {
+  color: var(--cc-ink);
+  font-size: 1.04rem;
+  font-weight: 815;
+}
+.cc-pdf-redesign .account-wizard-copy p,
+.cc-pdf-redesign .account-wizard-hint p,
+.cc-pdf-redesign .account-wizard-card-mini .helper-text,
+.cc-pdf-redesign .account-wizard-product-list .is-empty { color: var(--cc-muted); line-height: 1.5; font-size: .88rem; }
+.cc-pdf-redesign .account-wizard-template-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+.cc-pdf-redesign .account-wizard-choice {
+  position: relative;
+  display: grid;
+  grid-template-columns: 47px minmax(0, 1fr);
+  align-items: center;
+  gap: 2px 13px;
+  min-height: 98px;
+  padding: 17px 18px;
+  border: 1.5px solid var(--cc-line);
+  border-radius: 19px;
+  background: var(--cc-white);
+  box-shadow: none;
+  color: var(--cc-ink);
+  transform: none;
+  cursor: pointer;
+}
+.cc-pdf-redesign .account-wizard-choice-icon {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  width: 47px;
+  height: 47px;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  color: var(--cc-teal-deep);
+  background: var(--cc-mint);
+  font-size: 1.35rem !important;
+  border-radius: 14px;
+}
+.cc-pdf-redesign .account-wizard-choice strong {
+  grid-column: 2;
+  margin: 0;
+  padding-right: 19px;
+  font-size: .99rem;
+  font-weight: 840;
+  color: var(--cc-ink);
+}
+.cc-pdf-redesign .account-wizard-choice > span:last-child {
+  grid-column: 2;
+  min-width: 0;
+  color: var(--cc-muted);
+  font-size: .74rem;
+  line-height: 1.4;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+.cc-pdf-redesign .account-wizard-choice:hover,
+.cc-pdf-redesign .account-wizard-choice.is-selected {
+  border-color: var(--cc-teal);
+  transform: none;
+  background: var(--cc-white);
+  box-shadow: none;
+}
+.cc-pdf-redesign .account-wizard-choice.is-selected::after {
+  content: "✓";
+  position: absolute;
+  top: 14px;
+  right: 13px;
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  background: var(--cc-teal);
+  color: #fff;
+  border-radius: 50%;
+  font-size: .79rem;
+  font-weight: 800;
+}
+.cc-pdf-redesign .account-wizard-card-mini,
+.cc-pdf-redesign .account-wizard-hint,
+.cc-pdf-redesign .account-wizard-review-grid > div,
+.cc-pdf-redesign .account-wizard-review-card {
+  border: 1.5px solid var(--cc-line);
+  border-radius: 18px;
+  background: var(--cc-white);
+  color: var(--cc-ink);
+  box-shadow: none;
+}
+.cc-pdf-redesign .account-wizard-card-mini { padding: 20px; }
+.cc-pdf-redesign .account-wizard-hint {
+  background: var(--cc-mint);
+  border-color: transparent;
+  padding: 19px;
+}
+.cc-pdf-redesign .account-wizard-hint strong { color: var(--cc-teal-deep); }
+.cc-pdf-redesign .account-wizard-field { color: var(--cc-ink); }
+.cc-pdf-redesign .account-wizard-field > span { font-size: .82rem; color: var(--cc-muted); }
+.cc-pdf-redesign .account-wizard-field input,
+.cc-pdf-redesign .account-wizard-field select,
+.cc-pdf-redesign .account-wizard-inline-form input,
+.cc-pdf-redesign .account-wizard-card-mini input,
+.cc-pdf-redesign .account-wizard-card-mini select {
+  color: var(--cc-ink);
+  background: var(--cc-white);
+  border: 1px solid var(--cc-line);
+  border-radius: 12px;
+  box-shadow: none;
+  min-height: 45px;
+  accent-color: var(--cc-teal);
+}
+.cc-pdf-redesign .account-wizard-expense-option,
+.cc-pdf-redesign .account-wizard-suggestion {
+  background: var(--cc-white);
+  color: var(--cc-ink);
+  border: 1.5px solid var(--cc-line);
+  border-radius: 14px;
+  box-shadow: none;
+}
+.cc-pdf-redesign .account-wizard-expense-option.is-selected,
+.cc-pdf-redesign .account-wizard-suggestion.is-selected,
+.cc-pdf-redesign .account-wizard-expense-option:hover,
+.cc-pdf-redesign .account-wizard-suggestion:hover {
+  border-color: var(--cc-teal);
+  color: var(--cc-teal-deep);
+  background: var(--cc-mint);
+  box-shadow: none;
+}
+.cc-pdf-redesign .account-wizard-suggestions,
+.cc-pdf-redesign .account-wizard-tip-members,
+.cc-pdf-redesign .account-wizard-tip-custom {
+  border: 1px solid var(--cc-line);
+  background: var(--cc-paper);
+  border-radius: 17px;
+}
+.cc-pdf-redesign .account-wizard-consumers input { accent-color: var(--cc-teal); }
+.cc-pdf-redesign .account-wizard-product-list li,
+.cc-pdf-redesign .account-wizard-person-result,
+.cc-pdf-redesign .account-wizard-friend-row,
+.cc-pdf-redesign .account-wizard-chip {
+  background: var(--cc-white);
+  border-color: var(--cc-line);
+  border-radius: 13px;
+  color: var(--cc-ink);
+}
+.cc-pdf-redesign .account-wizard-review-card.is-ready,
+.cc-pdf-redesign .account-wizard-check.is-ok {
+  color: var(--cc-teal-deep);
+  background: var(--cc-mint);
+  border-color: transparent;
+}
+.cc-pdf-redesign .account-wizard-review-card.has-missing,
+.cc-pdf-redesign .account-wizard-check.is-error { border-color: #e6b9af; background: #fff3ef; color: #8b3630; }
+.cc-pdf-redesign .account-wizard-review-card strong { color: var(--cc-ink); }
+.cc-pdf-redesign .account-wizard-person-result strong,
+.cc-pdf-redesign .account-wizard-person-result b { color: var(--cc-ink); }
+.cc-pdf-redesign .account-wizard-footer {
+  grid-column: 2;
+  grid-row: 4;
+  display: flex;
+  align-items: center;
+  padding: 15px clamp(25px, 4vw, 43px) 24px;
+  border-top: 1px solid var(--cc-line);
+  background: var(--cc-white);
+  color: var(--cc-ink);
+}
+.cc-pdf-redesign .account-wizard-footer-actions { margin-left: auto; }
+.cc-pdf-redesign .account-wizard-footer .btn {
+  min-height: 48px;
+  border-radius: 13px;
+  font-size: .94rem;
+  font-weight: 760;
+}
+.cc-pdf-redesign .account-wizard-footer .btn-primary {
+  min-width: 190px;
+  background: var(--cc-teal);
+  border: 1px solid var(--cc-teal);
+  color: #fff;
+}
+.cc-pdf-redesign .account-wizard-footer .btn-primary:hover,
+.cc-pdf-redesign .account-wizard-footer .btn-primary:focus-visible { background: var(--cc-teal-deep); }
+.cc-pdf-redesign .account-wizard-footer .btn-light {
+  background: var(--cc-white);
+  color: var(--cc-muted);
+  border: 1px solid var(--cc-line);
+}
+.cc-pdf-redesign .account-wizard-card-mini .btn-primary { background: var(--cc-teal); border-color: var(--cc-teal); color:#fff; }
+.cc-pdf-redesign #appSection-home button:focus-visible,
+.cc-pdf-redesign #appSection-history button:focus-visible,
+.cc-pdf-redesign .account-wizard-panel button:focus-visible,
+.cc-pdf-redesign .account-wizard-panel input:focus-visible,
+.cc-pdf-redesign .account-wizard-panel select:focus-visible { outline: 3px solid var(--cc-teal); outline-offset: 2px; }
+@media (max-width: 860px) {
+  .cc-pdf-redesign .account-wizard-shell { padding: 0; backdrop-filter: none; }
+  .cc-pdf-redesign .account-wizard-panel {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    border: 0;
+    grid-template-columns: minmax(0,1fr);
+    grid-template-rows: 80px auto auto minmax(0,1fr) auto;
+    box-shadow: none;
+  }
+  .cc-pdf-redesign .cc-wizard-aside { display: none; }
+  .cc-pdf-redesign .cc-wizard-topbar {
+    display: grid;
+    grid-column: 1;
+    grid-row: 1;
+    grid-template-columns: 44px minmax(0,1fr) 44px;
+    align-items: center;
+    padding: 17px 18px 5px;
+    background: var(--cc-white);
+  }
+  .cc-pdf-redesign .cc-wizard-brand { justify-self: center; color: var(--cc-ink); font-size: 1.17rem; }
+  .cc-pdf-redesign .cc-wizard-brand img { height: 37px; width: 37px; }
+  .cc-pdf-redesign .cc-wizard-topback,
+  .cc-pdf-redesign .cc-wizard-topclose {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    background: transparent;
+    color: var(--cc-ink);
+    border-radius: 11px;
+    font: inherit;
+    cursor: pointer;
+  }
+  .cc-pdf-redesign .cc-wizard-topback { font-size: 2rem; }
+  .cc-pdf-redesign .cc-wizard-topclose { color: var(--cc-muted); font-size: 1.5rem; }
+  .cc-pdf-redesign .account-wizard-header {
+    grid-column: 1;
+    grid-row: 2;
+    padding: 25px 24px 12px;
+    background: var(--cc-white);
+  }
+  .cc-pdf-redesign .account-wizard-header .account-wizard-close { display: none; }
+  .cc-pdf-redesign .account-wizard-header #accountWizardEyebrow { font-size: .79rem; }
+  .cc-pdf-redesign .account-wizard-header h1 { font-size: clamp(1.62rem, 6vw, 2.08rem); margin: 12px 0 9px; line-height: 1.14; }
+  .cc-pdf-redesign .account-wizard-header p:not(.eyebrow) { font-size: .94rem; line-height: 1.45; }
+  .cc-pdf-redesign .account-wizard-progress {
+    grid-column: 1;
+    grid-row: 3;
+    padding: 5px 24px 19px;
+    gap: 8px;
+    overflow: visible;
+    grid-template-columns: repeat(5, minmax(0,1fr));
+  }
+  .cc-pdf-redesign .account-wizard-body {
+    grid-column: 1;
+    grid-row: 4;
+    padding: 13px 24px 32px;
+  }
+  .cc-pdf-redesign .account-wizard-template-grid { grid-template-columns: 1fr; gap: 11px; }
+  .cc-pdf-redesign .account-wizard-choice { min-height: 79px; padding: 13px 16px; border-radius: 16px; }
+  .cc-pdf-redesign .account-wizard-choice-icon { width: 47px; height: 47px; }
+  .cc-pdf-redesign .account-wizard-footer {
+    grid-column: 1;
+    grid-row: 5;
+    min-height: 92px;
+    padding: 13px 24px max(17px,env(safe-area-inset-bottom));
+    box-shadow: none;
+  }
+  .cc-pdf-redesign .account-wizard-footer #accountWizardCancelButton,
+  .cc-pdf-redesign .account-wizard-footer #accountWizardBackButton { display: none; }
+  .cc-pdf-redesign .account-wizard-footer-actions,
+  .cc-pdf-redesign .account-wizard-footer #accountWizardNextButton { width: 100%; }
+  .cc-pdf-redesign .account-wizard-footer #accountWizardNextButton {
+    min-height: 54px;
+    border-radius: 15px;
+    font-size: 1.03rem;
+    font-weight: 820;
+  }
+  .cc-pdf-redesign .account-wizard-expense-grid,
+  .cc-pdf-redesign .account-wizard-inline-form,
+  .cc-pdf-redesign .account-wizard-split { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .cc-pdf-redesign { background: var(--cc-paper); }
+  .cc-pdf-redesign .app-header { background: var(--cc-white); }
+  .cc-pdf-redesign #appSection-home .mobile-home-dashboard {
+    padding: 20px 16px;
+    border: 0;
+    border-radius: 0;
+    gap: 24px;
+    background: var(--cc-white);
+  }
+  .cc-pdf-redesign #appSection-home .home-dashboard-top { flex-wrap: wrap; }
+  .cc-pdf-redesign #appSection-home .home-sync-pill { font-size: .65rem; }
+  .cc-pdf-redesign #appSection-home .cc-create-options { grid-template-columns: 1fr; gap: 10px; }
+  .cc-pdf-redesign #appSection-home .cc-create-options button {
+    min-height: 76px;
+    padding: 12px 15px;
+    grid-template-columns: 43px minmax(0,1fr);
+    border-radius: 16px;
+  }
+  .cc-pdf-redesign #appSection-home .cc-create-options button > span { width: 43px; height: 43px; border-radius: 12px; }
+  .cc-pdf-redesign #appSection-home .cc-create-options button strong { font-size: .99rem; }
+  .cc-pdf-redesign #appSection-home .cc-create-footer > span { display: none; }
+  .cc-pdf-redesign #appSection-home .cc-create-all-button { width: 100%; justify-content: center; border-radius: 14px; }
+  .cc-pdf-redesign #appSection-home .cc-overview-grid { gap: 7px; }
+  .cc-pdf-redesign #appSection-home .cc-overview-stat { padding: 12px 9px; }
+  .cc-pdf-redesign #appSection-home .cc-overview-stat strong { font-size: 1.27rem; }
+  .cc-pdf-redesign #appSection-home .cc-overview-stat small { font-size: .63rem; }
+  .cc-pdf-redesign #appSection-history .cc-history-overview > div { padding: 13px 11px; }
+  .cc-pdf-redesign #appSection-history .sidebar-history-card { padding: 16px 12px; }
+  .cc-pdf-redesign #appSection-history .history-bill-actions { gap: 8px; }
+  .cc-pdf-redesign #appSection-history .history-bill-actions .btn { font-size: .77rem; }
+  .cc-pdf-redesign #appSection-history .cc-history-quick-filters { padding-inline: 2px; }
+}
+@media (max-width: 420px) {
+  .cc-pdf-redesign .account-wizard-header { padding-inline: 17px; }
+  .cc-pdf-redesign .account-wizard-progress { padding-inline: 17px; }
+  .cc-pdf-redesign .account-wizard-body { padding-inline: 17px; }
+  .cc-pdf-redesign .account-wizard-footer { padding-inline: 17px; }
+  .cc-pdf-redesign #appSection-home .cc-overview-stat small { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cc-pdf-redesign .account-wizard-choice, .cc-pdf-redesign .cc-create-options button { transition: none; }
+}

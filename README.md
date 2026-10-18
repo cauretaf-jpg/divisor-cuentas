@@ -1,10 +1,96 @@
 # Cuenta Clara — Estado del proyecto
 
-**Versión actual:** `v13.21.0`  
+**Versión de desarrollo:** `v13.24.0` (fidelidad visual con PDF; producción todavía no actualizada)  
 **Base de esta versión:** `Cuenta-Clara-v13.20.4-acceso-sesion-y-readme`  
 **Tipo de proyecto:** aplicación web estática publicada en Vercel, con Supabase para autenticación, sincronización, amistades y cuentas compartidas.
 
 > Este README es la bitácora de continuidad del proyecto. Cada ZIP nuevo debe actualizar este archivo, agregar una nota técnica en `docs/revisiones/` y una validación en `docs/validaciones/`.
+
+---
+
+
+## 0B. Desarrollo v13.24.0 — Corrección visual fiel al PDF (18/10/2026)
+
+**Motivo:** la v13.23 funcionaba, pero no se parecía visualmente al PDF aprobado. Se sustituyó el gran bloque degradado por fondo blanco y tarjetas de borde fino, azul marino, tipografía clara y turquesa/menta. Se reorganizaron los controles antiguos dentro de un detalle desplegable; las notificaciones de invitaciones permanecen visibles.
+
+El asistente ahora presenta cabecera con logo, flecha superior, barra de progreso segmentada, opciones sobrias y botón principal fijo al pie en móvil. En escritorio se añadió la barra lateral azul marino de la propuesta.
+
+Se creó una hoja de estilos aislada: **`design-pdf.css`**, incluida en el precaché PWA v13.24. No hubo cambios de tablas ni datos. Historial conserva filtros, búsqueda, orden, resumen y acciones; el motor de cálculo y propina es el mismo.
+
+**QA automatizado:** tests Node SUCCESS y Chromium móvil/escritorio SUCCESS (estilos computados, navegación, cuentas ficticias, filtros y resumen). Se generaron capturas en:
+https://github.com/cauretaf-jpg/divisor-cuentas/actions/runs/39146915133/artifacts/12143632971
+
+**Publicación:** rama de desarrollo sin fusionar. Vercel indicó límite diario de despliegues; revisar la publicación de preview cuando se restablezca. Faltan pruebas con usuarios reales y revisión visual directa.
+
+**Bitácora:** `docs/revisiones/FIDELIDAD_PDF_VISUAL_V13_24_0.md`.
+
+---
+
+## 0A. Desarrollo v13.23.0 — Inicio e Historial rediseñados (18/10/2026)
+
+Se implementó el nuevo **Inicio móvil** en una rama separada con pregunta principal «¿Qué quieres dividir hoy?» (Bar, Restaurante, Supermercado, Hogar), enlace al resto de categorías y creación mediante el asistente guiado. Se priorizó Historial reciente, con apertura directa al resumen, métricas globales separadas de las de la cuenta seleccionada y sincronización discreta.
+
+El **Historial de cuentas** ahora aparece con un acceso destacado, métricas, filtros rápidos, buscador, lista completa por defecto, contador de resultados y acciones conservadas. Se mantuvieron datos, estructura de Supabase, modo invitado, pagos, borradores, cuentas compartidas y recurrencia.
+
+El rediseño usa CSS responsive y las variables actuales de modo oscuro. No se borraron datos ni se crearon bases de datos. Se añadieron pruebas de navegación estructural y conteos, manteniendo los tests del asistente, propina y seguridad.
+
+**Estado:** pruebas automatizadas aprobadas; pendiente validación visual en móvil/escritorio y E2E con usuarios reales antes de fusionar o publicar en producción.
+
+Bitácora: `docs/revisiones/REDISENO_INICIO_HISTORIAL_V13_23_0.md`.
+
+---
+
+## 0. Desarrollo v13.22.0 — asistente contextual (17/10/2026)
+
+**Estado:** candidato de prueba en rama `feature/asistente-contextual-propinas-2026-10`. La publicación principal y la base de datos no se han modificado. No corresponde considerar esta versión totalmente validada hasta realizar pruebas manuales en móviles y verificar Supabase.
+
+### Cambios funcionales
+
+- La primera pantalla del asistente pregunta **«¿Qué quieres dividir hoy?»**.
+- Se agregaron contextos **Bar, Cafetería y Juntada o evento**; continúan Restaurante, Supermercado, Hogar, Viaje, Streaming, Cuenta rápida y Otra cuenta.
+- Sugerencias de consumo configuradas por contexto (por ejemplo cerveza, mojito, empanadas, papas, queso y café). Seleccionar una sugerencia prepara nombre y categoría, **no crea un gasto ni inventa su precio**.
+- Para bar, restaurante y cafetería: propina 0 %, 10 % o porcentaje personalizado (0–100); asignación proporcional al consumo, en partes iguales o con montos personalizados y personas exentas. Las asignaciones personalizadas deben sumar el total de propina para finalizar.
+- Revisión del asistente muestra la propina y valida repartos personalizados incompletos.
+- Se corrigió el reinicio no deseado del porcentaje de propina y del modo total rápido al volver a un paso o editar un borrador.
+- Los cálculos ahora excluyen la deuda arrastrada al determinar la propina; se aplica también al detalle exportable por persona.
+- La vista móvil presenta tarjetas contextuales compactas y accesos rápidos de productos.
+- El asistente permite cantidad por producto y subtotal opcional de boleta sin propina. La revisión bloquea finalizar si los productos no cuadran con ese subtotal.
+- La revisión presenta los montos por participante, separados en subtotal y propina.
+- Todo esto funciona sobre estado de cuenta existente y no requiere modificar tablas SQL.
+
+
+### Verificaciones realizadas
+
+- Interpretación del JavaScript sin errores de sintaxis.
+- Casos de prueba aislados para propina proporcional, igualitaria, personalizada, exenciones, total rápido y exclusión de deudas anteriores.
+- Validaciones de las referencias de archivos v13.22.0 y caché PWA.
+- El despliegue de **vista previa** en Vercel llegó a estado `READY`.
+
+### Limitaciones y pendientes — no afirmar validación de extremo a extremo
+
+- Se necesita acceso a la **base Supabase utilizada por Cuenta Clara** para inspeccionar RLS, persistencia, usuarios, invitaciones y datos compartidos. La conexión disponible solo mostró otros proyectos.
+- Falta prueba manual en navegador y celular con dos perfiles reales, incluyendo accesibilidad, flujo rápido, productos, propinas y pagos.
+- Las funciones de **pagadores múltiples**, reparto total personalizado/mixto, conciliación directa con boleta y diseño completo de todas las vistas siguen siendo trabajo posterior; no están implementadas por esta revisión.
+- No se borraron carpetas históricas (`assets/` duplicado) ni componentes antiguos sin rastrear sus dependencias y confirmar el origen del despliegue.
+- No se ejecutaron cambios SQL ni migraciones en producción.
+
+Más detalles en `docs/revisiones/REVISION_ASISTENTE_V13_22_0.md` y resultados reproducibles en `docs/validaciones/revision-validacion-v13-22-0.json`.
+
+---
+
+### Supabase — revisión de seguridad del 18 de octubre de 2026
+
+Se verificó el acceso correcto a `cuenta-clara-db` y se aplicaron **cuatro migraciones de seguridad y rendimiento directamente en Supabase**:
+1. Permisos de funciones: se eliminó ejecución por anónimos y se conservaron las RPC de colaboración para usuarios autenticados.
+2. Siete índices nuevos para claves foráneas.
+3. Optimización de 35 políticas RLS sin cambiar sus criterios de acceso.
+4. Las invitaciones pendientes ya no entregan el contenido completo de una cuenta; la nueva RPC solo permite consultar su título hasta aceptar.
+
+Las migraciones están documentadas en `sql/05-` a `sql/08-` y en `docs/revisiones/REVISION_SEGURIDAD_SUPABASE_2026_10_18.md`.
+
+**Distinción importante:** las migraciones de base de datos están aplicadas; la nueva interfaz y los cambios JavaScript siguen **en la rama de desarrollo sin fusionar**. Los tests de GitHub y el preview de Vercel están aprobados, pero no hay aún pruebas E2E con dos usuarios reales. Se requiere probar aceptación y rechazo de invitaciones, roles, perfil, pagos y sincronización antes de fusionar.
+
+Advertencias residuales de Supabase: funciones `SECURITY DEFINER` ejecutables por usuarios autenticados (necesarias para colaboración, con autorización interna), protección de contraseñas filtradas pendiente de configuración en Supabase Auth e información de índices con uso aún no detectado.
 
 ---
 

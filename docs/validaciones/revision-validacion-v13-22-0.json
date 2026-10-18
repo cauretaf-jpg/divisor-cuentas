@@ -1,0 +1,36 @@
+{
+  "version": "13.22.0",
+  "date": "2026-10-17",
+  "branch": "feature/asistente-contextual-propinas-2026-10",
+  "status": "partial_validation_not_production_ready",
+  "unit_checks": {
+    "javascript_syntax": true,
+    "proportional_tips": true,
+    "equal_tips": true,
+    "custom_tips": true,
+    "exempt_people": true,
+    "quick_total_tips": true,
+    "previous_debt_not_tipped": true,
+    "context_templates": true,
+    "contextual_suggestions": true,
+    "asset_version_consistency": true,
+    "pwa_cache_version": true
+  },
+  "integration_checks": {
+    "vercel_preview_build_ready": true,
+    "interactive_mobile_browser_test": false,
+    "desktop_browser_test": false,
+    "supabase_auth_and_persistence": false,
+    "supabase_rls": false,
+    "two_users_invitation": false,
+    "payments_and_history_end_to_end": false,
+    "ocr_reconciliation": false,
+    "whatsapp_share": false,
+    "production_deployment": false
+  },
+  "notes": [
+    "El proyecto Supabase evmwuvjgokkxxnckhiyc no aparece entre los proyectos de la conexión actual.",
+    "La rama no modifica producción ni ejecuta SQL.",
+    "Los checks de true representan pruebas estáticas o cálculo aislado; no pruebas E2E."
+  ]
+}

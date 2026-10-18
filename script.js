@@ -1,5 +1,5 @@
-console.info('Cuenta Clara V13.21.0 cargada');
-const APP_VERSION = '13.21.0';
+console.info('Cuenta Clara V13.24.0 cargada');
+const APP_VERSION = '13.24.0';
 const BACKUP_SCHEMA_VERSION = 6;
 const AUTO_IMPORT_BACKUP_KEY = 'cuenta-clara-auto-backup-before-import';
 const GUEST_STORAGE_KEY = 'cuenta-clara-v1-state';
@@ -74,6 +74,8 @@ const dom = {
   syncStatusBadge: document.querySelector('#syncStatusBadge'),
   newBillButton: document.querySelector('#newBillButton'),
   accountWizard: document.querySelector('#accountWizard'),
+  accountWizardTopBackButton: document.querySelector('#accountWizardTopBackButton'),
+  accountWizardTopCloseButton: document.querySelector('#accountWizardTopCloseButton'),
   accountWizardEyebrow: document.querySelector('#accountWizardEyebrow'),
   accountWizardTitle: document.querySelector('#accountWizardTitle'),
   accountWizardSubtitle: document.querySelector('#accountWizardSubtitle'),
@@ -198,6 +200,11 @@ const dom = {
   guidedFlowSecondaryButton: document.querySelector('#guidedFlowSecondaryButton'),
   continueActiveBillButton: document.querySelector('#continueActiveBillButton'),
   homeNewBillButton: document.querySelector('#homeNewBillButton'),
+  homeAllTypesButton: document.querySelector('#homeAllTypesButton'),
+  homeContextButtons: document.querySelectorAll('[data-cc-home-template]'),
+  ccHomeStoredCount: document.querySelector('#ccHomeStoredCount'),
+  ccHomePendingCount: document.querySelector('#ccHomePendingCount'),
+  ccHomeSharedCount: document.querySelector('#ccHomeSharedCount'),
   homeRecentBillsList: document.querySelector('#homeRecentBillsList'),
   homeRecurringPanel: document.querySelector('#homeRecurringPanel'),
   homeRecurringKicker: document.querySelector('#homeRecurringKicker'),
@@ -222,6 +229,12 @@ const dom = {
   mobileActionButtons: document.querySelectorAll('[data-app-action]'),
 
   historySearchInput: document.querySelector('#historySearchInput'),
+  historyNewBillButton: document.querySelector('#historyNewBillButton'),
+  ccHistoryAllCount: document.querySelector('#ccHistoryAllCount'),
+  ccHistoryPendingCount: document.querySelector('#ccHistoryPendingCount'),
+  ccHistoryPaidCount: document.querySelector('#ccHistoryPaidCount'),
+  ccHistoryResultsCount: document.querySelector('#ccHistoryResultsCount'),
+  ccHistoryFilterButtons: document.querySelectorAll('[data-cc-history-filter]'),
   historyFilterSelect: document.querySelector('#historyFilterSelect'),
   historyTypeFilterSelect: document.querySelector('#historyTypeFilterSelect'),
   historySortSelect: document.querySelector('#historySortSelect'),
@@ -3696,9 +3709,13 @@ function makeDefaultBill() {
     name: 'Nueva cuenta',
     mode: 'detailed',
     quickTotal: 0,
+    receiptExpectedSubtotal: 0,
     homeMonth: getCurrentMonthValue(),
     payerId: '',
     tipPercent: 10,
+    tipSplitMode: 'proportional',
+    tipExemptIds: [],
+    tipCustomAmounts: {},
     archived: false,
     closed: false,
     closedAt: '',
@@ -3900,9 +3917,17 @@ function normalizeState(input) {
       name: String(bill.name || 'Cuenta sin nombre'),
       mode: ['quick', 'home'].includes(bill.mode) ? bill.mode : 'detailed',
       quickTotal: Number(bill.quickTotal || 0),
+      receiptExpectedSubtotal: Number.isFinite(Number(bill.receiptExpectedSubtotal)) ? Math.max(0, Math.round(Number(bill.receiptExpectedSubtotal))) : 0,
       homeMonth: bill.homeMonth || getCurrentMonthValue(),
       payerId: bill.payerId && people.some((p) => p.id === bill.payerId) ? bill.payerId : '',
-      tipPercent: Number.isFinite(Number(bill.tipPercent)) ? Number(bill.tipPercent) : 10,
+      tipPercent: Number.isFinite(Number(bill.tipPercent)) ? Math.max(0, Number(bill.tipPercent)) : 10,
+      tipSplitMode: ['equal', 'custom'].includes(bill.tipSplitMode) ? bill.tipSplitMode : 'proportional',
+      tipExemptIds: Array.isArray(bill.tipExemptIds) ? bill.tipExemptIds.filter((id) => people.some((person) => person.id === id)) : [],
+      tipCustomAmounts: Object.fromEntries(
+        Object.entries(bill.tipCustomAmounts || {})
+          .filter(([id]) => people.some((person) => person.id === id))
+          .map(([id, amount]) => [id, Math.max(0, Math.round(Number(amount) || 0))])
+      ),
       archived: Boolean(bill.archived),
       closed: Boolean(bill.closed),
       closedAt: bill.closedAt || '',
@@ -4243,15 +4268,41 @@ function calculateBill(bill = getActiveBill()) {
   }
 
   const subtotal = Object.values(baseTotals).reduce((sum, value) => sum + value, 0);
-  const tipPercent = bill.mode === 'home' ? 0 : (Number(bill.tipPercent) || 0);
-  const tipAmount = subtotal * (tipPercent / 100);
+  // No volver a cobrar propina sobre deudas arrastradas de meses anteriores.
+  const tipBase = bill.people.reduce((sum, person) =>
+    sum + Math.max(0, (baseTotals[person.id] || 0) - Math.max(0, Number(person.previousDebt || 0))), 0);
+  const tipPercent = bill.mode === 'home' ? 0 : Math.max(0, Number(bill.tipPercent) || 0);
+  const tipAmount = Math.round(tipBase * (tipPercent / 100));
+  const eligible = bill.people.filter((person) => !(bill.tipExemptIds || []).includes(person.id));
+  const tipMode = ['equal', 'custom'].includes(bill.tipSplitMode) ? bill.tipSplitMode : 'proportional';
+  const tipAllocations = Object.fromEntries(bill.people.map((person) => [person.id, 0]));
+  if (tipAmount > 0 && eligible.length > 0) {
+    if (tipMode === 'custom') {
+      eligible.forEach((person) => {
+        tipAllocations[person.id] = Math.max(0, Math.round(Number(bill.tipCustomAmounts?.[person.id]) || 0));
+      });
+    } else {
+      const weights = eligible.map((person) => tipMode === 'equal'
+        ? 1
+        : Math.max(0, (baseTotals[person.id] || 0) - Math.max(0, Number(person.previousDebt || 0))));
+      const denominator = weights.reduce((sum, value) => sum + value, 0);
+      const divisor = denominator > 0 ? denominator : eligible.length;
+      const raw = weights.map((weight) => tipAmount * (denominator > 0 ? weight : 1) / divisor);
+      const amounts = raw.map((amount) => Math.floor(amount));
+      let remainder = tipAmount - amounts.reduce((sum, amount) => sum + amount, 0);
+      const order = raw.map((amount, index) => ({ index, fraction: amount - amounts[index] }))
+        .sort((a, b) => b.fraction - a.fraction || a.index - b.index);
+      for (let index = 0; index < remainder; index += 1) amounts[order[index % order.length].index] += 1;
+      eligible.forEach((person, index) => { tipAllocations[person.id] = amounts[index]; });
+    }
+  }
   const finalTotals = {};
   let paidTotal = 0;
   let pendingTotal = 0;
 
   for (const person of bill.people) {
     const personSubtotal = baseTotals[person.id] || 0;
-    const personTip = personSubtotal * (tipPercent / 100);
+    const personTip = tipAllocations[person.id] || 0;
     const finalAmount = personSubtotal + personTip;
 
     finalTotals[person.id] = finalAmount;
@@ -4513,6 +4564,7 @@ const MOBILE_PROGRESSIVE_QUERY = [
 
 const MOBILE_PROGRESSIVE_OPEN_IDS = new Set([
   'homeDashboardPanel',
+  'historyMainCard',
   'paymentActionCenter',
   'accountReviewPanel',
   'toolsHubCard',
@@ -4724,20 +4776,7 @@ function setAppSection(section, options = {}) {
   });
 
   
-dom.accountWizardCancelButton?.addEventListener('click', cancelAccountWizard);
-dom.accountWizardCloseButton?.addEventListener('click', cancelAccountWizard);
-dom.accountWizardBackButton?.addEventListener('click', accountWizardBack);
-dom.accountWizardNextButton?.addEventListener('click', accountWizardNext);
-dom.accountWizard?.addEventListener('click', (event) => {
-  if (event.target?.dataset?.wizardCancel === 'true') {
-    cancelAccountWizard();
-  }
-});
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && accountWizardState) {
-    cancelAccountWizard();
-  }
-});
+
 
 dom.sectionNavButtons?.forEach((button) => {
     button.classList.toggle('is-active', button.dataset.appSection === nextSection);
@@ -5046,6 +5085,28 @@ function renderNetworkStatus() {
   dom.networkStatusPill.textContent = 'En este dispositivo';
 }
 
+// Estadísticas basadas en cuentas reales; la cuenta inicial vacía no es un gasto.
+function getAccountOverviewCounts(bills = state?.bills || [], skipInitialPlaceholder = isLikelyFirstUseState()) {
+  const visibleBills = skipInitialPlaceholder ? [] : bills;
+  return {
+    saved: visibleBills.length,
+    pending: visibleBills.filter((bill) =>
+      getBillStatus(bill) === 'pending' && calculateBill(bill).pendingTotal > 0).length,
+    paid: visibleBills.filter((bill) => getBillStatus(bill) === 'paid').length,
+    shared: visibleBills.filter((bill) => Boolean(bill.sharedAccountId)).length,
+  };
+}
+
+function renderAccountOverviewCounts() {
+  const counts = getAccountOverviewCounts();
+  if (dom.ccHomeStoredCount) dom.ccHomeStoredCount.textContent = String(counts.saved);
+  if (dom.ccHomePendingCount) dom.ccHomePendingCount.textContent = String(counts.pending);
+  if (dom.ccHomeSharedCount) dom.ccHomeSharedCount.textContent = String(counts.shared);
+  if (dom.ccHistoryAllCount) dom.ccHistoryAllCount.textContent = String(counts.saved);
+  if (dom.ccHistoryPendingCount) dom.ccHistoryPendingCount.textContent = String(counts.pending);
+  if (dom.ccHistoryPaidCount) dom.ccHistoryPaidCount.textContent = String(counts.paid);
+}
+
 function renderMobileHomeDashboard() {
   if (!dom.homeGreetingOutput || !state?.bills?.length) {
     return;
@@ -5084,6 +5145,7 @@ function renderMobileHomeDashboard() {
     dom.continueActiveBillButton.textContent = getSmartActionCopy().button;
   }
 
+  renderAccountOverviewCounts();
   renderHomeRecentBills();
   renderHomeReminderDashboard();
   renderHomeRecurringPanel();
@@ -5094,7 +5156,7 @@ function renderHomeRecentBills() {
     return;
   }
 
-  const recentBills = [...state.bills]
+  const recentBills = (isLikelyFirstUseState() ? [] : [...state.bills])
     .filter((bill) => !bill.archived)
     .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
     .slice(0, 3);
@@ -5102,7 +5164,7 @@ function renderHomeRecentBills() {
   dom.homeRecentBillsList.innerHTML = '';
 
   if (recentBills.length === 0) {
-    dom.homeRecentBillsList.appendChild(emptyMessage('Todavía no tienes cuentas recientes.'));
+    dom.homeRecentBillsList.appendChild(emptyMessage('Todavía no tienes cuentas recientes. Crea una desde las opciones de arriba.'));
     return;
   }
 
@@ -5124,7 +5186,7 @@ function renderHomeRecentBills() {
       editingProductId = null;
       saveState();
       render();
-      setAppSection('home', { scroll: false });
+      setAppSection('summary', { instant: true });
       showToast('Cuenta seleccionada.');
     });
     dom.homeRecentBillsList.appendChild(button);
@@ -5485,6 +5547,60 @@ function getGuidedBillName(mode) {
 }
 
 const BILL_TEMPLATES = {
+  bar: {
+    label: 'Bar',
+    mode: 'detailed',
+    tipPercent: 10,
+    name: () => `Bar ${formatShortToday()}`,
+    description: 'Para cervezas, cócteles y picoteos. Agrega los consumos y la propina.',
+    help: 'Cuenta de bar creada. Selecciona los consumos y a quién corresponde cada uno.',
+    checklist: ['Propina opcional', 'Consumos por persona', 'Compartir cobros'],
+    examples: [
+      { name: 'Cerveza', category: 'Bebestibles' },
+      { name: 'Mojito', category: 'Tragos' },
+      { name: 'Piscola', category: 'Tragos' },
+      { name: 'Papas fritas', category: 'Comida' },
+      { name: 'Empanadas', category: 'Comida' },
+      { name: 'Nachos', category: 'Comida' },
+      { name: 'Agua mineral', category: 'Bebestibles' },
+    ],
+    nextHint: 'Elige consumos sugeridos o escribe uno propio, asigna participantes y revisa la propina.',
+  },
+  cafe: {
+    label: 'Cafetería',
+    mode: 'detailed',
+    tipPercent: 0,
+    name: () => `Cafetería ${formatShortToday()}`,
+    description: 'Para compartir café, té, pasteles y meriendas. La propina es opcional.',
+    help: 'Cuenta de cafetería creada. Agrega bebidas, alimentos y consumidores.',
+    checklist: ['Consumos sugeridos', 'Propina opcional', 'Revisión final'],
+    examples: [
+      { name: 'Café', category: 'Bebestibles' },
+      { name: 'Capuchino', category: 'Bebestibles' },
+      { name: 'Té', category: 'Bebestibles' },
+      { name: 'Torta', category: 'Postres' },
+      { name: 'Sándwich', category: 'Comida' },
+      { name: 'Medialuna', category: 'Postres' },
+    ],
+    nextHint: 'Agrega solo lo consumido, asigna a las personas y decide si incluir propina.',
+  },
+  event: {
+    label: 'Juntada o evento',
+    mode: 'detailed',
+    tipPercent: 0,
+    name: () => `Juntada ${formatShortToday()}`,
+    description: 'Para cumpleaños, celebraciones y compras hechas entre varias personas.',
+    help: 'Cuenta de evento creada. Registra los gastos compartidos.',
+    checklist: ['Comida y bebidas', 'Gastos compartidos', 'Resumen claro'],
+    examples: [
+      { name: 'Bebidas', category: 'Bebestibles' },
+      { name: 'Snacks', category: 'Comida' },
+      { name: 'Torta', category: 'Postres' },
+      { name: 'Decoración', category: 'Otros' },
+      { name: 'Arriendo del local', category: 'Arriendo' },
+    ],
+    nextHint: 'Registra compras del evento y asigna quién participa en cada gasto.',
+  },
   restaurant: {
     label: 'Restaurante',
     mode: 'detailed',
@@ -5495,7 +5611,11 @@ const BILL_TEMPLATES = {
     checklist: ['Propina 10% activa', 'Productos por consumidor', 'Comprobante para WhatsApp'],
     examples: [
       { name: 'Plato de fondo', category: 'Comida' },
+      { name: 'Empanadas', category: 'Comida' },
+      { name: 'Papas fritas', category: 'Comida' },
+      { name: 'Hamburguesa', category: 'Comida' },
       { name: 'Bebida', category: 'Bebestibles' },
+      { name: 'Jugo', category: 'Bebestibles' },
       { name: 'Postre compartido', category: 'Postres' },
     ],
     nextHint: 'Después de agregar personas, usa productos rápidos o escanea una boleta.',
@@ -5509,9 +5629,12 @@ const BILL_TEMPLATES = {
     help: 'Plantilla supermercado creada. Agrega personas y gastos; si se repite mensualmente, actívala como recurrente.',
     checklist: ['Sin propina', 'Categorías de hogar', 'Puede volverse recurrente'],
     examples: [
-      { name: 'Supermercado mensual', category: 'Supermercado' },
-      { name: 'Aseo y limpieza', category: 'Otros' },
-      { name: 'Reposición compartida', category: 'Supermercado' },
+      { name: 'Pan', category: 'Supermercado' },
+      { name: 'Leche', category: 'Supermercado' },
+      { name: 'Queso', category: 'Supermercado' },
+      { name: 'Frutas', category: 'Supermercado' },
+      { name: 'Verduras', category: 'Supermercado' },
+      { name: 'Productos de aseo', category: 'Supermercado' },
     ],
     nextHint: 'Agrega el total de la compra o separa productos si algunas personas consumieron distinto.',
   },
@@ -5582,9 +5705,9 @@ const BILL_TEMPLATES = {
     nextHint: 'Agrega personas, ingresa el monto total y comparte el resultado.',
   },
   custom: {
-    label: 'Personalizada',
+    label: 'Otra cuenta',
     mode: 'detailed',
-    tipPercent: 10,
+    tipPercent: 0,
     name: () => getGuidedBillName('detailed'),
     description: 'Empieza limpia y ajusta propina, categorías, personas y pagos según tu caso.',
     help: 'Cuenta personalizada creada. Agrega personas y configura los gastos a tu manera.',
@@ -6078,8 +6201,13 @@ function ensureAccountWizardDraft() {
   if (isNewDraft) {
     applyTemplateToBill(bill, getAccountWizardTemplateKey(), String(accountWizardState.name || '').trim() || getAccountWizardDefaultName());
   } else {
-    bill.mode = ['detailed', 'home', 'quick'].includes(template.mode) ? template.mode : 'detailed';
-    bill.tipPercent = Number(template.tipPercent || 0);
+    // Conservar la elección del usuario: «total rápido» o «por productos»,
+    // incluso al volver a este paso o modificar el borrador.
+    const changedTemplate = bill.templateKey !== getAccountWizardTemplateKey();
+    if (changedTemplate) {
+      bill.mode = ['detailed', 'home', 'quick'].includes(template.mode) ? template.mode : 'detailed';
+      bill.tipPercent = Number(template.tipPercent || 0);
+    }
     if (bill.mode === 'home') bill.homeMonth = bill.homeMonth || getCurrentMonthValue();
     if (bill.mode === 'quick') bill.quickTotal = Number(bill.quickTotal || 0);
   }
@@ -6107,6 +6235,8 @@ function getAccountWizardReviewChecks(bill = getAccountWizardBill()) {
   const products = Array.isArray(bill.products) ? bill.products : [];
   const hasQuickTotal = Number(bill.quickTotal || 0) > 0;
   const withoutConsumers = products.filter((product) => !Array.isArray(product.consumers) || product.consumers.length === 0);
+  const listedSubtotal = products.reduce((total, product) =>
+    total + Number(product.unitPrice || 0) * Number(product.quantity || 1), 0);
   const payerName = people.find((person) => person.id === bill.payerId)?.name || '';
   const total = getBillGrandTotal(bill);
   const checks = [];
@@ -6151,8 +6281,40 @@ function getAccountWizardReviewChecks(bill = getAccountWizardBill()) {
         : `${withoutConsumers.length || products.length} gasto${(withoutConsumers.length || products.length) === 1 ? '' : 's'} pendiente${(withoutConsumers.length || products.length) === 1 ? '' : 's'} de asignar.`,
       step: 3,
     });
+    if (Number(bill.receiptExpectedSubtotal || 0) > 0) {
+      const diff = Math.round(listedSubtotal) - Math.round(Number(bill.receiptExpectedSubtotal));
+      checks.push({
+        status: diff === 0 ? 'ok' : 'error',
+        label: 'Conciliación de boleta',
+        text: diff === 0
+          ? 'La suma de productos coincide con el subtotal informado de la boleta.'
+          : `Hay una diferencia de ${formatCurrency(Math.abs(diff))}. ${diff > 0 ? 'Los productos superan' : 'Faltan productos para alcanzar'} el subtotal de la boleta. Corrige antes de finalizar.`,
+        step: 3,
+      });
+    }
   }
 
+  if (Number(bill.tipPercent || 0) > 0 && bill.mode !== 'home') {
+    const eligible = people.filter((person) => !(bill.tipExemptIds || []).includes(person.id));
+    checks.push({
+      status: eligible.length ? 'ok' : 'error',
+      label: 'Propina',
+      text: eligible.length ? `${eligible.length} persona(s) participan de la propina.` : 'Debe haber al menos una persona que participe de la propina.',
+      step: 3,
+    });
+    if (bill.tipSplitMode === 'custom') {
+      const expected = calculateBill(bill).tipAmount;
+      const assigned = eligible.reduce((sum, person) => sum + Math.max(0, Math.round(Number(bill.tipCustomAmounts?.[person.id]) || 0)), 0);
+      checks.push({
+        status: assigned === expected ? 'ok' : 'error',
+        label: 'Reparto personalizado',
+        text: assigned === expected
+          ? `Propina asignada: ${formatCurrency(assigned)}.`
+          : `La propina debe sumar ${formatCurrency(expected)}; actualmente suma ${formatCurrency(assigned)}.`,
+        step: 3,
+      });
+    }
+  }
   checks.push({
     status: total > 0 ? 'ok' : 'warn',
     label: 'Resultado',
@@ -6170,7 +6332,7 @@ function getAccountWizardMissingItems(bill = getAccountWizardBill()) {
 }
 
 function getAccountWizardTitle(step = accountWizardState?.step || 0) {
-  const titles = ['Elige el tipo de cuenta', 'Nombra la cuenta', 'Agrega personas', 'Agrega gastos', 'Revisa antes de terminar'];
+  const titles = ['¿Qué quieres dividir?', 'Ponle un nombre', '¿Quiénes participan?', 'Agrega los consumos', 'Revisa antes de dividir'];
   return titles[step] || titles[0];
 }
 
@@ -6182,23 +6344,29 @@ function renderAccountWizard() {
   const bill = getAccountWizardBill();
   const template = getAccountWizardTemplate();
 
-  dom.accountWizardEyebrow.textContent = `Paso ${step + 1} de ${ACCOUNT_WIZARD_STEPS.length}`;
+  dom.accountWizard.dataset.step = String(step);
+  dom.accountWizardEyebrow.textContent = `NUEVA CUENTA · PASO ${step + 1} DE ${ACCOUNT_WIZARD_STEPS.length}`;
   dom.accountWizardTitle.textContent = getAccountWizardTitle(step);
-  dom.accountWizardSubtitle.textContent = step < 4
-    ? 'Completa solo lo necesario para avanzar.'
-    : 'Confirma que la cuenta esté lista o vuelve al paso que falte.';
-
-  const progressPercent = Math.round(((step + 1) / ACCOUNT_WIZARD_STEPS.length) * 100);
-  dom.accountWizardProgress.innerHTML = `
-    <div class="account-wizard-meter" aria-hidden="true"><span style="width: ${progressPercent}%"></span></div>
-    <div class="account-wizard-step-row">
-      ${ACCOUNT_WIZARD_STEPS.map((item, index) => `
-        <span class="account-wizard-step ${index === step ? 'is-active' : ''} ${index < step ? 'is-done' : ''}">
-          <b>${index + 1}</b><em>${escapeHtml(item.label)}</em>
-        </span>
-      `).join('')}
-    </div>
-  `;
+  const subtitles = [
+    'Elige el tipo de cuenta. Te acompañamos paso a paso.',
+    'Así encontrarás fácilmente tu cuenta en el historial.',
+    'Agrega a quienes van a compartir los gastos.',
+    'Selecciona consumos sugeridos o escribe los tuyos.',
+    'Confirma que los montos estén correctos antes de guardar.',
+  ];
+  dom.accountWizardSubtitle.textContent = subtitles[step] || subtitles[0];
+  dom.accountWizardProgress.innerHTML = ACCOUNT_WIZARD_STEPS.map((item,index) => `
+    <span class="cc-wizard-progress-segment ${index <= step ? 'is-complete' : ''}"
+      aria-label="Paso ${index + 1}: ${escapeHtml(item.label)}"
+      ${index === step ? 'aria-current="step"' : ''}></span>
+  `).join('');
+  dom.accountWizard.querySelectorAll('[data-cc-wizard-side-step]').forEach((item) => {
+    item.classList.toggle('is-current', Number(item.dataset.ccWizardSideStep) === step);
+    item.classList.toggle('is-complete', Number(item.dataset.ccWizardSideStep) < step);
+  });
+  if (dom.accountWizardTopBackButton) {
+    dom.accountWizardTopBackButton.setAttribute('aria-label', step === 0 ? 'Cerrar asistente' : 'Volver al paso anterior');
+  }
 
   if (dom.accountWizardBackButton) {
     dom.accountWizardBackButton.disabled = step === 0;
@@ -6223,16 +6391,18 @@ function renderAccountWizard() {
 }
 
 function renderAccountWizardTypeStep() {
-  const choices = ['restaurant', 'supermarket', 'streaming', 'home', 'trip', 'quick', 'custom'];
+  const choices = ['bar', 'restaurant', 'supermarket', 'cafe', 'event', 'home', 'trip', 'streaming', 'quick', 'custom'];
+  const icons = { bar: '🍻', restaurant: '🍽️', supermarket: '🛒', cafe: '☕', event: '🎉', home: '🏠', trip: '✈️', streaming: '📺', quick: '⚡', custom: '✨' };
   dom.accountWizardBody.innerHTML = `
     <div class="account-wizard-copy">
-      <strong>¿Qué tipo de cuenta quieres crear?</strong>
-      <p>La plantilla solo prepara la cuenta. Después puedes cambiarla.</p>
+      <strong>Elige una situación</strong>
+      <p>Las sugerencias te ayudarán a ingresar los consumos más rápido.</p>
     </div>
     <div class="account-wizard-template-grid">
       ${choices.map((key) => {
         const template = BILL_TEMPLATES[key] || BILL_TEMPLATES.custom;
-        return `<button class="account-wizard-choice ${getAccountWizardTemplateKey() === key ? 'is-selected' : ''}" data-wizard-template="${key}" type="button">
+        return `<button class="account-wizard-choice ${getAccountWizardTemplateKey() === key ? 'is-selected' : ''}" data-wizard-template="${key}" aria-pressed="${getAccountWizardTemplateKey() === key}" type="button">
+          <span class="account-wizard-choice-icon" aria-hidden="true">${icons[key] || '✨'}</span>
           <strong>${escapeHtml(template.label)}</strong>
           <span>${escapeHtml(template.description || template.nextHint || 'Cuenta personalizada.')}</span>
         </button>`;
@@ -6464,8 +6634,11 @@ function renderAccountWizardExpensesStep() {
   const people = Array.isArray(bill.people) ? bill.people : [];
   const hasEnoughPeople = people.length >= 2;
   const peopleOptions = people.map((person) => `<label><input type="checkbox" value="${person.id}" checked /> ${escapeHtml(person.name)}</label>`).join('');
-  const productsHtml = (bill.products || []).map((product) => `<li><strong>${escapeHtml(product.name)}</strong><span>${formatCurrency(Number(product.unitPrice || 0) * Number(product.quantity || 1))}</span><button data-remove-wizard-product="${product.id}" type="button">×</button></li>`).join('');
+  const productsHtml = (bill.products || []).map((product) => `<li><strong>${escapeHtml(product.name)} · ${Number(product.quantity || 1)} unidad(es)</strong><span>${formatCurrency(Number(product.unitPrice || 0) * Number(product.quantity || 1))}</span><button data-remove-wizard-product="${escapeHtml(product.id)}" type="button" aria-label="Eliminar ${escapeHtml(product.name)}">×</button></li>`).join('');
   const isQuick = bill.mode === 'quick';
+  const supportsTip = ['bar', 'restaurant', 'cafe'].includes(bill.templateKey);
+  const currentTip = Math.max(0, Number(bill.tipPercent || 0));
+  const examples = getAccountWizardTemplate().examples || [];
 
   dom.accountWizardBody.innerHTML = `
     <div class="account-wizard-copy compact">
@@ -6490,15 +6663,66 @@ function renderAccountWizardExpensesStep() {
     ` : `
       <section class="account-wizard-card-mini">
         <h3>Agregar gasto</h3>
+        <div class="account-wizard-suggestions" aria-label="Consumos sugeridos">
+          <strong>Elige un consumo frecuente</strong>
+          <div class="account-wizard-suggestion-list">
+            ${examples.map((item, index) => `<button class="account-wizard-suggestion" data-wizard-suggestion="${index}" type="button">+ ${escapeHtml(item.name)}</button>`).join('')}
+          </div>
+          <p class="helper-text">Son sugerencias. No se agrega ningún producto hasta que indiques su precio.</p>
+        </div>
         <div class="account-wizard-expense-grid">
           <input id="accountWizardProductName" type="text" placeholder="Ej: Pizza, Luz, Netflix" />
-          <input id="accountWizardProductAmount" type="number" min="0" step="100" placeholder="Monto" />
+          <input id="accountWizardProductAmount" type="number" min="0" step="1" placeholder="Precio por unidad ($)" />
+          <input id="accountWizardProductQuantity" type="number" min="1" max="10000" step="1" value="1" aria-label="Cantidad" />
           <select id="accountWizardProductCategory">${CATEGORIES.map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join('')}</select>
           <button class="btn btn-primary" id="accountWizardAddProduct" type="button">Agregar</button>
         </div>
         <div class="account-wizard-consumers"><strong>Lo comparten</strong>${peopleOptions || '<p class="helper-text">Agrega personas en el paso anterior.</p>'}</div>
       </section>
+      <section class="account-wizard-card-mini">
+        <h3>¿Tienes el subtotal de la boleta?</h3>
+        <p class="helper-text">Opcional: escribe el total de consumo impreso, <strong>sin propina</strong>. Lo compararemos con los productos antes de finalizar.</p>
+        <label class="account-wizard-field compact"><span>Subtotal de la boleta ($)</span>
+          <input id="accountWizardReceiptSubtotal" type="number" min="0" step="1" value="${Number(bill.receiptExpectedSubtotal || 0) || ''}" placeholder="Ej: 24990" />
+        </label>
+        <p class="helper-text">Si no tienes la boleta, déjalo vacío. No se inventarán productos.</p>
+      </section>
     `}
+    ${supportsTip ? `
+      <section class="account-wizard-card-mini account-wizard-tip-card">
+        <h3>¿Quieres agregar propina?</h3>
+        <p class="helper-text">Puedes dejarla en 0%, usar el 10% sugerido o escribir otro porcentaje.</p>
+        <div class="account-wizard-tip-options">
+          <button class="account-wizard-suggestion ${currentTip === 0 ? 'is-selected' : ''}" data-wizard-tip="0" type="button">Sin propina</button>
+          <button class="account-wizard-suggestion ${currentTip === 10 ? 'is-selected' : ''}" data-wizard-tip="10" type="button">10% sugerido</button>
+        </div>
+        <label class="account-wizard-field compact"><span>Otro porcentaje (%)</span><input id="accountWizardTipPercent" type="number" min="0" max="100" step="0.5" value="${currentTip}" /></label>
+        <label class="account-wizard-field compact">
+          <span>¿Cómo repartir la propina?</span>
+          <select id="accountWizardTipSplitMode">
+            <option value="proportional" ${!['equal', 'custom'].includes(bill.tipSplitMode) ? 'selected' : ''}>Según el consumo</option>
+            <option value="equal" ${bill.tipSplitMode === 'equal' ? 'selected' : ''}>En partes iguales</option>
+            <option value="custom" ${bill.tipSplitMode === 'custom' ? 'selected' : ''}>Montos personalizados</option>
+          </select>
+        </label>
+        ${people.length ? `
+          <div class="account-wizard-tip-members">
+            <strong>¿Alguien no participa de la propina?</strong>
+            ${people.map((person) => `<label><input type="checkbox" data-wizard-tip-exempt="${escapeHtml(person.id)}" ${(bill.tipExemptIds || []).includes(person.id) ? 'checked' : ''}/> ${escapeHtml(person.name)} no participa</label>`).join('')}
+          </div>
+        ` : ''}
+        ${bill.tipSplitMode === 'custom' && currentTip > 0 ? `
+          <div class="account-wizard-tip-custom">
+            <strong>Asigna montos de propina (CLP)</strong>
+            ${people.filter((person) => !(bill.tipExemptIds || []).includes(person.id)).map((person) => `
+              <label class="account-wizard-field compact"><span>${escapeHtml(person.name)}</span>
+                <input type="number" min="0" step="1" data-wizard-tip-custom="${escapeHtml(person.id)}" value="${Math.max(0, Math.round(Number(bill.tipCustomAmounts?.[person.id]) || 0))}" />
+              </label>`).join('')}
+            <p class="helper-text">La suma debe coincidir con la propina total. La revisión indicará cualquier diferencia.</p>
+          </div>
+        ` : ''}
+      </section>
+    ` : ''}
     <section class="account-wizard-card-mini">
       <h3>${isQuick ? 'Vista previa' : 'Gastos agregados'}</h3>
       ${isQuick ? `<p class="account-wizard-total-preview">Total actual: <strong>${formatCurrency(Number(bill.quickTotal || 0))}</strong></p>` : `<ul class="account-wizard-product-list">${productsHtml || '<li class="is-empty">Aún no hay gastos.</li>'}</ul>`}
@@ -6512,9 +6736,77 @@ function renderAccountWizardExpensesStep() {
   dom.accountWizardBody.querySelectorAll('[data-wizard-expense-mode]').forEach((button) => {
     button.addEventListener('click', () => setAccountWizardExpenseMode(button.dataset.wizardExpenseMode));
   });
+  dom.accountWizardBody.querySelectorAll('[data-wizard-suggestion]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const chosen = examples[Number(button.dataset.wizardSuggestion)];
+      if (!chosen) return;
+      const name = dom.accountWizardBody.querySelector('#accountWizardProductName');
+      const category = dom.accountWizardBody.querySelector('#accountWizardProductCategory');
+      if (name) name.value = chosen.name;
+      if (category) category.value = CATEGORIES.includes(chosen.category) ? chosen.category : 'Otros';
+      dom.accountWizardBody.querySelector('#accountWizardProductAmount')?.focus();
+    });
+  });
+  dom.accountWizardBody.querySelectorAll('[data-wizard-tip]').forEach((button) => {
+    button.addEventListener('click', () => {
+      bill.tipPercent = Number(button.dataset.wizardTip);
+      addBillActivity('Propina ajustada desde el asistente.', 'expense', bill);
+      persistAndRender();
+      renderAccountWizard();
+    });
+  });
+  dom.accountWizardBody.querySelector('#accountWizardTipSplitMode')?.addEventListener('change', (event) => {
+    bill.tipSplitMode = ['equal', 'custom'].includes(event.target.value) ? event.target.value : 'proportional';
+    persistAndRender();
+    renderAccountWizard();
+  });
+  dom.accountWizardBody.querySelectorAll('[data-wizard-tip-exempt]').forEach((box) => {
+    box.addEventListener('change', () => {
+      const exempt = new Set(bill.tipExemptIds || []);
+      if (box.checked) exempt.add(box.dataset.wizardTipExempt);
+      else exempt.delete(box.dataset.wizardTipExempt);
+      bill.tipExemptIds = [...exempt];
+      persistAndRender();
+      renderAccountWizard();
+    });
+  });
+  dom.accountWizardBody.querySelectorAll('[data-wizard-tip-custom]').forEach((input) => {
+    input.addEventListener('change', () => {
+      const amount = Number(input.value);
+      if (!Number.isFinite(amount) || amount < 0) {
+        showToast('Ingresa un monto de propina válido.');
+        return;
+      }
+      bill.tipCustomAmounts = { ...(bill.tipCustomAmounts || {}), [input.dataset.wizardTipCustom]: Math.round(amount) };
+      persistAndRender();
+      renderAccountWizard();
+    });
+  });
+  dom.accountWizardBody.querySelector('#accountWizardTipPercent')?.addEventListener('change', (event) => {
+    const proposed = Number(event.target.value);
+    if (!Number.isFinite(proposed) || proposed < 0 || proposed > 100) {
+      showToast('Ingresa una propina entre 0% y 100%.');
+      event.target.value = String(bill.tipPercent || 0);
+      return;
+    }
+    bill.tipPercent = proposed;
+    addBillActivity('Propina personalizada desde el asistente.', 'expense', bill);
+    persistAndRender();
+    renderAccountWizard();
+  });
   dom.accountWizardBody.querySelector('#accountWizardQuickTotal')?.addEventListener('input', (event) => {
     bill.quickTotal = Math.max(0, Number(event.target.value || 0));
     addBillActivity('Total rápido actualizado desde creación guiada.', 'expense', bill);
+    persistAndRender();
+  });
+  dom.accountWizardBody.querySelector('#accountWizardReceiptSubtotal')?.addEventListener('change', (event) => {
+    const amount = event.target.value.trim() === '' ? 0 : Number(event.target.value);
+    if (!Number.isFinite(amount) || amount < 0 || !Number.isInteger(amount)) {
+      showToast('Ingresa un subtotal de boleta válido en pesos.');
+      event.target.value = bill.receiptExpectedSubtotal || '';
+      return;
+    }
+    bill.receiptExpectedSubtotal = amount;
     persistAndRender();
   });
   dom.accountWizardBody.querySelector('#accountWizardAddProduct')?.addEventListener('click', addProductFromAccountWizard);
@@ -6558,9 +6850,11 @@ function addProductFromAccountWizard() {
   const bill = ensureAccountWizardDraft();
   const nameInput = dom.accountWizardBody.querySelector('#accountWizardProductName');
   const amountInput = dom.accountWizardBody.querySelector('#accountWizardProductAmount');
+  const quantityInput = dom.accountWizardBody.querySelector('#accountWizardProductQuantity');
   const categoryInput = dom.accountWizardBody.querySelector('#accountWizardProductCategory');
   const name = String(nameInput?.value || '').trim();
   const amount = Number(amountInput?.value || 0);
+  const quantity = Number(quantityInput?.value || 0);
   const consumers = [...dom.accountWizardBody.querySelectorAll('.account-wizard-consumers input[type="checkbox"]:checked')]
     .map((input) => ({ personId: input.value, share: 1 }));
 
@@ -6569,7 +6863,11 @@ function addProductFromAccountWizard() {
     return;
   }
   if (!Number.isFinite(amount) || amount <= 0) {
-    showToast('Ingresa un monto mayor a cero.');
+    showToast('Ingresa un precio mayor a cero.');
+    return;
+  }
+  if (!Number.isInteger(quantity) || quantity <= 0 || quantity > 10000) {
+    showToast('Ingresa una cantidad entera entre 1 y 10.000.');
     return;
   }
   if (consumers.length === 0) {
@@ -6581,7 +6879,7 @@ function addProductFromAccountWizard() {
     id: createId('product'),
     name,
     unitPrice: amount,
-    quantity: 1,
+    quantity,
     category: CATEGORIES.includes(categoryInput?.value) ? categoryInput.value : 'Otros',
     splitMode: 'participants',
     dueDate: '',
@@ -6605,6 +6903,7 @@ function renderAccountWizardReviewStep() {
   const bill = ensureAccountWizardDraft();
   const checks = getAccountWizardReviewChecks(bill);
   const missing = getAccountWizardMissingItems(bill);
+  const calculation = calculateBill(bill);
   const total = getBillGrandTotal(bill);
   const ready = missing.length === 0;
   dom.accountWizardBody.innerHTML = `
@@ -6616,8 +6915,22 @@ function renderAccountWizardReviewStep() {
     <div class="account-wizard-review-grid">
       <div><span>Tipo</span><strong>${escapeHtml(bill.templateLabel || getBillModeLabel(bill.mode))}</strong></div>
       <div><span>Pagador</span><strong>${escapeHtml((bill.people || []).find((person) => person.id === bill.payerId)?.name || 'Pendiente')}</strong></div>
-      <div><span>Total</span><strong>${formatCurrency(total)}</strong></div>
+      <div><span>Propina</span><strong>${formatCurrency(calculateBill(bill).tipAmount)}</strong></div>
+      <div><span>Total con propina</span><strong>${formatCurrency(total)}</strong></div>
     </div>
+    <section class="account-wizard-card-mini">
+      <h3>Resumen por persona</h3>
+      <div class="account-wizard-person-results">
+        ${(bill.people || []).map((person) => {
+          const detail = calculation.personDetails[person.id];
+          return `<div class="account-wizard-person-result">
+            <strong>${escapeHtml(person.name)}</strong>
+            <small>Consumos y deudas: ${formatCurrency(detail?.subtotal || 0)} · Propina: ${formatCurrency(detail?.tip || 0)}</small>
+            <b>${formatCurrency(detail?.total || 0)}</b>
+          </div>`;
+        }).join('')}
+      </div>
+    </section>
     <section class="account-wizard-card-mini">
       <h3>Revisión rápida</h3>
       <div class="account-wizard-check-list">
@@ -6644,11 +6957,8 @@ function renderAccountWizardReviewStep() {
 }
 
 function getBillGrandTotal(bill) {
-  if (!bill) return 0;
-  if (bill.mode === 'quick') return Number(bill.quickTotal || 0);
-  const subtotal = (bill.products || []).reduce((sum, product) => sum + Number(product.unitPrice || 0) * Number(product.quantity || 1), 0);
-  const tip = bill.mode === 'home' ? 0 : subtotal * (Number(bill.tipPercent || 0) / 100);
-  return subtotal + tip;
+  // Una sola fuente de verdad: incluye la propina también en total rápido.
+  return bill ? calculateBill(bill).grandTotal : 0;
 }
 
 function accountWizardNext() {
@@ -8863,7 +9173,9 @@ async function fetchSharedAccounts() {
 
     if (membershipError) throw membershipError;
 
+    // Sólo las invitaciones aceptadas conceden acceso al contenido de la cuenta.
     const memberAccountIds = [...new Set((memberships || [])
+      .filter((item) => item.status === 'accepted')
       .map((item) => item.account_id)
       .filter(Boolean))];
 
@@ -8926,6 +9238,18 @@ async function fetchSharedAccounts() {
 
     const accountById = new Map(memberAccounts.map((account) => [account.id, account]));
 
+    // La RPC sólo devuelve el título de las invitaciones propias pendientes.
+    // Nunca solicitar account_state de una cuenta hasta que la invitación se acepte.
+    let pendingInviteTitles = new Map();
+    if ((memberships || []).some((item) => item.status === 'pending')) {
+      const { data: titles, error: titlesError } = await supabaseClient.rpc('list_my_pending_shared_invites');
+      if (titlesError) {
+        console.warn('No se pudieron recuperar los nombres de invitaciones pendientes:', titlesError);
+      } else {
+        pendingInviteTitles = new Map((titles || []).map((item) => [item.account_id, item.title]));
+      }
+    }
+
     const accepted = (memberships || [])
       .filter((item) => item.status === 'accepted' && accountById.has(item.account_id))
       .map((item) => ({ ...accountById.get(item.account_id), role: item.role }));
@@ -8933,12 +9257,11 @@ async function fetchSharedAccounts() {
     sharedInvitesCache = (memberships || [])
       .filter((item) => item.status === 'pending')
       .map((item) => {
-        const account = accountById.get(item.account_id) || {};
         return {
           accountId: item.account_id,
           role: item.role,
           status: item.status,
-          title: account.title || account.account_state?.name || 'Cuenta compartida',
+          title: pendingInviteTitles.get(item.account_id) || 'Cuenta compartida',
         };
       });
 
@@ -9454,6 +9777,7 @@ async function saveSharedActiveBillNow() {
 }
 
 function renderBillList() {
+  renderAccountOverviewCounts();
   const search = dom.historySearchInput.value.trim().toLowerCase();
   const filter = dom.historyFilterSelect.value;
   const typeFilter = dom.historyTypeFilterSelect?.value || 'all';
@@ -9467,7 +9791,7 @@ function renderBillList() {
     return bill.mode === typeFilter;
   };
 
-  const filteredBills = state.bills
+  const filteredBills = (isLikelyFirstUseState() ? [] : state.bills)
     .filter((bill) => {
       const status = getBillStatus(bill);
       const matchesSearch = bill.name.toLowerCase().includes(search);
@@ -9493,6 +9817,16 @@ function renderBillList() {
       }
       return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
     });
+
+  if (dom.ccHistoryResultsCount) {
+    const total = getAccountOverviewCounts().saved;
+    dom.ccHistoryResultsCount.textContent = `${filteredBills.length} de ${total} cuenta${total === 1 ? '' : 's'}`;
+  }
+  dom.ccHistoryFilterButtons?.forEach((button) => {
+    const selected = button.dataset.ccHistoryFilter === filter;
+    button.classList.toggle('is-selected', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  });
 
   if (filteredBills.length === 0) {
     const message = search
@@ -9526,7 +9860,7 @@ function renderBillList() {
     const productCount = bill.mode === 'quick' ? (Number(bill.quickTotal || 0) > 0 ? 1 : 0) : bill.products.length;
     const ownershipLabel = bill.sharedAccountId ? 'Compartida' : bill.recurringGroupId ? 'Recurrente' : 'Personal';
     row.innerHTML = `
-      <button class="bill-item history-bill-open" type="button" aria-label="Abrir ${escapeHtml(bill.name)}">
+      <button class="bill-item history-bill-open" type="button" aria-label="Abrir resumen de ${escapeHtml(bill.name)}">
         <div class="history-bill-main">
           <span class="history-status-line"><em class="history-status-badge is-${status}">${statusLabel}</em><em>${escapeHtml(getBillModeLabel(bill.mode))}</em><em>${ownershipLabel}</em></span>
           <strong>${escapeHtml(bill.name)}</strong>
@@ -9548,6 +9882,7 @@ function renderBillList() {
       editingProductId = null;
       saveState();
       render();
+      setAppSection('summary', { instant: true });
       showToast('Cuenta seleccionada.');
     });
 
@@ -12688,8 +13023,12 @@ function personDetailRows(person, bill, calculation) {
     return [[person.name, 'Sin consumos registrados', '', 0, 0, 0, '', person.paid ? 'Pagado' : 'Pendiente']];
   }
 
+  const tipEligibleSubtotal = detail.items
+    .filter((item) => item.splitMode !== 'carryover')
+    .reduce((sum, item) => sum + item.amount, 0);
   return detail.items.map((item) => {
-    const itemTip = item.amount * ((Number(bill.tipPercent) || 0) / 100);
+    const itemTip = item.splitMode === 'carryover' || !tipEligibleSubtotal
+      ? 0 : detail.tip * (item.amount / tipEligibleSubtotal);
 
     return [
       person.name,
@@ -13811,6 +14150,28 @@ dom.templateChoiceButtons?.forEach((button) => {
   button.addEventListener('click', () => selectTemplatePreview(button.dataset.template, { scroll: true }));
 });
 
+// Los eventos del asistente se enlazan una sola vez al iniciar la aplicación.
+// Registrarlos dentro de setAppSection duplicaba handlers en cada navegación.
+dom.accountWizardCancelButton?.addEventListener('click', cancelAccountWizard);
+dom.accountWizardCloseButton?.addEventListener('click', cancelAccountWizard);
+dom.accountWizardBackButton?.addEventListener('click', accountWizardBack);
+dom.accountWizardTopBackButton?.addEventListener('click', () => {
+  if (accountWizardState?.step > 0) accountWizardBack();
+  else cancelAccountWizard();
+});
+dom.accountWizardTopCloseButton?.addEventListener('click', cancelAccountWizard);
+dom.accountWizardNextButton?.addEventListener('click', accountWizardNext);
+dom.accountWizard?.addEventListener('click', (event) => {
+  if (event.target?.dataset?.wizardCancel === 'true') {
+    cancelAccountWizard();
+  }
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && accountWizardState) {
+    cancelAccountWizard();
+  }
+});
+
 dom.templateAssistantStartButton?.addEventListener('click', () => createTemplateBill(selectedTemplateKey));
 dom.templateAssistantPeopleButton?.addEventListener('click', () => createTemplateBill(selectedTemplateKey));
 
@@ -13821,7 +14182,7 @@ dom.applyTemplateChangeButton?.addEventListener('click', () => {
 dom.createExampleBillButton?.addEventListener('click', createExampleBill);
 dom.loadDemoDataButton?.addEventListener('click', loadDemoData);
 dom.clearDemoDataButton?.addEventListener('click', () => clearDemoData());
-dom.startFirstBillButton?.addEventListener('click', focusTemplateChoices);
+dom.startFirstBillButton?.addEventListener('click', () => openAccountWizard());
 dom.firstUseExampleButton?.addEventListener('click', createExampleBill);
 dom.dismissFirstUseButton?.addEventListener('click', dismissFirstUseOnboarding);
 
@@ -13840,7 +14201,26 @@ dom.guideShareButtons?.forEach((button) => {
 dom.smartActionButton?.addEventListener('click', handleSmartAction);
 dom.continueActiveBillButton?.addEventListener('click', continueActiveBillFromHome);
 dom.homeActionOpenPaymentsButton?.addEventListener('click', () => setAppSection('payments', { scroll: false }));
-dom.homeNewBillButton?.addEventListener('click', focusGuidedNewBillChoices);
+dom.homeNewBillButton?.addEventListener('click', () => openAccountWizard());
+dom.homeContextButtons?.forEach((button) => {
+  button.addEventListener('click', () => {
+    const templateKey = button.dataset.ccHomeTemplate || 'restaurant';
+    openAccountWizard(templateKey);
+    // Ya eligió la situación en Inicio; puede volver a cambiarla con «Atrás».
+    if (accountWizardState) {
+      accountWizardState.step = 1;
+      renderAccountWizard();
+    }
+  });
+});
+dom.homeAllTypesButton?.addEventListener('click', () => openAccountWizard('custom'));
+dom.historyNewBillButton?.addEventListener('click', () => openAccountWizard());
+dom.ccHistoryFilterButtons?.forEach((button) => {
+  button.addEventListener('click', () => {
+    dom.historyFilterSelect.value = button.dataset.ccHistoryFilter;
+    renderBillList();
+  });
+});
 dom.simpleModeButton?.addEventListener('click', () => setExperienceMode('simple'));
 dom.advancedModeButton?.addEventListener('click', () => setExperienceMode('advanced'));
 dom.toggleAdvancedToolsButton?.addEventListener('click', toggleAdvancedToolsVisibility);
@@ -13851,7 +14231,7 @@ dom.quickProductMethodButton?.addEventListener('click', showQuickProductsArea);
 dom.quickTotalMethodButton?.addEventListener('click', focusQuickTotalPanel);
 
 
-dom.newBillButton.addEventListener('click', focusGuidedNewBillChoices);
+dom.newBillButton.addEventListener('click', () => openAccountWizard());
 dom.duplicateBillButton.addEventListener('click', duplicateBill);
 dom.archiveBillButton.addEventListener('click', toggleArchiveBill);
 dom.closeBillButton?.addEventListener('click', toggleCloseBill);
