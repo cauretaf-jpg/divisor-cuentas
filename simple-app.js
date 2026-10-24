@@ -101,10 +101,28 @@ function seededTip(){const raw=draft.mode==="total"?Number(draft.total||0):draft
  draft.tipCustom=C.splitPesos(Math.max(0,amount),ids);
 }
 function renderResult(){
- if(!result)return;const r=result;
- $("resultName").textContent=draft.title.trim()||C.names[draft.category]||"Tu cuenta";
- $("resultAmount").textContent=C.money(r.total);$("resultBreakdown").textContent="Consumo "+C.money(r.subtotal)+" + propina "+C.money(r.tip);
- $("resultPeople").innerHTML=r.members.map((p,i)=>'<div class="person-result"><span class="avatar">'+(i+1)+'</span><div class="person-copy"><strong>'+esc(p.name)+'</strong><small>Consumo '+C.money(p.base)+' · Propina '+C.money(p.tip)+'</small></div><b>'+C.money(p.due)+'</b></div>').join("");
+ if(!result)return;
+ const r=result, detail=C.receiptDetails(draft,r);
+ $("receiptNames").textContent=detail.participants;
+ $("resultName").textContent=detail.title;
+ $("resultAmount").textContent=C.money(detail.total);
+ $("resultBreakdown").textContent="Consumo "+C.money(detail.subtotal)+" + propina "+C.money(detail.tip);
+ $("resultPeople").innerHTML=detail.people.map(person=>`
+   <section class="receipt-person">
+     <div class="receipt-person-copy">
+       <h3>${esc(person.name)}</h3>
+       <div class="receipt-consumption">
+         ${person.items.map(item=>`<p class="${item.shared?'shared-note':''}">${esc(item.label)}</p>`).join("")}
+       </div>
+       <p class="receipt-person-math">${C.money(person.base)} + ${C.money(person.tip)} propina</p>
+     </div>
+     <strong class="receipt-person-total">${C.money(person.total)}</strong>
+   </section>`).join("");
+ $("receiptItemSummary").innerHTML=detail.summary.map(item=>`
+   <div class="receipt-summary-row">
+     <span>${esc(item.name)} x${item.qty}</span><strong>${C.money(item.total)}</strong>
+   </div>`).join("")+`
+   <div class="receipt-summary-row"><span>Propina total</span><strong>${C.money(detail.tip)}</strong></div>`;
  $("transferSection").classList.toggle("hidden",!r.transfers.length);
  $("transferRows").innerHTML=r.transfers.map(t=>'<div class="transfer-row"><span>'+esc(t.from)+' → '+esc(t.to)+'</span><b>'+C.money(t.amount)+'</b></div>').join("");
  if(loggedUser){$("cloudCalloutTitle").textContent="Tu cuenta se sincroniza con Supabase";$("cloudCalloutText").textContent="Tus resultados estarán disponibles cuando ingreses en otro dispositivo.";$("cloudAction").textContent="Sincronizar";}
@@ -124,9 +142,28 @@ function calculate(){
  catch(e){toast(e.message||"No se pudo calcular.");}
 }
 async function share(){
- const text=C.receiptText(draft,result);
- if(navigator.share){try{await navigator.share({title:"Cuenta Clara",text});return;}catch(e){if(e.name==="AbortError")return;}}
- window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank","noopener,noreferrer");
+ if(!draft||!result)return;
+ try {
+   const didShare=await globalThis.CCSimpleReceipt.share(draft,result);
+   if(!didShare){
+     await globalThis.CCSimpleReceipt.download(draft,result);
+     toast("Imagen descargada. Puedes adjuntarla en WhatsApp o compartirla desde tu galería.");
+   }
+ }catch(error){
+   if(error?.name==="AbortError")return;
+   console.error("Error al compartir imagen:",error);
+   toast("No se pudo compartir la imagen. Intenta descargar el comprobante.");
+ }
+}
+async function downloadReceipt(){
+ if(!draft||!result)return;
+ try {
+   await globalThis.CCSimpleReceipt.download(draft,result);
+   toast("Comprobante PNG descargado.");
+ }catch(error){
+   console.error("No se pudo descargar el comprobante:",error);
+   toast(error.message||"No se pudo generar la imagen.");
+ }
 }
 async function copy(){
  const text=C.receiptText(draft,result);
@@ -207,6 +244,7 @@ function bind(){
  $("multiPayers").addEventListener("input",e=>{const x=e.target.closest("[data-paid]");if(x){draft.payments[x.dataset.paid]=Number(x.value||0);persist();}});
  $("calculateBtn").addEventListener("click",calculate);
  $("copyBtn").addEventListener("click",copy);$("shareBtn").addEventListener("click",share);
+ $("downloadImageBtn").addEventListener("click",downloadReceipt);
  $("whatsappBtn").addEventListener("click",()=>{
    if(!draft||!result)return;
    window.open("https://wa.me/?text="+encodeURIComponent(C.receiptText(draft,result)),"_blank","noopener,noreferrer");
