@@ -9,7 +9,7 @@
   <title>Cuenta Clara | Divide gastos sin registro</title>
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="simple.css?v=2.0.0">
+  <link rel="stylesheet" href="simple.css?v=2.0.1">
 </head>
 <body>
   <div class="shell">
@@ -89,9 +89,21 @@
       </section>
       <section id="screenResult" class="screen result hidden" aria-labelledby="resultTitle">
         <div class="flow-head"><button class="back" id="resultBack" type="button" aria-label="Volver a editar la cuenta">←</button><div><div class="eyebrow">PASO 3 DE 3</div><h1 id="resultTitle">¡Cuenta dividida!</h1><p>Este es el detalle que puedes compartir.</p></div></div><div class="progress" aria-hidden="true"><span class="done"></span><span class="done"></span><span class="done"></span></div>
-        <div class="result-card"><div class="result-total"><span>RESULTADO DE TU CUENTA</span><h2 id="resultName">Bar</h2><small>Total a dividir</small><strong id="resultAmount">$0</strong><p id="resultBreakdown"></p></div>
-          <div class="result-inside"><h3>¿Cuánto corresponde a cada persona?</h3><div id="resultPeople"></div><div id="transferSection"><h3>¿Quién le transfiere a quién?</h3><div id="transferRows"></div></div></div></div>
-        <div class="result-actions"><button id="shareBtn" class="primary-button" type="button">Compartir resultado <span aria-hidden="true">↗</span></button><button id="copyBtn" class="secondary-button" type="button">Copiar detalle</button><button id="whatsappBtn" class="secondary-button" type="button">WhatsApp ↗</button><button id="newBtn" class="text-action" type="button">Dividir otra cuenta</button></div>
+        <article id="receiptPreview" class="receipt-paper" aria-label="Comprobante con el detalle de la cuenta">
+          <header class="receipt-heading"><h2>Detalle de la cuenta</h2><p id="receiptNames"></p><small id="resultName"></small></header>
+          <div id="resultPeople" class="receipt-people"></div>
+          <div id="receiptItemSummary" class="receipt-summary"></div>
+          <div class="receipt-grand"><span>Total con propina</span><strong id="resultAmount">$0</strong></div>
+          <p id="resultBreakdown" class="sr-only"></p>
+        </article>
+        <section id="transferSection" class="receipt-transfers"><h3>¿Quién le transfiere a quién?</h3><div id="transferRows"></div></section>
+        <div class="result-actions">
+          <button id="shareBtn" class="primary-button" type="button">Compartir imagen <span aria-hidden="true">↗</span></button>
+          <button id="downloadImageBtn" class="secondary-button" type="button">Descargar comprobante PNG</button>
+          <button id="copyBtn" class="secondary-button" type="button">Copiar detalle</button>
+          <button id="whatsappBtn" class="secondary-button" type="button">WhatsApp ↗</button>
+          <button id="newBtn" class="text-action" type="button">Dividir otra cuenta</button>
+        </div>
         <div class="cloud-callout" id="cloudCallout"><span>☁</span><div><strong id="cloudCalloutTitle">¿Quieres conservar esta cuenta?</strong><p id="cloudCalloutText">Se guardó en este dispositivo. Inicia sesión para sincronizarla en la nube.</p></div><button type="button" id="cloudAction">Guardar en la nube</button></div>
       </section>
     </main>
@@ -100,9 +112,10 @@
   <dialog id="historyDialog" class="modal"><div class="modal-head"><div><span class="eyebrow">EN ESTE DISPOSITIVO</span><h2>Mis cuentas</h2></div><button class="icon-close" data-close="historyDialog" type="button" aria-label="Cerrar">×</button></div><p class="modal-intro" id="historyInfo">Tus cuentas guardadas aparecen aquí.</p><div id="savedList" class="saved-list"></div></dialog>
   <dialog id="authDialog" class="modal"><div class="modal-head"><div><span class="eyebrow">OPCIONAL</span><h2 id="authTitle">Guardar en la nube</h2></div><button class="icon-close" data-close="authDialog" type="button" aria-label="Cerrar">×</button></div><p class="modal-intro">Puedes seguir dividiendo cuentas sin iniciar sesión. Al ingresar, tus resultados se sincronizarán.</p><form id="authForm"><label class="field"><span>Correo electrónico</span><input id="authEmail" type="email" autocomplete="email" required placeholder="correo@ejemplo.com"></label><label class="field"><span>Contraseña</span><input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="Mínimo 6 caracteres"></label><div class="auth-buttons"><button class="primary-button" type="submit" id="authSubmit">Ingresar</button><button class="secondary-button" type="button" id="authSwitch">Crear cuenta</button></div><button type="button" id="resetPassword" class="text-action">Recuperar contraseña</button><p id="authMessage" class="auth-message" role="status"></p></form></dialog>
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="simple-core.js?v=2.0.0"></script>
+  <script src="simple-core.js?v=2.0.1"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="supabase-config.js?v=13.21.0"></script>
-  <script src="simple-app.js?v=2.0.0"></script>
+  <script src="simple-receipt.js?v=2.0.1"></script>
+  <script src="simple-app.js?v=2.0.1"></script>
 </body>
 </html>
