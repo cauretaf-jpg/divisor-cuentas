@@ -1,10 +1,41 @@
 # Cuenta Clara — Estado del proyecto
 
-**Versión actual:** `v13.21.0`  
+**Versión propuesta en rama:** `v2.0.0-simple` (producción sigue en v13.21.0)  
 **Base de esta versión:** `Cuenta-Clara-v13.20.4-acceso-sesion-y-readme`  
 **Tipo de proyecto:** aplicación web estática publicada en Vercel, con Supabase para autenticación, sincronización, amistades y cuentas compartidas.
 
 > Este README es la bitácora de continuidad del proyecto. Cada ZIP nuevo debe actualizar este archivo, agregar una nota técnica en `docs/revisiones/` y una validación en `docs/validaciones/`.
+
+---
+
+## 0A. Comprobante compartible como imagen (24/10/2026)
+
+La pantalla Resultado adopta el estilo minimalista de la imagen aportada por el usuario. Incluye consumos y propina por persona, importes individuales destacados, productos consolidados, cortesías y total con propina. Genera un **PNG local de alta resolución**, sin registro, con opciones para compartir mediante el dispositivo o descargar el archivo. Se mantiene copiar texto y WhatsApp.
+
+Se añadió `simple-receipt.js` y se actualizaron `simple-core.js`, `simple-app.js`, `simple.css`, `index.html`, `service-worker.js` y las pruebas. El ejemplo Carlos/Gyn/Daniela produce $9.460/$4.730/$7.590, propina $1.980 y total $21.780. CI Node y Chromium aprobados. No se ejecutó SQL ni se modificó producción.
+
+Detalles: `docs/revisiones/COMPROBANTE_IMAGEN_2026_10_24.md`.
+
+---
+
+## 0. Nueva experiencia: Cuenta Clara 2.0 Simple (octubre 2026)
+
+**Estado: implementación realizada en rama, pendiente de publicación y prueba de sincronización con usuarios reales.**
+
+El inicio por defecto (`index.html`) ahora es una calculadora de **tres pantallas**: elegir Bar/Restaurante/Supermercado/Otro → registrar gastos/personas/propina/pagador → ver y compartir resultado. No exige registro.
+
+- Motor `simple-core.js`: división CLP igualitaria o personalizada, productos, cantidades, consumidores, propinas (igual, proporcional o manual y exenciones), pagadores múltiples, conciliación manual y transferencias.
+- Interfaz `simple-app.js` + `simple.css`, responsiva y desvinculada de las pantallas de administración anteriores.
+- Historial y borrador guardados localmente; recuperación tras recarga y opciones de compartir, copiar y WhatsApp.
+- Registro y sincronización **opcionales** mediante Supabase. La tabla `simple_calculations` y su RLS se crearon con `sql/09-simple-calculations-2026-10.sql`, aplicado a `cuenta-clara-db` sin modificar tablas anteriores.
+- PWA: `manifest.json` apunta a `index.html` y el worker almacena los archivos nuevos.
+- **Compatibilidad anterior:** `app.html?advanced=1` mantiene íntegra la aplicación previa; `app.html#shared` preserva invitaciones compartidas. Sus datos anteriores no se borraron ni migraron.
+- Pruebas Node y Chromium (390 px y 1280 px), guardado local y cálculos. **No** se afirma todavía que la sincronización E2E esté validada sin dos sesiones Supabase reales.
+- Publicación pública no realizada: se trabaja en la rama `feature/cuenta-clara-2-calculadora-simple` y PR borrador.
+- Bitácora técnica: `docs/revisiones/CUENTA_CLARA_2_SIMPLE_2026_10.md`.
+- CI: `.github/workflows/simple-calculator-ci.yml`.
+
+Las secciones de este README que describen v13.21.0 se mantienen como documentación **de la versión avanzada**, no de la nueva experiencia predeterminada.
 
 ---
 
