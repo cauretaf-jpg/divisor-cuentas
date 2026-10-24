@@ -106,6 +106,34 @@ function calculate(b){
  }
  return {subtotal,tip,total,members,transfers};
 }
+// Modelo puro para el comprobante: usa los montos ya conciliados de calculate().
+function receiptDetails(d,r){
+ const people=r.members.map(member=>{
+   const entries=d.mode==="items"?(d.items||[])
+      .filter(item=>(item.consumers||[]).includes(member.id))
+      .map(item=>({
+         label:(Number(item.qty)===1?"1":String(item.qty))+" "+String(item.name).trim()+
+            ((item.consumers||[]).length>1?" · compartido":""),
+         shared:(item.consumers||[]).length>1,
+         courtesy:Number(item.price)===0
+      }))
+      :[{label:"División del monto total",shared:false,courtesy:false}];
+   return {name:member.name,items:entries,base:member.base,tip:member.tip,total:member.due};
+ });
+ const summary=[];
+ if(d.mode==="items"){
+   const groups=new Map();
+   for(const item of d.items||[]){
+     const name=String(item.name||"").trim(),price=Number(item.price);
+     const key=name.toLocaleLowerCase("es-CL")+"|"+price;
+     if(!groups.has(key))groups.set(key,{name,qty:0,price,total:0});
+     const row=groups.get(key);row.qty+=Number(item.qty);row.total+=Number(item.qty)*price;
+   }
+   summary.push(...groups.values());
+ }else summary.push({name:"Consumo total",qty:1,price:r.subtotal,total:r.subtotal});
+ return {title:d.title||"",participants:people.map(p=>p.name).join(", "),people,summary,
+   subtotal:r.subtotal,tip:r.tip,total:r.total,transfers:r.transfers};
+}
 function receiptText(d,r){
  const out=["Cuenta Clara · "+(d.title||names[d.category]||"Cuenta"),"Consumo: "+money(r.subtotal),"Propina: "+money(r.tip),"TOTAL: "+money(r.total),"","Por persona:"];
  for(const p of r.members)out.push(p.name+": "+money(p.due)+" (consumo "+money(p.base)+", propina "+money(p.tip)+")");
@@ -113,5 +141,5 @@ function receiptText(d,r){
  else if(d.payerMode==="unknown")out.push("","No se indicó quién pagó.");
  return out.join("\n");
 }
-globalThis.CCSimpleCore={suggestions,names,uid,money,splitPesos,initial,validate,calculate,receiptText};
+globalThis.CCSimpleCore={suggestions,names,uid,money,splitPesos,initial,validate,calculate,receiptText,receiptDetails};
 })();
