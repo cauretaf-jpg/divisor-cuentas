@@ -135,11 +135,25 @@ function receiptDetails(d,r){
    subtotal:r.subtotal,tip:r.tip,total:r.total,transfers:r.transfers};
 }
 function receiptText(d,r){
- const out=["Cuenta Clara · "+(d.title||names[d.category]||"Cuenta"),"Consumo: "+money(r.subtotal),"Propina: "+money(r.tip),"TOTAL: "+money(r.total),"","Por persona:"];
- for(const p of r.members)out.push(p.name+": "+money(p.due)+" (consumo "+money(p.base)+", propina "+money(p.tip)+")");
- if(r.transfers.length){out.push("","Transferencias:");for(const t of r.transfers)out.push(t.from+" → "+t.to+": "+money(t.amount));}
- else if(d.payerMode==="unknown")out.push("","No se indicó quién pagó.");
+ const data=receiptDetails(d,r);
+ const out=["Detalle de la cuenta",data.participants];
+ if(data.title)out.push(data.title);
+ out.push("");
+ for(const person of data.people){
+   out.push(person.name);
+   for(const item of person.items)out.push("  "+item.label);
+   out.push("  "+money(person.base)+" + "+money(person.tip)+" propina");
+   out.push("  Total: "+money(person.total),"");
+ }
+ out.push("Productos:");
+ for(const item of data.summary)out.push("  "+item.name+" x"+item.qty+": "+money(item.total));
+ out.push("Propina total: "+money(data.tip),"TOTAL: "+money(data.total));
+ if(data.transfers.length){
+   out.push("","Transferencias:");
+   for(const transfer of data.transfers)out.push(transfer.from+" → "+transfer.to+": "+money(transfer.amount));
+ }else if(d.payerMode==="unknown")out.push("","No se indicó quién pagó.");
  return out.join("\n");
 }
+
 globalThis.CCSimpleCore={suggestions,names,uid,money,splitPesos,initial,validate,calculate,receiptText,receiptDetails};
 })();
