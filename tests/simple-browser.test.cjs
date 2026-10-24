@@ -50,7 +50,7 @@ async function wait(){for(let i=0;i<35;i++){try{if((await fetch(base)).ok)return
  await page.locator("#screenResult").waitFor({state:"visible"});
  assert.equal((await page.locator("#resultAmount").innerText()).trim(),"$20.000");
  assert.match(await page.locator("#receiptItemSummary").innerText(),/Queso x2/);
- assert.match(await page.locator("#receiptNames").innerText(),/Carlos, Enma/);
+ assert.match(await page.locator("#receiptNames").innerText(),/Carlos y Enma/);
  const [download] = await Promise.all([
    page.waitForEvent("download"),
    page.locator("#downloadImageBtn").click()
