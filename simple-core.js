@@ -109,15 +109,23 @@ function calculate(b){
 // Modelo puro para el comprobante: usa los montos ya conciliados de calculate().
 function receiptDetails(d,r){
  const people=r.members.map(member=>{
-   const entries=d.mode==="items"?(d.items||[])
-      .filter(item=>(item.consumers||[]).includes(member.id))
-      .map(item=>({
-         label:(Number(item.qty)===1?"1":String(item.qty))+" "+String(item.name).trim()+
-            ((item.consumers||[]).length>1?" · compartido":""),
-         shared:(item.consumers||[]).length>1,
-         courtesy:Number(item.price)===0
-      }))
-      :[{label:"División del monto total",shared:false,courtesy:false}];
+   let entries;
+   if(d.mode==="items"){
+     const grouped=new Map();
+     for(const item of d.items||[]){
+       // Las cortesías se muestran en la boleta global, sin adjudicar a nadie un cobro.
+       if(!(item.consumers||[]).includes(member.id)||Number(item.price)===0)continue;
+       const name=String(item.name).trim(), shared=item.consumers.length>1;
+       const key=name.toLocaleLowerCase("es-CL")+"|"+Number(item.price)+"|"+shared;
+       if(!grouped.has(key))grouped.set(key,{name,qty:0,shared});
+       grouped.get(key).qty+=Number(item.qty);
+     }
+     entries=[...grouped.values()].map(item=>({
+       label:item.shared?item.name+" x"+item.qty+" · compartido":item.qty+" "+item.name,
+       shared:item.shared
+     }));
+     if(!entries.length)entries=[{label:"Sin consumos cobrados",shared:false}];
+   }else entries=[{label:"División del monto total",shared:false}];
    return {name:member.name,items:entries,base:member.base,tip:member.tip,total:member.due};
  });
  const summary=[];
