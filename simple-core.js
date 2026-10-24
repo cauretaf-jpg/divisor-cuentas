@@ -139,7 +139,7 @@ function receiptDetails(d,r){
    }
    summary.push(...groups.values());
  }else summary.push({name:"Consumo total",qty:1,price:r.subtotal,total:r.subtotal});
- return {title:d.title||"",participants:people.map(p=>p.name).join(", "),people,summary,
+ return {title:d.title||"",participants:people.length>1?people.slice(0,-1).map(p=>p.name).join(", ")+" y "+people[people.length-1].name:(people[0]?.name||""),people,summary,
    subtotal:r.subtotal,tip:r.tip,total:r.total,transfers:r.transfers};
 }
 function receiptText(d,r){
