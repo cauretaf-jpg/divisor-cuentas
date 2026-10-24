@@ -20,6 +20,7 @@ jobs:
         run: |
           node --check simple-core.js
           node --check simple-app.js
+          node --check simple-receipt.js
           node --check service-worker.js
           node tests/simple-core.test.cjs
   navegador:
